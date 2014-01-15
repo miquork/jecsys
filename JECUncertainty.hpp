@@ -52,7 +52,6 @@ public:
   void _InitJEC();
   void _InitL2Res();
   double _Rjet(const double pTprime, const double eta);
-  double _Rjet_orig(const double pTprime, const double eta);
 
   // Statistical and systematic uncertainties
   //double _SystErr(const double pTprime, const double eta);// const;
@@ -71,9 +70,7 @@ public:
   double _PileUp(double pTprime, double eta);
   double _PileUpDataMC(double pTprime, double eta);
   double _PileUpBias(double pTprime, double eta);
-  double _PileUpBiasOld(double pTprime, double eta); // obsolete
   double _PileUpPt(double pTprime, double eta);
-  double _PileUpPtOld(double pTprime, double eta); // obsolete
   //
   double _Flavor(double pTprime, double eta) const;
   double _FlavorMixed(double pTprime, double eta, string smix) const;

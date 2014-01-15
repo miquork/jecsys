@@ -4,7 +4,6 @@
   //gSystem->SetIncludePath("-Iinclude -I.");
   //cout << "Include path: " << gSystem->GetIncludePath() << endl;
   gROOT->ProcessLine(".L tdrstyle_mod.C");
-  gROOT->ProcessLine(".L tools.C+");
 
   // For JEC central value
   gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/Utilities.cc+");
@@ -23,9 +22,6 @@
   
   setTDRStyle();
   
-  //drawJetCorrectionUncertainty("AK5PFchs"); // just basic
-  //drawJetCorrectionUncertainty("AK5PF"); // also source files
-
   drawJetCorrectionUncertainty("AK5PF"); // also source files
   //drawJetCorrectionUncertainty("AK5PFchs");
   //drawJetCorrectionUncertainty("AK7PF");

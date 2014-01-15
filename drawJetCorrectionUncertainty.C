@@ -25,37 +25,24 @@
 
 using namespace std;
 
-// Plotting
-//bool _pdf = true;
-//bool _eps = false;
 // Don't plot individual bins, just keep 4x2
 bool _minimal = true;
 
-// List of default settings
-//jec::JetAlgo  d_algo = jec::AK5PF;
-jec::JetAlgo  d_algo = jec::AK5PFchs;
-//jec::JetAlgo  d_algo = jec::AK7PF;
-//jec::JetAlgo  d_algo = jec::AK7PFchs;
-//jec::JetAlgo  d_algo = jec::AK5CALO;
-//jec::JetAlgo  d_algo = jec::AK7CALO;
-jec::DataType d_type = jec::DATA;
+// Print uncertainty (true) or source (false)
+bool _absUncert = true;
+// NB: All source files are currently printed together with AK5PF uncertainty
 
-const double d_npv = 14;//12.;//8.;
-//const double _lumi = 4700;
+// List of (hard-coded) default parameters
+jec::JetAlgo  d_algo = jec::AK5PFchs; // Replaced in function call
+const jec::DataType d_type = jec::DATA; // Uncertainties for data (or data/MC)
+const double d_npv = 14; // Average pile-up for L1 uncertainties
+const bool d_mpf = true; // L2L3Res uncertainties for MPF method
 
-const bool d_mpf = true;
-//const double d_npv = 2.2;
+// global histogram counter to avoid memory leaks from duplicate names
+int icnt(0);
 
 TCanvas *_canvas(0); // global canvas
 int _icanvas = 0;
-// Print uncertainty (true) or source (false)
-bool _absUncert = false;//true;
-
-//const double _lumi = 36;
-//const double minpt = 10.;
-//const double maxpt = 900.;//3000.;
-
-//const int kOpenTriangleDown = 32;
 
 const int kBeige = 41;
 const int kDarkGray = kGray+1;
@@ -841,7 +828,7 @@ void plotUncertainty(vector<uncert> const& sys,
   if (c2) { if (type=="fixEta") c2->SetLogx(); }
 
   const char *cy = ytitle.c_str();
-  TH1D *h0 = new TH1D(Form("h0_%s",name.c_str()),
+  TH1D *h0 = new TH1D(Form("h0_%s_%d",name.c_str(),++icnt),
 		      Form(";p_{T} (GeV);%s [%%]",cy),
 		      ndiv0, &x0[0]);//ndiv-2,&x[1]);
   if (type=="fixEta") h0->GetXaxis()->SetTitle("p_{T} (GeV)");
@@ -894,7 +881,7 @@ void plotUncertainty(vector<uncert> const& sys,
     gup->SetName(Form("L3_%s_up",u.name.c_str()));
     TGraph *gdw = new TGraph(0);//ndiv);
     gdw->SetName(Form("L3_%s_dw",u.name.c_str()));
-    TH1D *h = new TH1D(Form("L3_%s_%s_h",name.c_str(),u.name.c_str()),
+    TH1D *h = new TH1D(Form("L3_%s_%s_%d",name.c_str(),u.name.c_str(),++icnt),
 		       "",ndiv,&x[0]);
 
     for (int ix = 0; ix != ndiv; ++ix) {
@@ -1036,17 +1023,17 @@ void plotUncertainty(vector<uncert> const& sys,
     JECUncertainty rjet5cx(jec::AK5CALO, jec::DATA, jec::kMC, d_npv);
     JECUncertainty rjet7cx(jec::AK7CALO, jec::DATA, jec::kMC, d_npv);
 
-    ofstream fout5px("txt/Summer13_V1_MC_Uncertainty_AK5PF.txt",ios::out);
+    ofstream fout5px("txt/Summer13_V2_MC_Uncertainty_AK5PF.txt",ios::out);
     fout5px << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5sx("txt/Summer13_V1_MC_Uncertainty_AK5PFchs.txt",ios::out);
+    ofstream fout5sx("txt/Summer13_V2_MC_Uncertainty_AK5PFchs.txt",ios::out);
     fout5sx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5cx("txt/Summer13_V1_MC_Uncertainty_AK5Calo.txt",ios::out);
+    ofstream fout5cx("txt/Summer13_V2_MC_Uncertainty_AK5Calo.txt",ios::out);
     fout5cx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7px("txt/Summer13_V1_MC_Uncertainty_AK7PF.txt",ios::out);
+    ofstream fout7px("txt/Summer13_V2_MC_Uncertainty_AK7PF.txt",ios::out);
     fout7px << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7sx("txt/Summer13_V1_MC_Uncertainty_AK7PFchs.txt",ios::out);
+    ofstream fout7sx("txt/Summer13_V2_MC_Uncertainty_AK7PFchs.txt",ios::out);
     fout7sx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7cx("txt/Summer13_V1_MC_Uncertainty_AK7Calo.txt",ios::out);
+    ofstream fout7cx("txt/Summer13_V2_MC_Uncertainty_AK7Calo.txt",ios::out);
     fout7cx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
     for (int ieta = 0; ieta != ndiv_eta; ++ieta) {
