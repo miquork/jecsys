@@ -9,8 +9,12 @@
 
 using namespace std;
 
+// Turn debug on to produce more verbose output for debugging (e.g. listing individual sources)
+bool debug = true;
+
 bool testSources(string file1, string file2,
 		 double jetpt=50., double jeteta=2.4) {
+  std::cout<< (debug ? "WARNING: debug/verbose mode activated" : "") << std::endl;
   
   // Instantiate uncertainty sources
   //const int nsrc = 20;//21;//33;
@@ -62,6 +66,7 @@ bool testSources(string file1, string file2,
     unc->setJetPt(jetpt);
     unc->setJetEta(jeteta);
     double sup = unc->getUncertainty(true); // up variation
+    if(debug)printf("%20s: %10.7f \n",srcnames[isrc],sup); 
     unc->setJetPt(jetpt);
     unc->setJetEta(jeteta);
     double sdw = unc->getUncertainty(false); // down variation
