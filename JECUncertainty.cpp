@@ -610,11 +610,9 @@ double JECUncertainty::_PileUp(const double pTprime, const double eta) {
   // signed sources
   if (!(_errType & ~jec::kPileUpDataMC)) return smc;
   if (!(_errType & ~jec::kPileUpBias)) return sbias;
-
-  if (!(_errType & ~jec::kPileUpPtBB)) return (eta>=0.0 && eta<1.3) ? spt : 0;
-  if (!(_errType & ~jec::kPileUpPtEC)) return (eta>=1.3 && eta<3.0) ? spt : 0;
-  if (!(_errType & ~jec::kPileUpPtHF)) return (eta>=3.0 && eta<5.5) ? spt : 0;
-
+  if (!(_errType & ~jec::kPileUpPtBB)) return spt;
+  if (!(_errType & ~jec::kPileUpPtEC)) return spt;
+  if (!(_errType & ~jec::kPileUpPtHF)) return spt;
   if (!(_errType & ~jec::kPileUpPt)) return spt; // EXTRA
 
   return err;
