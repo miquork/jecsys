@@ -14,7 +14,7 @@
 
   // Test quadratic sum of sources in file1 against total in file2 at pT, eta
   testSources("txt/Summer13_V2_DATA_UncertaintySources_AK5PF.txt",
-	      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt", 50., 0.0);
+	      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt", 49.25, 2.0);
   // NB1: Above example files are provided in the package
   // NB2: More can be produced with mk_drawJetCorrectionUncertainty.C
 
