@@ -64,17 +64,17 @@ double JECUncertainty::Uncert(const double pTprime, const double eta) {
   if (!(_errType & ~jec::kAbsoluteFrag)) return errAbs;
   if (!(_errType & ~jec::kAbsoluteSPRE)) return errAbs;
   if (!(_errType & ~jec::kAbsoluteSPRH)) return errAbs;
-  if (!(_errType & ~jec::kRelativePtBB)) return errRel;
+  if (!(_errType & ~jec::kRelativePtBB))  return errRel;
   if (!(_errType & ~jec::kRelativePtEC1)) return errRel;
   if (!(_errType & ~jec::kRelativePtEC2)) return errRel;
   if (!(_errType & ~jec::kRelativePtHF))  return errRel;
   if (!(_errType & ~jec::kRelativePt))    return errRel; // EXTRA
   if (!(_errType & ~jec::kPileUpDataMC)) return errPileUp;
   if (!(_errType & ~jec::kPileUpBias))   return errPileUp;
-  if (!(_errType & ~jec::kPileUpPtBB))   return errPileUp;
-  if (!(_errType & ~jec::kPileUpPtEC))   return errPileUp;
-  if (!(_errType & ~jec::kPileUpPtHF))   return errPileUp;
-  if (!(_errType & ~jec::kPileUpPt))     return errPileUp; // EXTRA
+  if (!(_errType & ~jec::kPileUpPtBB)) return errPileUp;
+  if (!(_errType & ~jec::kPileUpPtEC)) return errPileUp;
+  if (!(_errType & ~jec::kPileUpPtHF)) return errPileUp;
+  if (!(_errType & ~jec::kPileUpPt))   return errPileUp; // EXTRA
   //
   if (!(_errType & ~jec::kFlavorMask))   return errFlavor;
 
@@ -729,7 +729,14 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
     //assert(fabs(sys-sysb)<0.002);
   }
 
-  return sys * _ajet;// _ajet: jet area/ 0.5^2
+  // 2014-Jan-16: fixed missing eta break-up
+  double x = fabs(etax);
+  if ((x>=0.0 && x<1.3 && _errType & jec::kPileUpPtBB) ||
+      (x>=1.3 && x<3.0 && _errType & jec::kPileUpPtEC) ||
+      (x>=3.0 && x<5.5 && _errType & jec::kPileUpPtHF))
+    return sys * _ajet;// _ajet: jet area/ 0.5^2
+  
+  return 0;
 } // _PileUpPt
 
 
@@ -775,6 +782,7 @@ double JECUncertainty::_Flavor(double pTprime, double eta) const {
 
   // This is MC truth flavor variation relative to QCD
   // It is not applied at the moment
+  /*
   if (_errType & jec::kFlavorMC) {
 
     // Update for 38X, Mar14: Base new estimates on Pythia/Herwig
@@ -826,6 +834,7 @@ double JECUncertainty::_Flavor(double pTprime, double eta) const {
     err2 += dr * dr;
     errFlavor = sqrt(err2);
   }
+  */
   
   return errFlavor;
 } // _Flavor

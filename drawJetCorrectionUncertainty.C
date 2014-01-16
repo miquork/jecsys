@@ -176,7 +176,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
 		      kBlack, kSolid, 1, // line
 		      kBlack, kFullTriangleDown, // marker
 		      kNone, kNone, "LP")); // fill
-  sy.push_back(uncert("highpt", "Extrapolation", jec::kPtExtra,
+  sy.push_back(uncert("highpt", "Extrapolation", jec::kAbsolutePt,//kPtExtra,
 		      "default", "default", -1, // defaults
 		      kRed, kSolid, 1, // line
 		      kRed, kOpenCircle, // marker
@@ -221,13 +221,13 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
 		       kBlack, kSolid, 1, // line
 		       kBlack, kFullTriangleDown, // marker
 		       kNone, kNone, "LP")); // fill
-  sym.push_back(uncert("highpt", "Extrapolation", jec::kPtExtra,
+  sym.push_back(uncert("highpt", "Extrapolation", jec::kAbsolutePt,//kPtExtra,
 		       "default", "default", -1, // defaults
 		       kRed, kSolid, 1, // line
 		       kRed, kOpenCircle, // marker
 		       kNone, kNone, "LP")); // fill
   sym.push_back(uncert("pileup", Form("Pile-up, NPV=%1.0f",d_npv),
-		       jec::kPileUpMC,
+		       jec::kPileUpDataMC,
 		       "default", "default", -1, // defaults
 		       kBlue, kNone, 1, // line
 		       kBlue, kFullSquare, // marker
@@ -315,7 +315,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
 
   vector<uncert> sypt;
   sypt.push_back(uncert("abspt", "SubTotalPt",
-			jec::kPtExtra,
+			jec::kAbsolutePt,//kPtExtra,
 			"default", "default", -1, // defaults
 			kRed, kNone, 1, // line
 			kRed, kOpenCircle, // marker
@@ -1166,7 +1166,7 @@ void plotUncertainty(vector<uncert> const& sys,
        jec::kPileUpPtBB, jec::kPileUpPtEC, jec::kPileUpPtHF,
        jec::kPileUpBias,
        /*jec::kPileUpJetRate,*/
-       jec::kPileUp, jec::kRelative, jec::kPtExtra,
+       jec::kPileUp, jec::kRelative, jec::kAbsolutePt,//jec::kPtExtra,
        jec::kMC,
        jec::kData,//Total};
        jec::kDataNoFlavor, jec::kFlavorZJet, jec::kFlavorPhotonJet,
@@ -1209,7 +1209,8 @@ void plotUncertainty(vector<uncert> const& sys,
     srcname[jec::kTime] = "Time";
     srcname[jec::kPileUp] = "SubTotalPileUp";
     srcname[jec::kRelative] = "SubTotalRelative";
-    srcname[jec::kPtExtra] = "SubTotalPt";
+    //srcname[jec::kPtExtra] = "SubTotalPt";
+    srcname[jec::kAbsolutePt] = "SubTotalPt";
     srcname[jec::kMC] = "SubTotalMC";
     srcname[jec::kData] = "Total";
     srcname[jec::kDataNoFlavor] = "TotalNoFlavor";
