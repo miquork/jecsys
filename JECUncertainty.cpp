@@ -282,7 +282,7 @@ void JECUncertainty::_InitL2Res() {
     _jecL2jerup = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5PF.txt.JERvariationDown",d);
+    s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5PF.txt.JERvariationdown",d);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
