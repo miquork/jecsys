@@ -18,4 +18,8 @@
   // NB1: Above example files are provided in the package
   // NB2: More can be produced with mk_drawJetCorrectionUncertainty.C
 
+  testSources("txt/Summer13_V2_DATA_UncertaintySources_AK5PF.txt",
+	      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt", 50., 5.1);
+
+
 }
