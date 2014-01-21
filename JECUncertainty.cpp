@@ -355,33 +355,74 @@ double JECUncertainty::_Rjet(const double pTprime, const double eta) {
 // Combine pT dependent absolute scale uncertainties
 double JECUncertainty::_Absolute(const double pt) const {
 
-  double abs = (_errType & jec::kAbsoluteScale ? _AbsoluteScale() : 0.);
-  double spr = (_errType & jec::kAbsoluteSPR ? _AbsoluteSPR(pt) : 0.);
-  double frag = (_errType & jec::kAbsoluteFrag ? _AbsoluteFrag(pt) : 0.);
+  double stat          = (_errType & jec::kAbsoluteStat          ? _AbsoluteStat()          : 0.);
+  double scale         = (_errType & jec::kAbsoluteScale         ? _AbsoluteScale()         : 0.);
+  double FlMap         = (_errType & jec::kAbsoluteFlavorMapping ? _AbsoluteFlavorMapping() : 0.); //for backward-compatibility/historical reasons
+  double MPFBias       = (_errType & jec::kAbsoluteMPFBias       ? _AbsoluteMPFBias()       : 0.);
+  double spr           = (_errType & jec::kAbsoluteSPR           ? _AbsoluteSPR(pt)         : 0.);
+  double frag          = (_errType & jec::kAbsoluteFrag          ? _AbsoluteFrag(pt)        : 0.);
 
   // signed sources
   if (!(_errType & ~jec::kAbsoluteSPRE)) return spr;
   if (!(_errType & ~jec::kAbsoluteSPRH)) return spr;
 
-  return sqrt(abs*abs + spr*spr + frag*frag);
+  return sqrt(stat*stat + scale*scale + FlMap*FlMap + MPFBias*MPFBias + spr*spr + frag*frag);
 } // Absolute
 
+// Continuation of 2011 ATLAS/CMS JES correlation discussions
+// Absolute scale split-up: Statistics
+double JECUncertainty::_AbsoluteStat() const {
+  // 2011 correlation groups:
+  // Stat: 0.0022 - estimated from
+  // Z+jets, 4.7/fb: 0.991+/-0.003(stat)
+  // gamma+jet, 4.7/fb: 0.990+/-0.002(stat)
 
-// Absolute scale from photon+jet and Z+jet
-double JECUncertainty::_AbsoluteScale() const {
-
-  // Combined uncertainty for Zmumu reference scale,
-  // MPF method bias, and flavor mapping to QCD mixture
-
+  // 2012:
   // https://indico.cern.ch/getFile.py/access?contribId=4&resId=0&materialId=slides&confId=216765 
   // also here: http://www-ekp.physik.uni-karlsruhe.de/~dhaitz/plots_archive/2012_11_13/extrapolation/ratio_extrapolation_alpha_0_30__AK5PFCHSL1L2L3Res.png
-  double zscale = 0.001; // data/MC difference, s11
+  double AbsStatSys = 0.002; // for alpha<0.30 fit, s10
+
+  return AbsStatSys;
+}
+
+
+// Continuation of 2011 ATLAS/CMS JES correlation discussions
+// Absolute scale split-up: Scale
+double JECUncertainty::_AbsoluteScale() const {
+
+  // 2011 correlation groups:
+  // Scale:
+  // Z+jets, 4.7/fb: 0.991+/-0.004(scale)
+  // gamma+jet, 4.7/fb: 0.990+/-0.006(scale)
+  // This should refer to the uncertainty due to the photon scale (gamma+jet) or the uncertainty on the Z-scale. 
+  // At that time, for the Z, Joram showed something like slide 8 in https://indico.cern.ch/getFile.py/access?contribId=3&resId=0&materialId=slides&confId=162301 where the data/MC-difference seemed negligible for mZ (0.07%). 
+  // Assume 0.3% to cover both
+
+  //2012:
+  // https://indico.cern.ch/getFile.py/access?contribId=4&resId=0&materialId=slides&confId=216765 
+  // also here: http://www-ekp.physik.uni-karlsruhe.de/~dhaitz/plots_archive/2012_11_13/extrapolation/ratio_extrapolation_alpha_0_30__AK5PFCHSL1L2L3Res.png
+  double AbsScaleSys = 0.001; // data/MC difference, s11
+
+  return AbsScaleSys;
+}
+
+
+// Continuation of 2011 ATLAS/CMS JES correlation discussions
+// Absolute scale split-up: MPF bias
+double JECUncertainty::_AbsoluteMPFBias() const {
+  // 2011 correlation groups:
+  // MPF-bias/pt
+  // This is supposed to cover the MPF uncertainties from 2010 documentation:
+  // http://cms.cern.ch/iCMS/jsp/openfile.jsp?tp=draft&files=AN2011_105_v2.pdf
+  // For Z: slide 8, https://indico.cern.ch/getFile.py/access?contribId=4&resId=0&materialId=slides&confId=157932
+  // For gamma +jet, slide 9 https://indico.cern.ch/getFile.py/access?contribId=6&resId=1&materialId=slides&confId=163610
+  // Comparison of both: slide 9/10 https://indico.cern.ch/getFile.py/access?contribId=5&resId=0&materialId=slides&confId=163610
+  // estimated to be ~0.004
+
+  // 2012:
+  // https://indico.cern.ch/getFile.py/access?contribId=4&resId=0&materialId=slides&confId=216765 
+  // also here: http://www-ekp.physik.uni-karlsruhe.de/~dhaitz/plots_archive/2012_11_13/extrapolation/ratio_extrapolation_alpha_0_30__AK5PFCHSL1L2L3Res.png
   double mpfbias = 0.002; // alpha=0.1->0.0 difference, s10
-  double stat = 0.002; // for alpha<0.30 fit, s10
-  
-  // This needs to be updated
-  //double flavormap = 0.005; // Pythia/Herwig difference
-  double flavormap = 0.; // for "20% glue" reference point at pT=200 GeV
   // Estimate also these from Pythia/Herwig difference
   // of genMET with (a) all particles, (b) all particles at |eta|<5,
   // (c) no neutrinos and no |eta|>5 particles
@@ -390,11 +431,30 @@ double JECUncertainty::_AbsoluteScale() const {
   double neutrinos = 0.002; // (b)-(c)
   
   double err2(0);
-  err2 += zscale*zscale + mpfbias*mpfbias + stat*stat;
-  err2 += flavormap*flavormap;
+  err2 += mpfbias*mpfbias;
   err2 += beambias*beambias + neutrinos*neutrinos;
 
-  return sqrt(err2);
+  double AbsMPFBiasSys = sqrt(err2);
+
+  return AbsMPFBiasSys;
+}
+
+// Continuation of 2011 ATLAS/CMS JES correlation discussions
+// Absolute scale split-up: Flavor mapping
+double JECUncertainty::_AbsoluteFlavorMapping() const {
+
+  // Flavor-mapping
+  // 2010 documentation:
+  // http://cms.cern.ch/iCMS/jsp/openfile.jsp?tp=draft&files=AN2011_105_v2.pdf
+  // 2011 correlation groups:
+  // Taking JINST/Fig.9 as a starting point and 100 GeV as reference, the maximum 
+  // difference between q/g-differences between PYTHIA and Herwig would be ~0.5%.
+  // assuming half difference here: 0.0025
+
+  //double flavormap = 0.005; // Pythia/Herwig difference
+  double AbsFlavorMappingSys = 0.; // for "20% glue" reference point at pT=200 GeV
+
+  return AbsFlavorMappingSys;
 }
 
 

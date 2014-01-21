@@ -57,7 +57,10 @@ public:
   //double _SystErr(const double pTprime, const double eta);// const;
 
   double _Absolute(const double pTprime) const;
+  double _AbsoluteStat() const;
   double _AbsoluteScale() const;
+  double _AbsoluteMPFBias() const;
+  double _AbsoluteFlavorMapping() const;
   double _AbsoluteFrag(const double pTprime) const;
   double _AbsoluteSPR(const double pTprime) const;
   //
