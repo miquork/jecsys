@@ -27,4 +27,8 @@ namespace jec {
     return ErrorTypes(err1._first | err2._first, err1._second | err2._second);
   }
 
+  ErrorTypes operator^(const ErrorTypes& err1, const ErrorTypes& err2) {
+    return ErrorTypes(err1._first ^ err2._first, err1._second ^ err2._second);
+  }
+
 }

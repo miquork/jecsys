@@ -3,6 +3,7 @@
 #ifndef INC_ERRORTYPES_HPP
 #define INC_ERRORTYPES_HPP
 
+//might want to consider to use a std::bitset which is sufficiently long in order to avoid the first/second and 32 bit/64 bit confusion?
 namespace jec {
 
   class ErrorTypes {
@@ -28,6 +29,7 @@ namespace jec {
   ErrorTypes operator~(const ErrorTypes& err);
   ErrorTypes operator&(const ErrorTypes& err1, const ErrorTypes& err2);
   ErrorTypes operator|(const ErrorTypes& err1, const ErrorTypes& err2);
+  ErrorTypes operator^(const ErrorTypes& err1, const ErrorTypes& err2);
 
 } /* namespace jes */
 
