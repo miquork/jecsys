@@ -14,12 +14,30 @@
 
   // Test quadratic sum of sources in file1 against total in file2 at pT, eta
   testSources("txt/Summer13_V2_DATA_UncertaintySources_AK5PF.txt",
-	      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt", 49.25, 2.0);
+	      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt", 49.25, 2.0,"Summer13_V2");
   // NB1: Above example files are provided in the package
   // NB2: More can be produced with mk_drawJetCorrectionUncertainty.C
+  testSourcesLoopVars("txt/Summer13_V2_DATA_UncertaintySources_AK5PF.txt",
+		      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt","Summer13_V2");//check that sum of sources equals total in file1 and file2 for a number of eta/pt-combinations
 
-  testSources("txt/Summer13_V2_DATA_UncertaintySources_AK5PF.txt",
-	      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt", 50., 5.1);
+
+  testCommonSources  ("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
+		      "txt/Summer13_V2_DATA_UncertaintySources_AK5PF.txt", 49.25, 2.0,"Summer13_V2V3CommonSources"); // check individual common sources for backward-compatibility
+  testSourcesLoopVars("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
+		      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt","Summer13_V3"); // check for backward-compatibility
+  testSourcesLoopVars("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
+		      "","Summer13_V3_SubTotalPt"); // SubTotalPt
+  testSourcesLoopVars("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
+		      "","Summer13_V3_SubTotalRelative"); // SubTotalRelative
+  testSourcesLoopVars("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
+		      "","Summer13_V3_SubTotalPileUp"); // SubTotalPileUp
+  testSourcesLoopVars("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
+		      "","Summer13_V3_CorrGroups"); // CorrGroups
+  testSourcesLoopVars("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
+		      "txt/Summer13_V3_DATA_Uncertainty_AK5PF.txt","Summer13_V3");//check that sum of sources equals total in file1 and file2 for a number of eta/pt-combinations
 
 
+
+
+  if(nFailedTests)std::cout <<  "WARNING: There have been " << nFailedTests << " failed tests "  << std::endl;
 }
