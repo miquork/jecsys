@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <map>
+#include <cassert>
 
 using namespace std;
 
@@ -22,6 +23,18 @@ JECUncertainty::JECUncertainty(const jec::JetAlgo& algo,
 				      const double npv) :
   _algo(algo), _type(type), _errType(errType), _npv(npv)
 {
+	// L2 time dependence systematics
+	  {
+	   TFile *f = new TFile("Systematic_fit_funcs_HIST_ABSUNC_rel_to_base_PF_Abseta.root","READ");
+
+	    assert(f && !f->IsZombie());
+	    _hMay10 = (TH1D*)f->Get("May10_PF_Abseta"); assert(_hMay10);
+	    _hV4 = (TH1D*)f->Get("PrReV4_PF_Abseta"); assert(_hV4);
+	    _hAug5 = (TH1D*)f->Get("Aug05_PF_Abseta"); assert(_hAug5);
+	    _hV6 = (TH1D*)f->Get("PrReV6_PF_Abseta"); assert(_hV6);
+	    _hV1 = (TH1D*)f->Get("11BPrV1_PF_Abseta"); assert(_hV1);
+
+	  }
 
   this->SetJetAlgo(algo); // initialize tables for jetalg
 }
@@ -184,10 +197,11 @@ void JECUncertainty::_InitJEC() {
   s = Form("%sSummer13_V1_DATA_L3Absolute_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
-  s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5PF.txt.V4handMadeUpdatedL3",d);
-  if (_algo==jec::AK5CALO || _algo==jec::AK7CALO) {
-    s = Form("%sWinter12_V1_DATA_L2L3Residual_%s.txt.kFSRone",d,a);
-  }  
+  //s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5PF.txt.V4handMadeUpdatedL3",d);
+  s = Form("CondFormats/JetMETObjects/data/Fall12_V4_DATA_%s_L2L3Residual.txt",names[_algo]); if (debug) cout << s << endl << flush;
+  //if (_algo==jec::AK5CALO || _algo==jec::AK7CALO) {
+  //  s = Form("%sWinter12_V1_DATA_L2L3Residual_%s.txt.kFSRone",d,a);
+  //}
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
 
@@ -292,7 +306,6 @@ void JECUncertainty::_InitL2Res() {
 
 } // InitL2Res
 
-
 void JECUncertainty::SetNPV(const double npv) {
   _npv = npv;
 }
@@ -353,6 +366,7 @@ double JECUncertainty::_Rjet(const double pTprime, const double eta) {
 
 
 // Combine pT dependent absolute scale uncertainties
+
 double JECUncertainty::_Absolute(const double pt) const {
 
   double stat          = (_errType & jec::kAbsoluteStat          ? _AbsoluteStat()          : 0.);
@@ -369,6 +383,15 @@ double JECUncertainty::_Absolute(const double pt) const {
   return sqrt(stat*stat + scale*scale + FlMap*FlMap + MPFBias*MPFBias + spr*spr + frag*frag);
 } // Absolute
 
+
+// Absolute scale split-up: Statistics
+double JECUncertainty::_AbsoluteStat() const {
+	double AbsStatSys = 0.0022;
+	return AbsStatSys;
+}
+
+
+/*
 // Continuation of 2011 ATLAS/CMS JES correlation discussions
 // Absolute scale split-up: Statistics
 double JECUncertainty::_AbsoluteStat() const {
@@ -384,7 +407,7 @@ double JECUncertainty::_AbsoluteStat() const {
 
   return AbsStatSys;
 }
-
+*/
 
 // Continuation of 2011 ATLAS/CMS JES correlation discussions
 // Absolute scale split-up: Scale
@@ -401,7 +424,7 @@ double JECUncertainty::_AbsoluteScale() const {
   //2012:
   // https://indico.cern.ch/getFile.py/access?contribId=4&resId=0&materialId=slides&confId=216765 
   // also here: http://www-ekp.physik.uni-karlsruhe.de/~dhaitz/plots_archive/2012_11_13/extrapolation/ratio_extrapolation_alpha_0_30__AK5PFCHSL1L2L3Res.png
-  double AbsScaleSys = 0.001; // data/MC difference, s11
+  double AbsScaleSys = 0.003; // data/MC difference, s11
 
   return AbsScaleSys;
 }
@@ -434,7 +457,7 @@ double JECUncertainty::_AbsoluteMPFBias() const {
   err2 += mpfbias*mpfbias;
   err2 += beambias*beambias + neutrinos*neutrinos;
 
-  double AbsMPFBiasSys = sqrt(err2);
+  double AbsMPFBiasSys = 0.004;//sqrt(err2);
 
   return AbsMPFBiasSys;
 }
@@ -476,7 +499,7 @@ double JECUncertainty::_AbsoluteFrag(const double pTprime) const {
     }
 
     double r = f1->Eval(pTprime);
-    double pTref = 200.; // effective <pT> for Zgamma+jet data
+    double pTref = 100;//200.; // effective <pT> for Zgamma+jet data
     double rref = f1->Eval(pTref);
     dr = r/rref-1;
     delete f1;
@@ -495,7 +518,7 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
   // New fits from Juska on Nov 26, 2012, 5:26 pm
   double errSPR(0), errSPRE(0), errSPRH(0);
   double refSPR(0), refSPRE(0), refSPRH(0);
-  double refpt = 200.;
+  double refpt = 100;//200.;
 
   TF1 *f = new TF1("fmore","max(0,[0]+[1]*pow(x,[2]))",10,3500);
   if (_errType & jec::kAbsoluteSPR) { // this is now obsolete
@@ -531,7 +554,7 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
 // Combine relative uncertainties
 double JECUncertainty::_Relative(const double pTprime,
 					const double eta) const {
-  
+
   double sjer = (_errType & jec::kRelativeJER ? _RelativeJER(eta) : 0.);
   double sfsr = (_errType & jec::kRelativeFSR ? _RelativeFSR(eta) : 0.);
   double stat = (_errType & jec::kRelativeStat ? _RelativeStat(eta) : 0.);
@@ -546,8 +569,53 @@ double JECUncertainty::_Relative(const double pTprime,
 
   return sqrt(sjer*sjer + sfsr*sfsr + stat*stat + spt*spt);
 }
+// Relative scale uncertainty vs eta from JER bias
+double JECUncertainty::_RelativeJER(const double eta) const {
 
+  // PF uncertainties
+  // Discretized for ranges where JER uncertainty should be correlated:
+  // barrel, endcap within tracker, endcap outside tracker, HF
+  double x = fabs(eta);
+  if (x<1.5) return 0;//0 + 0.002*x/1.5;
+  if (x>=1.5 && x<2.5 && (_errType & jec::kRelativeJEREC1))
+      return 0.002 + 0.003*(x-1.5)/1.;
+  if (x>=2.5 && x<3.0 && (_errType & jec::kRelativeJEREC2))
+    return 0.005 + 0.010*(x-2.5)/0.5;
+  if (x>=3.0 && x<5.2 && (_errType & jec::kRelativeJERHF))
+    return 0.015;
 
+  return 0;
+}
+// Relative scale uncertainty vs eta from soft radiation
+double JECUncertainty::_RelativeFSR(const double eta) const {
+
+  // Uncertainty increases as cosh(eta) vs eta, is about 2% at x=4.3
+  // Maybe this should be discretized for the actual eta bins?
+  double x = fabs(eta);
+  if (x>=3.139 && x<3.489) x = 3.3;
+  if (x>=3.489) x = 4.3;
+  return (0.0005*(cosh(x)-1));
+}
+double JECUncertainty::_RelativeStat(const double eta) const {
+
+  double x = fabs(eta);
+  const int nb = 6;
+  double etas[nb+1] = {0, 2.5, 2.853, 2.964, 3.139, 3.489, 5.191};
+  double stat[nb]   = {  0, 0.005, 0.003, 0.015, 0.015, 0.020};
+  double err(0);
+  for (int i = 0; i != nb; ++i) {
+    if (x>=etas[i] && x<etas[i+1]) { assert(err==0); err = stat[i]; }
+  }
+
+  // Break into uncorrelated regions
+  // This is to some degree arbitrary choice
+  if ((x>=2.5 && x<3. && (_errType & jec::kRelativeStatEC2)) ||
+      (x>=3. && (_errType & jec::kRelativeStatHF)))
+    return err;
+
+  return 0;
+}
+/*
 // Relative scale uncertainty vs eta from JER bias
 double JECUncertainty::_RelativeJER(const double eta) const {
 
@@ -605,7 +673,7 @@ double JECUncertainty::_RelativeStat(const double eta) const {
 
   return 0;
 } // RelativeStat
-
+*/
 // Uncertainty in L2Res pT dependence: log-linear fit vs constant fit
 // To-do: solve pTprime with Brent's method to compare at same pTprime?
 double JECUncertainty::_RelativePt(const double pTprime,
@@ -613,10 +681,10 @@ double JECUncertainty::_RelativePt(const double pTprime,
 
   // limit pt to accessible range
   const double ptmin = 10.;
-  const double emax = 4000;
+  const double emax = 3500;//4000;
   double pt = max(ptmin, min(pTprime, emax/cosh(eta)));
 
-  double abseta = fabs(eta);
+  double abseta = min(3.488,std::abs(eta));//fabs(eta);
   _jecL2ResFlat->setJetPt(pt);
   _jecL2ResFlat->setJetEta(abseta);
   double corrflat_p = _jecL2ResFlat->getCorrection();
@@ -959,7 +1027,7 @@ double JECUncertainty::_FlavorMixed(double pTprime, double eta,
 
     double pt = pTprime;
     if (smix=="20% glue")
-      pt = 200;// Z+jet effective mean pT
+      pt = 100;//200;// Z+jet effective mean pT
 
     int iflavor(-1);
     if (smix=="QCD")        iflavor = 0;
@@ -1358,7 +1426,7 @@ double JECUncertainty::_FlavorFraction(double pt, double eta,
   return f;
 } // _FlavorFraction
 
-
+/*
 // Time-dependence uncertainty from L2
 double JECUncertainty::_Time(const double eta) const {
 
@@ -1386,7 +1454,22 @@ double JECUncertainty::_Time(const double eta) const {
 
   return err;
 } // Time
+*/
 
+// Time-dependence uncertainty from L2
+double JECUncertainty::_Time(const double eta) const {
+	int ibin = _hV4->FindBin(fabs(eta));
+	double err = 0;
+	const int nera = 5;
+	TH1D *h[nera] = {_hMay10, _hV4, _hAug5, _hV6, _hV1};
+	for (int i = 0; i != nera; ++i) {
+			if (fabs(h[i]->GetBinContent(ibin)) > err &&
+		fabs	(h[i]->GetBinContent(ibin)) > h[i]->GetBinError(ibin))
+	      err = 	fabs(h[i]->GetBinContent(ibin));
+	  }
+
+	return 0.5*err;
+} // Time
 
 // Random Cone offset for data
 double JECUncertainty::_L1DataRaw(const double pT, const double eta) {

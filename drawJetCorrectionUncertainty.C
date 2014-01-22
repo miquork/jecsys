@@ -22,6 +22,7 @@
 
 #include <string>
 #include <fstream>
+#include <cassert>
 
 using namespace std;
 
@@ -35,7 +36,7 @@ bool _absUncert = true;
 // List of (hard-coded) default parameters
 jec::JetAlgo  d_algo = jec::AK5PFchs; // Replaced in function call
 const jec::DataType d_type = jec::DATA; // Uncertainties for data (or data/MC)
-const double d_npv = 14; // Average pile-up for L1 uncertainties
+const double d_npv = 8; // Average pile-up for L1 uncertainties
 const bool d_mpf = true; // L2L3Res uncertainties for MPF method
 
 // global histogram counter to avoid memory leaks from duplicate names
@@ -447,7 +448,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
   string ss = Form("Anti-k_{T} R=%1.1f %s", r, sa.c_str());
   const char *s = ss.c_str();
 
-  const char *cu = (_absUncert ? "JECUncert" : "JECSource");
+  const char *cu = (_absUncert ? "Legacy11_JECUncert" : "Legacy11_JECSource");
 
   map<jec::JetAlgo, const char*> names;
   names[jec::AK5PF] = "AK5PF";
@@ -1055,7 +1056,7 @@ void plotUncertainty(vector<uncert> const& sys,
       name=="JECUncert_PFAK5_summary" ||
       name=="JECUncert_JPTAK5_summary" ||
       name=="JECUncert_AK5_summary")
-    cmsFinal(_lumi);
+    cmsPrel(_lumi);
   else
     cmsPrel(_lumi);//2.9);//1.2);//60);
   gPad->RedrawAxis();

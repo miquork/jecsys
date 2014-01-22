@@ -15,6 +15,7 @@
 #include "JetDefs.hpp"
 
 #include "Math/IFunction.h"
+#include "TH1.h"
 
 #include <iostream>
 
@@ -118,7 +119,7 @@ private:
   FactorizedJetCorrector *_jecL2jerdw;
   FactorizedJetCorrector *_jecL2stat;
   // Time dependence histograms
-  //TH1D *_hMay10, *_hV4, *_hAug5, *_hV6, *_hV1;
+  TH1D *_hMay10, *_hV4, *_hAug5, *_hV6, *_hV1;
 
   double _npv;
   double _pTprime, _eta, _rjet;

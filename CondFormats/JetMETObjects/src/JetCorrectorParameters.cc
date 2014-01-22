@@ -10,10 +10,10 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
-#include <stdlib.h>
 #include <algorithm>
 #include <cmath>
 #include <iterator>
+#include <cstdlib>
 
 //------------------------------------------------------------------------ 
 //--- JetCorrectorParameters::Definitions constructor --------------------

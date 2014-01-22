@@ -209,7 +209,7 @@ void cmsPrel(double intLumi=-1, bool wide = false) {
   latex->SetTextSize(0.045);
   
   latex->SetTextAlign(31); // align right
-  latex->DrawLatex(wide ? 0.98 : 0.95, 0.96, "#sqrt{s} = 8 TeV");
+  latex->DrawLatex(wide ? 0.98 : 0.95, 0.96, "#sqrt{s} = 7 TeV");
   if (intLumi > 0.) {
     latex->SetTextAlign(11); // align left
     latex->DrawLatex(wide ? 0.06 : 0.15, 0.96,
@@ -233,7 +233,7 @@ void cmsFinal(double intLumi=-1, bool wide = false) {
   latex->SetTextSize(0.045);
   
   latex->SetTextAlign(31); // align right
-  latex->DrawLatex(wide ? 0.98 : 0.95, 0.96, "#sqrt{s} = 8 TeV");
+  latex->DrawLatex(wide ? 0.98 : 0.95, 0.96, "#sqrt{s} = 7 TeV");
   if (intLumi > 0.) {
     latex->SetTextAlign(11); // align left
     latex->DrawLatex(wide ? 0.06 : 0.15, 0.96,
