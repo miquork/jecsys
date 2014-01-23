@@ -6,14 +6,14 @@
   gROOT->ProcessLine(".L tdrstyle_mod.C");
 
   // For JEC central value
-  //gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/Utilities.cc+");
-  //gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+");
-  //gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+");
-  //gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+");
+  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/Utilities.cc+");
+  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+");
+  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+");
+  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+");
   // For JEC uncertainty
-  //gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+");
-  //gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+");
-  gSystem->Load("../lib/libJetMETObjects.so");
+  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+");
+  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+");
+  //gSystem->Load("../lib/libJetMETObjects.so");
 
   gROOT->ProcessLine(".L ErrorTypes.cpp+");
   gROOT->ProcessLine(".L JECUncertainty.cpp+");

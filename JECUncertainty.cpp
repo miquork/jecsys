@@ -197,11 +197,10 @@ void JECUncertainty::_InitJEC() {
   s = Form("%sSummer13_V1_DATA_L3Absolute_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
-  //s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5PF.txt.V4handMadeUpdatedL3",d);
-  s = Form("CondFormats/JetMETObjects/data/Fall12_V4_DATA_%s_L2L3Residual.txt",names[_algo]); if (debug) cout << s << endl << flush;
-  //if (_algo==jec::AK5CALO || _algo==jec::AK7CALO) {
-  //  s = Form("%sWinter12_V1_DATA_L2L3Residual_%s.txt.kFSRone",d,a);
-  //}
+  s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5PF.txt.V4handMadeUpdatedL3",d);
+  if (_algo==jec::AK5CALO || _algo==jec::AK7CALO) {
+    s = Form("%sWinter12_V1_DATA_L2L3Residual_%s.txt.kFSRone",d,a);
+  }
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
 

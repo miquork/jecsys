@@ -27,7 +27,7 @@
 using namespace std;
 
 // Don't plot individual bins, just keep 4x2
-bool _minimal = true;
+bool _minimal = false;
 
 // Print uncertainty (true) or source (false)
 bool _absUncert = true;
@@ -448,7 +448,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
   string ss = Form("Anti-k_{T} R=%1.1f %s", r, sa.c_str());
   const char *s = ss.c_str();
 
-  const char *cu = (_absUncert ? "Legacy11_JECUncert" : "Legacy11_JECSource");
+  const char *cu = (_absUncert ? "JECUncert" : "JECSource");
 
   map<jec::JetAlgo, const char*> names;
   names[jec::AK5PF] = "AK5PF";
@@ -1080,17 +1080,17 @@ void plotUncertainty(vector<uncert> const& sys,
     JECUncertainty rjet5c(jec::AK5CALO, jec::DATA, jec::kData, d_npv);
     JECUncertainty rjet7c(jec::AK5CALO, jec::DATA, jec::kData, d_npv);
 
-    ofstream fout5p("txt/Summer13_V3_DATA_Uncertainty_AK5PF.txt",ios::out);
+    ofstream fout5p("txt/Legacy11_V1_DATA_Uncertainty_AK5PF.txt",ios::out);
     fout5p << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5s("txt/Summer13_V3_DATA_Uncertainty_AK5PFchs.txt",ios::out);
+    ofstream fout5s("txt/Legacy11_V1_DATA_Uncertainty_AK5PFchs.txt",ios::out);
     fout5s << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5c("txt/Summer13_V3_DATA_Uncertainty_AK5Calo.txt",ios::out);
+    ofstream fout5c("txt/Legacy11_V1_DATA_Uncertainty_AK5Calo.txt",ios::out);
     fout5c << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7p("txt/Summer13_V3_DATA_Uncertainty_AK7PF.txt",ios::out);
+    ofstream fout7p("txt/Legacy11_V1_DATA_Uncertainty_AK7PF.txt",ios::out);
     fout7p << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7s("txt/Summer13_V3_DATA_Uncertainty_AK7PFchs.txt",ios::out);
+    ofstream fout7s("txt/Legacy11_V1_DATA_Uncertainty_AK7PFchs.txt",ios::out);
     fout7s << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7c("txt/Summer13_V3_DATA_Uncertainty_AK7Calo.txt",ios::out);
+    ofstream fout7c("txt/Legacy11_V1_DATA_Uncertainty_AK7Calo.txt",ios::out);
     fout7c << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
     JECUncertainty rjet5px(jec::AK5PF, jec::DATA, jec::kMC, d_npv);
@@ -1100,17 +1100,17 @@ void plotUncertainty(vector<uncert> const& sys,
     JECUncertainty rjet5cx(jec::AK5CALO, jec::DATA, jec::kMC, d_npv);
     JECUncertainty rjet7cx(jec::AK7CALO, jec::DATA, jec::kMC, d_npv);
 
-    ofstream fout5px("txt/Summer13_V3_MC_Uncertainty_AK5PF.txt",ios::out);
+    ofstream fout5px("txt/Legacy11_V1_MC_Uncertainty_AK5PF.txt",ios::out);
     fout5px << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5sx("txt/Summer13_V3_MC_Uncertainty_AK5PFchs.txt",ios::out);
+    ofstream fout5sx("txt/Legacy11_V1_MC_Uncertainty_AK5PFchs.txt",ios::out);
     fout5sx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5cx("txt/Summer13_V3_MC_Uncertainty_AK5Calo.txt",ios::out);
+    ofstream fout5cx("txt/Legacy11_V1_MC_Uncertainty_AK5Calo.txt",ios::out);
     fout5cx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7px("txt/Summer13_V3_MC_Uncertainty_AK7PF.txt",ios::out);
+    ofstream fout7px("txt/Legacy11_V1_MC_Uncertainty_AK7PF.txt",ios::out);
     fout7px << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7sx("txt/Summer13_V3_MC_Uncertainty_AK7PFchs.txt",ios::out);
+    ofstream fout7sx("txt/Legacy11_V1_MC_Uncertainty_AK7PFchs.txt",ios::out);
     fout7sx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7cx("txt/Summer13_V3_MC_Uncertainty_AK7Calo.txt",ios::out);
+    ofstream fout7cx("txt/Legacy11_V1_MC_Uncertainty_AK7Calo.txt",ios::out);
     fout7cx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
     for (int ieta = 0; ieta != ndiv_eta; ++ieta) {
@@ -1208,25 +1208,25 @@ void plotUncertainty(vector<uncert> const& sys,
     //if (name=="JECUncert_DATA_AK5PFchs_Eta00") {
     
     // Note: AK5PFchs is CHS, AK7PF is non-CHS (AK7PFchs on Jan 25)
-    ofstream fout5("txt/Summer13_V3_DATA_UncertaintySources_AK5PFchs.txt",ios::out);
-    fout5 << "#Uncertainty sources for Summer13_V3_DATA_AK5PFchs" << endl;
+    ofstream fout5("txt/Legacy11_V1_DATA_UncertaintySources_AK5PFchs.txt",ios::out);
+    fout5 << "#Uncertainty sources for Legacy11_V1_DATA_AK5PFchs" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Summer13_V3_DATA_UncertaintySources_AK5PFchs.txt" << endl;
-    ofstream fout5x("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",ios::out);
-    fout5x << "#Uncertainty sources for Summer13_V3_DATA_AK5PF" << endl;
+	 << "txt/Legacy11_V1_DATA_UncertaintySources_AK5PFchs.txt" << endl;
+    ofstream fout5x("txt/Legacy11_V1_DATA_UncertaintySources_AK5PF.txt",ios::out);
+    fout5x << "#Uncertainty sources for Legacy11_V1_DATA_AK5PF" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt" << endl;
+	 << "txt/Legacy11_V1_DATA_UncertaintySources_AK5PF.txt" << endl;
     //
-    ofstream fout7("txt/Summer13_V3_DATA_UncertaintySources_AK7PFchs.txt",
+    ofstream fout7("txt/Legacy11_V1_DATA_UncertaintySources_AK7PFchs.txt",
 		   ios::out);
-    fout7 << "#Uncertainty sources for Summer13_V3_DATA_AK7PFchs" << endl;
+    fout7 << "#Uncertainty sources for Legacy11_V1_DATA_AK7PFchs" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Summer13_V3_DATA_UncertaintySources_AK7PFchs.txt" << endl;
-    ofstream fout7x("txt/Summer13_V3_DATA_UncertaintySources_AK7PF.txt",
+	 << "txt/Legacy11_V1_DATA_UncertaintySources_AK7PFchs.txt" << endl;
+    ofstream fout7x("txt/Legacy11_V1_DATA_UncertaintySources_AK7PF.txt",
 		    ios::out);
-    fout7x << "#Uncertainty sources for Summer13_V3_DATA_AK7PF" << endl;
+    fout7x << "#Uncertainty sources for Legacy11_V1_DATA_AK7PF" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Summer13_V3_DATA_UncertaintySources_AK7PF.txt" << endl;
+	 << "txt/Legacy11_V1_DATA_UncertaintySources_AK7PF.txt" << endl;
 
     jec::ErrorTypes vsrc[] =
       //{jec::kAbsolute, jec::kRelative, jec::kPtExtra};
