@@ -27,7 +27,7 @@ const char* srcnames_Summer13_V2[] =
 
 const int nsrc_Summer13_V2 = sizeof(srcnames_Summer13_V2)/sizeof(char*)-1;
 
-const char* srcnames_Summer13_V3[] =
+const char* srcnames_Summer13_V5[] =
   {"AbsoluteStat", "AbsoluteScale", "AbsoluteFlavMap", 
    "AbsoluteMPFBias", "HighPtExtra", "SinglePionECAL", "SinglePionHCAL",
    "FlavorQCD", "Time",
@@ -38,9 +38,9 @@ const char* srcnames_Summer13_V3[] =
    "PileUpPtBB", "PileUpPtEC", "PileUpPtHF",
    "Total"};
 
-const int nsrc_Summer13_V3 = sizeof(srcnames_Summer13_V3)/sizeof(char*)-1;
+const int nsrc_Summer13_V5 = sizeof(srcnames_Summer13_V5)/sizeof(char*)-1;
 
-const char* srcnames_Summer13_V2V3CommonSources[] =
+const char* srcnames_Summer13_V2V5CommonSources[] =
   {"HighPtExtra", "SinglePionECAL", "SinglePionHCAL",
    "FlavorQCD", "Time",
    "RelativeJEREC1", "RelativeJEREC2", "RelativeJERHF",
@@ -52,28 +52,28 @@ const char* srcnames_Summer13_V2V3CommonSources[] =
    "Total", "TotalNoFlavor", "FlavorZJet", "FlavorPhotonJet", "FlavorPureGluon", 
    "FlavorPureQuark", "FlavorPureCharm", "FlavorPureBottom"};
 
-const int nsrc_Summer13_V2V3CommonSources = sizeof(srcnames_Summer13_V2V3CommonSources)/sizeof(char*)-1;
+const int nsrc_Summer13_V2V5CommonSources = sizeof(srcnames_Summer13_V2V5CommonSources)/sizeof(char*)-1;
 
-const char* srcnames_Summer13_V3_SubTotalPt[] =
+const char* srcnames_Summer13_V5_SubTotalPt[] =
   {"HighPtExtra", "SinglePionECAL", "SinglePionHCAL","SubTotalPt"}; 
-const int nsrc_Summer13_V3_SubTotalPt = sizeof(srcnames_Summer13_V3_SubTotalPt)/sizeof(char*)-1;
+const int nsrc_Summer13_V5_SubTotalPt = sizeof(srcnames_Summer13_V5_SubTotalPt)/sizeof(char*)-1;
 
-const char* srcnames_Summer13_V3_SubTotalRelative[] =
+const char* srcnames_Summer13_V5_SubTotalRelative[] =
   {"RelativeJEREC1", "RelativeJEREC2", "RelativeJERHF", "RelativePtBB","RelativePtEC1", "RelativePtEC2", "RelativePtHF", "RelativeFSR", "RelativeStatEC2", "RelativeStatHF", "SubTotalRelative"};
-const int nsrc_Summer13_V3_SubTotalRelative = sizeof(srcnames_Summer13_V3_SubTotalRelative)/sizeof(char*)-1;
+const int nsrc_Summer13_V5_SubTotalRelative = sizeof(srcnames_Summer13_V5_SubTotalRelative)/sizeof(char*)-1;
 
-const char* srcnames_Summer13_V3_SubTotalPileUp[] =
+const char* srcnames_Summer13_V5_SubTotalPileUp[] =
   {"PileUpDataMC","PileUpPtBB", "PileUpPtEC", "PileUpPtHF","SubTotalPileUp"};
-const int nsrc_Summer13_V3_SubTotalPileUp = sizeof(srcnames_Summer13_V3_SubTotalPileUp)/sizeof(char*)-1;
+const int nsrc_Summer13_V5_SubTotalPileUp = sizeof(srcnames_Summer13_V5_SubTotalPileUp)/sizeof(char*)-1;
 
-const char* srcnames_Summer13_V3_CorrGroups[] =
+const char* srcnames_Summer13_V5_CorrGroups[] =
   {"CorrelationGroupMPFInSitu", "CorrelationGroupIntercalibration",
    "CorrelationGroupFlavor", "CorrelationGroupUncorrelated","Total"};
-const int nsrc_Summer13_V3_CorrGroups = sizeof(srcnames_Summer13_V3_CorrGroups)/sizeof(char*)-1;
+const int nsrc_Summer13_V5_CorrGroups = sizeof(srcnames_Summer13_V5_CorrGroups)/sizeof(char*)-1;
 
 //check all sources listed in src_selection to agree in file1/file2
 bool testCommonSources(string file1, string file2,
-			 double jetpt=50., double jeteta=2.4, std::string src_selection="Summer13_V2V3CommonSources") {
+			 double jetpt=50., double jeteta=2.4, std::string src_selection="Summer13_V2V5CommonSources") {
   if(debug){
     std::cout<< "WARNING: debug/verbose mode activated" << std::endl;
     verbose = true;
@@ -83,9 +83,9 @@ bool testCommonSources(string file1, string file2,
   int nsrc;
 
   // Instantiate uncertainty sources
-  if(src_selection == "Summer13_V2V3CommonSources"){
-    srcnames = srcnames_Summer13_V2V3CommonSources;
-    nsrc=nsrc_Summer13_V2V3CommonSources;
+  if(src_selection == "Summer13_V2V5CommonSources"){
+    srcnames = srcnames_Summer13_V2V5CommonSources;
+    nsrc=nsrc_Summer13_V2V5CommonSources;
   }
 
   std::vector<JetCorrectionUncertainty*> vsrcfile1(nsrc);
@@ -153,25 +153,25 @@ bool testSources(string file1, string file2,
     srcnames = srcnames_Summer13_V2;
     nsrc=nsrc_Summer13_V2;
   }
-  else if(src_selection == "Summer13_V3"){
-    srcnames = srcnames_Summer13_V3;
-    nsrc=nsrc_Summer13_V3;
+  else if(src_selection == "Summer13_V5"){
+    srcnames = srcnames_Summer13_V5;
+    nsrc=nsrc_Summer13_V5;
   }
-  else if(src_selection == "Summer13_V3_SubTotalPt"){
-    srcnames = srcnames_Summer13_V3_SubTotalPt;
-    nsrc=nsrc_Summer13_V3_SubTotalPt;
+  else if(src_selection == "Summer13_V5_SubTotalPt"){
+    srcnames = srcnames_Summer13_V5_SubTotalPt;
+    nsrc=nsrc_Summer13_V5_SubTotalPt;
   }
-  else if(src_selection == "Summer13_V3_SubTotalRelative"){
-    srcnames = srcnames_Summer13_V3_SubTotalRelative;
-    nsrc=nsrc_Summer13_V3_SubTotalRelative;
+  else if(src_selection == "Summer13_V5_SubTotalRelative"){
+    srcnames = srcnames_Summer13_V5_SubTotalRelative;
+    nsrc=nsrc_Summer13_V5_SubTotalRelative;
   }
-  else if(src_selection == "Summer13_V3_SubTotalPileUp"){
-    srcnames = srcnames_Summer13_V3_SubTotalPileUp;
-    nsrc=nsrc_Summer13_V3_SubTotalPileUp;
+  else if(src_selection == "Summer13_V5_SubTotalPileUp"){
+    srcnames = srcnames_Summer13_V5_SubTotalPileUp;
+    nsrc=nsrc_Summer13_V5_SubTotalPileUp;
   }
-  else if(src_selection == "Summer13_V3_CorrGroups"){
-    srcnames = srcnames_Summer13_V3_CorrGroups;
-    nsrc=nsrc_Summer13_V3_CorrGroups;
+  else if(src_selection == "Summer13_V5_CorrGroups"){
+    srcnames = srcnames_Summer13_V5_CorrGroups;
+    nsrc=nsrc_Summer13_V5_CorrGroups;
   }
 
   std::vector<JetCorrectionUncertainty*> vsrc(nsrc);

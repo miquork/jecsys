@@ -21,20 +21,20 @@
 		      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt","Summer13_V2");//check that sum of sources equals total in file1 and file2 for a number of eta/pt-combinations
 
 
-  testCommonSources  ("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
-		      "txt/Summer13_V2_DATA_UncertaintySources_AK5PF.txt", 49.25, 2.0,"Summer13_V2V3CommonSources"); // check individual common sources for backward-compatibility
-  testSourcesLoopVars("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
-		      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt","Summer13_V3"); // check for backward-compatibility
-  testSourcesLoopVars("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
-		      "","Summer13_V3_SubTotalPt"); // SubTotalPt
-  testSourcesLoopVars("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
-		      "","Summer13_V3_SubTotalRelative"); // SubTotalRelative
-  testSourcesLoopVars("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
-		      "","Summer13_V3_SubTotalPileUp"); // SubTotalPileUp
-  testSourcesLoopVars("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
-		      "","Summer13_V3_CorrGroups"); // CorrGroups
-  testSourcesLoopVars("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",
-		      "txt/Summer13_V3_DATA_Uncertainty_AK5PF.txt","Summer13_V3");//check that sum of sources equals total in file1 and file2 for a number of eta/pt-combinations
+  testCommonSources  ("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "txt/Summer13_V2_DATA_UncertaintySources_AK5PF.txt", 49.25, 2.0,"Summer13_V2V5CommonSources"); // check individual common sources for backward-compatibility
+  testSourcesLoopVars("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt","Summer13_V5"); // check for backward-compatibility
+  testSourcesLoopVars("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "","Summer13_V5_SubTotalPt"); // SubTotalPt
+  testSourcesLoopVars("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "","Summer13_V5_SubTotalRelative"); // SubTotalRelative
+  testSourcesLoopVars("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "","Summer13_V5_SubTotalPileUp"); // SubTotalPileUp
+  testSourcesLoopVars("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "","Summer13_V5_CorrGroups"); // CorrGroups
+  testSourcesLoopVars("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "txt/Summer13_V5_DATA_Uncertainty_AK5PF.txt","Summer13_V5");//check that sum of sources equals total in file1 and file2 for a number of eta/pt-combinations
 
 
 
