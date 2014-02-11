@@ -166,7 +166,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
 		      kBlack, kSolid, 1, // line
 		      kBlack, kNone, // marker
 		      kDarkGray, 1001, "LF")); // fill
-  sy.push_back(uncert("absolute", "Absolute scale", jec::kAbsoluteScale,
+  sy.push_back(uncert("absolute", "Absolute scale", jec::kAbsoluteFlat,
 		      "default", "default", -1, // defaults
 		      kYellow+3, kSolid, 1, // line
 		      kBlack, kNone, // marker
@@ -211,7 +211,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
 		       kBlack, kSolid, 1, // line
 		       kBlack, kNone, // marker
 		       kDarkGray, 1001, "LF")); // fill
-  sym.push_back(uncert("absolute", "Absolute scale", jec::kAbsoluteScale,
+  sym.push_back(uncert("absolute", "Absolute scale", jec::kAbsoluteFlat,
 		       "default", "default", -1, // defaults
 		       kYellow+3, kSolid, 1, // line
 		       kBlack, kNone, // marker
