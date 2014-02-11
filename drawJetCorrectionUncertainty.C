@@ -404,7 +404,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
 		       kNone, kNone, "LP")); // fill
 
   vector<uncert> syCorrGroups;
-  syCorrGroups.push_back(uncert("tot", "Total uncertainty", jec::kMC,
+  syCorrGroups.push_back(uncert("tot", "Total uncertainty", jec::kData,
 		      "default", "default", -1, // defaults
 		      kBlack, kSolid, 1, // line
 		      kBlack, kNone, // marker
