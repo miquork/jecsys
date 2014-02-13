@@ -385,7 +385,7 @@ double JECUncertainty::_Absolute(const double pt) const {
 
 // Absolute scale split-up: Statistics
 double JECUncertainty::_AbsoluteStat() const {
-	double AbsStatSys = 0.0022;
+	double AbsStatSys = 0.004;
 	return AbsStatSys;
 }
 
@@ -701,11 +701,15 @@ double JECUncertainty::_RelativePt(const double pTprime,
   _jecL2ResPt->setJetEta(-abseta);
   double corrpt_m = _jecL2ResPt->getCorrection();
 
+
+  // we can average the corrections first and then take the difference or use the absolute difference to avoid cancellations between plus and minus eta
+  // Hack: take the mean of the absolute differences with the sign of the mean of the differences
   double corrpt = 0.5*(corrpt_m + corrpt_p);
   double corrflat = 0.5*(corrflat_m + corrflat_p);
 
+  double err = (corrpt/corrflat - 1) > 0 ? 1 : -1;
+  err *= 0.5*(std::abs(corrpt_m/corrflat_m - 1)+ std::abs(corrpt_p/corrflat_p - 1));
 
-  double err = (corrpt/corrflat - 1);
   double kfactor_hf = 0.50; // HF slope about same as slope stat
   if (abseta>=2.964) err *= kfactor_hf;
   double kfactor_ec = 0.50; // EC slope corrected

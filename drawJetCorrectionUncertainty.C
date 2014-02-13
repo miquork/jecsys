@@ -167,7 +167,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
 		      kBlack, kSolid, 1, // line
 		      kBlack, kNone, // marker
 		      kDarkGray, 1001, "LF")); // fill
-  sy.push_back(uncert("absolute", "Absolute scale", jec::kAbsoluteScale,
+  sy.push_back(uncert("absolute", "Absolute scale", (jec::kAbsoluteStat | jec::kAbsoluteMPFBias | jec::kAbsoluteFlavorMapping | jec::kAbsoluteScale),
 		      "default", "default", -1, // defaults
 		      kYellow+3, kSolid, 1, // line
 		      kBlack, kNone, // marker
@@ -212,7 +212,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
 		       kBlack, kSolid, 1, // line
 		       kBlack, kNone, // marker
 		       kDarkGray, 1001, "LF")); // fill
-  sym.push_back(uncert("absolute", "Absolute scale", jec::kAbsoluteScale,
+  sym.push_back(uncert("absolute", "Absolute scale", (jec::kAbsoluteStat | jec::kAbsoluteMPFBias | jec::kAbsoluteFlavorMapping | jec::kAbsoluteScale),
 		       "default", "default", -1, // defaults
 		       kYellow+3, kSolid, 1, // line
 		       kBlack, kNone, // marker
@@ -405,7 +405,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
 		       kNone, kNone, "LP")); // fill
 
   vector<uncert> syCorrGroups;
-  syCorrGroups.push_back(uncert("tot", "Total uncertainty", jec::kMC,
+  syCorrGroups.push_back(uncert("tot", "Total uncertainty", jec::kData,
 		      "default", "default", -1, // defaults
 		      kBlack, kSolid, 1, // line
 		      kBlack, kNone, // marker
@@ -900,7 +900,7 @@ void plotUncertainty(vector<uncert> const& sys,
     c2 = gPad;
   }
 
-  TCanvas *c1 = new TCanvas(Form("c1_%s",name.c_str()),"c1",600,600);
+  TCanvas *c1 = new TCanvas(Form("c1_%s",name.c_str()),"c1",700,600);
   if (type=="fixEta") c1->SetLogx();
   if (c2) { if (type=="fixEta") c2->SetLogx(); }
 
