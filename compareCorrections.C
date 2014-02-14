@@ -11,6 +11,9 @@
 #include "TMath.h"
 #include "TROOT.h"
 #include "TStyle.h"
+#include "Math/IFunction.h"
+#include "Math/BrentRootFinder.h"
+#include "Math/RootFinderAlgorithms.h"
 
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
@@ -25,6 +28,8 @@ const double x_eta[] =  {-5.4,-5.0,-4.4,-4,-3.5,-3,-2.8,-2.6,-2.4,-2.2,-2.0,-1.8
 const int ndiv_eta = sizeof(x_eta)/sizeof(x_eta[0])-1;
 
 int npv = 8;
+
+bool plotraw = true;
 
 // For JEC central value
 /*
@@ -47,6 +52,78 @@ double rho(const double npvmean) {
   return rho;
 }
 
+class ResponseFunc : public ROOT::Math::IBaseFunctionOneDim
+{
+public:
+  ResponseFunc(double pTprime, FactorizedJetCorrector *jec, int npv, double eta, double rho, double jeta) :
+    ROOT::Math::IBaseFunctionOneDim(),_pTprime(pTprime),_jec(jec),_npv(npv),_eta(eta),_rho(rho),_jeta(jeta) {}
+
+  double DoEval(double pTraw) const {
+    _jec->setJetPt(pTraw);
+    _jec->setJetE(pTraw*cosh(_eta));
+    _jec->setJetEta(_eta);
+    _jec->setNPV(_npv);
+    _jec->setRho(_rho); _jec->setJetA(_jeta);
+    double cor = _jec->getCorrection();
+    //std::cout << "in Brent: pTraw:" << pTraw << "  cor:" << cor << "  dist:" << pTraw * cor - _pTprime << '\n';
+    return pTraw * cor - _pTprime;
+  }
+
+  ROOT::Math::IBaseFunctionOneDim* Clone() const {
+    return new ResponseFunc(_pTprime,_jec,_npv,_eta,_rho,_jeta);
+  }
+private:
+  double _pTprime;
+  FactorizedJetCorrector *_jec;
+  int _npv;
+  double _eta;
+  double _rho;
+  double _jeta;
+};
+
+// Solve pTraw from pTprime = pTraw / R(pTraw) using Brent's method
+// We want to provide JEC uncertainties vs pTprime, not pTraw, but JEC
+// is only available as a function of pTraw
+double findPtraw(double ptref, double eta, double jetarea, FactorizedJetCorrector* jec) {
+
+
+  ResponseFunc f(ptref,jec,npv,eta,rho(npv),jetarea);
+
+  ROOT::Math::Roots::Brent brf;
+  //brf.SetLogScan(true);
+  // Set parameters of the method
+  brf.SetFunction(f,std::max(2.0,0.25*ptref),std::min(4*ptref,3500.0));
+  bool found_root = brf.Solve(50,1e-4,1e-5);
+  double ptraw = brf.Root();
+  double rjet = ptraw /ptref;
+  jec->setJetE(ptraw*cosh(eta));
+  jec->setJetEta(eta);
+  jec->setNPV(npv);
+  jec->setRho(rho(npv));
+  jec->setJetA(jetarea);
+  jec->setJetPt(ptraw);
+  double corr = jec->getCorrection();
+  if(std::abs((ptraw * corr - ptref)/ptref) > 0.001) {
+    std::cout << "NPV:" << npv << "   Brent: status:" << brf.Status() << " " << brf.Iterations() << '\n';
+    std::cout << "R: pTprime:" << ptref << "  eta:" << eta << " pTraw:" << ptraw << " corr:" << corr
+              << " pTcor:" << corr * ptraw << " rjet*pTprime:" << rjet * ptref << '\n';
+  }
+  assert(std::abs((ptraw * corr - ptref)/ptref) < 0.001);
+  assert(found_root);
+  assert(brf.Status() == 0);
+  /*
+  if((eta > 2.6) && (eta < 2.8)) {
+    _jec->setJetE(pTprime*cosh(eta));
+    _jec->setJetEta(eta); _jec->setNPV(_npv);
+    _jec->setJetPt(pTprime);
+    std::cout << "NPV:" << _npv << " cor:" << _jec->getCorrection() << "   Brent: status:" << brf.Status() << " " << brf.Iterations() << '\n';
+    std::cout << "R: pTprime:" << pTprime << "  eta:" << eta << " pTraw:" << pTraw << " corr:" << corr
+              << " pTcor:" << corr * pTraw << " rjet*pTprime:" << _rjet * pTprime << '\n';
+  }
+  */
+  return ptraw;
+} // _Rjet
+
 TH2D* getHist(const std::string& jec,const std::string& algo) {
   double eta1, eta2,pt, val1, val2;
   int nbins;
@@ -62,14 +139,21 @@ TH2D* getHist(const std::string& jec,const std::string& algo) {
   params.push_back(jec+"_L2L3Residual_"+algo+".txt");
   FactorizedJetCorrector* cor = new FactorizedJetCorrector(params);
   std::string title = jec+" "+algo;
-  TH2D* hist = new TH2D(title.c_str(),title.c_str(),ndiv_pt, x_pt,ndiv_eta,x_eta);
-  hist->SetXTitle("p_{T} [GeV]");
+  int ptstartbin = plotraw ? 2 : 0;
+  TH2D* hist = new TH2D(title.c_str(),title.c_str(),ndiv_pt-ptstartbin, x_pt+ptstartbin,ndiv_eta,x_eta);
+
+  if(plotraw) {
+      hist->SetXTitle("p_{T}^{raw} [GeV]");
+  } else {
+      hist->SetXTitle("p_{T}^{ref} [GeV]");
+  }
+
   hist->SetYTitle("#eta");
   hist->SetStats(0);
   hist->GetXaxis()->SetMoreLogLabels();
   hist->GetXaxis()->SetNoExponent();
   hist->SetMinimum(0.5);
-  hist->SetMaximum(1.5);
+  //hist->SetMaximum(1.8);
   std::cout << "initialzing jet corrections " << jec << "for " << algo << '\n';
 
   for(unsigned int i = 0 ; i < ndiv_eta ; ++i) {
@@ -77,18 +161,23 @@ TH2D* getHist(const std::string& jec,const std::string& algo) {
    if(eta >= 5.2) eta = 5.1;
    if(eta <= -5.2) eta = -5.1;
    double cosheta = cosh(eta);
-    for(unsigned int j = 0 ; j < ndiv_pt ; ++j) {
+    for(unsigned int j = ptstartbin ; j < ndiv_pt ; ++j) {
       double pt = (x_pt[j]+x_pt[j+1])/2;
-      cor->setJetE(pt*cosheta);
-      cor->setJetPt(pt);
-      cor->setJetEta(eta);
-      cor->setJetPhi(0);
-      cor->setNPV(npv);
-      cor->setRho(rho(npv));
-      cor->setJetA(TMath::Pi()*r*r);
-      double c = (pt*cosheta > 3000) ? 1.0 : cor->getCorrection();
-      //std::cout << pt << ", " << eta << ", " << c << '\n';
-      hist->Fill(pt,eta,c);
+      if( pt*cosheta <= 3500) {
+          double ptraw = plotraw ? findPtraw(pt, eta, TMath::Pi()*r*r, cor ) : pt;
+          cor->setJetE(ptraw*cosheta);
+          cor->setJetPt(ptraw);
+          cor->setJetEta(eta);
+          cor->setJetPhi(0);
+          cor->setNPV(npv);
+          cor->setRho(rho(npv));
+          cor->setJetA(TMath::Pi()*r*r);
+          double c = cor->getCorrection();
+          //std::cout << pt << ", " << eta << ", " << c << '\n';
+          hist->Fill(pt,eta,c);
+      } else {
+          //hist->Fill(pt,eta,0);
+      }
     }
   }
 
@@ -109,13 +198,13 @@ void compareCorrections() {
 
   std::vector<std::string> list;
 
-  list.push_back("AK5PFchs");
-  list.push_back("AK7PFchs");
+  //list.push_back("AK5PFchs");
+  //list.push_back("AK7PFchs");
   list.push_back("AK5PF");
-  list.push_back("AK7PF");
-  list.push_back("AK5Calo");
-  list.push_back("AK7Calo");
-  list.push_back("AK5JPT");
+  //list.push_back("AK7PF");
+  //list.push_back("AK5Calo");
+  //list.push_back("AK7Calo");
+  //list.push_back("AK5JPT");
 
   std::string newJEC = "/afs/desy.de/user/s/stadie/2011Legacy/Legacy11_V1_DATA";
   std::string oldJEC = "/afs/desy.de/user/s/stadie/xxl/jetcorrections/GR_R_42_V23";
@@ -124,6 +213,7 @@ void compareCorrections() {
     TH2D* h2 = getHist(newJEC,list[i]);
     h2->DrawClone("COLZ");
     c->SetLogx();
+    //c->SetLogz();
     std::string name = list[i];
     std::string pname = "new"+list[i]+".eps";
     c->Print(pname.c_str());
@@ -135,6 +225,7 @@ void compareCorrections() {
       TCanvas* c = new TCanvas();
       h2old->DrawClone("COLZ");
       c->SetLogx();
+      //c->SetLogz();
       pname = oldname+".eps";
       c->Print(pname.c_str());
       c = new TCanvas();
@@ -143,8 +234,8 @@ void compareCorrections() {
       pname = name+" new/old";
       hdiff->SetTitle(pname.c_str());
       hdiff->Divide(h2old);
-      hdiff->SetMaximum(1.1);
-      hdiff->SetMinimum(0.9);
+      hdiff->SetMaximum(1.15);
+      hdiff->SetMinimum(0.85);
       hdiff->DrawClone("COLZ");
       c->SetLogx();
       pname = name+"ratio"+".eps";
