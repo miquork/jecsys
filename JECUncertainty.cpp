@@ -24,6 +24,7 @@ JECUncertainty::JECUncertainty(const jec::JetAlgo& algo,
 {
 
   this->SetJetAlgo(algo); // initialize tables for jetalg
+  _fjes = 0;
 }
 
 
@@ -292,6 +293,35 @@ void JECUncertainty::_InitL2Res() {
 
 } // InitL2Res
 
+InitL3Res() {
+{
+  const int n = 6;
+  const double pars[n] =
+    {0.9924, -0.02292, 0.9999, 1, 60, 600};
+  const double emata[n][n] =
+    {{ 4.669e-06, -2.365e-06,  3.476e-06,  3.085e-06,          0,          0},
+     {-2.365e-06,  7.092e-06,   -5.1e-07,  2.611e-06,          0,          0},
+     { 3.476e-06,   -5.1e-07,   3.49e-06,  3.182e-06,          0,          0},
+     { 3.085e-06,  2.611e-06,  3.182e-06,  5.118e-06,          0,          0},
+     {         0,          0,          0,          0,          0,          0},
+     {         0,          0,          0,          0,          0,          0}};
+
+  // Sub-optimal to copy every time, but this is the most flexible interface
+  TMatrixD emat(n, n);
+  for (int i = 0; i != n; ++i) {
+    for (int j = 0; j != n; ++j) {
+      emat[i][j] = emata[i][j];
+    }
+  }
+  if (!_fjes) {
+    _fjes = new TF1("fjes",_jesfit,10.,4000.,n);
+    for (int i = 0; i != n; ++i) {
+      _fjes->SetParameter(i, pars[i]);
+    }
+  }
+
+
+}
 
 void JECUncertainty::SetNPV(const double npv) {
   _npv = npv;
@@ -355,7 +385,7 @@ double JECUncertainty::_Rjet(const double pTprime, const double eta) {
 // Combine pT dependent absolute scale uncertainties
 double JECUncertainty::_Absolute(const double pt) const {
 
-  double stat          = (_errType & jec::kAbsoluteStat          ? _AbsoluteStat()          : 0.);
+  double stat          = (_errType & jec::kAbsoluteStat          ? _AbsoluteStat(pt)          : 0.);
   double scale         = (_errType & jec::kAbsoluteScale         ? _AbsoluteScale()         : 0.);
   double FlMap         = (_errType & jec::kAbsoluteFlavorMapping ? _AbsoluteFlavorMapping() : 0.); //for backward-compatibility/historical reasons
   double MPFBias       = (_errType & jec::kAbsoluteMPFBias       ? _AbsoluteMPFBias()       : 0.);
@@ -369,9 +399,56 @@ double JECUncertainty::_Absolute(const double pt) const {
   return sqrt(stat*stat + scale*scale + FlMap*FlMap + MPFBias*MPFBias + spr*spr + frag*frag);
 } // Absolute
 
+
+// pT dependent fit of L3Res
+//Double_t JECUncertainty::_jesfit(Double_t *x, Double_t *p) {
+Double_t _jesfit(Double_t *x, Double_t *p) {
+
+  double pt = x[0];
+  double p0 = p[0];
+  double p1 = p[1];
+  //double zmm = p[2];
+  //double zee = p[3];
+  double ptdw = max(10.,min(150.,p[4]));
+  double ptup = max(300.,min(1000.,p[5]));
+
+  double jes = p0 + p1 * 0.5*(TMath::Erf( (log(pt) - log(sqrt(ptdw*ptup))) /
+  					  log(sqrt(ptup/ptdw)) ) + 1);
+  return jes;
+} // jesfit
+
+// Fit uncertainty
+double JECUncertainty::_jesfitunc(double x, TF1 *f, TMatrixD &emat) const {
+
+  int n = f->GetNpar();
+  vector<double> df(n);
+  for (int i = 0; i != n; ++i) {
+    Double_t p = f->GetParameter(i);
+    Double_t ep = sqrt(emat[i][i]);
+    if (ep==0) df[i] = 0;
+    else {
+      Double_t dep = 0.1*ep;
+      f->SetParameter(i, p + dep);
+      double fup = f->Eval(x);
+      f->SetParameter(i, p - dep);
+      double fdw = f->Eval(x);
+      f->SetParameter(i, p);
+      df[i] = (fup - fdw) / (2. * dep);
+    }
+  }
+  double sum2 = 0;
+  for (int i = 0; i != n; ++i) {
+    for (int j = 0; j != n; ++j) {
+      sum2 += df[i] * df[j] * emat[i][j];
+    }
+  }
+  
+  return sqrt(sum2);
+}
+
 // Continuation of 2011 ATLAS/CMS JES correlation discussions
 // Absolute scale split-up: Statistics
-double JECUncertainty::_AbsoluteStat() const {
+double JECUncertainty::_AbsoluteStat(double pTprime) const {
   // 2011 correlation groups:
   // Stat: 0.0022 - estimated from
   // Z+jets, 4.7/fb: 0.991+/-0.003(stat)
@@ -380,8 +457,13 @@ double JECUncertainty::_AbsoluteStat() const {
   // 2012:
   // https://indico.cern.ch/getFile.py/access?contribId=4&resId=0&materialId=slides&confId=216765 
   // also here: http://www-ekp.physik.uni-karlsruhe.de/~dhaitz/plots_archive/2012_11_13/extrapolation/ratio_extrapolation_alpha_0_30__AK5PFCHSL1L2L3Res.png
-  double AbsStatSys = 0.002; // for alpha<0.30 fit, s10
+  //double AbsStatSys = 0.002; // for alpha<0.30 fit, s10
 
+  // Uncertainty band from the pT dependent error function fit
+  // This fit includes Zmm and Zee scales as floating nuisance parameters,
+  // so subtract them again in quadrature to avoid double-counting
+  double AbsStatSys = _jesfitunc(pTprime, _fjes, emat) / _fjes->Eval(pTprime);
+    
   return AbsStatSys;
 }
 

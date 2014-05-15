@@ -15,6 +15,9 @@
 #include "JetDefs.hpp"
 
 #include "Math/IFunction.h"
+// ROOT (root.cern.ch) modules
+#include "TMatrixD.h"
+#include "TF1.h"
 
 #include <iostream>
 
@@ -25,6 +28,7 @@ namespace jec {
   enum DataType {DATA, MC, PY, HW};
 }
 
+Double_t _jesfit(Double_t *x, Double_t *p);
 
 class JECUncertainty {
 public:
@@ -57,7 +61,7 @@ public:
   //double _SystErr(const double pTprime, const double eta);// const;
 
   double _Absolute(const double pTprime) const;
-  double _AbsoluteStat() const;
+  double _AbsoluteStat(const double pTprime) const;
   double _AbsoluteScale() const;
   double _AbsoluteMPFBias() const;
   double _AbsoluteFlavorMapping() const;
@@ -91,6 +95,10 @@ public:
   double _L1Data(double pTraw, double eta);
   double _L1MC(double pTraw, double eta);
   double _Rho(double npvmean);
+
+  // helpers for AbsoluteStat
+  TF1 *_fjes;
+  double _jesfitunc(double x, TF1 *f, TMatrixD &emat) const;
 
 private:
   jec::JetAlgo _algo;
