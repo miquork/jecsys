@@ -20,6 +20,7 @@
 #include "TF1.h"
 
 #include <iostream>
+#include <string>
 
 namespace jec {
   
@@ -55,6 +56,7 @@ public:
   void _InitL1();
   void _InitJEC();
   void _InitL2Res();
+  void _InitL3Res();
   double _Rjet(const double pTprime, const double eta);
 
   // Statistical and systematic uncertainties
@@ -80,7 +82,7 @@ public:
   double _PileUpPt(double pTprime, double eta);
   //
   double _Flavor(double pTprime, double eta) const;
-  double _FlavorMixed(double pTprime, double eta, string smix) const;
+  double _FlavorMixed(double pTprime, double eta, std::string smix) const;
   double _FlavorMix(double pTprime, double eta, double fl, double fg, 
 		    double fc, double fb) const;
   double _FlavorResponse(double pTprime, double eta, int iflavor) const;
@@ -90,15 +92,16 @@ public:
   double _Time(double eta) const;
   
   // pieces of L1Offset
-  double _L1MCRaw(double pTraw, double eta);
-  double _L1DataRaw(double pTraw, double eta);
+  double _L1MCFlat(double pTraw, double eta);
+  double _L1DataFlat(double pTraw, double eta);
   double _L1Data(double pTraw, double eta);
   double _L1MC(double pTraw, double eta);
   double _Rho(double npvmean);
 
   // helpers for AbsoluteStat
   TF1 *_fjes;
-  double _jesfitunc(double x, TF1 *f, TMatrixD &emat) const;
+  TMatrixD *_emat;
+  double _jesfitunc(double x, TF1 *f, TMatrixD *emat) const;
 
 private:
   jec::JetAlgo _algo;
@@ -116,9 +119,9 @@ private:
   FactorizedJetCorrector *_jec;
   FactorizedJetCorrector *_jecDefault;
   FactorizedJetCorrector *_jecWithL1V0;
-  FactorizedJetCorrector *_jecL1nominal;
-  FactorizedJetCorrector *_jecL1scaled;
-  FactorizedJetCorrector *_jecL1MCnominal;
+  FactorizedJetCorrector *_jecL1DTflat;
+  FactorizedJetCorrector *_jecL1DTpt;
+  FactorizedJetCorrector *_jecL1MCflat;
   FactorizedJetCorrector *_jecL1pt;
   FactorizedJetCorrector *_jecL2ResFlat;
   FactorizedJetCorrector *_jecL2ResPt;

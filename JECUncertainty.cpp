@@ -3,7 +3,7 @@
 #include "TFile.h"
 #include "TF1.h"
 #include "Math/BrentRootFinder.h"
-#include "Math/RootFinderAlgorithms.h"
+//#include "Math/RootFinderAlgorithms.h"
 
 #include <cmath>
 #include <map>
@@ -23,8 +23,9 @@ JECUncertainty::JECUncertainty(const jec::JetAlgo& algo,
   _algo(algo), _type(type), _errType(errType), _npv(npv)
 {
 
+  _fjes = 0; _emat = 0;
   this->SetJetAlgo(algo); // initialize tables for jetalg
-  _fjes = 0;
+
 }
 
 
@@ -100,20 +101,20 @@ void JECUncertainty::SetJetAlgo(const jec::JetAlgo& algo) {
   _InitL1();
   _InitJEC();
   _InitL2Res();
+  _InitL3Res();
 
 }
 
 
 void JECUncertainty::_InitL1() {
 
-  // MC truth L1 (MC_V1) and L2L3 files from Ricardo Euseby by e-mailed weblink
-  // Subject: 	Re: New MC-based L1
-  // Date: 	May 9, 2013 10:50:54 PM GMT+03:00
-  // http://people.physics.tamu.edu/eusebi/jec/53X/SQLfiles/Summer13/
+  // RandomCone (V0) files from Ia Iashvili by e-mail (DropBox link)
+  // On 17 May 2014, at 16:05
+  // Re: Summer14 combination files with RD MC
 
-  // RandomCone (V0) and scaled L1 (DATA_V1) files from Ia Iashvili by e-mail
-  // Subject: 	Re: New MC-based L1
-  // Date: 	May 14, 2013 8:54:27 PM GMT+03:00
+  // L1FastJet (V1) files for data from Ia Iashvili by e-mail (tar file)
+  // On 24 Mar 2014, at 16:52
+  // Re: L2 Residuals Corrections - this time packed and ready
 
   map<jec::JetAlgo, const char*> names;
   names[jec::AK5PF] = "AK5PF";
@@ -128,31 +129,31 @@ void JECUncertainty::_InitL1() {
 
   // L1Offset systematics
   {
-    const char *s = Form("%sSummer13_V0_DATA_L1Offset_%s_pt.txt",d,a);
+    const char *s = Form("%sWinter14_V0_DATA_L1FastJetPU_%s_pt.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
     v.push_back(*l1);
-    _jecL1nominal = new FactorizedJetCorrector(v);
+    _jecL1DTflat = new FactorizedJetCorrector(v);
   }
   {
-    const char *s = Form("%sSummer13_V0_MC_L1Offset_%s_pt.txt",d,a);
+    const char *s = Form("%sWinter14_V0_MC_L1FastJetPU_%s_pt.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
     v.push_back(*l1);
-    _jecL1MCnominal = new FactorizedJetCorrector(v);
+    _jecL1MCflat = new FactorizedJetCorrector(v);
   }
   {
-    const char *s = Form("%sSummer13_V1_DATA_L1FastJet_%s.txt",d,a);
+    const char *s = Form("%sWinter14_V1_DATA_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
     v.push_back(*l1);
-    _jecL1scaled = new FactorizedJetCorrector(v);
+    _jecL1DTpt = new FactorizedJetCorrector(v);
   }
   {
-    const char *s = Form("%sSummer13_V1_MC_L1FastJet_%s.txt",d,a);
+    const char *s = Form("%sWinter14_V1_MC_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -163,6 +164,12 @@ void JECUncertainty::_InitL1() {
 
 
 void JECUncertainty::_InitJEC() {
+
+  // L1 files for data from Ia Iashvili (see _InitL1 above)
+  // Other JEC files collected by Alexx Perloff to we directory
+  // http://people.physics.tamu.edu/aperloff/CMS_JEC/
+  // index.php?path=Winter_14%2FWinter14_V1_txts/
+  // Files picked up on May 17 2014, at 18:15
 
   map<jec::JetAlgo, const char*> names;
   names[jec::AK5PF] = "AK5PF";
@@ -176,19 +183,16 @@ void JECUncertainty::_InitJEC() {
   const char *d = directory.c_str();
 
   const char *s;
-  s = Form("%sSummer13_V1_DATA_L1FastJet_%s.txt",d,a);
+  s = Form("%sWinter14_V1_DATA_L1FastJet_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
-  s = Form("%sSummer13_V1_DATA_L2Relative_%s.txt",d,a);
+  s = Form("%sWinter14_V1_DATA_L2Relative_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
-  s = Form("%sSummer13_V1_DATA_L3Absolute_%s.txt",d,a);
+  s = Form("%sWinter14_V1_DATA_L3Absolute_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
-  s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5PF.txt.V4handMadeUpdatedL3",d);
-  if (_algo==jec::AK5CALO || _algo==jec::AK7CALO) {
-    s = Form("%sWinter12_V1_DATA_L2L3Residual_%s.txt.kFSRone",d,a);
-  }  
+  s = Form("%sWinter14_V1_DATA_L2L3Residual_AK5PFchs.txt",d);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
 
@@ -201,7 +205,7 @@ void JECUncertainty::_InitJEC() {
   _jec = _jecDefault;
 
   // Another versions using Random Cone offset (L1 V0)
-  s = Form("%sSummer13_V0_DATA_L1Offset_%s_pt.txt",d,a);
+  s = Form("%sWinter14_V0_DATA_L1FastJetPU_%s_pt.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l1v0 = new JetCorrectorParameters(s);
 
@@ -290,11 +294,11 @@ void JECUncertainty::_InitL2Res() {
     v.push_back(*l2l3res);
     _jecL2jerdw = new FactorizedJetCorrector(v);
   }
-
+  
 } // InitL2Res
 
-InitL3Res() {
-{
+void JECUncertainty::_InitL3Res() {
+
   const int n = 6;
   const double pars[n] =
     {0.9924, -0.02292, 0.9999, 1, 60, 600};
@@ -307,10 +311,12 @@ InitL3Res() {
      {         0,          0,          0,          0,          0,          0}};
 
   // Sub-optimal to copy every time, but this is the most flexible interface
-  TMatrixD emat(n, n);
-  for (int i = 0; i != n; ++i) {
-    for (int j = 0; j != n; ++j) {
-      emat[i][j] = emata[i][j];
+  if (!_emat) {
+    _emat = new TMatrixD(n, n);
+    for (int i = 0; i != n; ++i) {
+      for (int j = 0; j != n; ++j) {
+	(*_emat)[i][j] = emata[i][j];
+      }
     }
   }
   if (!_fjes) {
@@ -319,7 +325,6 @@ InitL3Res() {
       _fjes->SetParameter(i, pars[i]);
     }
   }
-
 
 }
 
@@ -348,7 +353,8 @@ double JECUncertainty::_Rjet(const double pTprime, const double eta) {
   
   ResponseFunc f(pTprime,_jec,_npv,_eta,_Rho(_npv),TMath::Pi()*0.5*0.5*_ajet);
   
-  ROOT::Math::Roots::Brent brf;
+  //ROOT::Math::Roots::Brent brf;
+  ROOT::Math::BrentRootFinder brf;
   //brf.SetLogScan(true);
   // Set parameters of the method
   brf.SetFunction(f,std::max(2.0,0.25*pTprime),std::min(4*pTprime,3500.0));
@@ -418,13 +424,15 @@ Double_t _jesfit(Double_t *x, Double_t *p) {
 } // jesfit
 
 // Fit uncertainty
-double JECUncertainty::_jesfitunc(double x, TF1 *f, TMatrixD &emat) const {
+double JECUncertainty::_jesfitunc(double x, TF1 *f, TMatrixD *emat) const {
 
+  assert(f);
+  assert(emat);
   int n = f->GetNpar();
   vector<double> df(n);
   for (int i = 0; i != n; ++i) {
     Double_t p = f->GetParameter(i);
-    Double_t ep = sqrt(emat[i][i]);
+    Double_t ep = sqrt((*emat)[i][i]);
     if (ep==0) df[i] = 0;
     else {
       Double_t dep = 0.1*ep;
@@ -439,7 +447,7 @@ double JECUncertainty::_jesfitunc(double x, TF1 *f, TMatrixD &emat) const {
   double sum2 = 0;
   for (int i = 0; i != n; ++i) {
     for (int j = 0; j != n; ++j) {
-      sum2 += df[i] * df[j] * emat[i][j];
+      sum2 += df[i] * df[j] * (*emat)[i][j];
     }
   }
   
@@ -462,7 +470,7 @@ double JECUncertainty::_AbsoluteStat(double pTprime) const {
   // Uncertainty band from the pT dependent error function fit
   // This fit includes Zmm and Zee scales as floating nuisance parameters,
   // so subtract them again in quadrature to avoid double-counting
-  double AbsStatSys = _jesfitunc(pTprime, _fjes, emat) / _fjes->Eval(pTprime);
+  double AbsStatSys = _jesfitunc(pTprime, _fjes, _emat) / _fjes->Eval(pTprime);
     
   return AbsStatSys;
 }
@@ -586,17 +594,18 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
     errSPR = f->Eval(pTprime);
     refSPR = f->Eval(refpt);
   }
+  // Fix 2014-05-17: multiply difference by 2 to account for SPR=SPRE+SPRH
   if (_errType & jec::kAbsoluteSPRE) { // SPR in ECAL
     f->SetParameters(1.00567e+00, -3.04275e-02, -6.75493e-01);
     if (_calo) f->SetParameters(1.00166e+00, 1.57065e-02, -2.06585e-01);
-    errSPRE = f->Eval(pTprime);
-    refSPRE = f->Eval(refpt);
+    errSPRE = 2.*(f->Eval(pTprime)-1) + 1;
+    refSPRE = 2.*(f->Eval(refpt)-1) + 1;
   }
   if (_errType & jec::kAbsoluteSPRH) { // SPR in HCAL
     f->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01);
     if (_calo) f->SetParameters(1.02246e+00, -1.55689e-02, -1.17219e-01);
-    errSPRH = f->Eval(pTprime);
-    refSPRH = f->Eval(refpt);
+    errSPRH = 2.*(f->Eval(pTprime)-1) + 1;
+    refSPRH = 2.*(f->Eval(refpt)-1) + 1;
   }
 
   // replace directly done SPR with pieces broken up into ECAL and HCAL
@@ -772,8 +781,8 @@ double JECUncertainty::_PileUpDataMC(const double pTprime, const double eta) {
   double l1m_p = _L1MC(pT_p, eta); // V1MC
   double sys_p = kfactor * (l1m_p / l1d_p - 1);
   //
-  double l1db_p = _L1DataRaw(pT_p, eta);
-  double l1mb_p = _L1MCRaw(pT_p, eta);
+  double l1db_p = _L1DataFlat(pT_p, eta);
+  double l1mb_p = _L1MCFlat(pT_p, eta);
   double sysb_p = kfactor * (l1mb_p / l1db_p - 1);
 
   double pT_m = _Rjet(pTprime, -eta) * pTprime;
@@ -781,8 +790,8 @@ double JECUncertainty::_PileUpDataMC(const double pTprime, const double eta) {
   double l1m_m = _L1MC(pT_m, -eta); // V1MC
   double sys_m = kfactor * (l1m_m / l1d_m - 1);
   //
-  double l1db_m = _L1DataRaw(pT_m, -eta);
-  double l1mb_m = _L1MCRaw(pT_m, -eta);
+  double l1db_m = _L1DataFlat(pT_m, -eta);
+  double l1mb_m = _L1MCFlat(pT_m, -eta);
   double sysb_m = kfactor * (l1mb_m / l1db_m - 1);
 
 
@@ -831,11 +840,11 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
   double pT_v0p = _Rjet(pTprime, etax) * pTprime;
   _jec = _jecDefault;
   //
-  double l1n_p = _L1DataRaw(pT_v0p, etax); // V0Data
+  double l1n_p = _L1DataFlat(pT_v0p, etax); // V0Data
   double l1s_p = _L1Data(pT_p, etax); // V1Data = V1MC * V0Data / V0MC
   double sys_p = kfactor * (l1n_p / l1s_p - 1);
   //
-  double l1nb_p = _L1MCRaw(pT_v0p, etax);
+  double l1nb_p = _L1MCFlat(pT_v0p, etax);
   double l1sb_p = _L1MC(pT_p, etax);
   double sysb_p = kfactor * (l1nb_p / l1sb_p - 1);
 
@@ -845,11 +854,11 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
   double pT_v0m = _Rjet(pTprime, -etax) * pTprime;
   _jec = _jecDefault;    
   //
-  double l1n_m = _L1DataRaw(pT_v0m, -etax);
+  double l1n_m = _L1DataFlat(pT_v0m, -etax);
   double l1s_m = _L1Data(pT_m, -etax);
   double sys_m = kfactor * (l1n_m / l1s_m - 1);
   //
-  double l1nb_m = _L1MCRaw(pT_v0m, -etax);
+  double l1nb_m = _L1MCFlat(pT_v0m, -etax);
   double l1sb_m = _L1MC(pT_m, -etax);
   double sysb_m = kfactor * (l1nb_m / l1sb_m - 1);
     
@@ -1471,45 +1480,45 @@ double JECUncertainty::_Time(const double eta) const {
 
 
 // Random Cone offset for data
-double JECUncertainty::_L1DataRaw(const double pT, const double eta) {
+double JECUncertainty::_L1DataFlat(const double pT, const double eta) {
 
   //L1Offset VO Data
-  assert(_jecL1nominal);
-  _jecL1nominal->setRho(_Rho(_npv));
-  _jecL1nominal->setJetA(TMath::Pi()*0.5*0.5*_ajet);
-  _jecL1nominal->setNPV(_npv);
-  _jecL1nominal->setJetEta(eta);
-  _jecL1nominal->setJetE(pT*cosh(eta));
-  _jecL1nominal->setJetPt(pT);
-  return ( _jecL1nominal->getCorrection() );
+  assert(_jecL1DTflat);
+  _jecL1DTflat->setRho(_Rho(_npv));
+  _jecL1DTflat->setJetA(TMath::Pi()*0.5*0.5*_ajet);
+  _jecL1DTflat->setNPV(_npv);
+  _jecL1DTflat->setJetEta(eta);
+  _jecL1DTflat->setJetE(pT*cosh(eta));
+  _jecL1DTflat->setJetPt(pT);
+  return ( _jecL1DTflat->getCorrection() );
 }
 
 // Random Cone offset for MC
-double JECUncertainty::_L1MCRaw(const double pT, const double eta) {
+double JECUncertainty::_L1MCFlat(const double pT, const double eta) {
 
  //L1Offset VO MC
-  assert(_jecL1MCnominal);
-  _jecL1MCnominal->setNPV(_npv);
-  _jecL1MCnominal->setRho(_Rho(_npv));
-  _jecL1MCnominal->setJetA(TMath::Pi()*0.5*0.5*_ajet);
-  _jecL1MCnominal->setJetEta(eta);
-  _jecL1MCnominal->setJetE(pT*cosh(eta));
-  _jecL1MCnominal->setJetPt(pT);
-  return ( _jecL1MCnominal->getCorrection() );
+  assert(_jecL1MCflat);
+  _jecL1MCflat->setNPV(_npv);
+  _jecL1MCflat->setRho(_Rho(_npv));
+  _jecL1MCflat->setJetA(TMath::Pi()*0.5*0.5*_ajet);
+  _jecL1MCflat->setJetEta(eta);
+  _jecL1MCflat->setJetE(pT*cosh(eta));
+  _jecL1MCflat->setJetPt(pT);
+  return ( _jecL1MCflat->getCorrection() );
 }
 
 // Scaled offset for data (MC truth * RandomConeData / RandomConeMC)
 double JECUncertainty::_L1Data(const double pT, const double eta) {
 
   //L1Offset V5 Data
-  assert(_jecL1scaled);
-  _jecL1scaled->setNPV(_npv);
-  _jecL1scaled->setRho(_Rho(_npv));
-  _jecL1scaled->setJetA(TMath::Pi()*0.5*0.5*_ajet);
-  _jecL1scaled->setJetEta(eta);
-  _jecL1scaled->setJetE(pT*cosh(eta));
-  _jecL1scaled->setJetPt(pT);
-  return ( _jecL1scaled->getCorrection() );
+  assert(_jecL1DTpt);
+  _jecL1DTpt->setNPV(_npv);
+  _jecL1DTpt->setRho(_Rho(_npv));
+  _jecL1DTpt->setJetA(TMath::Pi()*0.5*0.5*_ajet);
+  _jecL1DTpt->setJetEta(eta);
+  _jecL1DTpt->setJetE(pT*cosh(eta));
+  _jecL1DTpt->setJetPt(pT);
+  return ( _jecL1DTpt->getCorrection() );
 }
 
 // Scaled offset for MC (MC truth)
