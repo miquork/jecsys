@@ -74,7 +74,7 @@ namespace jec {
 
 
   // Combinations of bits
-  const ErrorTypes kPileUpPt            = kPileUpPtBB | kPileUpPtEC | kPileUpPtHF;
+  const ErrorTypes kPileUpPt            = kPileUpPtBB | kPileUpPtEC1 | kPileUpPtEC2 | kPileUpPtHF;
   const ErrorTypes kRelativeJER         = kRelativeJEREC1 | kRelativeJEREC2 | kRelativeJERHF;
   const ErrorTypes kRelativePt          = kRelativePtBB | kRelativePtEC1 | kRelativePtEC2 | kRelativePtHF;
   const ErrorTypes kRelativeStat        = kRelativeStatEC2 | kRelativeStatHF;

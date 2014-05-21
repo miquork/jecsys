@@ -255,7 +255,8 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF", bool doTXT = true) {
 			kBlue, kFullSquare, // marker
 			kBlue-9, 1001, "LFP")); // fill
   sypu.push_back(uncert("pupt", "PileUpPt",
-			jec::kPileUpPtBB | jec::kPileUpPtEC | jec::kPileUpPtHF,
+			jec::kPileUpPtBB | jec::kPileUpPtEC1 |
+			jec::kPileUpPtEC2 | jec::kPileUpPtHF,
 			"default", "default", -1, // defaults
 			kYellow+3, kNone, 1, // line
 			kBlack, kNone, // marker
@@ -1242,7 +1243,7 @@ void plotUncertainty(vector<uncert> const& sys,
        jec::kRelativeFSR,/*new*/ jec::kRelativeStatEC2, jec::kRelativeStatHF,
        /*jec::kRelativeSample,*/
        jec::kPileUpDataMC, /*jec::kPileUpOOT,*/ /*jec::kPileUpPt,*/
-       jec::kPileUpPtBB, jec::kPileUpPtEC, jec::kPileUpPtHF,
+       jec::kPileUpPtBB, jec::kPileUpPtEC1, jec::kPileUpPtEC2, jec::kPileUpPtHF,
        jec::kPileUpBias,
        /*jec::kPileUpJetRate,*/
        jec::kPileUp, jec::kRelative, jec::kAbsolutePt,//jec::kPtExtra,
@@ -1286,7 +1287,8 @@ void plotUncertainty(vector<uncert> const& sys,
     //srcname[jec::kPileUpOOT] = "PileUpOOT";
     //srcname[jec::kPileUpPt] = "PileUpPt";
     srcname[jec::kPileUpPtBB] = "PileUpPtBB";
-    srcname[jec::kPileUpPtEC] = "PileUpPtEC";
+    srcname[jec::kPileUpPtEC1] = "PileUpPtEC1";
+    srcname[jec::kPileUpPtEC2] = "PileUpPtEC2";
     srcname[jec::kPileUpPtHF] = "PileUpPtHF";
     srcname[jec::kPileUpBias] = "PileUpBias";
     //srcname[jec::kPileUpJetRate] = "PileUpJetRate";

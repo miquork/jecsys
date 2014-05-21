@@ -74,7 +74,8 @@ double JECUncertainty::Uncert(const double pTprime, const double eta) {
   if (!(_errType & ~jec::kPileUpDataMC)) return errPileUp;
   if (!(_errType & ~jec::kPileUpBias))   return errPileUp;
   if (!(_errType & ~jec::kPileUpPtBB)) return errPileUp;
-  if (!(_errType & ~jec::kPileUpPtEC)) return errPileUp;
+  if (!(_errType & ~jec::kPileUpPtEC1)) return errPileUp;
+  if (!(_errType & ~jec::kPileUpPtEC2)) return errPileUp;
   if (!(_errType & ~jec::kPileUpPtHF)) return errPileUp;
   if (!(_errType & ~jec::kPileUpPt))   return errPileUp; // EXTRA
   //
@@ -771,7 +772,8 @@ double JECUncertainty::_PileUp(const double pTprime, const double eta) {
   if (!(_errType & ~jec::kPileUpDataMC)) return smc;
   if (!(_errType & ~jec::kPileUpBias)) return sbias;
   if (!(_errType & ~jec::kPileUpPtBB)) return spt;
-  if (!(_errType & ~jec::kPileUpPtEC)) return spt;
+  if (!(_errType & ~jec::kPileUpPtEC1)) return spt;
+  if (!(_errType & ~jec::kPileUpPtEC2)) return spt;
   if (!(_errType & ~jec::kPileUpPtHF)) return spt;
   if (!(_errType & ~jec::kPileUpPt)) return spt; // EXTRA
 
@@ -854,7 +856,7 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
 
   // Limit eta to [-5,5] because V0 files don't go further out
   // Even closer in, because bias goes nuts in the last bin out
-  double maxeta = 5;//4.5;
+  double maxeta = 4.5;
   double etax = max(-maxeta,min(maxeta,eta));
 
   // Given the detailed correction, kfactor of 50% should be justified already
