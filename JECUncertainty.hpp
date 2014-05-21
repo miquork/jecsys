@@ -96,6 +96,7 @@ public:
   double _L1DataFlat(double pTraw, double eta);
   double _L1Data(double pTraw, double eta);
   double _L1MC(double pTraw, double eta);
+  double _L1SF(double pTraw, double eta, double rho);
   double _Rho(double npvmean);
 
   // helpers for AbsoluteStat
@@ -123,6 +124,7 @@ private:
   FactorizedJetCorrector *_jecL1DTpt;
   FactorizedJetCorrector *_jecL1MCflat;
   FactorizedJetCorrector *_jecL1pt;
+  FactorizedJetCorrector *_jecL1sf;
   FactorizedJetCorrector *_jecL2ResFlat;
   FactorizedJetCorrector *_jecL2ResPt;
   FactorizedJetCorrector *_jecL2jerup;

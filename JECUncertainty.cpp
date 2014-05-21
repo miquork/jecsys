@@ -116,6 +116,10 @@ void JECUncertainty::_InitL1() {
   // On 24 Mar 2014, at 16:52
   // Re: L2 Residuals Corrections - this time packed and ready
 
+  // DataMcSF files from Ia Iasvili by e-mail
+  // On 14 Jan 2014, at 04:18
+  // Re: New MC-based L1
+
   map<jec::JetAlgo, const char*> names;
   names[jec::AK5PF] = "AK5PF";
   names[jec::AK5PFchs] = "AK5PFchs";
@@ -159,6 +163,22 @@ void JECUncertainty::_InitL1() {
     vector<JetCorrectorParameters> v;
     v.push_back(*l1);
     _jecL1pt = new FactorizedJetCorrector(v);
+  }
+  {
+    map<jec::JetAlgo, const char*> namesf;
+    namesf[jec::AK5PF] = "AK5PFchs"; // place-holder
+    namesf[jec::AK5PFchs] = "AK5PFchs";
+    namesf[jec::AK5CALO] = "AK5chs"; // place-holder
+    namesf[jec::AK7PF] = "AK7PFchs"; // place-holder
+    namesf[jec::AK7PFchs] = "AK7PFchs";
+    namesf[jec::AK7CALO] = "AK7Calo"; // place-holder
+    const char *aa = namesf[_algo];
+    const char *s = Form("%sSummer13_DataMcSF_L1FastJet_%s.txt",d,aa);
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l1);
+    _jecL1sf = new FactorizedJetCorrector(v);
   }
 } // InitL1
 
@@ -761,7 +781,24 @@ double JECUncertainty::_PileUp(const double pTprime, const double eta) {
 
 // Pile-up uncertainty from data / MC difference
 double JECUncertainty::_PileUpDataMC(const double pTprime, const double eta) {
-
+  
+  // Winter14 Data/MC uncertainty from scale factor variation vs rho
+  // https://indico.cern.ch/event/308741/contribution/4/material/slides/1.pdf
+  // pages 7-8 (JERC talk by Ia Iashvili)
+  double rhomin = 7;
+  double rhomax = 14;
+  double rhoavg = 10;
+  double sfmin = _L1SF(pTprime, eta, rhomin);
+  double sfmax = _L1SF(pTprime, eta, rhomax);
+  double sfavg = _L1SF(pTprime, eta, rhoavg);
+  
+  double pTraw = _Rjet(pTprime, eta) * pTprime;
+  double l1 = _L1Data(pTraw, eta);
+  
+  double sys = fabs(l1-1) * max(fabs(sfmin-sfavg), fabs(sfmax-sfavg));
+			     
+  return sys;
+  /*
   // Use 20% as uncertainty since we now have separate data and MC corrections
   // This should cover for uncertainty in the L1 scale factor
   double kfactor = 0.20;
@@ -800,6 +837,7 @@ double JECUncertainty::_PileUpDataMC(const double pTprime, const double eta) {
   }
 
   return sys * _ajet;
+  */
 } // PileUpDataMC
 
 
@@ -816,7 +854,7 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
 
   // Limit eta to [-5,5] because V0 files don't go further out
   // Even closer in, because bias goes nuts in the last bin out
-  double maxeta = 4.5;
+  double maxeta = 5;//4.5;
   double etax = max(-maxeta,min(maxeta,eta));
 
   // Given the detailed correction, kfactor of 50% should be justified already
@@ -870,9 +908,12 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
   }
 
   // 2014-Jan-16: fixed missing eta break-up
+  // 2014-May-21: subdivide EC to EC1, EC2 to match L2Relative
   double x = fabs(etax);
   if ((x>=0.0 && x<1.3 && _errType & jec::kPileUpPtBB) ||
-      (x>=1.3 && x<3.0 && _errType & jec::kPileUpPtEC) ||
+      //(x>=1.3 && x<3.0 && _errType & jec::kPileUpPtEC) ||
+      (x>=1.3 && x<2.5 && _errType & jec::kPileUpPtEC1) ||
+      (x>=2.5 && x<3.0 && _errType & jec::kPileUpPtEC2) ||
       (x>=3.0 && x<5.5 && _errType & jec::kPileUpPtHF))
     return sys * _ajet;// _ajet: jet area/ 0.5^2
   
@@ -1521,6 +1562,20 @@ double JECUncertainty::_L1MC(const double pT, const double eta) {
   _jecL1pt->setJetE(pT*cosh(eta));
   _jecL1pt->setJetPt(pT);
   return ( _jecL1pt->getCorrection() );
+}
+
+// Data/MC scale factor as function of rho
+double JECUncertainty::_L1SF(const double pT, const double eta,
+			     const double rho) {
+
+  assert(_jecL1sf);
+  _jecL1sf->setNPV(_npv);
+  _jecL1sf->setRho(rho);//_Rho(_npv));
+  _jecL1sf->setJetA(TMath::Pi()*0.5*0.5*_ajet);
+  _jecL1sf->setJetEta(eta);
+  _jecL1sf->setJetE(pT*cosh(eta));
+  _jecL1sf->setJetPt(pT);
+  return ( _jecL1sf->getCorrection() );
 }
 
 

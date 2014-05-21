@@ -22,8 +22,9 @@ namespace jec {
   const ErrorTypes kPileUpDataMC            = ErrorTypes(0L, 1L << 0);
   const ErrorTypes kPileUpBias              = ErrorTypes(0L, 1L << 1); //zero
   const ErrorTypes kPileUpPtBB              = ErrorTypes(0L, 1L << 2);
-  const ErrorTypes kPileUpPtEC              = ErrorTypes(0L, 1L << 3);
-  const ErrorTypes kPileUpPtHF              = ErrorTypes(0L, 1L << 4);
+  const ErrorTypes kPileUpPtEC1             = ErrorTypes(0L, 1L << 3);
+  const ErrorTypes kPileUpPtEC2             = ErrorTypes(0L, 1L << 4);
+  const ErrorTypes kPileUpPtHF              = ErrorTypes(0L, 1L << 5);
   // Relative correction systematics, bits 6-16
   const ErrorTypes kRelativeJEREC1          = ErrorTypes(0L, 1L << 6);
   const ErrorTypes kRelativeJEREC2          = ErrorTypes(0L, 1L << 7);

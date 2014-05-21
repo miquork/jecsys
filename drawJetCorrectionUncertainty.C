@@ -31,6 +31,7 @@ bool _minimal = true;
 // Print uncertainty (true) or source (false)
 bool _absUncert = true;
 // NB: All source files are currently printed together with AK5PF uncertainty
+bool _doTXT = true; // create uncertainty and source text files
 
 // List of (hard-coded) default parameters
 jec::JetAlgo  d_algo = jec::AK5PFchs; // Replaced in function call
@@ -149,8 +150,9 @@ void plotUncertainty(vector<uncert> const& sys,
 		     double emax, double ptmin,//);//, bool plotLog);
 		     string type="fixPt", double typevar=0.);
 
-void drawJetCorrectionUncertainty(string algo = "AK5PF") {
+void drawJetCorrectionUncertainty(string algo = "AK5PF", bool doTXT = true) {
   
+  _doTXT = doTXT;
   if (algo=="AK5PF") d_algo = jec::AK5PF;
   if (algo=="AK5PFchs") d_algo = jec::AK5PFchs;
   if (algo=="AK7PF") d_algo = jec::AK7PF;
@@ -1069,7 +1071,7 @@ void plotUncertainty(vector<uncert> const& sys,
 
   //cout << "Got here 6" << endl << flush;
 
-  if (name=="JECUncert_DATA_Summary_AK5PF_Eta00") {
+  if (name=="JECUncert_DATA_Summary_AK5PF_Eta00" && _doTXT) {
     //if (name=="JECUncert_DATA_AK5PFchs_Eta00") {
 
     JECUncertainty rjet5p(jec::AK5PF, jec::DATA, jec::kData, d_npv);
@@ -1203,7 +1205,7 @@ void plotUncertainty(vector<uncert> const& sys,
     } // for ieta
   } // print uncertainty
 
-  if (name=="JECUncert_DATA_Summary_AK5PF_Eta00") {
+  if (name=="JECUncert_DATA_Summary_AK5PF_Eta00" && _doTXT) {
     //if (name=="JECUncert_DATA_AK5PFchs_Eta00") {
     
     // Note: AK5PFchs is CHS, AK7PF is non-CHS (AK7PFchs on Jan 25)
