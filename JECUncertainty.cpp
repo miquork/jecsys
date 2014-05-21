@@ -582,18 +582,19 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
     errSPR = f->Eval(pTprime);
     refSPR = f->Eval(refpt);
   }
-  // Fix 2014-05-17: multiply difference by 2 to account for SPR=SPRE+SPRH
+  // Fix 2014-05-21: multiply errSPRE and errSRPH residuals by sqrt(2)
+  // to keep errSPRE_3%(oplus)errSPRH_3% ~ errSPR_3%
   if (_errType & jec::kAbsoluteSPRE) { // SPR in ECAL
     f->SetParameters(1.00567e+00, -3.04275e-02, -6.75493e-01);
     if (_calo) f->SetParameters(1.00166e+00, 1.57065e-02, -2.06585e-01);
-    errSPRE = 2.*(f->Eval(pTprime)-1) + 1;
-    refSPRE = 2.*(f->Eval(refpt)-1) + 1;
+    errSPRE = sqrt(2.)*(f->Eval(pTprime)-1) + 1;
+    refSPRE = sqrt(2.)*(f->Eval(refpt)-1) + 1;
   }
   if (_errType & jec::kAbsoluteSPRH) { // SPR in HCAL
     f->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01);
     if (_calo) f->SetParameters(1.02246e+00, -1.55689e-02, -1.17219e-01);
-    errSPRH = 2.*(f->Eval(pTprime)-1) + 1;
-    refSPRH = 2.*(f->Eval(refpt)-1) + 1;
+    errSPRH = sqrt(2.)*(f->Eval(pTprime)-1) + 1;
+    refSPRH = sqrt(2.)*(f->Eval(refpt)-1) + 1;
   }
 
   // replace directly done SPR with pieces broken up into ECAL and HCAL
