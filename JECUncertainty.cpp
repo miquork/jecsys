@@ -220,21 +220,9 @@ void JECUncertainty::_InitJEC() {
 
 void JECUncertainty::_InitL2Res() {
 
-  // JER, PT, statistical uncertainty from Denis Rathjens
-  // Subject: 	Re: New SQL Files
-  // Date: 	May 21, 2013 9:02:44 PM GMT+03:00
-
-  // (Winter12(13) files for PF,PFCHS,CALO,JPT from Denis Rathjens by e-mail)
-  // (Subject: 	Re: l2res in rereco)
-  // (Date: 	April 22, 2013 5:04:16 PM GMT+03:00)
-
-  // Fixed PTDEP file from Denis Rathjens by e-mail
-  // Subject: 	Re: l2res in rereco
-  // Date: 	April 23, 2013 5:57:54 PM GMT+03:00
-
-  // JER variations from Denis Ratjhens
-  // Subject: 	Re: updated systematics for 53X
-  // Date: 	April 23, 2013 3:53:01 PM GMT+03:00
+  // Flat L2L3Res and statistical uncertainty from Denis Rathjens
+  // http://www.desy.de/~rathjd/Winter14_JEC/Winter14_V3_DATA_L2L3Residual_AK5PFchs.txt.constant
+  // http://www.desy.de/~rathjd/Winter14_JEC/Winter14_V3_DATA_L2L3Residual_AK5PFchs.txt.stat-error
 
   map<jec::JetAlgo, const char*> names;
   names[jec::AK5PF] = "AK5PF";
@@ -250,9 +238,9 @@ void JECUncertainty::_InitL2Res() {
 
   const char *s;
   {
-    s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5PF.txt.PTDEPENDENCE",d);
-    if (_algo==jec::AK5CALO || _algo==jec::AK7CALO)
-      s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5CALO.txt.PTDEPENDENCE",d);
+    s = Form("%sWinter14_V3_DATA_L2L3Residual_AK5PFchs.txt.constant.txt",d);
+    //if (_algo==jec::AK5CALO || _algo==jec::AK7CALO)
+    //s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5CALO.txt.PTDEPENDENCE",d);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -260,9 +248,9 @@ void JECUncertainty::_InitL2Res() {
     _jecL2ResFlat = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5PF.txt.FineBinnedResidual",d);
-    if (_algo==jec::AK5CALO || _algo==jec::AK7CALO)
-      s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5CALO.txt.FineBinnedResidual",d);
+    s = Form("%sWinter14_V3_DATA_L2L3Residual_AK5PFchs.txt.ptdependent.txt",d);
+    //if (_algo==jec::AK5CALO || _algo==jec::AK7CALO)
+    //s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5CALO.txt.FineBinnedResidual",d);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -270,7 +258,7 @@ void JECUncertainty::_InitL2Res() {
     _jecL2ResPt = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%sSummer13_V1_DATA_L2L3Residual_AK5PF.txt.StatisticalUncertainties",d);
+    s = Form("%sWinter14_V3_DATA_L2L3Residual_AK5PFchs.txt.stat-error.txt",d);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
