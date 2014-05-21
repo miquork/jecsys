@@ -117,9 +117,10 @@ void JECUncertainty::_InitL1() {
   // On 24 Mar 2014, at 16:52
   // Re: L2 Residuals Corrections - this time packed and ready
 
-  // DataMcSF files from Ia Iasvili by e-mail
-  // On 14 Jan 2014, at 04:18
+  // DataMcSF files from Ia Iasvili by e-mail (DropBox link)
+  // On 21 May 2014, at 16:15
   // Re: New MC-based L1
+  // https://www.dropbox.com/s/dm1ndhdmx9zdr72/DataMcSF.tar.gz
 
   map<jec::JetAlgo, const char*> names;
   names[jec::AK5PF] = "AK5PF";
@@ -166,15 +167,7 @@ void JECUncertainty::_InitL1() {
     _jecL1pt = new FactorizedJetCorrector(v);
   }
   {
-    map<jec::JetAlgo, const char*> namesf;
-    namesf[jec::AK5PF] = "AK5PFchs"; // place-holder
-    namesf[jec::AK5PFchs] = "AK5PFchs";
-    namesf[jec::AK5CALO] = "AK5chs"; // place-holder
-    namesf[jec::AK7PF] = "AK7PFchs"; // place-holder
-    namesf[jec::AK7PFchs] = "AK7PFchs";
-    namesf[jec::AK7CALO] = "AK7Calo"; // place-holder
-    const char *aa = namesf[_algo];
-    const char *s = Form("%sSummer13_DataMcSF_L1FastJet_%s.txt",d,aa);
+    const char *s = Form("%sWinter14_DataMcSF_L1FastJetPU_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
