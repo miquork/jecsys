@@ -30,6 +30,7 @@ namespace jec {
 }
 
 Double_t _jesfit(Double_t *x, Double_t *p);
+Double_t _jeshb(double pt, double hb);
 
 class JECUncertainty {
 public:
@@ -89,7 +90,9 @@ public:
   double _FlavorFraction(double pTprime, double eta,
 			 int iflavor, int isample) const;
   //
-  double _Time(double eta) const;
+  double _Time(double pTprime, double eta) const;
+  double _TimeEta(const double eta) const;
+  double _TimePt(const double pt, int epoch=0) const;
   
   // pieces of L1Offset
   double _L1MCFlat(double pTraw, double eta);

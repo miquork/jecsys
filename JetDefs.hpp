@@ -58,11 +58,17 @@ namespace jec {
   const ErrorTypes kFlavorPureQuark     = ErrorTypes(0L, 1L << 40); //opt
   const ErrorTypes kFlavorPureCharm     = ErrorTypes(0L, 1L << 41); //opt
   const ErrorTypes kFlavorPureBottom    = ErrorTypes(0L, 1L << 42); //opt
-  // time dependence, bits 46-50
-  const ErrorTypes kTime                = ErrorTypes(0L, 1L << 46);
+  // time dependence, bits 46-51
+  const ErrorTypes kTimeEta             = ErrorTypes(0L, 1L << 46);
+  const ErrorTypes kTimePt              = ErrorTypes(0L, 1L << 47);
+  // optional time bits for individual epochs (not included in total)
+  const ErrorTypes kTimePtRunA          = ErrorTypes(0L, 1L << 48);
+  const ErrorTypes kTimePtRunB          = ErrorTypes(0L, 1L << 49);
+  const ErrorTypes kTimePtRunC          = ErrorTypes(0L, 1L << 50);
+  const ErrorTypes kTimePtRunD          = ErrorTypes(0L, 1L << 51);
 
   // Add this to single sources (e.g. kPileUpDataMC) to get unsigned uncertainty
-  const ErrorTypes kDoUnsigned          = ErrorTypes(0L, 1L << 51);
+  const ErrorTypes kDoUnsigned          = ErrorTypes(0L, 1L << 55);
 
   //  // Extra bits to to be able to write-out extra entries for correlation groups, bits 55-58 
   //  // (even though they are only composed of a single source)
@@ -74,6 +80,7 @@ namespace jec {
 
 
   // Combinations of bits
+  const ErrorTypes kTime                = kTimeEta | kTimePt;
   const ErrorTypes kPileUpPt            = kPileUpPtBB | kPileUpPtEC1 | kPileUpPtEC2 | kPileUpPtHF;
   const ErrorTypes kRelativeJER         = kRelativeJEREC1 | kRelativeJEREC2 | kRelativeJERHF;
   const ErrorTypes kRelativePt          = kRelativePtBB | kRelativePtEC1 | kRelativePtEC2 | kRelativePtHF;
@@ -89,13 +96,18 @@ namespace jec {
 
   // Test mask: only one of these should be on at a time
   const ErrorTypes kFlavorMask          = kFlavorQCD | kFlavorZJet | kFlavorPhotonJet | kFlavorPureQuark | kFlavorPureGluon | kFlavorPureCharm | kFlavorPureBottom;
+  const ErrorTypes kTimeMask            = kTimePt | kTimePtRunA | kTimePtRunB | kTimePtRunC | kTimePtRunD;
 
   // Total uncertainty bits
   const ErrorTypes kMC = kPileUpDataMC | kRelative | kAbsolute | kFlavorQCD | kTime; // for Data/MC comparisons (excludes kPileUpPt)
   const ErrorTypes kData = kPileUp | kRelative | kAbsolute | kFlavorQCD | kTime; // for analyses with only data
 
-  // SubTotalNoFlavor
+  // SubTotalNoFlavor => for mixing in flavor separately
   const ErrorTypes kDataNoFlavor = kData & ~kFlavorQCD;
+  // SubTotalNoFlavor => for QCD / inclusive jets
+  const ErrorTypes kDataNoTime = kData & ~kTime;
+  // SubTotalNoFlavorNoTime => for top mass
+  const ErrorTypes kDataNoFlavorNoTime = kData & ~kFlavorQCD & ~kTime;
 
   //TOPLHC CMS/ATLAS JEC correlation groups
   const ErrorTypes kCorrelationGroupPartiallyCorrelated          = kFlavorQCD | kRelativeFSR | kAbsoluteFlavorMapping | kAbsoluteMPFBias;

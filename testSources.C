@@ -71,6 +71,38 @@ const char* srcnames_Summer13_V5_CorrGroups[] =
    "CorrelationGroupFlavor", "CorrelationGroupUncorrelated","Total"};
 const int nsrc_Summer13_V5_CorrGroups = sizeof(srcnames_Summer13_V5_CorrGroups)/sizeof(char*)-1;
 
+const char* srcnames_Winter14_V5[] =
+  {"AbsoluteStat", "AbsoluteScale", "AbsoluteFlavMap", 
+   "AbsoluteMPFBias", "HighPtExtra", "SinglePionECAL", "SinglePionHCAL",
+   "FlavorQCD", "Time",
+   "RelativeJEREC1", "RelativeJEREC2", "RelativeJERHF",
+   "RelativePtBB","RelativePtEC1", "RelativePtEC2", "RelativePtHF",
+   "RelativeFSR", "RelativeStatEC2", "RelativeStatHF",
+   "PileUpDataMC",
+   "PileUpPtBB", "PileUpPtEC1", "PileUpPtEC2", "PileUpPtHF",
+   "Total"};
+
+const int nsrc_Winter14_V5 = sizeof(srcnames_Winter14_V5)/sizeof(char*)-1;
+
+const char* srcnames_Winter14_V5_SubTotalPt[] =
+  {"HighPtExtra", "SinglePionECAL", "SinglePionHCAL","SubTotalPt"}; 
+const int nsrc_Winter14_V5_SubTotalPt = sizeof(srcnames_Winter14_V5_SubTotalPt)/sizeof(char*)-1;
+
+const char* srcnames_Winter14_V5_SubTotalRelative[] =
+  {"RelativeJEREC1", "RelativeJEREC2", "RelativeJERHF", "RelativePtBB","RelativePtEC1", "RelativePtEC2", "RelativePtHF", "RelativeFSR", "RelativeStatEC2", "RelativeStatHF", "SubTotalRelative"};
+const int nsrc_Winter14_V5_SubTotalRelative = sizeof(srcnames_Winter14_V5_SubTotalRelative)/sizeof(char*)-1;
+
+const char* srcnames_Winter14_V5_SubTotalPileUp[] =
+  {"PileUpDataMC","PileUpPtBB", "PileUpPtEC1", "PileUpPtEC2", "PileUpPtHF",
+   "SubTotalPileUp"};
+const int nsrc_Winter14_V5_SubTotalPileUp = sizeof(srcnames_Winter14_V5_SubTotalPileUp)/sizeof(char*)-1;
+
+const char* srcnames_Winter14_V5_CorrGroups[] =
+  {"CorrelationGroupMPFInSitu", "CorrelationGroupIntercalibration",
+   "CorrelationGroupFlavor", "CorrelationGroupUncorrelated","Total"};
+const int nsrc_Winter14_V5_CorrGroups = sizeof(srcnames_Winter14_V5_CorrGroups)/sizeof(char*)-1;
+
+
 //check all sources listed in src_selection to agree in file1/file2
 bool testCommonSources(string file1, string file2,
 			 double jetpt=50., double jeteta=2.4, std::string src_selection="Summer13_V2V5CommonSources") {
@@ -172,6 +204,26 @@ bool testSources(string file1, string file2,
   else if(src_selection == "Summer13_V5_CorrGroups"){
     srcnames = srcnames_Summer13_V5_CorrGroups;
     nsrc=nsrc_Summer13_V5_CorrGroups;
+  }
+  else if(src_selection == "Winter14_V5"){
+    srcnames = srcnames_Winter14_V5;
+    nsrc=nsrc_Winter14_V5;
+  }
+  else if(src_selection == "Winter14_V5_SubTotalPt"){
+    srcnames = srcnames_Winter14_V5_SubTotalPt;
+    nsrc=nsrc_Winter14_V5_SubTotalPt;
+  }
+  else if(src_selection == "Winter14_V5_SubTotalRelative"){
+    srcnames = srcnames_Winter14_V5_SubTotalRelative;
+    nsrc=nsrc_Winter14_V5_SubTotalRelative;
+  }
+  else if(src_selection == "Winter14_V5_SubTotalPileUp"){
+    srcnames = srcnames_Winter14_V5_SubTotalPileUp;
+    nsrc=nsrc_Winter14_V5_SubTotalPileUp;
+  }
+  else if(src_selection == "Winter14_V5_CorrGroups"){
+    srcnames = srcnames_Winter14_V5_CorrGroups;
+    nsrc=nsrc_Winter14_V5_CorrGroups;
   }
 
   std::vector<JetCorrectionUncertainty*> vsrc(nsrc);
@@ -290,7 +342,7 @@ bool testSourcesLoopVars(string file1, string file2, std::string src_selection="
   }
   verbose = tempverbose;
 
-  std::cout << "Tested " << file1.c_str() << " and " << file2.c_str() << " for " << src_selection << std::endl;
+  std::cout << "Tested " << file1.c_str() << (file2!="" ? " and " : "") << file2.c_str() << " for " << src_selection << std::endl;
   std::cout << "Test result: " << (nFailedTests ? "FAIL" : "PASS") << endl;
   return nFailedTests==0 ? true : false;
 }

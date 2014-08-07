@@ -26,7 +26,7 @@
 using namespace std;
 
 // Don't plot individual bins, just keep 4x2
-bool _minimal = true;
+bool _minimal = false;//true;
 
 // Print uncertainty (true) or source (false)
 bool _absUncert = true;
@@ -168,6 +168,11 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF", bool doTXT = true) {
 		      kBlack, kSolid, 1, // line
 		      kBlack, kNone, // marker
 		      kDarkGray, 1001, "LF")); // fill
+  sy.push_back(uncert("notime", "(no flavor, time)", jec::kDataNoFlavorNoTime,
+		      "default", "default", -1, // defaults
+		      kOrange+2, kSolid, 1, // line
+		      kBlack, kNone, // marker
+  		      kOrange, 1001, "LF")); // fill
   sy.push_back(uncert("absolute", "Absolute scale", jec::kAbsoluteFlat,
 		      "default", "default", -1, // defaults
 		      kYellow+3, kSolid, 1, // line
@@ -387,6 +392,44 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF", bool doTXT = true) {
                        kNone, kNone, "LP")); // fill
   syf.push_back(uncert("flavor", "Bottom",
                        jec::kFlavorPureBottom,
+                       "default", "default", -1, // defaults
+                       kBlack, kNone, 1, // line
+                       kBlack, kFullTriangleDown, // marker
+                       kNone, kNone, "LP")); // fill
+
+  vector<uncert> syt;
+  syt.push_back(uncert("time_eta", "TimeEta",
+                       jec::kTimeEta,
+                      "default", "default", -1, // defaults
+                      kYellow+3, kSolid, 1, // line
+                      kBlack, kNone, // marker
+                      kYellow, 1001, "LF")); // fill
+  syt.push_back(uncert("time_pt", "TimePt",
+                       jec::kTimePt,
+                      "default", "default", -1, // defaults
+                      kGreen+2, kSolid, 1, // line
+                      kGreen+2, kOpenSquare, // marker
+                      kNone, kNone, "LP")); // fill
+  syt.push_back(uncert("time_runa", "TimeRunA",
+                       jec::kTimePtRunA,
+                       "default", "default", -1, // defaults
+                       kRed, kNone, 1, // line
+                       kRed, kOpenCircle, // marker
+                       kNone, kNone, "LP")); // fill
+  syt.push_back(uncert("flavor_runb", "TimePtRunB",
+                       jec::kTimePtRunB,
+                       "default", "default", -1, // defaults
+                       kMagenta+1, kNone, 1, // line
+                       kMagenta+1, kOpenDiamond, // marker
+                       kNone, kNone, "LP")); // fill
+  syt.push_back(uncert("time_runc", "TimePtRunC",
+                       jec::kTimePtRunC,
+                       "default", "default", -1, // defaults
+                       kBlue, kNone, 1, // line
+                       kBlue, kFullTriangleUp, // marker
+                       kNone, kNone, "LP")); // fill
+  syt.push_back(uncert("time_rund", "TimePtRunD",
+                       jec::kTimePtRunD,
                        "default", "default", -1, // defaults
                        kBlack, kNone, 1, // line
                        kBlack, kFullTriangleDown, // marker
@@ -743,6 +786,47 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF", bool doTXT = true) {
 
   bool absUncertTmp = _absUncert;
   _absUncert = false;
+  string sst = Form("%s_Time_%s",cu,names[jetAlg]);
+  const char *st = sst.c_str();
+
+  // Time uncertainty
+  // vs pT
+  plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Eta00",st),
+                  "JEC uncertainty (Data/MC)", s,
+                  "|#eta_{jet}|=0", -5,10,"fixEta",0.);
+  plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Eta20",st),
+                  "JEC uncertainty (Data/MC)", s,
+                  "|#eta_{jet}|=2.0", -5,10,"fixEta",2.0);
+  plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Eta27",st),
+                  "JEC uncertainty (Data/MC)", s,
+                  "|#eta_{jet}|=2.7", -5,10,"fixEta",2.7);
+  plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Eta42",st),
+                  "JEC uncertainty (Data/MC)", s,
+                  "|#eta_{jet}|=4.2", -5,10,"fixEta",4.2);
+  // vs eta
+  plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Pt30",st),
+                  "JEC uncertainty (Data/MC)", s,
+                  "p_{T}=30 GeV", -5,10,"fixPt",30.);
+  plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Pt100",st),
+                  "JEC uncertainty (Data/MC)", s,
+                  "p_{T}=100 GeV", -5,10,"fixPt",100.);
+  plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_E500",st),
+                  "JEC uncertainty (Data/MC)", s,
+                  "E=500 GeV", -5,10,"fixE",500.);
+  plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_E2000",st),
+                  "JEC uncertainty (Data/MC)", s,
+                  "E=2000 GeV", -5,10,"fixE",2000.);
+  plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_E1000",st),
+                  "JEC uncertainty (Data/MC)", s,
+                  "E=1000 GeV", -5,10,"fixE",1000.); // moved last
+  //
+  _absUncert = absUncertTmp;
+
+  _canvas->SaveAs(Form("pdf/%s.pdf",st));
+  _icanvas = 1;
+
+  absUncertTmp = _absUncert;
+  _absUncert = false;
   string sss = Form("%s_SinglePion_%s",cu,names[jetAlg]);
   const char *css = sss.c_str();
 
@@ -1082,17 +1166,17 @@ void plotUncertainty(vector<uncert> const& sys,
     JECUncertainty rjet5c(jec::AK5CALO, jec::DATA, jec::kData, d_npv);
     JECUncertainty rjet7c(jec::AK5CALO, jec::DATA, jec::kData, d_npv);
 
-    ofstream fout5p("txt/Winter14_V1_DATA_Uncertainty_AK5PF.txt",ios::out);
+    ofstream fout5p("txt/Winter14_V5_DATA_Uncertainty_AK5PF.txt",ios::out);
     fout5p << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5s("txt/Winter14_V1_DATA_Uncertainty_AK5PFchs.txt",ios::out);
+    ofstream fout5s("txt/Winter14_V5_DATA_Uncertainty_AK5PFchs.txt",ios::out);
     fout5s << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5c("txt/Winter14_V1_DATA_Uncertainty_AK5Calo.txt",ios::out);
+    ofstream fout5c("txt/Winter14_V5_DATA_Uncertainty_AK5Calo.txt",ios::out);
     fout5c << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7p("txt/Winter14_V1_DATA_Uncertainty_AK7PF.txt",ios::out);
+    ofstream fout7p("txt/Winter14_V5_DATA_Uncertainty_AK7PF.txt",ios::out);
     fout7p << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7s("txt/Winter14_V1_DATA_Uncertainty_AK7PFchs.txt",ios::out);
+    ofstream fout7s("txt/Winter14_V5_DATA_Uncertainty_AK7PFchs.txt",ios::out);
     fout7s << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7c("txt/Winter14_V1_DATA_Uncertainty_AK7Calo.txt",ios::out);
+    ofstream fout7c("txt/Winter14_V5_DATA_Uncertainty_AK7Calo.txt",ios::out);
     fout7c << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
     JECUncertainty rjet5px(jec::AK5PF, jec::DATA, jec::kMC, d_npv);
@@ -1102,17 +1186,17 @@ void plotUncertainty(vector<uncert> const& sys,
     JECUncertainty rjet5cx(jec::AK5CALO, jec::DATA, jec::kMC, d_npv);
     JECUncertainty rjet7cx(jec::AK7CALO, jec::DATA, jec::kMC, d_npv);
 
-    ofstream fout5px("txt/Winter14_V1_MC_Uncertainty_AK5PF.txt",ios::out);
+    ofstream fout5px("txt/Winter14_V5_MC_Uncertainty_AK5PF.txt",ios::out);
     fout5px << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5sx("txt/Winter14_V1_MC_Uncertainty_AK5PFchs.txt",ios::out);
+    ofstream fout5sx("txt/Winter14_V5_MC_Uncertainty_AK5PFchs.txt",ios::out);
     fout5sx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5cx("txt/Winter14_V1_MC_Uncertainty_AK5Calo.txt",ios::out);
+    ofstream fout5cx("txt/Winter14_V5_MC_Uncertainty_AK5Calo.txt",ios::out);
     fout5cx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7px("txt/Winter14_V1_MC_Uncertainty_AK7PF.txt",ios::out);
+    ofstream fout7px("txt/Winter14_V5_MC_Uncertainty_AK7PF.txt",ios::out);
     fout7px << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7sx("txt/Winter14_V1_MC_Uncertainty_AK7PFchs.txt",ios::out);
+    ofstream fout7sx("txt/Winter14_V5_MC_Uncertainty_AK7PFchs.txt",ios::out);
     fout7sx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7cx("txt/Winter14_V1_MC_Uncertainty_AK7Calo.txt",ios::out);
+    ofstream fout7cx("txt/Winter14_V5_MC_Uncertainty_AK7Calo.txt",ios::out);
     fout7cx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
     for (int ieta = 0; ieta != ndiv_eta; ++ieta) {
@@ -1210,25 +1294,25 @@ void plotUncertainty(vector<uncert> const& sys,
     //if (name=="JECUncert_DATA_AK5PFchs_Eta00") {
     
     // Note: AK5PFchs is CHS, AK7PF is non-CHS (AK7PFchs on Jan 25)
-    ofstream fout5("txt/Winter14_V1_DATA_UncertaintySources_AK5PFchs.txt",ios::out);
-    fout5 << "#Uncertainty sources for Winter14_V1_DATA_AK5PFchs" << endl;
+    ofstream fout5("txt/Winter14_V5_DATA_UncertaintySources_AK5PFchs.txt",ios::out);
+    fout5 << "#Uncertainty sources for Winter14_V5_DATA_AK5PFchs" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Winter14_V1_DATA_UncertaintySources_AK5PFchs.txt" << endl;
-    ofstream fout5x("txt/Winter14_V1_DATA_UncertaintySources_AK5PF.txt",ios::out);
-    fout5x << "#Uncertainty sources for Winter14_V1_DATA_AK5PF" << endl;
+	 << "txt/Winter14_V5_DATA_UncertaintySources_AK5PFchs.txt" << endl;
+    ofstream fout5x("txt/Winter14_V5_DATA_UncertaintySources_AK5PF.txt",ios::out);
+    fout5x << "#Uncertainty sources for Winter14_V5_DATA_AK5PF" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Winter14_V1_DATA_UncertaintySources_AK5PF.txt" << endl;
+	 << "txt/Winter14_V5_DATA_UncertaintySources_AK5PF.txt" << endl;
     //
-    ofstream fout7("txt/Winter14_V1_DATA_UncertaintySources_AK7PFchs.txt",
+    ofstream fout7("txt/Winter14_V5_DATA_UncertaintySources_AK7PFchs.txt",
 		   ios::out);
-    fout7 << "#Uncertainty sources for Winter14_V1_DATA_AK7PFchs" << endl;
+    fout7 << "#Uncertainty sources for Winter14_V5_DATA_AK7PFchs" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Winter14_V1_DATA_UncertaintySources_AK7PFchs.txt" << endl;
-    ofstream fout7x("txt/Winter14_V1_DATA_UncertaintySources_AK7PF.txt",
+	 << "txt/Winter14_V5_DATA_UncertaintySources_AK7PFchs.txt" << endl;
+    ofstream fout7x("txt/Winter14_V5_DATA_UncertaintySources_AK7PF.txt",
 		    ios::out);
-    fout7x << "#Uncertainty sources for Winter14_V1_DATA_AK7PF" << endl;
+    fout7x << "#Uncertainty sources for Winter14_V5_DATA_AK7PF" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Winter14_V1_DATA_UncertaintySources_AK7PF.txt" << endl;
+	 << "txt/Winter14_V5_DATA_UncertaintySources_AK7PF.txt" << endl;
 
     jec::ErrorTypes vsrc[] =
       //{jec::kAbsolute, jec::kRelative, jec::kPtExtra};
@@ -1237,6 +1321,7 @@ void plotUncertainty(vector<uncert> const& sys,
        jec::kAbsoluteSPRE, jec::kAbsoluteSPRH,
        /*jec::kAbsoluteECAL, jec::kAbsoluteTrack,*/
        /*jec::kFlavorMC,*/ jec::kFlavorQCD,/*new*/ jec::kTime,
+       /*jec::kTimeEta, jec::kTimePt*/
        jec::kRelativeJEREC1, jec::kRelativeJEREC2, jec::kRelativeJERHF,
        jec::kRelativePtBB, /*new*/
        jec::kRelativePtEC1, jec::kRelativePtEC2, jec::kRelativePtHF,
@@ -1246,12 +1331,15 @@ void plotUncertainty(vector<uncert> const& sys,
        jec::kPileUpPtBB, jec::kPileUpPtEC1, jec::kPileUpPtEC2, jec::kPileUpPtHF,
        jec::kPileUpBias,
        /*jec::kPileUpJetRate,*/
-       jec::kPileUp, jec::kRelative, jec::kAbsolutePt,//jec::kPtExtra,
+       jec::kPileUp, jec::kRelative, jec::kAbsolutePt, jec::kAbsoluteFlat,
+       //jec::kPtExtra,
        jec::kMC,
        jec::kData,//Total};
-       jec::kDataNoFlavor, jec::kFlavorZJet, jec::kFlavorPhotonJet,
+       jec::kDataNoFlavor, jec::kDataNoTime, jec::kDataNoFlavorNoTime,
+       jec::kFlavorZJet, jec::kFlavorPhotonJet,
        jec::kFlavorPureGluon, jec::kFlavorPureQuark, 
        jec::kFlavorPureCharm, jec::kFlavorPureBottom,
+       jec::kTimePtRunA, jec::kTimePtRunB, jec::kTimePtRunC, jec::kTimePtRunD,
        jec::kCorrelationGroupMPFInSitu, jec::kCorrelationGroupIntercalibration, jec::kCorrelationGroupbJES,
        jec::kCorrelationGroupFlavor, jec::kCorrelationGroupUncorrelated
       };
@@ -1295,19 +1383,28 @@ void plotUncertainty(vector<uncert> const& sys,
     //srcname[jec::kFlavorMC] = "Flavor";
     srcname[jec::kFlavorQCD] = "FlavorQCD";
     srcname[jec::kTime] = "Time";
+    //srcname[jec::kTimePt] = "TimePt"; // new in Winter14_V5
+    //srcname[jec::kTimeEta] = "TimeEta"; // new in Winter14_V5
     srcname[jec::kPileUp] = "SubTotalPileUp";
     srcname[jec::kRelative] = "SubTotalRelative";
     //srcname[jec::kPtExtra] = "SubTotalPt";
     srcname[jec::kAbsolutePt] = "SubTotalPt";
+    srcname[jec::kAbsoluteFlat] = "SubTotalScale";
     srcname[jec::kMC] = "SubTotalMC";
     srcname[jec::kData] = "Total";
     srcname[jec::kDataNoFlavor] = "TotalNoFlavor";
+    srcname[jec::kDataNoTime] = "TotalNoTime"; // new in Winter14_V5
+    srcname[jec::kDataNoFlavorNoTime] = "TotalNoFlavorNoTime"; // new in Winter14_V5
     srcname[jec::kFlavorZJet] = "FlavorZJet";
     srcname[jec::kFlavorPhotonJet] = "FlavorPhotonJet";
     srcname[jec::kFlavorPureGluon] = "FlavorPureGluon";
     srcname[jec::kFlavorPureQuark] = "FlavorPureQuark";
     srcname[jec::kFlavorPureBottom] = "FlavorPureBottom";
     srcname[jec::kFlavorPureCharm] = "FlavorPureCharm";
+    srcname[jec::kTimePtRunA] = "TimeRunA"; // new in Winter14_V5
+    srcname[jec::kTimePtRunB] = "TimeRunB"; // new in Winter14_V5
+    srcname[jec::kTimePtRunC] = "TimeRunC"; // new in Winter14_V5
+    srcname[jec::kTimePtRunD] = "TimeRunD"; // new in Winter14_V5
     srcname[jec::kCorrelationGroupMPFInSitu] = "CorrelationGroupMPFInSitu";
     srcname[jec::kCorrelationGroupFlavor] = "CorrelationGroupFlavor";
     srcname[jec::kCorrelationGroupIntercalibration] = "CorrelationGroupIntercalibration";

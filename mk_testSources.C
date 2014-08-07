@@ -13,29 +13,32 @@
   gROOT->ProcessLine(".L testSources.C+");
 
   // Test quadratic sum of sources in file1 against total in file2 at pT, eta
-  testSources("txt/Summer13_V2_DATA_UncertaintySources_AK5PF.txt",
-	      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt", 49.25, 2.0,"Summer13_V2");
+  testSources("txt/Winter14_V5_DATA_UncertaintySources_AK5PF.txt",
+	      "txt/Winter14_V5_DATA_Uncertainty_AK5PF.txt", 49.25, 2.0,"Winter14_V5");
   // NB1: Above example files are provided in the package
   // NB2: More can be produced with mk_drawJetCorrectionUncertainty.C
-  testSourcesLoopVars("txt/Summer13_V2_DATA_UncertaintySources_AK5PF.txt",
-		      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt","Summer13_V2");//check that sum of sources equals total in file1 and file2 for a number of eta/pt-combinations
+  testSourcesLoopVars("txt/Winter14_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "txt/Winter14_V5_DATA_Uncertainty_AK5PF.txt","Winter14_V5");//check that sum of sources equals total in file1 and file2 for a number of eta/pt-combinations
+
+//   testCommonSources  ("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
+// 		      "txt/Summer13_V2_DATA_UncertaintySources_AK5PF.txt", 49.25, 2.0,"Summer13_V2V5CommonSources"); // check individual common sources for backward-compatibility
+//   testSourcesLoopVars("txt/Winter14_V5_DATA_UncertaintySources_AK5PF.txt",
+// 		      "txt/Winter14_V5_DATA_Uncertainty_AK5PF.txt","Winter14_V5"
+// 		      ); // check for backward-compatibility
+  testSourcesLoopVars("txt/Winter14_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "","Winter14_V5_SubTotalPt"); // SubTotalPt
+  testSourcesLoopVars("txt/Winter14_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "","Winter14_V5_SubTotalRelative"); // SubTotalRelative
+  testSourcesLoopVars("txt/Winter14_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "","Winter14_V5_SubTotalPileUp"); // SubTotalPileUp
+  testSourcesLoopVars("txt/Winter14_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "","Winter14_V5_CorrGroups"); // CorrGroups
+  testSourcesLoopVars("txt/Winter14_V5_DATA_UncertaintySources_AK5PF.txt",
+		      "txt/Winter14_V5_DATA_Uncertainty_AK5PF.txt","Winter14_V5");//check that sum of sources equals total in file1 and file2 for a number of eta/pt-combinations
 
 
-  testCommonSources  ("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
-		      "txt/Summer13_V2_DATA_UncertaintySources_AK5PF.txt", 49.25, 2.0,"Summer13_V2V5CommonSources"); // check individual common sources for backward-compatibility
-  testSourcesLoopVars("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
-		      "txt/Summer13_V2_DATA_Uncertainty_AK5PF.txt","Summer13_V5"); // check for backward-compatibility
-  testSourcesLoopVars("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
-		      "","Summer13_V5_SubTotalPt"); // SubTotalPt
-  testSourcesLoopVars("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
-		      "","Summer13_V5_SubTotalRelative"); // SubTotalRelative
-  testSourcesLoopVars("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
-		      "","Summer13_V5_SubTotalPileUp"); // SubTotalPileUp
-  testSourcesLoopVars("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
-		      "","Summer13_V5_CorrGroups"); // CorrGroups
-  testSourcesLoopVars("txt/Summer13_V5_DATA_UncertaintySources_AK5PF.txt",
-		      "txt/Summer13_V5_DATA_Uncertainty_AK5PF.txt","Summer13_V5");//check that sum of sources equals total in file1 and file2 for a number of eta/pt-combinations
-
+  cout << "NB: Only basic tets implemented yet, skipping rest..." << endl;
+  exit();
 
 
 
