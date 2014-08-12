@@ -22,8 +22,8 @@
   
   setTDRStyle();
   
-  drawJetCorrectionUncertainty("AK5PF"); // also source files
-  //drawJetCorrectionUncertainty("AK5PFchs");
+  //drawJetCorrectionUncertainty("AK5PF"); // also source files
+  drawJetCorrectionUncertainty("AK5PFchs");
   //drawJetCorrectionUncertainty("AK7PF");
   //drawJetCorrectionUncertainty("AK7PFchs");
   //drawJetCorrectionUncertainty("AK5CALO");

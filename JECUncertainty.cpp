@@ -818,6 +818,11 @@ double JECUncertainty::_Flavor(double pTprime, double eta) const {
     assert( !(_errType & (jec::kFlavorMask & ~jec::kFlavorPhotonJet)) ); 
     errFlavor = _FlavorMixed(pTprime,eta,"photon+jet");
     err2 += errFlavor*errFlavor;
+  }  
+  if (_errType & jec::kFlavorTTbar) {
+    assert( !(_errType & (jec::kFlavorMask & ~jec::kFlavorTTbar)) ); 
+    errFlavor = _FlavorMixed(pTprime,eta,"ttbar");
+    err2 += errFlavor*errFlavor;
   }
   if (_errType & jec::kFlavorPureQuark) {
     assert( !(_errType & (jec::kFlavorMask & ~jec::kFlavorPureQuark)) ); 
@@ -955,7 +960,8 @@ double JECUncertainty::_FlavorMixed(double pTprime, double eta,
 
   // Calculate fractions and call _FlavorMix
   if (smix == "20% glue" ||  smix == "QCD" ||
-      smix == "Z+jet" || smix == "photon+jet") {
+      smix == "Z+jet" || smix == "photon+jet" ||
+      smix == "ttbar") {
 
     double pt = pTprime;
     if (smix=="20% glue")
@@ -966,6 +972,7 @@ double JECUncertainty::_FlavorMixed(double pTprime, double eta,
     if (smix=="20% glue")   iflavor = 1; // Z/gamma+jet
     if (smix=="Z+jet")      iflavor = 3; // Zee+jet //2; // Zmm+jet
     if (smix=="photon+jet") iflavor = 4;
+    if (smix=="ttbar")      iflavor = 5;
 
     double fL = _FlavorFraction(pt, eta, 0, iflavor);
     double fG = _FlavorFraction(pt, eta, 1, iflavor);
@@ -1075,7 +1082,7 @@ double JECUncertainty::_FlavorFraction(double pt, double eta,
 				       int iflavor, int isample) const{
 
   // flavors: 0/uds, 1/gluon, 2/charm, 3/bottom
-  // samples; 0/dijet, 1/z/gamma+jet, 2/Zmm+jet 3/Zee+jet 4/gamma+jet
+  // samples; 0/dijet, 1/z/gamma+jet, 2/Zmm+jet 3/Zee+jet 4/gamma+jet,5/ttbar
 
   // drawFragFlavor::drawFractions()
   // Sample = Dijet (eta,flavor*2,par), alpha=0.2 (June 27)
@@ -1296,6 +1303,57 @@ double JECUncertainty::_FlavorFraction(double pt, double eta,
       { 0.5002, -0.2172, -0.0200,  0.0020},
       { 0.0522,  0.0742, -0.0100,  0.0010},
       { 0.0397,  0.0747, -0.0050,  0.0005}}};
+  //sample default 2012 ttbar MC sample as used in TOP-14-001 
+  //all jets with pt>30:
+  // unmatched 0.00357397
+  // down      0.0979402
+  // up        0.101926
+  // strange   0.080139
+  // charm     0.103913
+  // bottom    0.46846
+  // gluon     0.144048
+  static double pTTbar[5][8][4] = 
+    {{{0.280005,0,0,0},
+      {0.144048,0,0,0},
+      {0.103913,0,0,0},
+      {0.46846, 0,0,0},
+      {0.280005,0,0,0},
+      {0.144048,0,0,0},
+      {0.103913,0,0,0},
+      {0.46846, 0,0,0}},
+     {{0.280005,0,0,0},
+      {0.144048,0,0,0},
+      {0.103913,0,0,0},
+      {0.46846, 0,0,0},
+      {0.280005,0,0,0},
+      {0.144048,0,0,0},
+      {0.103913,0,0,0},
+      {0.46846, 0,0,0}},
+     {{0.280005,0,0,0},
+      {0.144048,0,0,0},
+      {0.103913,0,0,0},
+      {0.46846, 0,0,0},
+      {0.280005,0,0,0},
+      {0.144048,0,0,0},
+      {0.103913,0,0,0},
+      {0.46846, 0,0,0}},
+     {{0.280005,0,0,0},
+      {0.144048,0,0,0},
+      {0.103913,0,0,0},
+      {0.46846, 0,0,0},
+      {0.280005,0,0,0},
+      {0.144048,0,0,0},
+      {0.103913,0,0,0},
+      {0.46846, 0,0,0}},
+     {{0.280005,0,0,0},
+      {0.144048,0,0,0},
+      {0.103913,0,0,0},
+      {0.46846, 0,0,0},
+      {0.280005,0,0,0},
+      {0.144048,0,0,0},
+      {0.103913,0,0,0},
+      {0.46846, 0,0,0}}};
+				   
 
   double *p(0);
   int ieta = 0;
@@ -1309,6 +1367,7 @@ double JECUncertainty::_FlavorFraction(double pt, double eta,
   if (isample==2) p = &pZmmJet[ieta][iflavor][0];
   if (isample==3) p = &pZeeJet[ieta][iflavor][0];
   if (isample==4) p = &pGJet[ieta][iflavor][0];
+  if (isample==5) p = &pTTbar[ieta][iflavor][0];
 
   // Ensure reliable pT range
   double ptmin = 30;
@@ -1317,7 +1376,7 @@ double JECUncertainty::_FlavorFraction(double pt, double eta,
   if (isample==1) ptmax = 800;
   if (isample==2) ptmax = 600;
   if (isample==3) ptmax = 600;
-  if (isample==4) ptmax = 800;
+  if (isample==4) ptmax = 800; 
   double emax = 3000;
   if (isample==1) emax = 2000;  
   if (isample==2) emax = 1500;
@@ -1342,6 +1401,7 @@ double JECUncertainty::_FlavorFraction(double pt, double eta,
     if (isample==2) pi = &pZmmJet[ieta][nf*kf+jf][0];
     if (isample==3) pi = &pZeeJet[ieta][nf*kf+jf][0];
     if (isample==4) pi = &pGJet[ieta][nf*kf+jf][0];
+    if (isample==5) pi = &pTTbar[ieta][nf*kf+jf][0];
     double fi = pi[0] + pi[1]*log10(0.01*x) + pi[2]*pow(log10(0.01*x),2)
       + pi[3]*pow(log10(0.01*x),3);
     fi = max(0., min(1., fi));

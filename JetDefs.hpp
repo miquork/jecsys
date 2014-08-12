@@ -57,6 +57,7 @@ namespace jec {
   const ErrorTypes kFlavorPureQuark     = ErrorTypes(0L, 1L << 40); //opt
   const ErrorTypes kFlavorPureCharm     = ErrorTypes(0L, 1L << 41); //opt
   const ErrorTypes kFlavorPureBottom    = ErrorTypes(0L, 1L << 42); //opt
+  const ErrorTypes kFlavorTTbar         = ErrorTypes(0L, 1L << 43); //opt
   // time dependence, bits 46-50
   const ErrorTypes kTime                = ErrorTypes(0L, 1L << 46);
 
@@ -86,7 +87,7 @@ namespace jec {
   const ErrorTypes kAbsolutePt          = kAbsoluteFrag | kAbsoluteSPR;
 
   // Test mask: only one of these should be on at a time
-  const ErrorTypes kFlavorMask          = kFlavorQCD | kFlavorZJet | kFlavorPhotonJet | kFlavorPureQuark | kFlavorPureGluon | kFlavorPureCharm | kFlavorPureBottom;
+  const ErrorTypes kFlavorMask          = kFlavorQCD | kFlavorZJet | kFlavorPhotonJet | kFlavorTTbar | kFlavorPureQuark | kFlavorPureGluon | kFlavorPureCharm | kFlavorPureBottom;
 
   // Total uncertainty bits
   const ErrorTypes kMC = kPileUpDataMC | kRelative | kAbsolute | kFlavorQCD | kTime; // for Data/MC comparisons (excludes kPileUpPt)

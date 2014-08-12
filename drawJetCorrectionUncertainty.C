@@ -370,19 +370,25 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
                        kRed, kNone, 1, // line
                        kRed, kOpenCircle, // marker
                        kNone, kNone, "LP")); // fill
-  syf.push_back(uncert("flavor_zjet", "#gamma+jet mixture",
+  syf.push_back(uncert("flavor_gammajet", "#gamma+jet mixture",
                        jec::kFlavorPhotonJet,
                        "default", "default", -1, // defaults
                        kMagenta+1, kNone, 1, // line
                        kMagenta+1, kOpenDiamond, // marker
                        kNone, kNone, "LP")); // fill
-  syf.push_back(uncert("flavor", "Light quarks",
+  syf.push_back(uncert("flavor_ttbar", "ttbar",
+                       jec::kFlavorTTbar,
+                       "default", "default", -1, // defaults
+                       kRed+2, kNone, 1, // line
+                       kRed+2, kFullSquare, // marker
+                       kNone, kNone, "LP")); // fill
+  syf.push_back(uncert("flavor_light", "Light quarks",
                        jec::kFlavorPureQuark,
                        "default", "default", -1, // defaults
                        kBlue, kNone, 1, // line
                        kBlue, kFullTriangleUp, // marker
                        kNone, kNone, "LP")); // fill
-  syf.push_back(uncert("flavor", "Bottom",
+  syf.push_back(uncert("flavor_bottom", "Bottom",
                        jec::kFlavorPureBottom,
                        "default", "default", -1, // defaults
                        kBlack, kNone, 1, // line
@@ -468,8 +474,8 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF") {
   _icanvas = 1;
 
   bool minimaltmp = _minimal;
-  //if (algo=="AK5PFchs") _minimal = false;
-  if (algo=="AK5PF") _minimal = false;
+  if (algo=="AK5PFchs") _minimal = false;
+  //if (algo=="AK5PF") _minimal = false;
 
   // Data uncertainty
   // vs pT
@@ -1069,8 +1075,8 @@ void plotUncertainty(vector<uncert> const& sys,
 
   //cout << "Got here 6" << endl << flush;
 
-  if (name=="JECUncert_DATA_Summary_AK5PF_Eta00") {
-    //if (name=="JECUncert_DATA_AK5PFchs_Eta00") {
+  //if (name=="JECUncert_DATA_Summary_AK5PF_Eta00") {
+  if (name=="JECUncert_DATA_Summary_AK5PFchs_Eta00") {
 
     JECUncertainty rjet5p(jec::AK5PF, jec::DATA, jec::kData, d_npv);
     JECUncertainty rjet7p(jec::AK7PF, jec::DATA, jec::kData, d_npv);
@@ -1079,17 +1085,17 @@ void plotUncertainty(vector<uncert> const& sys,
     JECUncertainty rjet5c(jec::AK5CALO, jec::DATA, jec::kData, d_npv);
     JECUncertainty rjet7c(jec::AK5CALO, jec::DATA, jec::kData, d_npv);
 
-    ofstream fout5p("txt/Summer13_V3_DATA_Uncertainty_AK5PF.txt",ios::out);
+    ofstream fout5p("txt/Summer13_V7_DATA_Uncertainty_AK5PF.txt",ios::out);
     fout5p << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5s("txt/Summer13_V3_DATA_Uncertainty_AK5PFchs.txt",ios::out);
+    ofstream fout5s("txt/Summer13_V7_DATA_Uncertainty_AK5PFchs.txt",ios::out);
     fout5s << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5c("txt/Summer13_V3_DATA_Uncertainty_AK5Calo.txt",ios::out);
+    ofstream fout5c("txt/Summer13_V7_DATA_Uncertainty_AK5Calo.txt",ios::out);
     fout5c << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7p("txt/Summer13_V3_DATA_Uncertainty_AK7PF.txt",ios::out);
+    ofstream fout7p("txt/Summer13_V7_DATA_Uncertainty_AK7PF.txt",ios::out);
     fout7p << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7s("txt/Summer13_V3_DATA_Uncertainty_AK7PFchs.txt",ios::out);
+    ofstream fout7s("txt/Summer13_V7_DATA_Uncertainty_AK7PFchs.txt",ios::out);
     fout7s << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7c("txt/Summer13_V3_DATA_Uncertainty_AK7Calo.txt",ios::out);
+    ofstream fout7c("txt/Summer13_V7_DATA_Uncertainty_AK7Calo.txt",ios::out);
     fout7c << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
     JECUncertainty rjet5px(jec::AK5PF, jec::DATA, jec::kMC, d_npv);
@@ -1099,17 +1105,17 @@ void plotUncertainty(vector<uncert> const& sys,
     JECUncertainty rjet5cx(jec::AK5CALO, jec::DATA, jec::kMC, d_npv);
     JECUncertainty rjet7cx(jec::AK7CALO, jec::DATA, jec::kMC, d_npv);
 
-    ofstream fout5px("txt/Summer13_V3_MC_Uncertainty_AK5PF.txt",ios::out);
+    ofstream fout5px("txt/Summer13_V7_MC_Uncertainty_AK5PF.txt",ios::out);
     fout5px << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5sx("txt/Summer13_V3_MC_Uncertainty_AK5PFchs.txt",ios::out);
+    ofstream fout5sx("txt/Summer13_V7_MC_Uncertainty_AK5PFchs.txt",ios::out);
     fout5sx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5cx("txt/Summer13_V3_MC_Uncertainty_AK5Calo.txt",ios::out);
+    ofstream fout5cx("txt/Summer13_V7_MC_Uncertainty_AK5Calo.txt",ios::out);
     fout5cx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7px("txt/Summer13_V3_MC_Uncertainty_AK7PF.txt",ios::out);
+    ofstream fout7px("txt/Summer13_V7_MC_Uncertainty_AK7PF.txt",ios::out);
     fout7px << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7sx("txt/Summer13_V3_MC_Uncertainty_AK7PFchs.txt",ios::out);
+    ofstream fout7sx("txt/Summer13_V7_MC_Uncertainty_AK7PFchs.txt",ios::out);
     fout7sx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout7cx("txt/Summer13_V3_MC_Uncertainty_AK7Calo.txt",ios::out);
+    ofstream fout7cx("txt/Summer13_V7_MC_Uncertainty_AK7Calo.txt",ios::out);
     fout7cx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
     for (int ieta = 0; ieta != ndiv_eta; ++ieta) {
@@ -1203,29 +1209,29 @@ void plotUncertainty(vector<uncert> const& sys,
     } // for ieta
   } // print uncertainty
 
-  if (name=="JECUncert_DATA_Summary_AK5PF_Eta00") {
-    //if (name=="JECUncert_DATA_AK5PFchs_Eta00") {
+  //if (name=="JECUncert_DATA_Summary_AK5PF_Eta00") {
+  if (name=="JECUncert_DATA_Summary_AK5PFchs_Eta00") {
     
     // Note: AK5PFchs is CHS, AK7PF is non-CHS (AK7PFchs on Jan 25)
-    ofstream fout5("txt/Summer13_V3_DATA_UncertaintySources_AK5PFchs.txt",ios::out);
-    fout5 << "#Uncertainty sources for Summer13_V3_DATA_AK5PFchs" << endl;
+    ofstream fout5("txt/Summer13_V7_DATA_UncertaintySources_AK5PFchs.txt",ios::out);
+    fout5 << "#Uncertainty sources for Summer13_V7_DATA_AK5PFchs" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Summer13_V3_DATA_UncertaintySources_AK5PFchs.txt" << endl;
-    ofstream fout5x("txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt",ios::out);
-    fout5x << "#Uncertainty sources for Summer13_V3_DATA_AK5PF" << endl;
+	 << "txt/Summer13_V7_DATA_UncertaintySources_AK5PFchs.txt" << endl;
+    ofstream fout5x("txt/Summer13_V7_DATA_UncertaintySources_AK5PF.txt",ios::out);
+    fout5x << "#Uncertainty sources for Summer13_V7_DATA_AK5PF" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Summer13_V3_DATA_UncertaintySources_AK5PF.txt" << endl;
+	 << "txt/Summer13_V7_DATA_UncertaintySources_AK5PF.txt" << endl;
     //
-    ofstream fout7("txt/Summer13_V3_DATA_UncertaintySources_AK7PFchs.txt",
+    ofstream fout7("txt/Summer13_V7_DATA_UncertaintySources_AK7PFchs.txt",
 		   ios::out);
-    fout7 << "#Uncertainty sources for Summer13_V3_DATA_AK7PFchs" << endl;
+    fout7 << "#Uncertainty sources for Summer13_V7_DATA_AK7PFchs" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Summer13_V3_DATA_UncertaintySources_AK7PFchs.txt" << endl;
-    ofstream fout7x("txt/Summer13_V3_DATA_UncertaintySources_AK7PF.txt",
+	 << "txt/Summer13_V7_DATA_UncertaintySources_AK7PFchs.txt" << endl;
+    ofstream fout7x("txt/Summer13_V7_DATA_UncertaintySources_AK7PF.txt",
 		    ios::out);
-    fout7x << "#Uncertainty sources for Summer13_V3_DATA_AK7PF" << endl;
+    fout7x << "#Uncertainty sources for Summer13_V7_DATA_AK7PF" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Summer13_V3_DATA_UncertaintySources_AK7PF.txt" << endl;
+	 << "txt/Summer13_V7_DATA_UncertaintySources_AK7PF.txt" << endl;
 
     jec::ErrorTypes vsrc[] =
       //{jec::kAbsolute, jec::kRelative, jec::kPtExtra};
@@ -1246,7 +1252,7 @@ void plotUncertainty(vector<uncert> const& sys,
        jec::kPileUp, jec::kRelative, jec::kAbsolutePt,//jec::kPtExtra,
        jec::kMC,
        jec::kData,//Total};
-       jec::kDataNoFlavor, jec::kFlavorZJet, jec::kFlavorPhotonJet,
+       jec::kDataNoFlavor, jec::kFlavorZJet, jec::kFlavorPhotonJet,jec::kFlavorTTbar,
        jec::kFlavorPureGluon, jec::kFlavorPureQuark, 
        jec::kFlavorPureCharm, jec::kFlavorPureBottom,
        jec::kCorrelationGroupMPFInSitu, jec::kCorrelationGroupIntercalibration, jec::kCorrelationGroupbJES,
@@ -1298,7 +1304,8 @@ void plotUncertainty(vector<uncert> const& sys,
     srcname[jec::kMC] = "SubTotalMC";
     srcname[jec::kData] = "Total";
     srcname[jec::kDataNoFlavor] = "TotalNoFlavor";
-    srcname[jec::kFlavorZJet] = "FlavorZJet";
+    srcname[jec::kFlavorZJet] = "FlavorZJet";    
+    srcname[jec::kFlavorTTbar] = "FlavorTTbar";
     srcname[jec::kFlavorPhotonJet] = "FlavorPhotonJet";
     srcname[jec::kFlavorPureGluon] = "FlavorPureGluon";
     srcname[jec::kFlavorPureQuark] = "FlavorPureQuark";
