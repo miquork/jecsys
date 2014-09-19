@@ -29,36 +29,50 @@ namespace jec {
   enum DataType {DATA, MC, PY, HW};
 }
 
+// Figure out a better way instead of global variables. Static?
+TF1 *_fhb(0);
+TF1 *_fl1(0);
 Double_t _jesfit(Double_t *x, Double_t *p);
 Double_t _jeshb(double pt, double hb);
+
+inline double absmax(double a, double b) {
+  return (fabs(a) > fabs(b) ? a : b);
+}
 
 class JECUncertainty {
 public:
   
   JECUncertainty(const jec::JetAlgo& algo = jec::AK5PF,
-			const jec::DataType& type = jec::DATA,
-			const jec::ErrorTypes& errType = jec::kData,
-			const double npv = 20);
+		 const jec::DataType& type = jec::DATA,
+		 const jec::ErrorTypes& errType = jec::kData,
+		 const double mu = 19.81);
+		 //const double npv = 20);
   ~JECUncertainty(){};
   
   double Uncert(const double pTprime, const double eta);
-  
-  void SetJetAlgo(const jec::JetAlgo& algo);
-  //void SetDataType(const jec::DataType& type = jec::DATA);
-  void SetNPV(const double npv);
-  void SetErrType(const jec::ErrorTypes& errType);
+  // double Rjet(const double pTprime, const double eta); // add this?
 
-  jec::ErrorTypes GetErrType();
+  //void SetJetAlgo(const jec::JetAlgo& algo);
+  //void SetDataType(const jec::DataType& type = jec::DATA);
+  //void SetNPV(const double npv);
+  //void SetMu(const double mu);
+  //void SetErrType(const jec::ErrorTypes& errType);
+
+  //jec::ErrorTypes GetErrType();
 
   // Half-internal calculations
   // Keep accessible for plotting scripts
+
+  private:
 
   // Jet response
   void _InitL1();
   void _InitJEC();
   void _InitL2Res();
   void _InitL3Res();
-  double _Rjet(const double pTprime, const double eta);
+  double _Rjet(const double pTprime, const double eta,
+	       const double ajet, const double mu,
+	       FactorizedJetCorrector *jec);
 
   // Statistical and systematic uncertainties
   //double _SystErr(const double pTprime, const double eta);// const;
@@ -79,7 +93,7 @@ public:
   //
   double _PileUp(double pTprime, double eta);
   double _PileUpDataMC(double pTprime, double eta);
-  double _PileUpBias(double pTprime, double eta);
+  //double _PileUpBias(double pTprime, double eta);
   double _PileUpPt(double pTprime, double eta);
   //
   double _Flavor(double pTprime, double eta) const;
@@ -101,11 +115,20 @@ public:
   double _L1MC(double pTraw, double eta);
   double _L1SF(double pTraw, double eta, double rho);
   double _Rho(double npvmean);
+  double _RhoFromMu(double mu);
+  double _NpvFromMu(double mu);
 
   // helpers for AbsoluteStat
   TF1 *_fjes;
   TMatrixD *_emat;
   double _jesfitunc(double x, TF1 *f, TMatrixD *emat) const;
+  //static TF1 *_fhb;
+  //static TF1 *_fl1;
+  //static Double_t _jesfit(Double_t *x, Double_t *p);
+  //static Double_t _jeshb(double pt, double hb);
+
+  // helpers for calculating PileUpPt systematics
+  TF1 *_fl1ref, *_fl1up, *_fl1dw;
 
 private:
   jec::JetAlgo _algo;
@@ -126,8 +149,10 @@ private:
   FactorizedJetCorrector *_jecL1DTflat;
   FactorizedJetCorrector *_jecL1DTpt;
   FactorizedJetCorrector *_jecL1MCflat;
-  FactorizedJetCorrector *_jecL1pt;
+  FactorizedJetCorrector *_jecL1MCpt;
   FactorizedJetCorrector *_jecL1sf;
+  FactorizedJetCorrector *_jecL1DTflat_ak5pfchs;
+  FactorizedJetCorrector *_jecL1DTpt_ak5pfchs;
   FactorizedJetCorrector *_jecL2ResFlat;
   FactorizedJetCorrector *_jecL2ResPt;
   FactorizedJetCorrector *_jecL2jerup;
@@ -136,8 +161,9 @@ private:
   // Time dependence histograms
   //TH1D *_hMay10, *_hV4, *_hAug5, *_hV6, *_hV1;
 
-  double _npv;
-  double _pTprime, _eta, _rjet;
+  double _mu;
+  //double _npv;
+  //double _pTprime, _eta, _rjet;
 
   // scale factor for AK7 offset (jet area R=0.7/R=0.5)
   double _ajet;
@@ -150,10 +176,11 @@ private:
     
     double DoEval(double pTraw) const {
       _jec->setJetPt(pTraw);
-      _jec->setJetE(pTraw*cosh(_eta)); 
+      //_jec->setJetE(pTraw*cosh(_eta)); 
       _jec->setJetEta(_eta); 
-      _jec->setNPV(_npv);
-      _jec->setRho(_rho); _jec->setJetA(_jeta);
+      //_jec->setNPV(_npv);
+      _jec->setRho(_rho);
+      _jec->setJetA(_jeta);
       double cor = _jec->getCorrection();
       //std::cout << "in Brent: pTraw:" << pTraw << "  cor:" << cor << "  dist:" << pTraw * cor - _pTprime << '\n';
       return pTraw * cor - _pTprime; 
@@ -165,7 +192,7 @@ private:
   private:
     double _pTprime;
     FactorizedJetCorrector *_jec;
-    int _npv;
+    int _npv; // obsolete
     double _eta;
     double _rho;
     double _jeta;
