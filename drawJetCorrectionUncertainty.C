@@ -286,6 +286,12 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
 			kBlack, kNone, 1, // line
 			kBlack, kOpenDiamond, // marker
 			kNone, kNone, "LP")); // fill
+  sypu.push_back(uncert("puenvelope", "PU envelope (opt)",
+			jec::kPileUpEnvelope,
+			"default", "default", -1, // defaults
+			kGray+1, kNone, 1, // line
+			kGray+1, kNone, // marker
+			kNone, kNone, "LP")); // fill
 
   vector<uncert> syrel;
   syrel.push_back(uncert("relative", "SubTotalRelative",
@@ -1328,17 +1334,18 @@ void plotUncertainty(vector<uncert> const& sys,
        jec::kAbsoluteFrag, /*jec::kAbsoluteSPR,*/
        jec::kAbsoluteSPRE, jec::kAbsoluteSPRH,
        /*jec::kAbsoluteECAL, jec::kAbsoluteTrack,*/
-       /*jec::kFlavorMC,*/ jec::kFlavorQCD,/*new*/ jec::kTime,
-       /*jec::kTimeEta, jec::kTimePt*/
+       /*jec::kFlavorMC,*/ jec::kFlavorQCD, /*jec::kTime,*/
+       /*new*/ jec::kTimeEta, /*new*/ jec::kTimePt,
        jec::kRelativeJEREC1, jec::kRelativeJEREC2, jec::kRelativeJERHF,
        jec::kRelativePtBB, /*new*/
        jec::kRelativePtEC1, jec::kRelativePtEC2, jec::kRelativePtHF,
-       jec::kRelativeFSR,/*new*/ jec::kRelativeStatEC2, jec::kRelativeStatHF,
+       jec::kRelativeFSR, jec::kRelativeStatEC2, jec::kRelativeStatHF,
        /*jec::kRelativeSample,*/
        jec::kPileUpDataMC, /*jec::kPileUpOOT,*/ jec::kPileUpPtRef,
        jec::kPileUpPtBB, jec::kPileUpPtEC1, jec::kPileUpPtEC2, jec::kPileUpPtHF,
-       /*jec::kPileUpBias,*/ jec::kPileUpMuZero,
+       /*jec::kPileUpBias,*/ /*new*/ jec::kPileUpMuZero,
        /*jec::kPileUpJetRate,*/
+       /*new*/ jec::kPileUpEnvelope,
        jec::kPileUp, jec::kRelative, jec::kAbsolutePt, jec::kAbsoluteFlat,
        //jec::kPtExtra,
        jec::kMC,
@@ -1381,19 +1388,20 @@ void plotUncertainty(vector<uncert> const& sys,
     //srcname[jec::kPileUp] = "PileUp";
     srcname[jec::kPileUpDataMC] = "PileUpDataMC";
     //srcname[jec::kPileUpOOT] = "PileUpOOT";
-    srcname[jec::kPileUpPtRef] = "PileUpPtRef";
+    srcname[jec::kPileUpPtRef] = "PileUpPtRef"; // new in Winter14_V5
     srcname[jec::kPileUpPtBB] = "PileUpPtBB";
     srcname[jec::kPileUpPtEC1] = "PileUpPtEC1";
     srcname[jec::kPileUpPtEC2] = "PileUpPtEC2";
     srcname[jec::kPileUpPtHF] = "PileUpPtHF";
     //srcname[jec::kPileUpBias] = "PileUpBias";
-    srcname[jec::kPileUpMuZero] = "PileUpMuZero";
+    srcname[jec::kPileUpMuZero] = "PileUpMuZero"; // new in Winter14_V5 (opt)
+    srcname[jec::kPileUpEnvelope] = "PileUpEnvelope"; // --,,--
     //srcname[jec::kPileUpJetRate] = "PileUpJetRate";
     //srcname[jec::kFlavorMC] = "Flavor";
     srcname[jec::kFlavorQCD] = "FlavorQCD";
-    srcname[jec::kTime] = "Time";
-    //srcname[jec::kTimePt] = "TimePt"; // new in Winter14_V5
-    //srcname[jec::kTimeEta] = "TimeEta"; // new in Winter14_V5
+    //srcname[jec::kTime] = "Time";
+    srcname[jec::kTimePt] = "TimePt"; // new in Winter14_V5
+    srcname[jec::kTimeEta] = "TimeEta"; // new in Winter14_V5
     srcname[jec::kPileUp] = "SubTotalPileUp";
     srcname[jec::kRelative] = "SubTotalRelative";
     //srcname[jec::kPtExtra] = "SubTotalPt";

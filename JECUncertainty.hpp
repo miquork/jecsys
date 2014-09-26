@@ -1,5 +1,3 @@
-// Adapted from D0 Experiment jetcorr/jetcorr/RjetCorr.hpp
-
 #ifndef __JECUNCERTAINTY__
 #define __JECUNCERTAINTY__
 
@@ -46,22 +44,10 @@ public:
 		 const jec::DataType& type = jec::DATA,
 		 const jec::ErrorTypes& errType = jec::kData,
 		 const double mu = 19.81);
-		 //const double npv = 20);
   ~JECUncertainty(){};
   
   double Uncert(const double pTprime, const double eta);
   // double Rjet(const double pTprime, const double eta); // add this?
-
-  //void SetJetAlgo(const jec::JetAlgo& algo);
-  //void SetDataType(const jec::DataType& type = jec::DATA);
-  //void SetNPV(const double npv);
-  //void SetMu(const double mu);
-  //void SetErrType(const jec::ErrorTypes& errType);
-
-  //jec::ErrorTypes GetErrType();
-
-  // Half-internal calculations
-  // Keep accessible for plotting scripts
 
   private:
 
@@ -75,8 +61,6 @@ public:
 	       FactorizedJetCorrector *jec);
 
   // Statistical and systematic uncertainties
-  //double _SystErr(const double pTprime, const double eta);// const;
-
   double _Absolute(const double pTprime) const;
   double _AbsoluteStat(const double pTprime) const;
   double _AbsoluteScale() const;
@@ -86,15 +70,15 @@ public:
   double _AbsoluteSPR(const double pTprime) const;
   //
   double _Relative(double pTprime, double eta) const;
-  double _RelativeJER(double eta) const;
+  double _RelativeJER(double pTprime, double eta) const;
   double _RelativeFSR(double eta) const;
-  double _RelativeStat(double eta) const;
+  double _RelativeStat(double pTprime, double eta) const;
   double _RelativePt(double pTprime, double eta) const;
   //
   double _PileUp(double pTprime, double eta);
   double _PileUpDataMC(double pTprime, double eta);
-  //double _PileUpBias(double pTprime, double eta);
   double _PileUpPt(double pTprime, double eta);
+  double _PileUpEnvelope(double pTprime, double eta);
   //
   double _Flavor(double pTprime, double eta) const;
   double _FlavorMixed(double pTprime, double eta, std::string smix) const;
@@ -114,7 +98,7 @@ public:
   double _L1Data(double pTraw, double eta);
   double _L1MC(double pTraw, double eta);
   double _L1SF(double pTraw, double eta, double rho);
-  double _Rho(double npvmean);
+
   double _RhoFromMu(double mu);
   double _NpvFromMu(double mu);
 
@@ -122,10 +106,6 @@ public:
   TF1 *_fjes;
   TMatrixD *_emat;
   double _jesfitunc(double x, TF1 *f, TMatrixD *emat) const;
-  //static TF1 *_fhb;
-  //static TF1 *_fl1;
-  //static Double_t _jesfit(Double_t *x, Double_t *p);
-  //static Double_t _jeshb(double pt, double hb);
 
   // helpers for calculating PileUpPt systematics
   TF1 *_fl1ref, *_fl1up, *_fl1dw;
@@ -158,12 +138,8 @@ private:
   FactorizedJetCorrector *_jecL2jerup;
   FactorizedJetCorrector *_jecL2jerdw;
   FactorizedJetCorrector *_jecL2stat;
-  // Time dependence histograms
-  //TH1D *_hMay10, *_hV4, *_hAug5, *_hV6, *_hV1;
 
   double _mu;
-  //double _npv;
-  //double _pTprime, _eta, _rjet;
 
   // scale factor for AK7 offset (jet area R=0.7/R=0.5)
   double _ajet;
@@ -176,9 +152,7 @@ private:
     
     double DoEval(double pTraw) const {
       _jec->setJetPt(pTraw);
-      //_jec->setJetE(pTraw*cosh(_eta)); 
       _jec->setJetEta(_eta); 
-      //_jec->setNPV(_npv);
       _jec->setRho(_rho);
       _jec->setJetA(_jeta);
       double cor = _jec->getCorrection();
@@ -199,4 +173,4 @@ private:
   };
 };
 
-#endif /* __JECUNCERTAINTY_SUMMER12__ */
+#endif /* __JECUNCERTAINTY__ */
