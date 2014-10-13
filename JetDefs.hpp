@@ -69,6 +69,7 @@ namespace jec {
   const ErrorTypes kTimePtRunD          = ErrorTypes(0L, 1L << 51); //opt
   // optional PU term for <mu>=0 sample (bias from fitting L2Res with <mu>=20)
   const ErrorTypes kPileUpMuZero        = ErrorTypes(0L, 1L << 52); //opt
+  const ErrorTypes kPileUpEnvelope      = ErrorTypes(0L, 1L << 53); //xtra
 
   // Add this to single sources (e.g. kPileUpDataMC) to get unsigned uncertainty
   //const ErrorTypes kDoUnsigned          = ErrorTypes(0L, 1L << 54);
@@ -100,7 +101,7 @@ namespace jec {
 
   // Test mask: only one of these should be on at a time
   const ErrorTypes kFlavorMask          = kFlavorQCD | kFlavorZJet | kFlavorPhotonJet | kFlavorPureQuark | kFlavorPureGluon | kFlavorPureCharm | kFlavorPureBottom;
-  const ErrorTypes kTimeMask            = kTimePt | kTimePtRunA | kTimePtRunB | kTimePtRunC | kTimePtRunD;
+  const ErrorTypes kTimePtMask          = kTimePt | kTimePtRunA | kTimePtRunB | kTimePtRunC | kTimePtRunD;
 
   // Total uncertainty bits
   const ErrorTypes kMC = kPileUpDataMC | kRelative | kAbsolute | kFlavorQCD | kTime; // for Data/MC comparisons (excludes kPileUpPt)
