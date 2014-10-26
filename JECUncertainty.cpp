@@ -515,11 +515,26 @@ double JECUncertainty::_AbsoluteMPFBias() const {
   // - beambias and neutrinos shared by MPF and pT balance, and not part
   //   of global fit => keep (but update estimates?)
 
-  // Estimate these from Pythia/Herwig difference
+  // Estimate beam bias from Pythia/Herwig difference
   // of genMET with (a) all particles, (b) all particles at |eta|<5,
   // (c) no neutrinos and no |eta|>5 particles
   // (not done properly, these are just rough estimates)
+  // Also, would need to propagate the pT dependence in the global fit
   double beambias = 0.002; // (a)-(b)
+
+  // Primary estimate of neutrino bias is excess in PF electron and
+  // muon fraction in dijet composition studies, which show 0.1% extra
+  // in both, flat in pT. These should be associated with an equal
+  // amount of neutrino energy on average, i.e. 0.2% total.
+  // In addition to this, there is evidence of large mismodeling of
+  // heavy flavor production from gluon splitting, let's say 100% for
+  // gluon-split fraction of 50% in MC, so 50% overall.
+  // MC has about 4% b and 10% c, with 25% of each decaying semileptonically
+  // and semileptonic decays carrying about 12% energy in neutrinos for b's
+  // (how much for c's?). Therefore
+  // 4% b's (x) 50% GS (x) 25% of semileptonic (x) 12% of nu_E = 0.06%
+  // 10% c's (x) 50% GS (x) 25% semileptonic (x) 6%(??) of E_nu = 0.15%
+  // => 0.21% obtained this way is very compatible
   double neutrinos = 0.002; // (b)-(c)
   
   double err2 = beambias*beambias + neutrinos*neutrinos;
