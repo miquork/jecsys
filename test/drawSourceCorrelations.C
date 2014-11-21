@@ -109,16 +109,29 @@ void drawSourceCorrelations() {
   //, 2787, 3103, 3450};
   const int npt = sizeof(ptbins)/sizeof(ptbins[0])-1;
 
+  const int netapt = neta*npt;
+  double etaptbins[netapt+1];
+  for (int ieta = 0; ieta != neta; ++ieta) {
+    for (int ipt = 0; ipt != npt; ++ipt) {
+      double x = pow(2500/10,ieta)*(ptbins[ipt]);
+      etaptbins[ieta*npt+ipt] = x;
+    } // for npt
+  } // for ieta
+  etaptbins[netapt] = pow(2500/10,neta)*10;
+
   TH2D *h2 = new TH2D("h2",";p_{T} (GeV);p_{T} (GeV)",
 		      npt, ptbins, npt, ptbins);
+  TH2D *h2x = new TH2D("h2x",";250^{i_{#eta}}p_{T} (GeV)"
+		       ";250^{i_{#eta}}p_{T} (GeV)",
+		       netapt, etaptbins, netapt, etaptbins);
 
   // Create uncertainty sources
   vector<JetCorrectionUncertainty*> uncs(s.size());
   for (unsigned int k = 0; k != s.size(); ++k) {
 
     const char *sf = "CondFormats/JetMETObjects/data/"
-      "Winter14_V5_DATA_UncertaintySources_AK7PF.txt"; // 8 TeV
-      //"Winter14_V5_DATA_UncertaintySources_AK5PFchs.txt"; // 8 TeV
+    "Winter14_V5_DATA_UncertaintySources_AK7PF.txt"; // 8 TeV
+    //"Winter14_V5_DATA_UncertaintySources_AK5PFchs.txt"; // 8 TeV
     //const char *sf = "../../CondFormats/JetMETObjects/data/"
     //"JEC11_V12_AK7PF_UncertaintySources.txt"; // 7 TeV
     const char *src = s[k].c_str();
@@ -127,13 +140,19 @@ void drawSourceCorrelations() {
     uncs[k] = unc;
   }
 
+
+
   // Correlation plot between (eta,pT) pairs
+  for (int ii = 0; ii != neta; ++ii) {
+  for (int jj = 0; jj != neta; ++jj) {
+
+    double eta1 = etabins[ii];
+    double eta2 = etabins[jj];
+
   for (int i = 1; i != h2->GetNbinsX()+1; ++i) {
     for (int j = 1; j != h2->GetNbinsY()+1; ++j) {
       
-      double eta1 = 0;
       double pt1 = h2->GetXaxis()->GetBinCenter(i);
-      double eta2 = 0;
       double pt2 = h2->GetYaxis()->GetBinCenter(j);
 
       // Calculate correlation according to Sec. 8 Eq.(46) in JEC paper v3
@@ -157,54 +176,122 @@ void drawSourceCorrelations() {
       double si = sqrt(sumski2);
       double sj = sqrt(sumskj2);
       double rhoij = sumskiskj / (si*sj);
-
-      h2->SetBinContent(i, j, rhoij);
+      
+      if (pt1*cosh(eta1)<4000 && pt2*cosh(eta2)<4000) {
+	if (ii==0 && jj==0)
+	  h2->SetBinContent(i, j, rhoij);
+	if (!(ii==jj && pt1<150 && pt2>600))
+	  h2x->SetBinContent(ii*npt+i, jj*npt+j, rhoij);
+      }
     } // for j
   } // for i
 
-  TH1D *h1 = new TH1D("h1",";p_{T} (GeV);p_{T} (GeV)",npt,ptbins);
-  h1->SetMinimum(ptbins[0]);
-  h1->SetMaximum(ptbins[npt]);
-  //h1->GetXaxis()->SetMoreLogLabels();
-  h1->GetXaxis()->SetNoExponent();
-  //h1->GetYaxis()->SetMoreLogLabels();
-  h1->GetYaxis()->SetNoExponent();
-  
-  TCanvas *c1 = tdrCanvas("c1",h1,2,0,kSquare); // 8 TeV
-  //TCanvas *c1 = tdrCanvas("c1",h1,1,0,kSquare); // 7 TeV
-  gPad->SetLogx();
-  gPad->SetLogy();
+  } // for jj
+  } // for ii
 
-  gStyle->SetPalette(1);
-  gStyle->SetOptStat(0);
+  // Sigle eta bin
+  {
+    TH1D *h1 = new TH1D("h1",";p_{T} (GeV);p_{T} (GeV)",npt,ptbins);
+    h1->SetMinimum(ptbins[0]);
+    h1->SetMaximum(ptbins[npt]);
+    //h1->GetXaxis()->SetMoreLogLabels();
+    h1->GetXaxis()->SetNoExponent();
+    //h1->GetYaxis()->SetMoreLogLabels();
+    h1->GetYaxis()->SetNoExponent();
+    
 
-  h2->Draw("COLZ SAME");
-  h2->GetZaxis()->SetRangeUser(0,1-1e-4);
+    TCanvas *c1 = tdrCanvas("c1",h1,2,0,kSquare); // 8 TeV
+    //TCanvas *c1 = tdrCanvas("c1",h1,1,0,kSquare); // 7 TeV
+    gPad->SetLogx();
+    gPad->SetLogy();
+    
+    gStyle->SetPalette(1);
+    gStyle->SetOptStat(0);
+    
+    h2->Draw("COLZ SAME");
+    h2->GetZaxis()->SetRangeUser(0,1-1e-4);
 
-  gPad->SetRightMargin(0.12);
-  gPad->SetLeftMargin(0.17);
-  gPad->RedrawAxis();
-  gPad->Update();
+    gPad->SetRightMargin(0.12);
+    gPad->SetLeftMargin(0.17);
+    gPad->RedrawAxis();
+    gPad->Update();
 
-  TLine *l = new TLine();
-  l->DrawLine(10,10,2500,2500);
-  l->SetLineStyle(kDashed);
-  //l->DrawLine(10,1000,1000,1000);
-  l->DrawLine(1000,10,1000,1000);
-  l->DrawLine(200,10,200,200);
-  l->DrawLine(200,200,2500,200);
-  l->DrawLine(40,10,40,40);
-  l->DrawLine(40,40,2500,40);
+    TLine *l = new TLine();
+    l->DrawLine(10,10,2500,2500);
+    l->SetLineStyle(kDashed);
+    l->DrawLine(1000,10,1000,1000);
+    l->DrawLine(1000,1000,2500,1000);
+    l->DrawLine(200,10,200,200);
+    l->DrawLine(200,200,2500,200);
+    l->DrawLine(40,10,40,40);
+    l->DrawLine(40,40,2500,40);
 
-  TLatex *tex = new TLatex();
-  tex->SetNDC(); tex->SetTextSize(0.045);
-  tex->DrawLatex(0.20,0.87,"Anti-k_{T} R=0.7, PF");
-  tex->DrawLatex(0.20,0.80,"TotalNoTime");
+    TLatex *tex = new TLatex();
+    tex->SetNDC(); tex->SetTextSize(0.045);
+    tex->DrawLatex(0.20,0.87,"Anti-k_{T} R=0.7, PF");
+    tex->DrawLatex(0.20,0.80,"TotalNoTime");
 
-  tex->SetTextFont(42);
-  tex->SetTextSize(0.05);
-  tex->DrawLatex(0.10,0.09,"10");
+    tex->SetTextFont(42);
+    tex->SetTextSize(0.05);
+    tex->DrawLatex(0.10,0.09,"10");
 
-  c1->SaveAs("pdf/drawSourceCorrelations_8TeV.pdf");
-  //c1->SaveAs("pdf/drawSourceCorrelations_7TeV.pdf");
+    c1->SaveAs("pdf/drawSourceCorrelations_8TeV_Eta13.pdf");
+    //c1->SaveAs("pdf/drawSourceCorrelations_7TeV.pdf");
+  }
+
+  // Multiple eta bins
+  {
+    TH1D *h1x = new TH1D("h1x",";250^{i#eta} #times p_{T} (GeV)"
+			 ";250^{i#eta} #times p_{T} (GeV)",
+			 netapt,etaptbins);
+    h1x->SetMinimum(etaptbins[0]);
+    h1x->SetMaximum(etaptbins[netapt]);
+    //h1x->GetXaxis()->SetMoreLogLabels();
+    //h1x->GetXaxis()->SetNoExponent();
+    //h1x->GetYaxis()->SetMoreLogLabels();
+    //h1x->GetYaxis()->SetNoExponent();
+
+    TCanvas *c1x = tdrCanvas("c1x",h1x,2,0,kSquare); // 8 TeV cross-eta
+    gPad->SetLogx();
+    gPad->SetLogy();
+    
+    gStyle->SetPalette(1);
+    gStyle->SetOptStat(0);
+    
+    h2x->Draw("COLZ SAME");
+    h2x->GetZaxis()->SetRangeUser(0,1-1e-4);
+
+    gPad->SetBottomMargin(0.15);
+    h1x->GetXaxis()->SetTitleOffset(1.2);
+    
+    gPad->SetRightMargin(0.12);
+    gPad->SetLeftMargin(0.17);
+    gPad->RedrawAxis();
+    gPad->Update();
+    
+    TLine *l = new TLine();
+    l->DrawLine(10,10,2500*pow(250,3),2500*pow(250,3));
+    l->SetLineStyle(kDashed);
+    l->DrawLine(1000,10,1000,1000);
+    l->DrawLine(1000,1000,2500*pow(250,3),1000);
+    l->DrawLine(200,10,200,200);
+    l->DrawLine(200,200,2500*pow(250,3),200);
+    l->DrawLine(40,10,40,40);
+    l->DrawLine(40,40,2500*pow(250,3),40);
+    
+    TLatex *tex = new TLatex();
+    tex->SetNDC(); tex->SetTextSize(0.045);
+    tex->DrawLatex(0.20,0.88,"Anti-k_{T} R=0.7, PF");//, TotalNoTime");
+    //tex->DrawLatex(0.20,0.80,"TotalNoTime");
+    tex->DrawLatex(0.71,0.88,"HF");
+    tex->DrawLatex(0.530,0.69,"EC2");
+    tex->DrawLatex(0.355,0.50,"EC1");
+    tex->DrawLatex(0.190,0.30,"BB");
+
+    tex->SetTextFont(42);
+    tex->SetTextSize(0.05);
+    tex->DrawLatex(0.10,0.09,"10");
+    
+    c1x->SaveAs("pdf/drawSourceCorrelations_8TeV.pdf");
+  }
 }
