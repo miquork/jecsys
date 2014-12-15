@@ -21,7 +21,8 @@ void drawSourceCorrelations() {
   s.push_back("AbsoluteScale");
   s.push_back("AbsoluteFlavMap");
   s.push_back("AbsoluteMPFBias");
-  s.push_back("HighPtExtra");
+  //s.push_back("HighPtExtra"); // 8 TeV GR
+  s.push_back("Fragmentation"); // new patched 8 TeV
   s.push_back("SinglePionECAL");
   s.push_back("SinglePionHCAL");
   s.push_back("FlavorQCD");
@@ -125,13 +126,26 @@ void drawSourceCorrelations() {
 		       ";250^{i_{#eta}}p_{T} (GeV)",
 		       netapt, etaptbins, netapt, etaptbins);
 
+  const double zmin = -0.4;//-0.25;
+  // Set empty cells to white (below lower limit of zmin+eps)
+  for (int i = 1; i != h2x->GetNbinsX()+1; ++i) {
+    for (int j = 1; j != h2x->GetNbinsY()+1; ++j) {
+      h2x->SetBinContent(i, j, zmin);
+    }
+  }
+
   // Create uncertainty sources
   vector<JetCorrectionUncertainty*> uncs(s.size());
   for (unsigned int k = 0; k != s.size(); ++k) {
 
-    const char *sf = "CondFormats/JetMETObjects/data/"
-    "Winter14_V5_DATA_UncertaintySources_AK7PF.txt"; // 8 TeV
+    // GT 8 TeV
+    //const char *sf = "CondFormats/JetMETObjects/data/"
+    ////"Winter14_V5_DATA_UncertaintySources_AK7PF.txt"; // 8 TeV
     //"Winter14_V5_DATA_UncertaintySources_AK5PFchs.txt"; // 8 TeV
+    // New patched 8 TeV (fixed fragmentation source sign)
+    const char *sf = "../txt/"
+    "Winter14_V8M_DATA_UncertaintySources_AK5PFchs.txt"; // 8 TeV
+    // Older 7 TeV
     //const char *sf = "../../CondFormats/JetMETObjects/data/"
     //"JEC11_V12_AK7PF_UncertaintySources.txt"; // 7 TeV
     const char *src = s[k].c_str();
@@ -139,8 +153,6 @@ void drawSourceCorrelations() {
     JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p);
     uncs[k] = unc;
   }
-
-
 
   // Correlation plot between (eta,pT) pairs
   for (int ii = 0; ii != neta; ++ii) {
@@ -178,10 +190,19 @@ void drawSourceCorrelations() {
       double rhoij = sumskiskj / (si*sj);
       
       if (pt1*cosh(eta1)<4000 && pt2*cosh(eta2)<4000) {
-	if (ii==0 && jj==0)
-	  h2->SetBinContent(i, j, rhoij);
-	if (!(ii==jj && pt1<150 && pt2>600))
+	
+	// |eta|<1.3
+	if (ii==0 && jj==0) {
+	  if (!(pt1<400 && pt2>900)) // white background for legend
+	    h2->SetBinContent(i, j, rhoij);
+	  else
+	    h2->SetBinContent(i, j, zmin);
+	}
+	// all etas
+	if (!(ii==jj && pt1<150 && pt2>600)) // white background for labels
 	  h2x->SetBinContent(ii*npt+i, jj*npt+j, rhoij);
+	else
+	  h2x->SetBinContent(i, j, zmin);
       }
     } // for j
   } // for i
@@ -209,7 +230,8 @@ void drawSourceCorrelations() {
     gStyle->SetOptStat(0);
     
     h2->Draw("COLZ SAME");
-    h2->GetZaxis()->SetRangeUser(0,1-1e-4);
+    //h2->GetZaxis()->SetRangeUser(0,1-1e-4);
+    h2->GetZaxis()->SetRangeUser(zmin+1e-4,1-1e-4);
 
     gPad->SetRightMargin(0.12);
     gPad->SetLeftMargin(0.17);
@@ -228,8 +250,9 @@ void drawSourceCorrelations() {
 
     TLatex *tex = new TLatex();
     tex->SetNDC(); tex->SetTextSize(0.045);
-    tex->DrawLatex(0.20,0.87,"Anti-k_{T} R=0.7, PF");
-    tex->DrawLatex(0.20,0.80,"TotalNoTime");
+    tex->DrawLatex(0.20,0.87,"Anti-k_{T} R=0.5, PF+CHS");
+    //tex->DrawLatex(0.20,0.80,"TotalNoTime");
+    tex->DrawLatex(0.20,0.80,"Total excl. time");
 
     tex->SetTextFont(42);
     tex->SetTextSize(0.05);
@@ -259,7 +282,8 @@ void drawSourceCorrelations() {
     gStyle->SetOptStat(0);
     
     h2x->Draw("COLZ SAME");
-    h2x->GetZaxis()->SetRangeUser(0,1-1e-4);
+    //h2x->GetZaxis()->SetRangeUser(0,1-1e-4);
+    h2x->GetZaxis()->SetRangeUser(zmin+1e-4,1-1e-4);
 
     gPad->SetBottomMargin(0.15);
     h1x->GetXaxis()->SetTitleOffset(1.2);
@@ -281,7 +305,7 @@ void drawSourceCorrelations() {
     
     TLatex *tex = new TLatex();
     tex->SetNDC(); tex->SetTextSize(0.045);
-    tex->DrawLatex(0.20,0.88,"Anti-k_{T} R=0.7, PF");//, TotalNoTime");
+    tex->DrawLatex(0.20,0.88,"Anti-k_{T} R=0.5, PF+CHS");//, TotalNoTime");
     //tex->DrawLatex(0.20,0.80,"TotalNoTime");
     tex->DrawLatex(0.71,0.88,"HF");
     tex->DrawLatex(0.530,0.69,"EC2");

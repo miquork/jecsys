@@ -166,21 +166,21 @@ void compareJECversions(string algo="AK5PFchs",
   string sid2 = (_mc ? "Winter14_V4_MC" : "Winter14_V4_DATA");
   const char *cid2 = sid2.c_str();
   const char *a2 = a;
-  const char *s2 = "2012, 20/fb";//"Winter14_V5";
+  const char *s2 = "20/fb (8 TeV)";//"2012, 20/fb";//"Winter14_V5";
   const char *s2s = "2012";//"V5";
 
   // Summer13
   string sid1 = (_mc ? "START53_V26_MC" : "FT_53_V21_AN6_DATA");
   const char *cid1 = sid1.c_str();
   const char *a1 = a;
-  const char *s1 = "2011, 5/fb";//"Summer13";
+  const char *s1 = "5/fb (7 TeV)";//"2011, 5/fb";//"Summer13";
   const char *s1s = "2011";//"GT";
 
   // 2010 (? Or should this be Fall10? Which L1 corrections, Hybrid or FastJet?)
   string sid3 = "START38_V13";
   const char *cid3 = sid3.c_str();
   const char *a3 = a;
-  const char *s3 = "2010, 36/pb";
+  const char *s3 = "36/pb (7 TeV)";//"2010, 36/pb";
   const char *s3s = "2010";
 
 
@@ -306,6 +306,11 @@ void compareJECversions(string algo="AK5PFchs",
 		       Form(";p_{T,%s} (GeV);%s L2L3 residual",cgen,a),
 		       ndiv_pt, x_pt);
   hpt->GetYaxis()->SetTitle(Form("%s%s%s%s",cl1,cl2l3,cpl,cres));
+  if (_paper) {
+    if (l1 && !l2l3 && !res) hpt->SetYTitle("Pileup offset correction");
+    if (!l1 && l2l3 && !res) hpt->SetYTitle("Simulated response correction");
+    if (!l1 && !l2l3 && res) hpt->SetYTitle("Residual response correction");
+  }
   hpt->GetXaxis()->SetMoreLogLabels();
   hpt->GetXaxis()->SetNoExponent();
   hpt->SetMinimum(0.);
@@ -322,6 +327,11 @@ void compareJECversions(string algo="AK5PFchs",
   if (l2l3 && algo=="CALO") h->SetMaximum(2.2);
   */
   h->GetYaxis()->SetTitle(Form("%s%s%s%s",cl1,cl2l3,cpl,cres));
+  if (_paper) {
+    if (l1 && !l2l3 && !res) h->SetYTitle("Pileup offset correction");
+    if (!l1 && l2l3 && !res) h->SetYTitle("Simulated response correction");
+    if (!l1 && !l2l3 && res) h->SetYTitle("Residual response correction");
+  }
   h->SetMinimum(0.3);
   h->SetMaximum(2.0);
   if (_paper) {

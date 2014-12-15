@@ -409,8 +409,10 @@ double JECUncertainty::_Absolute(const double pt) const {
   double frag          = (_errType & jec::kAbsoluteFrag          ? _AbsoluteFrag(pt)        : 0.);
 
   // signed sources
+  if (!(_errType & ~jec::kAbsoluteStat)) return stat;
   if (!(_errType & ~jec::kAbsoluteSPRE)) return spr;
   if (!(_errType & ~jec::kAbsoluteSPRH)) return spr;
+  if (!(_errType & ~jec::kAbsoluteFrag)) return frag;
 
   return sqrt(stat*stat + scale*scale + FlMap*FlMap + MPFBias*MPFBias + spr*spr + frag*frag);
 } // Absolute
@@ -486,6 +488,9 @@ double JECUncertainty::_AbsoluteStat(double pTprime) const {
   double AbsStat = _jesfitunc(pTprime, _fjes, _emat);
   double AbsScale = _AbsoluteScale();
   double AbsStatSys = sqrt(max(AbsStat*AbsStat - AbsScale*AbsScale, 0.));
+
+  // Should we add sign to the "statistical" uncerainty source
+  // (this is really the fit uncertainty for the SPRH component)
 
   return AbsStatSys;
 }
@@ -594,6 +599,7 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
 
   // New fits from Juska on Nov 26, 2012, 5:26 pm
   double errSPR(0), errSPRE(0), errSPRH(0);
+  double difSPR(0), difSPRE(0), difSPRH(0);
   double refSPR(0), refSPRE(0), refSPRH(0);
   double refpt = 208.; // 2012 RDMC V3PT
 
@@ -611,7 +617,7 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
   if (_errType & jec::kAbsoluteSPRE) { // SPR in ECAL
     f->SetParameters(1.00567e+00, -3.04275e-02, -6.75493e-01);
     if (_calo) f->SetParameters(1.00166e+00, 1.57065e-02, -2.06585e-01);
-    errSPRE = sqrt(2.)*(f->Eval(pTprime)-1) + 1;
+    difSPRE = sqrt(2.)*(f->Eval(pTprime)-1) + 1;
     refSPRE = sqrt(2.)*(f->Eval(refpt)-1) + 1;
   }
   if (_errType & jec::kAbsoluteSPRH) { // SPR in HCAL
@@ -622,16 +628,18 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
     // - SPRH is obtained from the global fit as -0.0442 +/- 0.0152,
     //   thus uncertainty can be scaled from 3% down to 1.52%
     // - 4.4% from fit is ok, since a-priori should have had sqrt(2)*3%*=4.2%
-    errSPRH = 0.0152/0.03 * (f->Eval(pTprime)-1) + 1; // V3PT
+    difSPRH = 0.0152/0.03 * (f->Eval(pTprime)-1) + 1; // V3PT
     refSPRH = 0.0152/0.03 * (f->Eval(refpt)-1) + 1; // V3PT
   }
 
   // replace directly done SPR with pieces broken up into ECAL and HCAL
-  errSPR = sqrt(pow(errSPRE-refSPRE,2) + pow(errSPRH-refSPRH,2));
+  errSPRE = (difSPRE-refSPRE);
+  errSPRH = (difSPRH-refSPRH);
+  errSPR = sqrt(pow(errSPRE,2) + pow(errSPRH,2));
 
   // signed sources
-  if (!(_errType & ~jec::kAbsoluteSPRE)) return (errSPRE-refSPRE);
-  if (!(_errType & ~jec::kAbsoluteSPRH)) return (errSPRH-refSPRH);
+  if (!(_errType & ~jec::kAbsoluteSPRE)) return errSPRE;
+  if (!(_errType & ~jec::kAbsoluteSPRH)) return errSPRH;
 
   return errSPR;
 } // AbsoluteSPR
