@@ -127,7 +127,7 @@ void JECUncertainty::_InitL1() {
   // Re: New MC-based L1
   // https://www.dropbox.com/s/dm1ndhdmx9zdr72/DataMcSF.tar.gz
   //
-  // V7PT:
+  // Winter14_V6:
   // https://twiki.cern.ch/twiki/pub/CMS/JECtxtFiles/Winter14_V6_DataMcSF_L1FastJet.tar.gz
 
   map<jec::JetAlgo, const char*> names;
@@ -190,9 +190,9 @@ void JECUncertainty::_InitL1() {
     _jecL1sf = new FactorizedJetCorrector(v);
   }
 
-  // For PileUpPtRef
+  // For PileUpPtRef (L3Res only using AK5PFchs)
   {
-    const char *a = "AK5PFchs";
+    const char *a = "AK5PFchs"; // !! L3Res only for this
     const char *s = Form("%sWinter14_V0_DATA_L1FastJetPU_%s_pt.txt",d,a);
     //const char *s = Form("%sWinter14_V6_DATA_RC_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
@@ -202,7 +202,7 @@ void JECUncertainty::_InitL1() {
     _jecL1DTflat_ak5pfchs = new FactorizedJetCorrector(v);
   }
   {
-    const char *a = "AK5PFchs";
+    const char *a = "AK5PFchs"; // !! L3Res only for this
     //const char *s = Form("%sWinter14_V1_DATA_L1FastJet_%s.txt",d,a);
     const char *s = Form("%sWinter14_V6_DATA_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
@@ -286,16 +286,21 @@ void JECUncertainty::_InitL2Res() {
   // => Winter14_V5_uncertaintyFilesL2res.tar.gz (directory 'summary')
   // Fixed empty trailing lines and wrong column numbers in the files by hand
   //
-  // V7PT:
+  // Winter14_V6:
   // On 12 Jan 2015, at 20:30, from Denis Rathjens
   // Re: Out of Office AutoReply: Pseudo Pt plot
+  //
+  // Winter14_V7:
+  // On 14 Jan 2015, at 18:52, from Denis Rathjens
+  // Re: Requesting V7 of L2L3Residuals
+  // (fixed some column numbers by hand)
 
   map<jec::JetAlgo, const char*> names;
   names[jec::AK5PF] = "AK5PF";
   names[jec::AK5PFchs] = "AK5PFchs";
   names[jec::AK5CALO] = "AK5PF"; // Replace "AK5Calo";
   names[jec::AK7PF] = "AK7PF";
-  names[jec::AK7PFchs] = "AK7PFchs"; // Replace "AK7PFchs";
+  names[jec::AK7PFchs] = "AK7PFchs"; // Replace "AK7PFchs"; // (cloned for V7)
   names[jec::AK7CALO] = "AK7PF"; // Replace "AK5Calo";
   string directory = "CondFormats/JetMETObjects/data/";
   const char *d = directory.c_str();
@@ -367,15 +372,8 @@ void JECUncertainty::_InitL3Res() {
   //const double emata[n][n] =
   //{{3.508e-06,  1.033e-07},
   // {1.033e-07,   0.000231}};
-
-  // V7PT
-//   const double pars[n] =
-//     {0.9795, -0.0173};
-//   const double emata[n][n] =
-//     {{5.165e-07,  2.102e-07},
-//      {2.102e-07,  0.0002243}};
-
-  // V8PT
+  //
+  // Winter14_V8
   const double pars[n] =
     {0.9784, -0.0351};
   const double emata[n][n] =
@@ -489,7 +487,7 @@ Double_t _jesfit(Double_t *x, Double_t *p) {
   double ptref = 208;//225.;
   double jes =  (p[0] + p[1]/3.*100*(_fhb->Eval(pt)-_fhb->Eval(ptref))
 		 //+ p[2]*(fl1->Eval(pt)-fl1->Eval(ptref)));
-		 //+ -0.090*(_fl1->Eval(pt)-_fl1->Eval(ptref))); // GT, V7PT
+		 //+ -0.090*(_fl1->Eval(pt)-_fl1->Eval(ptref))); // GT
 		 + 0.054*(_fl1->Eval(pt)-_fl1->Eval(ptref))); // V8PT
 
   return jes;
@@ -501,7 +499,6 @@ Double_t _jeshb(double pt, double hb) {
   if (!_fhb) _fhb = new TF1("fhb","max(0,[0]+[1]*pow(x,[2]))",10,3500);
   _fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
   //double hb0 = -0.0442; // V3PT
-  //double hb0 = -0.0173; // V7PT
   double hb0 = -0.0351; // V8PT
   double jes = hb/3.*100*(_fhb->Eval(pt)-1) - hb0/3.*100*(_fhb->Eval(pt)-1);
 
@@ -563,7 +560,7 @@ double JECUncertainty::_AbsoluteScale() const {
   //   is achieved by shifting the reference pT=208, which decouples the
   //   constant term from slope parameters (correlations falls from ~90% to 9%)
   //double AbsScaleSys = 0.0019; // for pTref=208 GeV
-  double AbsScaleSys = 0.0011; // for pTref=208 GeV, mu=gamma=0.002% (V8PT)
+  double AbsScaleSys = 0.0011; // for pTref=208 GeV, mu=gamma=0.2% (V8PT)
 
   return AbsScaleSys;
 }
@@ -657,50 +654,22 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
 
   // New fits from Juska on Nov 26, 2012, 5:26 pm
   double errSPR(0), errSPRE(0), errSPRH(0);
-  //double difSPR(0), difSPRE(0), difSPRH(0);
-  //double refSPR(0), refSPRE(0), refSPRH(0);
-  //double refpt = 208.; // 2012 RDMC V3PT
 
-  //TF1 *f = new TF1("fmore","max(0,[0]+[1]*pow(x,[2]))",10,3500);
-
-  //if (_errType & jec::kAbsoluteSPR) { // this is now obsolete
-  //f->SetParameters(1.02829e+00, -6.22540e-02, -2.67123e-01);
-  //if (_calo) f->SetParameters(1.02084e+00, 3.23027e-02, -9.46202e-01);
-  //errSPR = f->Eval(pTprime);
-  //refSPR = f->Eval(refpt);
-  //}
-
-  // Fix 2014-05-21: multiply errSPRE and errSRPH residuals by sqrt(2)
-  // to keep errSPRE_3%(oplus)errSPRH_3% ~ errSPR_3%
+//   TF1 *f = new TF1("fmore","max(0,[0]+[1]*pow(x,[2]))",10,3500);
+//   if (_errType & jec::kAbsoluteSPR) { // this is now obsolete
+//     f->SetParameters(1.02829e+00, -6.22540e-02, -2.67123e-01);
+//     if (_calo) f->SetParameters(1.02084e+00, 3.23027e-02, -9.46202e-01);
+//     errSPR = f->Eval(pTprime);
+//     refSPR = f->Eval(refpt);
+//   }
   if (_errType & jec::kAbsoluteSPRE) { // SPR in ECAL
-    //f->SetParameters(1.00567e+00, -3.04275e-02, -6.75493e-01);
-    //if (_calo) f->SetParameters(1.00166e+00, 1.57065e-02, -2.06585e-01);
-    //difSPRE = sqrt(2.)*(f->Eval(pTprime)-1) + 1;
-    //refSPRE = sqrt(2.)*(f->Eval(refpt)-1) + 1;
-    // V7PT
     errSPRE = _AbsoluteSPRE(pTprime);
   }
   if (_errType & jec::kAbsoluteSPRH) { // SPR in HCAL
-    //f->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01);
-    //if (_calo) f->SetParameters(1.02246e+00, -1.55689e-02, -1.17219e-01);
-    //errSPRH = sqrt(2.)*(f->Eval(pTprime)-1) + 1;
-    //refSPRH = sqrt(2.)*(f->Eval(refpt)-1) + 1;
-    // - SPRH is obtained from the global fit as -0.0442 +/- 0.0152,
-    //   thus uncertainty can be scaled from 3% down to 1.52%
-    // - 4.4% from fit is ok, since a-priori should have had sqrt(2)*3%*=4.2%
-    //difSPRH = 0.0152/0.03 * (f->Eval(pTprime)-1) + 1; // V3PT
-    //refSPRH = 0.0152/0.03 * (f->Eval(refpt)-1) + 1; // V3PT
-    //
-    // Updated global fit V7PT converges to a smaller -1.73 +/- 1.50%
-    // This is more consistent with 5% radiation damage in HB front layer only
-    //difSPRH = 0.0150/0.03 * (f->Eval(pTprime)-1) + 1; // V7PT
-    //refSPRH = 0.0150/0.03 * (f->Eval(refpt)-1) + 1; // V7PT
     errSPRH = _AbsoluteSPRH(pTprime);
   }
 
   // replace directly done SPR with pieces broken up into ECAL and HCAL
-  //errSPRE = (difSPRE-refSPRE);
-  //errSPRH = (difSPRH-refSPRH);
   errSPR = sqrt(pow(errSPRE,2) + pow(errSPRH,2));
 
   // signed sources
@@ -729,15 +698,10 @@ double JECUncertainty::_AbsoluteSPRH(const double pTprime) const {
   //difSPRH = 0.0152/0.03 * (f->Eval(pTprime)-1) + 1; // V3PT
   //refSPRH = 0.0152/0.03 * (f->Eval(refpt)-1) + 1; // V3PT
   //
-  // Updated global fit V7PT converges to a smaller -1.73 +/- 1.50%
+  // Updated global fit V8PT converges to a smaller -3.51 +/- 1.35%
   // This is more consistent with 5% radiation damage in HB front layer only
-  //difSPRH = 0.0150/0.03 * (f->Eval(pTprime)-1) + 1; // V7PT
-  //refSPRH = 0.0150/0.03 * (f->Eval(refpt)-1) + 1; // V7PT
-  //
-  // V8PT adds gamma scale and footprint uncertainty of 0.2%, and x3-4 Zee stats
-  // Fit gives -3.51 +/- 1.35%
   difSPRH = 0.0135/0.03 * (f->Eval(pTprime)-1) + 1; // V8PT
-  refSPRH = 0.0135/0.03 * (f->Eval(refpt)-1) + 1; // V9PT
+  refSPRH = 0.0135/0.03 * (f->Eval(refpt)-1) + 1; // V8PT
   errSPRH = (difSPRH-refSPRH);
 
   // NB: returns signed systematic
@@ -851,13 +815,13 @@ double JECUncertainty::_RelativeFSR(const double eta) const {
   // New estimate based on MPF (SJ, DJ) closure plots from Henning by e-mail
   // Subject: 	Re: updated systematics for 53X
   // Date: 	April 25, 2013 1:12:53 PM GMT+03:00
-  
+  //
   //TF1 f("f","[0]*(pow(cosh(min(3.2,x)),2)-1)",0,5.2);
   //f.SetParameter(0,1.5/(pow(cosh(3.2),2)-1));
-
+  //
   //return 0.01*f.Eval(fabs(eta));
 
-  // V7PT:
+  // V8PT:
   // We take the Pythia / Herwig difference central value as systematic
   // Adding statistical uncertainty is problematic, because this loses
   // some important shape information (sign reversal within barrel)
@@ -1063,11 +1027,9 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
     // Difference between algo and AK5PFchs should result in larger systematic
     // than 25% variation for AK5PFchs itself
     //
-    // V7PT: -11.5 +/- 23.2%, so -15%(algo), 35%(algo) vs 10%(ak5pfchs)
-    //const double k0(0.35), kdw(0.10), kup(0.60);
-    //
     // V8PT: +5.4 +/- 23.1%, so -20%(algo), 30%(algo) vs 5%(ak5pfchs)
-    //const double k0(0.35), kdw(0.10), kup(0.60);
+    // So with fixed L1 data we are far more consistent with zero bias in L1
+    // Still, keep the 5% shift to minimize low pT change wrt previous GT
     const double k0(0.05), kdw(-0.20), kup(0.30);
     TGraph *g3r = new TGraph(0);
     TGraph *g3up = new TGraph(0);
@@ -1133,14 +1095,12 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
     // Even if this is not true for every single case, keep 60%
     // to have the signs of the variations correlated
     //
-    // V7PT gives fit range [-12%,+35%] so take 35% instead of 60%
-    //
-    // V7PT gives fit range [-18%,+28%] so take 30% instead of 35% or 60%
+    // V8PT gives fit range [-18%,+28%] so take 30% instead of 60%
     double kfactor = 1;
-    if (x<1.3)           kfactor = 0.30;//0.35;//0.60;
-    if (x>=1.3 && x<2.5) kfactor = 0.30;//0.35;//0.60;
-    if (x>=2.5 && x<3.0) kfactor = 0.30;//0.35;//0.60;
-    if (x>=3.0)          kfactor = 0.30;//0.35;//0.60;
+    if (x<1.3)           kfactor = 0.30;//0.60;
+    if (x>=1.3 && x<2.5) kfactor = 0.30;//0.60;
+    if (x>=2.5 && x<3.0) kfactor = 0.30;//0.60;
+    if (x>=3.0)          kfactor = 0.30;//0.60;
 
     const double x_pt[] =
       {28, 32, 37, 43, 49, 56, 64, 74, 84,
@@ -1179,6 +1139,8 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
       //syseta = kfactor * (l1f / l1p - 1) - _fl1ref->Eval(pTprime)
       //	- f1->Eval(pTprime);
       // BUG: 2015-01-014, need to match definition of sysb that we fit to fl2
+      // (is _fl3up instead of _lf2up correct, then?)
+      // (I guess so, ad _fl2up ~ _fl3up + fl2)
       double sysb = kfactor * (l1f / l1p - 1) - _fl3up->Eval(pTprime);
       syseta = sysb - fl2->Eval(pTprime);
     }
@@ -1228,10 +1190,8 @@ double JECUncertainty::_PileUpEnvelope(const double pTprime, const double eta) {
   // - In the future, one could also consider how dijet balance (+Z/gamma+jet)
   //   constrains PileUpPt uncertainty in other eta regions
   //
-  // V7PT: -11.5 +/- 23.2% => max 12% + 23% = 35%
-  //
   // V8PT: +5.4 +/- 23.1% => max 5% + 23% = 28% ~ 30%
-  double kfactor = 0.30;//0.35;//0.60;//1;
+  double kfactor = 0.30;//0.60;//1;
   //double x = fabs(etax);
   //if (x<1.3)           kfactor = 0.25;//0.2550;
   //if (x>=1.3 && x<2.5) kfactor = 0.30;
@@ -1903,7 +1863,6 @@ double JECUncertainty::_TimePt(const double pt, int epoch) const {
   }
 
   //double hb = (100-4.42)/100.;//V3PT
-  //double hb = (100-1.73)/100.;//V7PT
   double hb = (100-3.51)/100.;//V8PT
   if (debug) cout << Form("Epoch absolute jes (Full 2012 is %1.3f):\n",hb);
   double jes3[nepoch];

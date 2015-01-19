@@ -22,13 +22,14 @@
   
   setTDRStyle();
 
-  // single source  
-  //drawJetCorrectionUncertainty("AK5PFchs");
+  // Single source test
+  //drawJetCorrectionUncertainty("AK5PFchs"); // no source files
+  // Print out source files (only setup for AK5PF + true pair)
   drawJetCorrectionUncertainty("AK5PF",true); // also source files
 
-  // whole shebang
+  // Whole shebang
   /*
-  drawJetCorrectionUncertainty("AK5PF",false); // no source files (quick)
+  //drawJetCorrectionUncertainty("AK5PF",false); // no source files (quick)
   drawJetCorrectionUncertainty("AK5PF,true"); // also source files
   drawJetCorrectionUncertainty("AK5PFchs");
   drawJetCorrectionUncertainty("AK7PF");
