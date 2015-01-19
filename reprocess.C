@@ -47,7 +47,11 @@ void reprocess() {
   // On 30 Jul 2014, at 14:51, from Denis Rathjens
   // Re: Summer14 combination files with RD MC
   // NB: not yet updated with Winter14_V8 (i.e. fix for L1data)
-  TFile *fdj = new TFile("rootfiles/Winter13V4_DJ.root","READ"); // GT
+  //TFile *fdj = new TFile("rootfiles/Winter13V4_DJ.root","READ"); // GT
+  //
+  // On 22 Dec 2014, at 14:14, from Rathjens, Denis
+  // Re: Out of Office AutoReply: Pseudo Pt plot
+  TFile *fdj = new TFile("rootfiles/Winter14V6.root","READ"); // newL1V6
   assert(fdj && !fdj->IsZombie());
   
   // On 14 Jan 2015, at 20:36, from Viola Sordini
