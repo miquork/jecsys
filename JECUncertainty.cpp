@@ -25,7 +25,7 @@ JECUncertainty::JECUncertainty(const jec::JetAlgo& algo,
 {
 
   _fjes = 0; _emat = 0; _fhb = _fl1 = 0;
-  _fl1ref = _fl1up = _fl1dw = 0;
+  _fl3ref = _fl3up = _fl3dw = _fl2up = 0;
 
   _algo = algo;
   _calo = (_algo==jec::AK5CALO || _algo==jec::AK7CALO);
@@ -84,22 +84,28 @@ double JECUncertainty::Uncert(const double pTprime, const double eta) {
   if (!(_errType & ~jec::kAbsoluteFrag)) return errAbs;
   if (!(_errType & ~jec::kAbsoluteSPRE)) return errAbs;
   if (!(_errType & ~jec::kAbsoluteSPRH)) return errAbs;
+  if (!(_errType & ~jec::kRelativeFSR))   return errRel;
   if (!(_errType & ~jec::kRelativePtBB))  return errRel;
   if (!(_errType & ~jec::kRelativePtEC1)) return errRel;
   if (!(_errType & ~jec::kRelativePtEC2)) return errRel;
   if (!(_errType & ~jec::kRelativePtHF))  return errRel;
   if (!(_errType & ~jec::kRelativePt))    return errRel; // EXTRA
   if (!(_errType & ~jec::kPileUpDataMC)) return errPileUp;
+  if (!(_errType & ~jec::kPileUpPtRef))  return errPileUp;
   if (!(_errType & ~jec::kPileUpPtBB))   return errPileUp;
   if (!(_errType & ~jec::kPileUpPtEC1))  return errPileUp;
   if (!(_errType & ~jec::kPileUpPtEC2))  return errPileUp;
   if (!(_errType & ~jec::kPileUpPtHF))   return errPileUp;
   if (!(_errType & ~jec::kPileUpPt))     return errPileUp; // EXTRA
+  if (!(_errType & ~jec::kPileUpPtEta))  return errPileUp; // EXTRA
   if (!(_errType & ~jec::kPileUpMuZero)) return errPileUp; // OPT
+  if (!(_errType & ~jec::kPileUpEnvelope)) return errPileUp; // OPT
   if (!(_errType & ~jec::kTimePtRunA)) return errTime;
   if (!(_errType & ~jec::kTimePtRunB)) return errTime;
   if (!(_errType & ~jec::kTimePtRunC)) return errTime;
   if (!(_errType & ~jec::kTimePtRunD)) return errTime;
+  if (!(_errType & ~jec::kTimePt))     return errTime; // EXTRA
+  if (!(_errType & ~jec::kTimeEta))     return errTime;
   //
   if (!(_errType & ~jec::kFlavorMask))   return errFlavor;
 
@@ -120,6 +126,9 @@ void JECUncertainty::_InitL1() {
   // On 21 May 2014, at 16:15
   // Re: New MC-based L1
   // https://www.dropbox.com/s/dm1ndhdmx9zdr72/DataMcSF.tar.gz
+  //
+  // V7PT:
+  // https://twiki.cern.ch/twiki/pub/CMS/JECtxtFiles/Winter14_V6_DataMcSF_L1FastJet.tar.gz
 
   map<jec::JetAlgo, const char*> names;
   names[jec::AK5PF] = "AK5PF";
@@ -135,6 +144,7 @@ void JECUncertainty::_InitL1() {
   // For PileUpPt in DATA
   {
     const char *s = Form("%sWinter14_V0_DATA_L1FastJetPU_%s_pt.txt",d,a);
+    //const char *s = Form("%sWinter14_V6_DATA_RC_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -143,6 +153,7 @@ void JECUncertainty::_InitL1() {
   }
   {
     const char *s = Form("%sWinter14_V0_MC_L1FastJetPU_%s_pt.txt",d,a);
+    //const char *s = Form("%sWinter14_V6_MC_RC_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -151,7 +162,8 @@ void JECUncertainty::_InitL1() {
   }
   // For PileUpPt in MC
   {
-    const char *s = Form("%sWinter14_V1_DATA_L1FastJet_%s.txt",d,a);
+    //const char *s = Form("%sWinter14_V1_DATA_L1FastJet_%s.txt",d,a);
+    const char *s = Form("%sWinter14_V6_DATA_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -159,7 +171,8 @@ void JECUncertainty::_InitL1() {
     _jecL1DTpt = new FactorizedJetCorrector(v);
   }
   {
-    const char *s = Form("%sWinter14_V1_MC_L1FastJet_%s.txt",d,a);
+    //const char *s = Form("%sWinter14_V1_MC_L1FastJet_%s.txt",d,a);
+    const char *s = Form("%sWinter14_V6_MC_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -168,7 +181,8 @@ void JECUncertainty::_InitL1() {
   }
   // For PileUpDataMC
   {
-    const char *s = Form("%sWinter14_DataMcSF_L1FastJetPU_%s.txt",d,a);
+    //const char *s = Form("%sWinter14_DataMcSF_L1FastJetPU_%s.txt",d,a);
+    const char *s = Form("%sWinter14_V6_DataMcSF_L1FastJetPU_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -180,6 +194,7 @@ void JECUncertainty::_InitL1() {
   {
     const char *a = "AK5PFchs";
     const char *s = Form("%sWinter14_V0_DATA_L1FastJetPU_%s_pt.txt",d,a);
+    //const char *s = Form("%sWinter14_V6_DATA_RC_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -188,7 +203,8 @@ void JECUncertainty::_InitL1() {
   }
   {
     const char *a = "AK5PFchs";
-    const char *s = Form("%sWinter14_V1_DATA_L1FastJet_%s.txt",d,a);
+    //const char *s = Form("%sWinter14_V1_DATA_L1FastJet_%s.txt",d,a);
+    const char *s = Form("%sWinter14_V6_DATA_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -204,6 +220,8 @@ void JECUncertainty::_InitJEC() {
   // JEC files collected by Alexx Perloff to web directory
   // http://people.physics.tamu.edu/aperloff/CMS_JEC/index.php?path=Winter_14%2FWinter14_V4_txts/
   // V5 has L2L3Residuals changed on top of these (V4 below is really new V5)
+  // The V6/V7 files are at (V7 is pT dep L3Res, V6 is flat)
+  // https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECtxtFiles
 
   map<jec::JetAlgo, const char*> names;
   names[jec::AK5PF] = "AK5PF";
@@ -217,17 +235,23 @@ void JECUncertainty::_InitJEC() {
   const char *d = directory.c_str();
 
   const char *s;
-  s = Form("%sWinter14_V4_DATA_L1FastJet_%s.txt",d,a);
+  //s = Form("%sWinter14_V4_DATA_L1FastJet_%s.txt",d,a);
+  s = Form("%sWinter14_V6_DATA_L1FastJet_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
-  s = Form("%sWinter14_V4_DATA_L2Relative_%s.txt",d,a);
+  //s = Form("%sWinter14_V4_DATA_L2Relative_%s.txt",d,a);
+  s = Form("%sWinter14_V6_DATA_L2Relative_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
-  s = Form("%sWinter14_V4_DATA_L3Absolute_%s.txt",d,a);
+  //s = Form("%sWinter14_V4_DATA_L3Absolute_%s.txt",d,a);
+  s = Form("%sWinter14_V6_DATA_L3Absolute_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
   // Only one L3Residual derived for now (although we will later clone this)
-  s = Form("%sWinter14_V4_DATA_L2L3Residual_AK5PFchs.txt",d);
+  //s = Form("%sWinter14_V4_DATA_L2L3Residual_AK5PFchs.txt",d);
+  //s = Form("%sWinter14_V6_DATA_L2L3Residual_AK5PFchs.txt",d);
+  //s = Form("%sWinter14_V7_DATA_L2L3Residual_AK5PFchs.txt",d);
+  s = Form("%sWinter14_V8_DATA_L2L3Residual_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
 
@@ -241,6 +265,7 @@ void JECUncertainty::_InitJEC() {
 
   // Another version using Random Cone offset (L1 V0)
   s = Form("%sWinter14_V0_DATA_L1FastJetPU_%s_pt.txt",d,a);
+  //s = Form("%sWinter14_V6_DATA_RC_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l1v0 = new JetCorrectorParameters(s);
 
@@ -260,13 +285,17 @@ void JECUncertainty::_InitL2Res() {
   // Re: winter14 correction update
   // => Winter14_V5_uncertaintyFilesL2res.tar.gz (directory 'summary')
   // Fixed empty trailing lines and wrong column numbers in the files by hand
+  //
+  // V7PT:
+  // On 12 Jan 2015, at 20:30, from Denis Rathjens
+  // Re: Out of Office AutoReply: Pseudo Pt plot
 
   map<jec::JetAlgo, const char*> names;
   names[jec::AK5PF] = "AK5PF";
   names[jec::AK5PFchs] = "AK5PFchs";
   names[jec::AK5CALO] = "AK5PF"; // Replace "AK5Calo";
   names[jec::AK7PF] = "AK7PF";
-  names[jec::AK7PFchs] = "AK7PF"; // Replace "AK7PFchs";
+  names[jec::AK7PFchs] = "AK7PFchs"; // Replace "AK7PFchs";
   names[jec::AK7CALO] = "AK7PF"; // Replace "AK5Calo";
   string directory = "CondFormats/JetMETObjects/data/";
   const char *d = directory.c_str();
@@ -275,7 +304,9 @@ void JECUncertainty::_InitL2Res() {
   const char *s;
   // For RelativePt
   {
-    s = Form("%sWinter14_V5_DATA_L2L3Residual_%s.txt.FLAT",d,a);
+    //s = Form("%sWinter14_V5_DATA_L2L3Residual_%s.txt.FLAT",d,a);
+    //s = Form("%sWinter14_V6_DATA_L2L3Residual_%s.txt.FLAT",d,a);
+    s = Form("%sWinter14_V7_DATA_L2L3Residual_%s.txt.FLAT",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -283,7 +314,9 @@ void JECUncertainty::_InitL2Res() {
     _jecL2ResFlat = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%sWinter14_V5_DATA_L2L3Residual_%s.txt.LOGLIN",d,a);
+    //s = Form("%sWinter14_V5_DATA_L2L3Residual_%s.txt.LOGLIN",d,a);
+    //s = Form("%sWinter14_V6_DATA_L2L3Residual_%s.txt.LOGLIN",d,a);
+    s = Form("%sWinter14_V7_DATA_L2L3Residual_%s.txt.LOGLIN",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -292,7 +325,9 @@ void JECUncertainty::_InitL2Res() {
   }
   // For RelativeJER
   {
-    s = Form("%sWinter14_V5_DATA_L2L3Residual_%s.txt.JERup",d,a);
+    //s = Form("%sWinter14_V5_DATA_L2L3Residual_%s.txt.JERup",d,a);
+    //s = Form("%sWinter14_V6_DATA_L2L3Residual_%s.txt.JERup",d,a);
+    s = Form("%sWinter14_V7_DATA_L2L3Residual_%s.txt.JERup",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -300,7 +335,9 @@ void JECUncertainty::_InitL2Res() {
     _jecL2jerup = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%sWinter14_V5_DATA_L2L3Residual_%s.txt.JERdown",d,a);
+    //s = Form("%sWinter14_V5_DATA_L2L3Residual_%s.txt.JERdown",d,a);
+    //s = Form("%sWinter14_V6_DATA_L2L3Residual_%s.txt.JERdown",d,a);
+    s = Form("%sWinter14_V7_DATA_L2L3Residual_%s.txt.JERdown",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -309,7 +346,9 @@ void JECUncertainty::_InitL2Res() {
   }
   // For RelativeStat
   {
-    s = Form("%sWinter14_V5_DATA_L2L3Residual_%s.txt.STAT",d,a);
+    //s = Form("%sWinter14_V5_DATA_L2L3Residual_%s.txt.STAT",d,a);
+    //s = Form("%sWinter14_V6_DATA_L2L3Residual_%s.txt.STAT",d,a);
+    s = Form("%sWinter14_V7_DATA_L2L3Residual_%s.txt.STAT",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -323,11 +362,25 @@ void JECUncertainty::_InitL3Res() {
 
   // V3PT
   const int n = 2;
+  //const double pars[n] =
+  //{0.9773, -0.0442};
+  //const double emata[n][n] =
+  //{{3.508e-06,  1.033e-07},
+  // {1.033e-07,   0.000231}};
+
+  // V7PT
+//   const double pars[n] =
+//     {0.9795, -0.0173};
+//   const double emata[n][n] =
+//     {{5.165e-07,  2.102e-07},
+//      {2.102e-07,  0.0002243}};
+
+  // V8PT
   const double pars[n] =
-    {0.9773, -0.0442};
+    {0.9784, -0.0351};
   const double emata[n][n] =
-    {{3.508e-06,  1.033e-07},
-     {1.033e-07,   0.000231}};
+    {{1.238e-06,  1.875e-06},
+     {1.875e-06,  0.0001817}};
 
   // Sub-optimal to copy every time, but this is the most flexible interface
   if (!_emat) {
@@ -356,7 +409,8 @@ double JECUncertainty::_Rjet(double pTprime, double eta,
 			     FactorizedJetCorrector *jec = 0) {
   
   if (ajet<0) ajet = 0.785*_ajet;
-  if (mu<0) mu = 11.85; 
+  //if (mu<0) mu = 11.85; // BUG found 2015-01-14
+  if (mu<0) mu = _mu; // BUG found 2015-01-14
   double npv = _NpvFromMu(mu);
   double rho = _RhoFromMu(mu);
   if (!jec) jec = _jec;
@@ -367,7 +421,7 @@ double JECUncertainty::_Rjet(double pTprime, double eta,
   ROOT::Math::BrentRootFinder brf;
   //brf.SetLogScan(true);
   // Set parameters of the method
-  brf.SetFunction(f,std::max(2.0,0.25*pTprime),std::min(4*pTprime,3500.0));
+  brf.SetFunction(f,std::max(2.0,0.25*pTprime),std::min(4*pTprime,4000.0));
   bool found_root = brf.Solve(50,1e-4,1e-5);
   double pTraw = brf.Root();
   double rjet = pTraw /pTprime;
@@ -435,7 +489,8 @@ Double_t _jesfit(Double_t *x, Double_t *p) {
   double ptref = 208;//225.;
   double jes =  (p[0] + p[1]/3.*100*(_fhb->Eval(pt)-_fhb->Eval(ptref))
 		 //+ p[2]*(fl1->Eval(pt)-fl1->Eval(ptref)));
-		 + -0.090*(_fl1->Eval(pt)-_fl1->Eval(ptref)));
+		 //+ -0.090*(_fl1->Eval(pt)-_fl1->Eval(ptref))); // GT, V7PT
+		 + 0.054*(_fl1->Eval(pt)-_fl1->Eval(ptref))); // V8PT
 
   return jes;
 } // jesfit
@@ -445,7 +500,9 @@ Double_t _jeshb(double pt, double hb) {
 
   if (!_fhb) _fhb = new TF1("fhb","max(0,[0]+[1]*pow(x,[2]))",10,3500);
   _fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
-  double hb0 = -0.0442; // V3PT
+  //double hb0 = -0.0442; // V3PT
+  //double hb0 = -0.0173; // V7PT
+  double hb0 = -0.0351; // V8PT
   double jes = hb/3.*100*(_fhb->Eval(pt)-1) - hb0/3.*100*(_fhb->Eval(pt)-1);
 
   return jes;
@@ -485,12 +542,12 @@ double JECUncertainty::_AbsoluteStat(double pTprime) const {
   // Uncertainty band from the pT-dependent global fit with SPRH
   // Fit includes Zmm, Zee and gamma scales as floating nuisance parameters,
   // so subtract fit scale uncertainty in quadrature to avoid double-counting
+  // Same for SPRH, in which case AbsStatSys is probably very close to zero
   double AbsStat = _jesfitunc(pTprime, _fjes, _emat);
   double AbsScale = _AbsoluteScale();
-  double AbsStatSys = sqrt(max(AbsStat*AbsStat - AbsScale*AbsScale, 0.));
-
-  // Should we add sign to the "statistical" uncerainty source
-  // (this is really the fit uncertainty for the SPRH component)
+  double AbsSPRH = _AbsoluteSPRH(pTprime);
+  double AbsStatSys = sqrt(max(AbsStat*AbsStat - AbsScale*AbsScale
+			       - AbsSPRH*AbsSPRH, 0.));
 
   return AbsStatSys;
 }
@@ -505,7 +562,8 @@ double JECUncertainty::_AbsoluteScale() const {
   // - Extract the constant part from the error matrix as AbsoluteScale. This
   //   is achieved by shifting the reference pT=208, which decouples the
   //   constant term from slope parameters (correlations falls from ~90% to 9%)
-  double AbsScaleSys = 0.0019; // for pTref=208 GeV
+  //double AbsScaleSys = 0.0019; // for pTref=208 GeV
+  double AbsScaleSys = 0.0011; // for pTref=208 GeV, mu=gamma=0.002% (V8PT)
 
   return AbsScaleSys;
 }
@@ -599,11 +657,11 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
 
   // New fits from Juska on Nov 26, 2012, 5:26 pm
   double errSPR(0), errSPRE(0), errSPRH(0);
-  double difSPR(0), difSPRE(0), difSPRH(0);
-  double refSPR(0), refSPRE(0), refSPRH(0);
-  double refpt = 208.; // 2012 RDMC V3PT
+  //double difSPR(0), difSPRE(0), difSPRH(0);
+  //double refSPR(0), refSPRE(0), refSPRH(0);
+  //double refpt = 208.; // 2012 RDMC V3PT
 
-  TF1 *f = new TF1("fmore","max(0,[0]+[1]*pow(x,[2]))",10,3500);
+  //TF1 *f = new TF1("fmore","max(0,[0]+[1]*pow(x,[2]))",10,3500);
 
   //if (_errType & jec::kAbsoluteSPR) { // this is now obsolete
   //f->SetParameters(1.02829e+00, -6.22540e-02, -2.67123e-01);
@@ -615,26 +673,34 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
   // Fix 2014-05-21: multiply errSPRE and errSRPH residuals by sqrt(2)
   // to keep errSPRE_3%(oplus)errSPRH_3% ~ errSPR_3%
   if (_errType & jec::kAbsoluteSPRE) { // SPR in ECAL
-    f->SetParameters(1.00567e+00, -3.04275e-02, -6.75493e-01);
-    if (_calo) f->SetParameters(1.00166e+00, 1.57065e-02, -2.06585e-01);
-    difSPRE = sqrt(2.)*(f->Eval(pTprime)-1) + 1;
-    refSPRE = sqrt(2.)*(f->Eval(refpt)-1) + 1;
+    //f->SetParameters(1.00567e+00, -3.04275e-02, -6.75493e-01);
+    //if (_calo) f->SetParameters(1.00166e+00, 1.57065e-02, -2.06585e-01);
+    //difSPRE = sqrt(2.)*(f->Eval(pTprime)-1) + 1;
+    //refSPRE = sqrt(2.)*(f->Eval(refpt)-1) + 1;
+    // V7PT
+    errSPRE = _AbsoluteSPRE(pTprime);
   }
   if (_errType & jec::kAbsoluteSPRH) { // SPR in HCAL
-    f->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01);
-    if (_calo) f->SetParameters(1.02246e+00, -1.55689e-02, -1.17219e-01);
+    //f->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01);
+    //if (_calo) f->SetParameters(1.02246e+00, -1.55689e-02, -1.17219e-01);
     //errSPRH = sqrt(2.)*(f->Eval(pTprime)-1) + 1;
     //refSPRH = sqrt(2.)*(f->Eval(refpt)-1) + 1;
     // - SPRH is obtained from the global fit as -0.0442 +/- 0.0152,
     //   thus uncertainty can be scaled from 3% down to 1.52%
     // - 4.4% from fit is ok, since a-priori should have had sqrt(2)*3%*=4.2%
-    difSPRH = 0.0152/0.03 * (f->Eval(pTprime)-1) + 1; // V3PT
-    refSPRH = 0.0152/0.03 * (f->Eval(refpt)-1) + 1; // V3PT
+    //difSPRH = 0.0152/0.03 * (f->Eval(pTprime)-1) + 1; // V3PT
+    //refSPRH = 0.0152/0.03 * (f->Eval(refpt)-1) + 1; // V3PT
+    //
+    // Updated global fit V7PT converges to a smaller -1.73 +/- 1.50%
+    // This is more consistent with 5% radiation damage in HB front layer only
+    //difSPRH = 0.0150/0.03 * (f->Eval(pTprime)-1) + 1; // V7PT
+    //refSPRH = 0.0150/0.03 * (f->Eval(refpt)-1) + 1; // V7PT
+    errSPRH = _AbsoluteSPRH(pTprime);
   }
 
   // replace directly done SPR with pieces broken up into ECAL and HCAL
-  errSPRE = (difSPRE-refSPRE);
-  errSPRH = (difSPRH-refSPRH);
+  //errSPRE = (difSPRE-refSPRE);
+  //errSPRH = (difSPRH-refSPRH);
   errSPR = sqrt(pow(errSPRE,2) + pow(errSPRH,2));
 
   // signed sources
@@ -644,6 +710,61 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
   return errSPR;
 } // AbsoluteSPR
 
+// Single pion response in HCAL
+double JECUncertainty::_AbsoluteSPRH(const double pTprime) const {
+
+  // New fits from Juska on Nov 26, 2012, 5:26 pm
+  double errSPRH(0), difSPRH(0), refSPRH(0);
+  double refpt = 208.; // 2012 RDMC V3PT
+
+  TF1 *f = new TF1("fsprh","max(0,[0]+[1]*pow(x,[2]))",10,3500);
+
+  f->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01);
+  if (_calo) f->SetParameters(1.02246e+00, -1.55689e-02, -1.17219e-01);
+  //errSPRH = sqrt(2.)*(f->Eval(pTprime)-1) + 1;
+  //refSPRH = sqrt(2.)*(f->Eval(refpt)-1) + 1;
+  // - SPRH is obtained from the global fit as -0.0442 +/- 0.0152,
+  //   thus uncertainty can be scaled from 3% down to 1.52%
+  // - 4.4% from fit is ok, since a-priori should have had sqrt(2)*3%*=4.2%
+  //difSPRH = 0.0152/0.03 * (f->Eval(pTprime)-1) + 1; // V3PT
+  //refSPRH = 0.0152/0.03 * (f->Eval(refpt)-1) + 1; // V3PT
+  //
+  // Updated global fit V7PT converges to a smaller -1.73 +/- 1.50%
+  // This is more consistent with 5% radiation damage in HB front layer only
+  //difSPRH = 0.0150/0.03 * (f->Eval(pTprime)-1) + 1; // V7PT
+  //refSPRH = 0.0150/0.03 * (f->Eval(refpt)-1) + 1; // V7PT
+  //
+  // V8PT adds gamma scale and footprint uncertainty of 0.2%, and x3-4 Zee stats
+  // Fit gives -3.51 +/- 1.35%
+  difSPRH = 0.0135/0.03 * (f->Eval(pTprime)-1) + 1; // V8PT
+  refSPRH = 0.0135/0.03 * (f->Eval(refpt)-1) + 1; // V9PT
+  errSPRH = (difSPRH-refSPRH);
+
+  // NB: returns signed systematic
+  return errSPRH;
+} // AbsoluteSPRH
+
+// Single pion response in ECAL
+double JECUncertainty::_AbsoluteSPRE(const double pTprime) const {
+
+  // New fits from Juska on Nov 26, 2012, 5:26 pm
+  double errSPRE(0), difSPRE(0), refSPRE(0);
+  double refpt = 208.; // 2012 RDMC V3PT
+
+  TF1 *f = new TF1("fspre","max(0,[0]+[1]*pow(x,[2]))",10,3500);
+
+
+  // Fix 2014-05-21: multiply errSPRE and errSRPH residuals by sqrt(2)
+  // to keep errSPRE_3%(oplus)errSPRH_3% ~ errSPR_3%
+  f->SetParameters(1.00567e+00, -3.04275e-02, -6.75493e-01);
+  if (_calo) f->SetParameters(1.00166e+00, 1.57065e-02, -2.06585e-01);
+  difSPRE = sqrt(2.)*(f->Eval(pTprime)-1) + 1;
+  refSPRE = sqrt(2.)*(f->Eval(refpt)-1) + 1;
+  errSPRE = (difSPRE-refSPRE);
+
+  // NB: returns signed systematic
+  return errSPRE;
+} // AbsoluteSPR
 
 // Combine relative uncertainties
 double JECUncertainty::_Relative(const double pTprime,
@@ -655,6 +776,7 @@ double JECUncertainty::_Relative(const double pTprime,
   double spt = (_errType & jec::kRelativePt ? _RelativePt(pTprime, eta) : 0.);
 
   // signed sources
+  if (!(_errType & ~jec::kRelativeFSR)) return sfsr;
   if (!(_errType & ~jec::kRelativePtBB)) return spt;
   if (!(_errType & ~jec::kRelativePtEC1)) return spt;
   if (!(_errType & ~jec::kRelativePtEC2)) return spt;
@@ -690,6 +812,39 @@ double JECUncertainty::_RelativeJER(const double pTprime,
 } // RelativeJER
 
 
+// Helper function for _RelativeFSR
+TF1 *fkFSR(0);
+Double_t _kFSR(Double_t *xx, Double_t *p) {
+
+  double x = *xx;
+
+  const int np = 3;
+  double p0 = p[0];
+  double p1 = p[1];
+  double p2 = p[2];
+
+  double val = p0 + p1*cosh(x) / (1 + p2*cosh(x));
+
+  double df[np] = {1, cosh(x) / (1 + p2*cosh(x)),
+		   -p1 * pow(cosh(x) / (1 + p2*cosh(x)), 2)}; 
+
+  double em[np][np] = {{p[3], (p[4]), (p[6])},
+		       {p[4],  p[5],  (p[7])},
+		       {p[6],  p[7],   p[8]}};
+
+  double sigma = p[9];
+
+  double err2(0);
+  for (int i = 0; i != np; ++i) {
+    for (int j = 0; j != np; ++j) {
+      err2 += df[i]*df[j]*em[i][j];
+    }
+  }
+  double err = sqrt(err2);
+  
+  return (val + sigma * err);
+}
+
 // Relative scale uncertainty vs eta from soft radiation (FSR)
 double JECUncertainty::_RelativeFSR(const double eta) const {
 
@@ -697,10 +852,26 @@ double JECUncertainty::_RelativeFSR(const double eta) const {
   // Subject: 	Re: updated systematics for 53X
   // Date: 	April 25, 2013 1:12:53 PM GMT+03:00
   
-  TF1 f("f","[0]*(pow(cosh(min(3.2,x)),2)-1)",0,5.2);
-  f.SetParameter(0,1.5/(pow(cosh(3.2),2)-1));
+  //TF1 f("f","[0]*(pow(cosh(min(3.2,x)),2)-1)",0,5.2);
+  //f.SetParameter(0,1.5/(pow(cosh(3.2),2)-1));
 
-  return 0.01*f.Eval(fabs(eta));
+  //return 0.01*f.Eval(fabs(eta));
+
+  // V7PT:
+  // We take the Pythia / Herwig difference central value as systematic
+  // Adding statistical uncertainty is problematic, because this loses
+  // some important shape information (sign reversal within barrel)
+  // Therefore we move statistics to a new source RelativeStatFSR
+  if (!fkFSR) fkFSR = new TF1("fkFSR",_kFSR,0,5.2,10);
+
+  fkFSR->SetParameters(-0.01362, 0.09752, 6.299, 0,0,0,0,0,0,0);
+		      //1.242e-05,
+		      //-7.624e-05, 0.000517,
+		      //0.0007937, -0.001374, 0.3037,
+		      //0);
+  double diff = fkFSR->Eval(eta);
+
+  return diff;
 } // RelativeFSR
 
 
@@ -708,16 +879,35 @@ double JECUncertainty::_RelativeFSR(const double eta) const {
 double JECUncertainty::_RelativeStat(const double pTprime,
 				     const double eta) const {
 
-  _jecL2stat->setJetEta(eta);
-  _jecL2stat->setJetPt(pTprime); // pT doesn't matter
-  double err = _jecL2stat->getCorrection();
-
+  double err(0);
   double x = fabs(eta);
   if ( (x>=2.5 && x<3.0 && (_errType & jec::kRelativeStatEC2)) ||
-       (x>=3.0 && x<5.5 && (_errType & jec::kRelativeStatHF )) )
-    return err;
+       (x>=3.0 && x<5.5 && (_errType & jec::kRelativeStatHF )) ) {
+    
+    _jecL2stat->setJetEta(eta);
+    _jecL2stat->setJetPt(pTprime); // pT doesn't matter
+    err = _jecL2stat->getCorrection();
+  }
+  
+  if ( (_errType & jec::kRelativeStatFSR ) ) {
 
-  return 0;
+    // On 13 Jan 2015, at 14:46, from Denis Rathjens
+    // Re: Out of Office AutoReply: Pseudo Pt plot
+    if (!fkFSR) fkFSR = new TF1("fkFSR",_kFSR,0,5.2,10);
+    fkFSR->SetParameters(1.00187, -0.00207088, 0.276750,
+			 1.46992e-06,
+			 -2.15806e-06, 3.3642e-06,
+			 0.000333186, -0.000551704, 0.0984257,
+			 0);
+    fkFSR->SetParameter(9, +1);
+    double stat_up = fkFSR->Eval(eta);
+    fkFSR->SetParameter(9, -1);
+    double stat_dw = fkFSR->Eval(eta);
+    double stat = 0.5 * ( stat_up - stat_dw );
+    err = sqrt(err*err + stat*stat);
+  }
+  
+  return err;
 } // RelativeStat
 
 // Uncertainty in L2Res pT dependence: log-linear fit vs constant fit
@@ -829,20 +1019,29 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
 
   // Only do this once since it's very time-consuming
   // Reference L1 residual is from AK5PFchs L3Residual fit
-  if (!_fl1ref) {
+  if (!_fl3ref) {
     
     FactorizedJetCorrector *_l1flatref = _jecL1DTflat_ak5pfchs;
     FactorizedJetCorrector *_l1ptref = _jecL1DTpt_ak5pfchs;
 
     // Shape effectively used in L3Residual fit for low pT
     // ([2] was fixed in the end to a reasonable value, but shape was tested)
-    _fl1ref = new TF1("fl1ref","[0]*([1]+[2]*log(x))/x",30,1000);
-    _fl1ref->SetParameters(1,-2.36997, 0.413917); 
-    _fl1ref->FixParameter(1,-2.36997); // shape fixed in global fit
-    _fl1ref->FixParameter(2, 0.413917); // shape fixed in global fit
-    _fl1up = (TF1*)_fl1ref->Clone("fl1up");
-    _fl1dw = (TF1*)_fl1ref->Clone("fl1dw");
-    
+    _fl3ref = new TF1("fl3ref","[0]*([1]+[2]*log(x))/x",30,1000);
+    _fl3ref->SetParameters(1,-2.36997, 0.413917); 
+    _fl3ref->FixParameter(1,-2.36997); // shape fixed in global fit
+    _fl3ref->FixParameter(2, 0.413917); // shape fixed in global fit
+    _fl3up = (TF1*)_fl3ref->Clone("fl3up");
+    _fl3dw = (TF1*)_fl3ref->Clone("fl3dw");
+
+    // L3Res low pT shape plus L2Residual shape
+    // For more precise modeling should fit L3Res from 30 GeV up,
+    // and L2Res from 60-70 GeV up, but this is probably accurate enough
+    _fl2up = new TF1("fl2up","[0]*(([1]+[2]*log(x))/x+[2]+[3]*log(x))",
+		     30,1000);
+    _fl2up->SetParameters(1,-2.36997,0.413917,0,0); 
+    _fl2up->FixParameter(1,-2.36997); // shape fixed in global fit
+    _fl2up->FixParameter(2, 0.413917); // shape fixed in global fit
+
     const double x_pt[] =
       {28, 32, 37, 43, 49, 56, 64, 74, 84,
        97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 362, 430,
@@ -863,10 +1062,16 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
     // Use max of 10%(algo), 60% (algo) vs 35%(ak5pfchs)) as systematic
     // Difference between algo and AK5PFchs should result in larger systematic
     // than 25% variation for AK5PFchs itself
-    const double k0(0.35), kdw(0.10), kup(0.60);
-    TGraph *gr = new TGraph(0);
-    TGraph *gup = new TGraph(0);
-    TGraph *gdw = new TGraph(0);
+    //
+    // V7PT: -11.5 +/- 23.2%, so -15%(algo), 35%(algo) vs 10%(ak5pfchs)
+    //const double k0(0.35), kdw(0.10), kup(0.60);
+    //
+    // V8PT: +5.4 +/- 23.1%, so -20%(algo), 30%(algo) vs 5%(ak5pfchs)
+    //const double k0(0.35), kdw(0.10), kup(0.60);
+    const double k0(0.05), kdw(-0.20), kup(0.30);
+    TGraph *g3r = new TGraph(0);
+    TGraph *g3up = new TGraph(0);
+    TGraph *g3dw = new TGraph(0);
     for (int ipt = 0; ipt != ndiv_pt; ++ipt) {
       
       double pt = 0.5*(x_pt[ipt] + x_pt[ipt+1]);
@@ -888,24 +1093,26 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
 	sumsysdw += sysdw;
       } // for ieta
       double sysr = sumsysr / sumw;
-      gr->SetPoint(ipt, pt, sysr);
+      g3r->SetPoint(ipt, pt, sysr);
       double sysup = sumsysup / sumw;
-      gup->SetPoint(ipt, pt, sysup);
+      g3up->SetPoint(ipt, pt, sysup);
       double sysdw = sumsysdw / sumw;
-      gdw->SetPoint(ipt, pt, sysdw);
+      g3dw->SetPoint(ipt, pt, sysdw);
     } // for ipt
     
-    gr->Fit(_fl1ref, "QRN");
-    gup->Fit(_fl1up, "QRN");
-    gdw->Fit(_fl1dw, "QRN");
-    delete gr;
-    delete gup;
-    delete gdw;
-  } // !_fl1ref
+    g3r->Fit(_fl3ref, "QRN");
+    g3up->Fit(_fl3up, "QRN");
+    g3dw->Fit(_fl3dw, "QRN");
+    g3up->Fit(_fl2up, "QRN");
+    delete g3r;
+    delete g3up;
+    delete g3dw;
+  } // !_fl3ref
 
+  // Residual offset uncertainty remaining after L3Res
   if (_errType & jec::kPileUpPtRef) {
-    sysref = absmax(_fl1up->Eval(pTprime) - _fl1ref->Eval(pTprime),
-		    _fl1dw->Eval(pTprime) - _fl1ref->Eval(pTprime));
+    sysref = absmax(_fl3up->Eval(pTprime) - _fl3ref->Eval(pTprime),
+		    _fl3dw->Eval(pTprime) - _fl3ref->Eval(pTprime));
     //delete f1;
   } // sysref
 
@@ -925,11 +1132,15 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
     // by just taking 60% (assuming this gives largest variation)
     // Even if this is not true for every single case, keep 60%
     // to have the signs of the variations correlated
+    //
+    // V7PT gives fit range [-12%,+35%] so take 35% instead of 60%
+    //
+    // V7PT gives fit range [-18%,+28%] so take 30% instead of 35% or 60%
     double kfactor = 1;
-    if (x<1.3)           kfactor = 0.60;
-    if (x>=1.3 && x<2.5) kfactor = 0.60;
-    if (x>=2.5 && x<3.0) kfactor = 0.60;
-    if (x>=3.0)          kfactor = 0.60;
+    if (x<1.3)           kfactor = 0.30;//0.35;//0.60;
+    if (x>=1.3 && x<2.5) kfactor = 0.30;//0.35;//0.60;
+    if (x>=2.5 && x<3.0) kfactor = 0.30;//0.35;//0.60;
+    if (x>=3.0)          kfactor = 0.30;//0.35;//0.60;
 
     const double x_pt[] =
       {28, 32, 37, 43, 49, 56, 64, 74, 84,
@@ -937,7 +1148,7 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
        507, 592, 686, 790, 905, 1032};
     const int ndiv_pt = sizeof(x_pt)/sizeof(x_pt[0])-1;
 
-    assert(_fl1ref);
+    assert(_fl3ref);
     TGraph *g = new TGraph(0);
     for (int ipt = 0; ipt != ndiv_pt; ++ipt) {
 
@@ -945,17 +1156,19 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
       double l1f = _Rjet(pt, etax, -1, -1, _l1flat);
       double l1p = _Rjet(pt, etax, -1, -1, _l1pt);
       //double sysb = kfactor * (l1f / l1p - 1) - _fl1ref->Eval(pTprime);
-      double sysb = kfactor * (l1f / l1p - 1) - _fl1up->Eval(pTprime);
+      double sysb = kfactor * (l1f / l1p - 1) - _fl2up->Eval(pTprime);
       g->SetPoint(ipt, pt, sysb);
     } // for ipt
     
     // Shape used in L2Residual fit
-    TF1 *f1 = new TF1("f1", "[0]+[1]*log(x)",
-		      _ajet>1 ? 71 : 60, 2000./cosh(etax));
+    TF1 *fl2 = new TF1("fl2", "[0]+[1]*log(x)",
+		       _ajet>1 ? 71 : 60, 2000./cosh(etax));
     // AK5PFchs was used for L3Residual fit so effectively goes down to 30 GeV
-    if (_algo==jec::AK5PFchs) f1->SetRange(30, 2000./cosh(etax));
-    g->Fit(f1,"QRN");
+    if (_algo==jec::AK5PFchs) fl2->SetRange(30, 2000./cosh(etax));
+    if (fabs(etax)>2.964) fl2->FixParameter(1, 0); // HF uses flat
+    g->Fit(fl2,"QRN");
 
+    // Residual offset uncertainty remaining after L2Res
     if ( (x>=0.0 && x<1.3 && _errType & jec::kPileUpPtBB) ||
 	 (x>=1.3 && x<2.5 && _errType & jec::kPileUpPtEC1) ||
 	 (x>=2.5 && x<3.0 && _errType & jec::kPileUpPtEC2) ||
@@ -963,16 +1176,23 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
 
       double l1f = _Rjet(pTprime, etax, -1, -1, _l1flat);
       double l1p = _Rjet(pTprime, etax, -1, -1, _l1pt);
-      syseta = kfactor * (l1f / l1p - 1) - _fl1ref->Eval(pTprime)
-	- f1->Eval(pTprime);
+      //syseta = kfactor * (l1f / l1p - 1) - _fl1ref->Eval(pTprime)
+      //	- f1->Eval(pTprime);
+      // BUG: 2015-01-014, need to match definition of sysb that we fit to fl2
+      double sysb = kfactor * (l1f / l1p - 1) - _fl3up->Eval(pTprime);
+      syseta = sysb - fl2->Eval(pTprime);
     }
-    
+
+    // Residual offset absorbed into L3Res and biasing <mu>=0
     if (_errType & jec::kPileUpMuZero) {
-      syszero = _fl1ref->Eval(pTprime) + f1->Eval(pTprime);
+      //syszero = _fl1ref->Eval(pTprime) + f1->Eval(pTprime);
+      // BUG: 2015-01-14, should use largest variation here as well,
+      //      i.e. _fl1up instead of _fl1ref (f1 is alredy with kup)
+      syszero = _fl3up->Eval(pTprime) + fl2->Eval(pTprime);
     }
     
     delete g;
-    delete f1;
+    delete fl2;
   } // syseta
 
   sys = sqrt(sysref*sysref + syseta*syseta + syszero*syszero);
@@ -984,6 +1204,7 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
   if (!(_errType & ~jec::kPileUpPtEC1)) return syseta;
   if (!(_errType & ~jec::kPileUpPtEC2)) return syseta;
   if (!(_errType & ~jec::kPileUpPtHF)) return syseta;
+  if (!(_errType & ~jec::kPileUpPtEta)) return syseta;
   if (!(_errType & ~jec::kPileUpMuZero)) return syszero;
 
   return sys;
@@ -1006,8 +1227,11 @@ double JECUncertainty::_PileUpEnvelope(const double pTprime, const double eta) {
   //   comparable to bias limit for BB, i.e. smaller than 35% + 25% = 60%
   // - In the future, one could also consider how dijet balance (+Z/gamma+jet)
   //   constrains PileUpPt uncertainty in other eta regions
-
-  double kfactor = 0.60;//1;
+  //
+  // V7PT: -11.5 +/- 23.2% => max 12% + 23% = 35%
+  //
+  // V8PT: +5.4 +/- 23.1% => max 5% + 23% = 28% ~ 30%
+  double kfactor = 0.30;//0.35;//0.60;//1;
   //double x = fabs(etax);
   //if (x<1.3)           kfactor = 0.25;//0.2550;
   //if (x>=1.3 && x<2.5) kfactor = 0.30;
@@ -1060,15 +1284,10 @@ double JECUncertainty::_PileUpEnvelope(const double pTprime, const double eta) {
     //assert(fabs(sys-sysb)<0.002);
   }
 
-  //double x = fabs(etax);
-  //if ((x>=0.0 && x<1.3 && _errType & jec::kPileUpPtBB) ||
-  //  (x>=1.3 && x<2.5 && _errType & jec::kPileUpPtEC1) ||
-  //  (x>=2.5 && x<3.0 && _errType & jec::kPileUpPtEC2) ||
-  //  (x>=3.0 && x<5.5 && _errType & jec::kPileUpPtHF))
   return sys * _ajet;// _ajet: jet area/ 0.5^2
   
   //return 0;
-} // _PileUpPt
+} // _PileUpEnvelope
 
 // Combine jet flavor uncertainties
 double JECUncertainty::_Flavor(double pTprime, double eta) const {
@@ -1683,7 +1902,9 @@ double JECUncertainty::_TimePt(const double pt, int epoch) const {
     for (int i = 0; i != nepoch; ++i) cout << Form("%6.3f ",r10[i]); cout<<endl;
   }
 
-  double hb = (100-4.42)/100.;//V3PT
+  //double hb = (100-4.42)/100.;//V3PT
+  //double hb = (100-1.73)/100.;//V7PT
+  double hb = (100-3.51)/100.;//V8PT
   if (debug) cout << Form("Epoch absolute jes (Full 2012 is %1.3f):\n",hb);
   double jes3[nepoch];
   double jes10[nepoch];

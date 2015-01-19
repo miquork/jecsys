@@ -320,25 +320,27 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	    ga->SetPoint(n, 1.5, 1);
 	    ga->SetPointError(n, 0, 0.02);
 	    n = ga->GetN();
-	    if (imethod==1) {
+	    if (imethod==1) { // pT balance
 	      // For pT balance, estimate slope of <vecpT2>/alpha from data
 	      // => 7.5%/0.30 = 25%
 	      // Approximate uncertainty on this to be
 	      // 0.5%/0.30 ~ 1.5% for data, 0.5%/0.30 ~ 1.5% for Z+jet MC, and
 	      // 2%/0.30 ~ 6% for gamma+jet MC (same as slope)
-	      if (itype==0)               ga->SetPoint(n, 2.5, -0.250);
-	      if (itype==1 && isample!=0) ga->SetPoint(n, 2.5, -0.250);
+	      if (itype==0)               ga->SetPoint(n, 2.5, -0.250); // DT
+	      if (itype==1 && isample!=0) ga->SetPoint(n, 2.5, -0.250); // MC
 	      if (itype==1 && isample==0) ga->SetPoint(n, 2.5, -0.190);
-	      if (itype==2 && isample!=0) ga->SetPoint(n, 2.5, -0.000); 
+	      if (itype==2 && isample!=0) ga->SetPoint(n, 2.5, -0.000); // rt
 	      if (itype==2 && isample==0) ga->SetPoint(n, 2.5, -0.060); 
 	      //
-	      if (itype==1)               ga->SetPointError(n, 0, -0.015);
-	      if (itype==1 && isample!=0) ga->SetPointError(n, 0, -0.015);
+	      // BUG: found 2015-01-08 (no effect on ratio)
+	      //if (itype==1)               ga->SetPointError(n, 0, -0.015);
+	      if (itype==0)               ga->SetPointError(n, 0, -0.015); // DT
+	      if (itype==1 && isample!=0) ga->SetPointError(n, 0, -0.015); // MC
 	      if (itype==1 && isample==0) ga->SetPointError(n, 0, -0.060);
-	      if (itype==2 && isample!=0) ga->SetPointError(n, 0, -0.015); 
+	      if (itype==2 && isample!=0) ga->SetPointError(n, 0, -0.015); // rt
 	      if (itype==2 && isample==0) ga->SetPointError(n, 0, -0.060); 
 	    }
-	    if (imethod==0) {
+	    if (imethod==0) { // MPF
 	      // For MPF, expectation is no slope
 	      // Maximal slope would be approximately
 	      // (<vecpT2>/alpha ~ 25% from pT balance) times

@@ -46,22 +46,62 @@ void reprocess() {
 
   // On 30 Jul 2014, at 14:51, from Denis Rathjens
   // Re: Summer14 combination files with RD MC
-  TFile *fdj = new TFile("rootfiles/Winter13V4_DJ.root","READ");
+  TFile *fdj = new TFile("rootfiles/Winter13V4_DJ.root","READ"); // GT
   assert(fdj && !fdj->IsZombie());
   
   // On 23 Jun 2014, at 22:48, from Viola Sordini
   // Re: typeI fix - errata ?
-  TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_and_typeIfix_NEW.root","READ");
+  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_and_typeIfix_NEW.root","READ"); // GT
+  // On 23 Dec 2014, at 20:25, from Viola Sordini
+  // Re: g+j with new L1
+  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_Dec14L1.root","READ"); // newL1
+  // On 09 Jan 2015, at 21:19, from Viola Sordini
+  // Re: First results with new L1
+  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_Jan15newL1L2Res.root","READ"); // newL1V6
+  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_regression_Jan15newL1L2Res.root","READ"); // newL1V6 (regression!)
+  //TFile *fp(0);
+  //TFile *fp1 = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_Jan15newL1L2Res.root","READ"); // newL1V6
+  // On 11 Jan 2015, at 22:20, from Viola Sordini
+  // Re: First results with new L1
+  //TFile *fp2 = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_regression_Jan15newL1L2Res.root","READ"); // newL1V6 (+regression!)
+  //
+  // On 14 Jan 2015, at 20:36, from Viola Sordini 
+  // Re: news from g+j
+  // This includes a set of four files with all combinations of footprint and regression
+  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_14Jan15.root","READ"); // raw
+  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_14Jan15.root","READ"); // footprint
+  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_regression_14Jan15.root","READ"); // regression
+  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_regression_14Jan15.root","READ"); // footprint+regression
+  //
+  //TFile *fp(0);
+  //TFile *fp1 = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_14Jan15.root","READ"); // footprint
+  //TFile *fp2 = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_regression_14Jan15.root","READ"); // footprint+regression
+  //
+  // On 16 Jan 2015, at 12:28, from Viola Sordini 
+  // Re: reg and foot+reg files
+  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_regression_16Jan15.root","READ"); // footprint+regression =>botched?
+  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_regression_16Jan15.root","READ"); // regression =>botched
+  //
+  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_regression_17Jan15.root","READ"); // regression
+  TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_regression_17Jan15.root","READ"); // footprint+regression
 
   // On 30 Jul 2014, at 11:47, from Rajdeep Mohan Chatterjee
   // Re: L1Fix for type-I MET
-  TFile *fzee = new TFile("rootfiles/Zee_JEC_Summary_Summer14_RDMC_L1Fix.root",
-			  "READ");
+  //TFile *fzee = new TFile("rootfiles/Zee_JEC_Summary_Summer14_RDMC_L1Fix.root","READ");
+  // On 08 Jan 2015, at 14:21, Dominik Haitz
+  // Re: Plot updates for the paper
+  TFile *fzee = new TFile("rootfiles/Zee_2015-01-08.root","READ"); // newL1V6
   assert(fzee && !fzee->IsZombie());
 
   // On 20 Jun 2014, at 12:29, from Dominik Haitz
   // Re: type-I fix
-  TFile *fzmm = new TFile("rootfiles/2014-06-20_Zmm_typeI-fixed.root","READ");
+  //TFile *fzmm = new TFile("rootfiles/2014-06-20_Zmm_typeI-fixed.root","READ"); // GT
+  // On 19 Dec 2014, at 11:02, from Dominik Haitz 
+  // Re: Plot updates for the paper
+  //TFile *fzmm = new TFile("rootfiles/2014-12-19_Zmm.root","READ"); // newL1
+  // On 08 Jan 2015, at 14:21, Dominik Haitz
+  // Re: Plot updates for the paper
+  TFile *fzmm = new TFile("rootfiles/Zmm_2015-01-08.root","READ"); // newL1V6
   assert(fzmm && !fzmm->IsZombie());
 
   // On 28 Feb 2014, at 14:00, from Dominik Haitz
@@ -72,6 +112,19 @@ void reprocess() {
   // This is used for correctly averaging JEC and its uncertainty
   // for the wide eta bins used in global fit combinations
   TH2D *h2eta = (TH2D*)feta->Get("data"); assert(h2eta);
+  
+  // PATCH newL1
+  // Evaluate L3Res over |eta|<1.3 for Zmm+jet
+//   FactorizedJetCorrector *l3res;
+//   {
+//     const char *s = "CondFormats/JetMETObjects/data/"
+//       "Winter14_V5_DATA_L3Residual_AK5PFchs.txt";
+//     cout << s << endl;
+//     JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
+//     vector<JetCorrectorParameters> vpar;
+//     vpar.push_back(*par_l2l3res);
+//     l3res = new FactorizedJetCorrector(vpar);
+//   }
 
   map<string, TFile*> files;
   files["dijet"] = fdj;
@@ -98,17 +151,29 @@ void reprocess() {
   rename["gamjet"]["mpfchs1"] = "MPFchs"; 
   rename["gamjet"]["ptchs"] = "PtBalchs"; 
 
+  /* // Files from Rajdeep, pre-newL1
   rename["zeejet"]["ratio"] = "DataByMC"; 
   rename["zeejet"]["data"] = "Data"; 
   rename["zeejet"]["mc"] = "MC"; 
   rename["zeejet"]["mpfchs"] = "MPFchs";
   rename["zeejet"]["mpfchs1"] = "MPFchs_Fix";
   rename["zeejet"]["ptchs"] = "PtBalchs"; 
+  */
+
+  // newL1V6
+  rename["zeejet"]["ratio"] = "ratio"; 
+  rename["zeejet"]["data"] = "Data_Ee_Corr"; 
+  rename["zeejet"]["mc"] = "MC_Ee_Corr"; 
+  rename["zeejet"]["mpfchs"] = "MPF-notypeI_CHS";
+  rename["zeejet"]["mpfchs1"] = "MPF_CHS";
+  rename["zeejet"]["ptchs"] = "PtBal_CHS"; 
 
   rename["zmmjet"]["ratio"] = "ratio"; 
-  rename["zmmjet"]["data"] = "data";
+  //rename["zmmjet"]["data"] = "data"; // GT
+  rename["zmmjet"]["data"] = "Data"; // newL1 newL1V6
   rename["zmmjet"]["mc"] = "MC";
-  rename["zmmjet"]["mpfchs"] = "MPF-notypeI_CHS";
+  rename["zmmjet"]["mpfchs"] = "MPF-notypeI_CHS"; // GT, newL1V6
+  //rename["zmmjet"]["mpfchs"] = "MPF_CHS"; // newL1
   rename["zmmjet"]["mpfchs1"] = "MPF_CHS"; 
   rename["zmmjet"]["ptchs"] = "PtBal_CHS"; 
   
@@ -219,11 +284,11 @@ void reprocess() {
 	  TFile *f = files[s];
 
 	  // Take pT and MPF from different files for gamma+jet
-	  //if (s=="gamjet" && f==0) {
-	  //if (t=="mpfchs" || t=="mpfchs1") f = fp1;
-	  //if (t=="ptchs") f = fp2;
-	  //}
-	  //assert(f);
+	  if (s=="gamjet" && f==0) {
+	    if (t=="mpfchs" || t=="mpfchs1") f = fp;//fp1;
+	    if (t=="ptchs") f = fp;//fp2;
+	  }
+	  assert(f);
 
 	  for (unsigned int ialpha = 0; ialpha != alphas.size(); ++ialpha) {
 
@@ -260,13 +325,25 @@ void reprocess() {
 		c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f",
 			 rename[s][t], rename[s][d],
 			 100.*alpha, 10.*eta1, 10.*eta2);
+
+	      // PATCH newL1 for 0-1.3 bin (not newL1V6)
+// 	      if (fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1) {
+// 		if (t=="mpfchs") // special *_raw_* naming for non-type-I MPF
+// 		  c = Form("%s%s_raw_a%1.0f_eta_unknown",
+// 			   rename[s][t], rename[s][d], 100.*alpha);
+// 		else
+// 		  c = Form("%s%s_a%1.0f_eta_unknown",
+// 			   rename[s][t], rename[s][d], 100.*alpha);
+// 	      } // PATCH
+
 	    } // gamjet
-	    if (s=="zeejet") {
+	    if (false&& s=="zeejet") { // GT
 	      c = Form("%s_%s_a%1.0f_eta%1.0f_%1.0f",
 		       rename[s][d], rename[s][t],
 		       100.*alpha, 1000.*eta1, 1000.*eta2);
 	    } // zeejet
-	    if (s=="zmmjet") {
+	    //if (s=="zmmjet") { // GT, newL1
+	    if (s=="zmmjet" || s=="zeejet") { // newL1V6
 	      c = Form("%s_%s_a%1.0f_eta%02.0f_%02.0f_L1L2L3Res",
 		       rename[s][d], rename[s][t], 100.*alpha,
 		       10.*eta1, 10.*eta2);
@@ -310,6 +387,23 @@ void reprocess() {
 	    g->SetMarkerSize(size[alpha]);
 	    g->SetDrawOption("SAMEP");
 
+	    // PATCH newL1 (not newL1V6)
+	    // apply flat L3Res
+// 	    if (s=="gamjet" && d!="mc") {
+// 	      for (int i = 0; i != g->GetN(); ++i) {
+// 		g->SetPoint(i, g->GetX()[i], g->GetY()[i]/0.98);
+// 	      }
+// 	    }
+	    // PATCH newL1, but not newL1V6
+// 	    if (false&& s=="zmmjet" && d!="mc") {
+// 	      for (int i = 0; i != g->GetN(); ++i) {
+// 		l3res->setJetEta(0);
+// 		l3res->setJetPt(g->GetX()[i]);
+// 		double jec = l3res->getCorrection();
+// 		g->SetPoint(i, g->GetX()[i], g->GetY()[i]/jec/0.98);
+// 	      }
+// 	    }
+
 	    g->Write();
 
 	  } // for ialpha
@@ -320,6 +414,7 @@ void reprocess() {
 
   fdj->Close();
   fp->Close();
+  //{ fp1->Close(); fp2->Close(); }
   fzee->Close();
   fzmm->Close();
   curdir->cd();
@@ -339,7 +434,10 @@ void reprocess() {
     // New JEC for plotting on the back
     FactorizedJetCorrector *jec;
     {
-      s = Form("%s/Winter14_V5_DATA_L2L3Residual_AK5PFchs.txt",cd);
+      //s = Form("%s/Winter14_V5_DATA_L2L3Residual_AK5PFchs.txt",cd);
+      //s = Form("%s/Winter14_V6_DATA_L2L3Residual_AK5PFchs.txt",cd);
+      //s = Form("%s/Winter14_V7_DATA_L2L3Residual_AK5PFchs.txt",cd);
+      s = Form("%s/Winter14_V8_DATA_L2L3Residual_AK5PFchs.txt",cd);
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -350,7 +448,8 @@ void reprocess() {
     // Store old JEC for undoing it in global fit
     FactorizedJetCorrector *jecold;
     {
-      s = Form("%s/Winter14_V1_DATA_L2L3Residual_AK5PFchs.txt",cd);
+      //s = Form("%s/Winter14_V1_DATA_L2L3Residual_AK5PFchs.txt",cd);
+      s = Form("%s/Winter14_V6_DATA_L2L3Residual_AK5PFchs.txt",cd); // newL1V6
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -370,7 +469,8 @@ void reprocess() {
     }
     FactorizedJetCorrector *jecl1pt;
     {
-      s = Form("%s/Winter14_V1_DATA_L1FastJet_AK5PFchs.txt",cd);
+      //s = Form("%s/Winter14_V1_DATA_L1FastJet_AK5PFchs.txt",cd);
+      s = Form("%s/Winter14_V6_DATA_L1FastJet_AK5PFchs.txt",cd);
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -379,12 +479,16 @@ void reprocess() {
     }
 
     // Total uncertainty, excluding Flavor and Time
-    s = Form("%s/Winter14_V5_DATA_Uncertainty_AK5PFchs.txt",cd);
+    //s = Form("%s/Winter14_V5_DATA_Uncertainty_AK5PFchs.txt",cd);
+    //s = Form("%s/Winter14_V9M_DATA_Uncertainty_AK5PFchs.txt",cd); // V7
+    s = Form("%s/Winter14_V10M_DATA_Uncertainty_AK5PFchs.txt",cd); // V8
     cout << s << endl << flush;
     JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(s);
 
     // Partial uncertainties
-    s = Form("%s/Winter14_V5_DATA_UncertaintySources_AK5PFchs.txt",cd);
+    //s = Form("%s/Winter14_V5_DATA_UncertaintySources_AK5PFchs.txt",cd);
+    //s = Form("%s/Winter14_V9M_DATA_UncertaintySources_AK5PFchs.txt",cd); // V7
+    s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // V8
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_ref = new JetCorrectorParameters(s,s2);

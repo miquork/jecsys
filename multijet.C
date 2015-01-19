@@ -77,7 +77,13 @@ void multijet(bool usemjb = true) {
   
   // On 21 Jun 2014, at 18:47, from Anne-Laure Pequegnot
   // Re: Need graphs
-  TFile *fmd = new TFile("rootfiles/MULTIJET_Run2012ABCD-22Jan2013_analysis_woPU_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_beforePrescaleReweighting.root","READ"); // data
+  //TFile *fmd = new TFile("rootfiles/MULTIJET_Run2012ABCD-22Jan2013_analysis_woPU_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_beforePrescaleReweighting.root","READ"); // data, GT
+  // On 18 Dec 2014, at 22:48, from Anne-Laure Pequegnot 
+  // Re: Multijet data with the corrected L1Residuals
+  //TFile *fmd = new TFile("rootfiles/MULTIJET_Run2012ABCD-22Jan2013_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix_afterPrescaleReweighting.root","READ"); // data, newL1
+  // On 12 Jan 2015, at 11:21, from Anne-Laure Pequegnot
+  // Re: Updated L2Res for new L1 - please rerun
+  TFile *fmd = new TFile("rootfiles/MULTIJET_Run2012ABCD-22Jan2013_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix_afterPrescaleReweighting-v6.root","READ"); // data, newL1V6
 
   assert(fmd && !fmd->IsZombie());
   assert(fmd->cd("MJB"));
@@ -92,7 +98,10 @@ void multijet(bool usemjb = true) {
 
   // On 21 Jun 2014, at 18:47, from Anne-Laure Pequegnot
   // Re: Need graphs
-  TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix.root","READ"); // MC
+  //TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix.root","READ"); // MC
+  // On 12 Jan 2015, at 11:21, from Anne-Laure Pequegnot
+  // Re: Updated L2Res for new L1 - please rerun
+  TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix-v6.root","READ"); // MC, newL1V6
 
   assert(fmc && !fmc->IsZombie());
   assert(fmc->cd("MJB"));
@@ -155,13 +164,17 @@ void multijet(bool usemjb = true) {
   // This one is pT>30 GeV for MJB
   // (When was this file obtained? In which e-mail?)
   // (Should I use instead the 08Jul14 pt30 file from mail below?)
-  TFile *fe = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_mc_woPUJets_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_QCD-HT.root","READ"); // MC
+  //TFile *fe = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_mc_woPUJets_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_QCD-HT.root","READ"); // MC
+  TFile *fe = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix.root","READ"); // newL1V6
+  //TFile *fe = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_RefObjPt_resize_woPUJets_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_afterPrescaleReweighting_withSystErrors_QCD-HT-v6.root","READ"); // MC, newL1V6
   assert(fe && !fe->IsZombie());
 
   // On 08 Jul 2014, at 17:02, from Anne-Laure Pequegnot
   // Re: Need graphs
   // This one is pT>10 GeV for MPF
-  TFile *fe2 = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_mc_woPUJets_pt10_eta50_puJetIdT_recoilPtHLTBin_type1fix_QCD-HT.root","READ");
+  //TFile *fe2 = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_mc_woPUJets_pt10_eta50_puJetIdT_recoilPtHLTBin_type1fix_QCD-HT.root","READ");
+  TFile *fe2 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt10_eta50_puJetIdT_recoilPtHLTBin_type1fix-v6.root","READ"); // newL1V6
+  //TFile *fe2 = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_RefObjPt_resize_woPUJets_pt10_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_afterPrescaleReweighting_withSystErrors_QCD-HT-v6.root","READ"); // newL1V6
   assert(fe2 && !fe2->IsZombie());
 
   TFile *fjes = new TFile("rootfiles/jecdata.root","READ");
@@ -179,14 +192,18 @@ void multijet(bool usemjb = true) {
   const char *cm2 = s2.c_str();
 
   // cExp stored in a TCanvas so need to do some digging to get it out
-  TCanvas *c1e = (TCanvas*)fe->Get("cExp_sum_Fi_log_fi_RecoilPt");
-  assert(c1e);
-  TGraphErrors *ge1 = (TGraphErrors*)c1e->FindObject("Exp_sum_Fi_log_fi");
+  //TCanvas *c1e = (TCanvas*)fe->Get("cExp_sum_Fi_log_fi_RecoilPt");
+  //assert(c1e);
+  //TGraphErrors *ge1 = (TGraphErrors*)c1e->FindObject("Exp_sum_Fi_log_fi");
+  // newL1V6:
+  TGraphErrors *ge1 = (TGraphErrors*)fe->Get("recoilJets/gExp_sum_Fi_log_fi_RecoilPt");
   assert(ge1);
 
-  TCanvas *c2e = (TCanvas*)fe2->Get("cExp_sum_Fi_log_fi_RecoilPt");
-  assert(c1e);
-  TGraphErrors *ge2 = (TGraphErrors*)c2e->FindObject("Exp_sum_Fi_log_fi");
+  //TCanvas *c2e = (TCanvas*)fe2->Get("cExp_sum_Fi_log_fi_RecoilPt");
+  //assert(c1e);
+  //TGraphErrors *ge2 = (TGraphErrors*)c2e->FindObject("Exp_sum_Fi_log_fi");
+  // newL1V6:
+  TGraphErrors *ge2 = (TGraphErrors*)fe2->Get("recoilJets/gExp_sum_Fi_log_fi_RecoilPt");
   assert(ge2);
 
   TGraphErrors *ge = (usemjb ? ge1 : ge2);
@@ -199,8 +216,8 @@ void multijet(bool usemjb = true) {
   ge = (TGraphErrors*)ge->Clone();
   ge1 = (TGraphErrors*)ge1->Clone();
   ge2 = (TGraphErrors*)ge2->Clone();
-  delete c1e;
-  delete c2e;
+  //delete c1e;
+  //delete c2e;
   fe->Close();
   fe2->Close();
 

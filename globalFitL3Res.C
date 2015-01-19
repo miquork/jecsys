@@ -67,7 +67,9 @@ Double_t jesFit(Double_t *x, Double_t *p) {
     // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
     double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
     return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
-	    + -0.090 * (fl1->Eval(pt)-fl1->Eval(ptref)));
+	    //    + -0.090 * (fl1->Eval(pt)-fl1->Eval(ptref))); // GT, newL1V6
+	    + 0.054 * (fl1->Eval(pt)-fl1->Eval(ptref))); // newL1 V8
+    //+ 0.00 * (fl1->Eval(pt)-fl1->Eval(ptref))); // newL1
   } // njesFit==2
 
   // HB scale + const + residual log-pT offset
@@ -75,7 +77,8 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 
     // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
     // p[2]: fraction of PileUpPtBB uncertainty
-    double ptref = 225.;
+    //double ptref = 225.; // GT
+    double ptref = 208.; // newL1
     return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
 	    + p[2]*(fl1->Eval(pt)-fl1->Eval(ptref)));
   } // njesFit==3
@@ -311,7 +314,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
       h2->SetName(Form("bm%d_scale_%d",(1<<(n0-1) | (1<<(n1-1))), i));
     }
     if (s=="gamjet" && imethod==0) {
-      escale = 0.005; // photon (ECAL) scale
+      //escale = 0.005; // photon (ECAL) scale without regression
+      escale = 0.002; // photon (ECAL) scale with regression
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_%d",(1<<(n0+0) | (1<<(n1+0))), i));
       is = hs.size();
@@ -365,7 +369,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     //int n1 = nsamples+nsample0;
     //if (i==n1+0) { escale = 0.005; } // gamma+jet
     //if (i==n1+1) { escale = 0.005; } // Zee+jet
-    if (s=="gamjet" && m=="mpfchs1") { escale = 0.005; }
+    //if (s=="gamjet" && m=="mpfchs1") { escale = 0.005; } // GT
+    if (s=="gamjet" && m=="mpfchs1") { escale = 0.002; } // V8
     if (s=="zeejet" && m=="mpfchs1") { escale = 0.005; }
 
     for (int j = 1; j != h2->GetNbinsX()+1; ++j) {
@@ -547,7 +552,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   //////////////////////
 
   // Fit function
-  TF1 *jesfit = new TF1("jesfit",jesFit,30,3000,njesFit);
+  //TF1 *jesfit = new TF1("jesfit",jesFit,30,3000,njesFit);
+  // 2015-01-17: use only range visible on plots (one g+jet point at >2.5 TeV)
+  TF1 *jesfit = new TF1("jesfit",jesFit,minpt,maxpt,njesFit);
   jesfit->SetLineColor(kBlack);
   if (njesFit==2) {
     jesfit->SetParameters(0.9828, -0.00608);
@@ -602,6 +609,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     tmp_err[i] = fitter->GetParError(i);
   }
   jesFitter(Npar, grad, chi2_gbl, tmp_par, flag);
+  cout << "List of fitted sources that count (nonzero):" << endl;
   for (int i = np; i != Npar; ++i) {
     if (fabs(tmp_par[i])!=0 || fabs(tmp_err[i]-1)>1e-2) {
       ++nsrc_true;

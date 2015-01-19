@@ -33,6 +33,7 @@ namespace jec {
   const ErrorTypes kRelativeFSR             = ErrorTypes(0L, 1L << 9);
   const ErrorTypes kRelativeStatEC2         = ErrorTypes(0L, 1L << 10);
   const ErrorTypes kRelativeStatHF          = ErrorTypes(0L, 1L << 11);
+  const ErrorTypes kRelativeStatFSR         = ErrorTypes(0L, 1L << 12);
   //const ErrorTypes kRelativeSample          = ErrorTypes(0L, 1L << 12);
   const ErrorTypes kRelativePtBB            = ErrorTypes(0L, 1L << 13);
   const ErrorTypes kRelativePtEC1           = ErrorTypes(0L, 1L << 14);
@@ -89,7 +90,7 @@ namespace jec {
   const ErrorTypes kPileUpPt            = kPileUpPtRef | kPileUpPtEta;
   const ErrorTypes kRelativeJER         = kRelativeJEREC1 | kRelativeJEREC2 | kRelativeJERHF;
   const ErrorTypes kRelativePt          = kRelativePtBB | kRelativePtEC1 | kRelativePtEC2 | kRelativePtHF;
-  const ErrorTypes kRelativeStat        = kRelativeStatEC2 | kRelativeStatHF;
+  const ErrorTypes kRelativeStat        = kRelativeStatEC2 | kRelativeStatHF | kRelativeStatFSR;
   const ErrorTypes kAbsoluteSPR         = kAbsoluteSPRE | kAbsoluteSPRH;
 
   // SubTotalPileUp, SubTotalRelative, [SubTotalAbsolute], SubTotalPt

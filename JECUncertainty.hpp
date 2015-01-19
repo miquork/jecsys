@@ -68,6 +68,8 @@ public:
   double _AbsoluteFlavorMapping() const;
   double _AbsoluteFrag(const double pTprime) const;
   double _AbsoluteSPR(const double pTprime) const;
+  double _AbsoluteSPRH(const double pTprime) const;
+  double _AbsoluteSPRE(const double pTprime) const;
   //
   double _Relative(double pTprime, double eta) const;
   double _RelativeJER(double pTprime, double eta) const;
@@ -108,7 +110,7 @@ public:
   double _jesfitunc(double x, TF1 *f, TMatrixD *emat) const;
 
   // helpers for calculating PileUpPt systematics
-  TF1 *_fl1ref, *_fl1up, *_fl1dw;
+  TF1 *_fl3ref, *_fl3up, *_fl3dw, *_fl2up;
 
 private:
   jec::JetAlgo _algo;

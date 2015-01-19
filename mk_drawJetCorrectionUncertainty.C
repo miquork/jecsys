@@ -21,13 +21,19 @@
   gROOT->ProcessLine(".L drawJetCorrectionUncertainty.C+");
   
   setTDRStyle();
-  
-  //drawJetCorrectionUncertainty("AK5PF",false); // no source files (quick)
-  //drawJetCorrectionUncertainty("AK5PF"); // also source files
-  drawJetCorrectionUncertainty("AK5PFchs");
-  //drawJetCorrectionUncertainty("AK7PF");
-  //drawJetCorrectionUncertainty("AK7PFchs");
-  //drawJetCorrectionUncertainty("AK5CALO");
-  //drawJetCorrectionUncertainty("AK7CALO");
 
+  // single source  
+  //drawJetCorrectionUncertainty("AK5PFchs");
+  drawJetCorrectionUncertainty("AK5PF",true); // also source files
+
+  // whole shebang
+  /*
+  drawJetCorrectionUncertainty("AK5PF",false); // no source files (quick)
+  drawJetCorrectionUncertainty("AK5PF,true"); // also source files
+  drawJetCorrectionUncertainty("AK5PFchs");
+  drawJetCorrectionUncertainty("AK7PF");
+  drawJetCorrectionUncertainty("AK7PFchs");
+  drawJetCorrectionUncertainty("AK5CALO");
+  drawJetCorrectionUncertainty("AK7CALO");
+  */
 }
