@@ -163,25 +163,38 @@ void compareJECversions(string algo="AK5PFchs",
   const char *cgen = sgen.c_str();
 
   // Latest 53X V5 (Winter14_V5)
-  string sid2 = (_mc ? "Winter14_V4_MC" : "Winter14_V4_DATA");
+  //string sid2 = (_mc ? "Winter14_V4_MC" : "Winter14_V4_DATA");
+  // Even latest 53X V5 (Winter14_V8)
+  string sid2 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
   const char *cid2 = sid2.c_str();
   const char *a2 = a;
-  const char *s2 = "20/fb (8 TeV)";//"2012, 20/fb";//"Winter14_V5";
+  //const char *s2 = "20/fb (8 TeV)";//"2012, 20/fb";//"Winter14_V5";
+  const char *s2 = "20 fb^{-1} (8 TeV)";//"2012, 20/fb";//"Winter14_V5";
   const char *s2s = "2012";//"V5";
+  //const char *s2 = "20/fb (W14V8)"; //TMP
+  //const char *s2s = "2012V8"; //TMP
 
   // Summer13
   string sid1 = (_mc ? "START53_V26_MC" : "FT_53_V21_AN6_DATA");
+  //string sid1 = (_mc ? "Winter14_V4_MC" : "Winter14_V4_DATA"); // TMP
   const char *cid1 = sid1.c_str();
   const char *a1 = a;
-  const char *s1 = "5/fb (7 TeV)";//"2011, 5/fb";//"Summer13";
+  //const char *s1 = "5/fb (7 TeV)";//"2011, 5/fb";//"Summer13";
+  const char *s1 = "5 fb^{-1} (7 TeV)";//"2011, 5/fb";//"Summer13";
   const char *s1s = "2011";//"GT";
+  //const char *s1 = "20/fb (W14V4)"; //TMP
+  //const char *s1s = "2012V4"; //TMP
 
   // 2010 (? Or should this be Fall10? Which L1 corrections, Hybrid or FastJet?)
   string sid3 = "START38_V13";
   const char *cid3 = sid3.c_str();
   const char *a3 = a;
-  const char *s3 = "36/pb (7 TeV)";//"2010, 36/pb";
+  //const char *s3 = "36/pb (7 TeV)";//"2010, 36/pb";
+  const char *s3 = "36 pb^{-1} (7 TeV)";//"2010, 36/pb";
   const char *s3s = "2010";
+  // PATCH 2010 with clones AK7PF/PFchs
+  if (algo=="AK7PF") a3 = "AK5PF";
+  if (algo=="AK7PFchs") a3 = "AK5PFchs";
 
 
   str=Form("CondFormats/JetMETObjects/data/%s_L1FastJet_%s.txt",cid1,a1);
@@ -213,7 +226,9 @@ void compareJECversions(string algo="AK5PFchs",
   if (!mc) cout << str << endl << flush;
   JetCorrectorParameters *JetCorPar2 = (mc ? 0 : new JetCorrectorParameters(str));
   //str=Form("CondFormats/JetMETObjects/data/%s_Uncertainty_%s.txt",cid2,a2);
-  str=Form("../txt/Winter14_V8M_DATA_Uncertainty_%s.txt",a2);
+  //str=Form("../txt/Winter14_V8M_DATA_Uncertainty_%s.txt",a2);
+  //str=Form("../txt/Winter14_V10M_DATA_Uncertainty_%s.txt",a2);
+  str=Form("CondFormats/JetMETObjects/data/%s_Uncertainty_%s.txt",cid2,a2);
   cout << str << endl << flush;
   JetCorrectionUncertainty *jecUnc2 = new JetCorrectionUncertainty(str);
 
@@ -299,18 +314,14 @@ void compareJECversions(string algo="AK5PFchs",
   const double x_pt[] =
     {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
      97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 362, 430,
-     507, 592, 686, 790, 905, 1032, 1172, 1327, 1497, 1684, 1890, //1999};
+     507, 592, 686, 790, 905, 1032, 1172, 1327, 1497, 1684,
+     _paper ? 1999 : 1890,
      2000, 2238, 2500};//, 2787, 3103, 3450};
-  const int ndiv_pt = sizeof(x_pt)/sizeof(x_pt[0])-1;
+  const int ndiv_pt = sizeof(x_pt)/sizeof(x_pt[0])-1 - (_paper ? 3 : 0);
   TH1D *hpt = new TH1D(Form("hpt_%s",a),
 		       Form(";p_{T,%s} (GeV);%s L2L3 residual",cgen,a),
 		       ndiv_pt, x_pt);
   hpt->GetYaxis()->SetTitle(Form("%s%s%s%s",cl1,cl2l3,cpl,cres));
-  if (_paper) {
-    if (l1 && !l2l3 && !res) hpt->SetYTitle("Pileup offset correction");
-    if (!l1 && l2l3 && !res) hpt->SetYTitle("Simulated response correction");
-    if (!l1 && !l2l3 && res) hpt->SetYTitle("Residual response correction");
-  }
   hpt->GetXaxis()->SetMoreLogLabels();
   hpt->GetXaxis()->SetNoExponent();
   hpt->SetMinimum(0.);
@@ -331,17 +342,26 @@ void compareJECversions(string algo="AK5PFchs",
     if (l1 && !l2l3 && !res) h->SetYTitle("Pileup offset correction");
     if (!l1 && l2l3 && !res) h->SetYTitle("Simulated response correction");
     if (!l1 && !l2l3 && res) h->SetYTitle("Residual response correction");
+    //
+    if (l1 && !l2l3 && !res) hpt->SetYTitle("Pileup offset correction");
+    if (!l1 && l2l3 && !res) hpt->SetYTitle("Simulated response correction");
+    if (!l1 && !l2l3 && res) hpt->SetYTitle("Residual response correction");
   }
   h->SetMinimum(0.3);
   h->SetMaximum(2.0);
   if (_paper) {
-    if (l1 && !l2l3 && !res) h->GetYaxis()->SetRangeUser(0.7,1.2);
+    //if (l1 && !l2l3 && !res) h->GetYaxis()->SetRangeUser(0.7,1.2);
+    if (l1 && !l2l3 && !res) h->GetYaxis()->SetRangeUser(0.5,1.4);
     if (!l1 && l2l3 && !res) h->GetYaxis()->SetRangeUser(0.85,1.6);
     if (!l1 && !l2l3 && res) h->GetYaxis()->SetRangeUser(0.85,1.4);
     //
     if (l1 && !l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.5,1.4);
     if (!l1 && l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.85,1.6);
     if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.85,1.4);
+    //
+    if (l1 && !l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
+    if (!l1 && l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
+    if (!l1 && !l2l3 && res) hpt->GetXaxis()->SetRangeUser(10,1999);
   }
 
   lumi_7TeV  = (dothree ? "36 pb^{-1} + 4.9 fb^{-1}" : "4.9 fb^{-1}");
@@ -352,32 +372,40 @@ void compareJECversions(string algo="AK5PFchs",
   TCanvas *c1b = tdrCanvas(Form("c1b_%s",a),h1b,3,11,kSquare);
   TH1D *h1c = (TH1D*)h->Clone(Form("h1c_%s",a));
   TCanvas *c1c = tdrCanvas(Form("c1c_%s",a),h1c,3,11,kSquare);
+  TH1D *h1e = (TH1D*)h->Clone(Form("h1e_%s",a));
+  TCanvas *c1e = tdrCanvas(Form("c1e_%s",a),h1e,3,11,kSquare);
 
   TCanvas *c1d = tdrCanvas(Form("c1d_%s",a),hpt,3,11,kSquare);
+  if (_paper) hpt->SetTitleOffset(0.97); // comma otherwise cut off
 
   TGraph *g1a = new TGraph(0);
   TGraph *g1b = new TGraph(0);
   TGraph *g1c = new TGraph(0);
   TGraph *g1d = new TGraph(0);
+  TGraph *g1e = new TGraph(0);
   //
   TGraph *g2a = new TGraph(0);
   TGraph *g2b = new TGraph(0);
   TGraph *g2c = new TGraph(0);
   TGraph *g2d = new TGraph(0);
+  TGraph *g2e = new TGraph(0);
   //
   TGraph *g3a = new TGraph(0);
   TGraph *g3b = new TGraph(0);
   TGraph *g3c = new TGraph(0);
   TGraph *g3d = new TGraph(0);
+  TGraph *g3e = new TGraph(0);
   //
   TGraph *g21a = new TGraph(0);
   TGraph *g21b = new TGraph(0);
   TGraph *g21c = new TGraph(0);
+  TGraph *g21e = new TGraph(0);
 
   TGraphErrors *g1a_e = new TGraphErrors(0);
   TGraphErrors *g1b_e = new TGraphErrors(0);
   TGraphErrors *g1c_e = new TGraphErrors(0);
   TGraphErrors *g1d_e = new TGraphErrors(0);
+  TGraphErrors *g1e_e = new TGraphErrors(0);
   TGraph *g1a_pl = new TGraph(0);
   TGraph *g1a_mn = new TGraph(0);
   TGraph *g1b_pl = new TGraph(0);
@@ -386,11 +414,14 @@ void compareJECversions(string algo="AK5PFchs",
   TGraph *g1c_mn = new TGraph(0);
   TGraph *g1d_pl = new TGraph(0);
   TGraph *g1d_mn = new TGraph(0);
+  TGraph *g1e_pl = new TGraph(0);
+  TGraph *g1e_mn = new TGraph(0);
 
   TGraphErrors *g2a_e = new TGraphErrors(0);
   TGraphErrors *g2b_e = new TGraphErrors(0);
   TGraphErrors *g2c_e = new TGraphErrors(0);
   TGraphErrors *g2d_e = new TGraphErrors(0);
+  TGraphErrors *g2e_e = new TGraphErrors(0);
   TGraph *g2a_pl = new TGraph(0);
   TGraph *g2a_mn = new TGraph(0);
   TGraph *g2b_pl = new TGraph(0);
@@ -399,11 +430,14 @@ void compareJECversions(string algo="AK5PFchs",
   TGraph *g2c_mn = new TGraph(0);
   TGraph *g2d_pl = new TGraph(0);
   TGraph *g2d_mn = new TGraph(0);
+  TGraph *g2e_pl = new TGraph(0);
+  TGraph *g2e_mn = new TGraph(0);
 
   TGraphErrors *g3a_e = new TGraphErrors(0);
   TGraphErrors *g3b_e = new TGraphErrors(0);
   TGraphErrors *g3c_e = new TGraphErrors(0);
   TGraphErrors *g3d_e = new TGraphErrors(0);
+  TGraphErrors *g3e_e = new TGraphErrors(0);
   TGraph *g3a_pl = new TGraph(0);
   TGraph *g3a_mn = new TGraph(0);
   TGraph *g3b_pl = new TGraph(0);
@@ -412,6 +446,8 @@ void compareJECversions(string algo="AK5PFchs",
   TGraph *g3c_mn = new TGraph(0);
   TGraph *g3d_pl = new TGraph(0);
   TGraph *g3d_mn = new TGraph(0);
+  TGraph *g3e_pl = new TGraph(0);
+  TGraph *g3e_mn = new TGraph(0);
 
   
   // Different projections in one loop
@@ -579,20 +615,20 @@ void compareJECversions(string algo="AK5PFchs",
       }
     }
 
-    // ***** E = 1000 
+    // ***** Pt = 1000
     {
-      double energy = 1000.;
-      double pt = energy/cosh(eta);
-     
-      if (pt > 10.) {
+      double pt = 1000.;
+      double energy = pt*cosh(eta);
+      
+      if (energy < 4000.) {
 	// Asymmetric corrections now
 	double y1 = 0.5*(getEtaPtE(JEC1, +eta, pt, energy)
-			  + getEtaPtE(JEC1, -eta, pt, energy));
+			 + getEtaPtE(JEC1, -eta, pt, energy));
 	double y2 = 0.5*(getEtaPtE(JEC2, +eta, pt, energy)
-			  + getEtaPtE(JEC2, -eta, pt, energy));
+			 + getEtaPtE(JEC2, -eta, pt, energy));
 	double y3(0);
 	if (dothree) y3 = 0.5*(getEtaPtE(JEC3, +eta, pt, energy)
-				+ getEtaPtE(JEC3, -eta, pt, energy));
+			       + getEtaPtE(JEC3, -eta, pt, energy));
 	// negative side
 	if (_usenegative) {
 	  y1 = getEtaPtE(JEC1, -eta, pt, energy);
@@ -628,6 +664,58 @@ void compareJECversions(string algo="AK5PFchs",
 	g3c_mn->SetPoint(g3c_mn->GetN(), eta, y3*(1-e3));
 	g3c_e->SetPoint(i-1, eta, y3);
 	g3c_e->SetPointError(i-1, 0., y3*e3);
+      }
+    }
+
+    // ***** E = 1000 
+    {
+      double energy = 1000.;
+      double pt = energy/cosh(eta);
+     
+      if (pt > 10.) {
+	// Asymmetric corrections now
+	double y1 = 0.5*(getEtaPtE(JEC1, +eta, pt, energy)
+			  + getEtaPtE(JEC1, -eta, pt, energy));
+	double y2 = 0.5*(getEtaPtE(JEC2, +eta, pt, energy)
+			  + getEtaPtE(JEC2, -eta, pt, energy));
+	double y3(0);
+	if (dothree) y3 = 0.5*(getEtaPtE(JEC3, +eta, pt, energy)
+				+ getEtaPtE(JEC3, -eta, pt, energy));
+	// negative side
+	if (_usenegative) {
+	  y1 = getEtaPtE(JEC1, -eta, pt, energy);
+	  y2 = getEtaPtE(JEC2, -eta, pt, energy);
+	  y3 = (dothree ? getEtaPtE(JEC3, -eta, pt, energy) : 0);
+	}
+	// positive side
+	if (_usepositive) {
+	  y1 = getEtaPtE(JEC1, +eta, pt, energy);
+	  y2 = getEtaPtE(JEC2, +eta, pt, energy);
+	  y3 = (dothree ? getEtaPtE(JEC3, +eta, pt, energy) : 0);
+	}
+	double e1 = getEtaPtUncert(jecUnc1, JEC1, eta, pt);
+	double e2 = getEtaPtUncert(jecUnc2, JEC2, eta, pt);
+	double e3 = (dothree ? getEtaPtUncert(jecUnc3, JEC3, eta, pt) : 0);
+	
+	g1e->SetPoint(g1e->GetN(), eta, y1);
+	g2e->SetPoint(g2e->GetN(), eta, y2);
+	g3e->SetPoint(g3e->GetN(), eta, y3);
+	g21e->SetPoint(g21e->GetN(),eta, y2/y1);
+	//
+	g1e_pl->SetPoint(g1e_pl->GetN(), eta, y1*(1+e1));
+	g1e_mn->SetPoint(g1e_mn->GetN(), eta, y1*(1-e1));
+	g1e_e->SetPoint(i-1, eta, y1);
+	g1e_e->SetPointError(i-1, 0., y1*e1);
+	//
+	g2e_pl->SetPoint(g2e_pl->GetN(), eta, y2*(1+e2));
+	g2e_mn->SetPoint(g2e_mn->GetN(), eta, y2*(1-e2));
+	g2e_e->SetPoint(i-1, eta, y2);
+	g2e_e->SetPointError(i-1, 0., y2*e2);
+	//
+	g3e_pl->SetPoint(g3e_pl->GetN(), eta, y3*(1+e3));
+	g3e_mn->SetPoint(g3e_mn->GetN(), eta, y3*(1-e3));
+	g3e_e->SetPoint(i-1, eta, y3);
+	g3e_e->SetPointError(i-1, 0., y3*e3);
       }
     }
   } // for i
@@ -706,6 +794,8 @@ void compareJECversions(string algo="AK5PFchs",
   g3c->SetFillColor(kGreen+2);
   g3d->SetFillStyle(3003);
   g3d->SetFillColor(kGreen+2);
+  g3e->SetFillStyle(3003);
+  g3e->SetFillColor(kGreen+2);
 
   g1a->SetFillStyle(3003);
   g1a->SetFillColor(kBlue);
@@ -715,6 +805,8 @@ void compareJECversions(string algo="AK5PFchs",
   g1c->SetFillColor(kBlue);
   g1d->SetFillStyle(3003);
   g1d->SetFillColor(kBlue);
+  g1e->SetFillStyle(3003);
+  g1e->SetFillColor(kBlue);
 
   g2a->SetFillStyle(3003);
   g2a->SetFillColor(kRed);
@@ -724,6 +816,8 @@ void compareJECversions(string algo="AK5PFchs",
   g2c->SetFillColor(kRed);
   g2d->SetFillStyle(3003);
   g2d->SetFillColor(kRed);
+  g2e->SetFillStyle(3003);
+  g2e->SetFillColor(kRed);
   
   TLatex *tex = new TLatex();
   tex->SetNDC();
@@ -732,6 +826,8 @@ void compareJECversions(string algo="AK5PFchs",
   map<string,const char*> texmap;
   texmap["AK5PF"] = "R = 0.5, PF";
   texmap["AK5PFchs"] = "R = 0.5, PF+CHS";
+  texmap["AK7PF"] = "R = 0.7, PF";
+  texmap["AK7PFchs"] = "R = 0.7, PF+CHS";
 
 
   // ***** Pt = 30
@@ -797,7 +893,8 @@ void compareJECversions(string algo="AK5PFchs",
     tex->DrawLatex(0.19,0.75,Form("p_{T,%s} = 30 GeV",cgen));
     if (l1) tex->DrawLatex(0.19,0.68,Form("#LT#mu#GT = %1.1f",_mu));
 
-    TLegend *leg1a = tdrLeg(0.60, dothree ? 0.66 : 0.72, 0.90, 0.90);
+    //TLegend *leg1a = tdrLeg(0.60, dothree ? 0.66 : 0.72, 0.90, 0.90);
+    TLegend *leg1a = tdrLeg(0.57, dothree ? 0.66 : 0.72, 0.87, 0.90);
     leg1a->SetHeader(texmap[a]);
     leg1a->AddEntry(g2a,s2,"LPF");
     leg1a->AddEntry(g1a,s1,"LPF");
@@ -871,7 +968,8 @@ void compareJECversions(string algo="AK5PFchs",
     tex->DrawLatex(0.19,0.75,Form("p_{T,%s} = 100 GeV",cgen));
     if (l1) tex->DrawLatex(0.19,0.68,Form("#LT#mu#GT = %1.1f",_mu));
 
-    TLegend *leg1b = tdrLeg(0.60, dothree ? 0.66 : 0.73, 0.90, 0.90);
+    //TLegend *leg1b = tdrLeg(0.60, dothree ? 0.66 : 0.73, 0.90, 0.90);
+    TLegend *leg1b = tdrLeg(0.57, dothree ? 0.66 : 0.73, 0.87, 0.90);
     leg1b->SetHeader(texmap[a]);
     leg1b->AddEntry(g2b,s2,"LPF");
     leg1b->AddEntry(g1b,s1,"LPF");
@@ -882,43 +980,42 @@ void compareJECversions(string algo="AK5PFchs",
     gPad->RedrawAxis();
   }
 
-  // ***** E = 1000
+  // ***** Pt = 1000
   {
     c1c->cd();
-    //h->DrawClone("AXIS");
 
     if (dothree) {
       g3c_e->SetFillStyle(3003);
       g3c_e->SetFillColor(kGreen+2);
       g3c_e->Draw("SAME E3");
       g3c_pl->SetLineColor(kGreen-9);
-      g3c_pl->SetLineStyle(kSolid);//kDotted);
+      g3c_pl->SetLineStyle(kSolid);
       g3c_pl->Draw("SAMEL");
       g3c_mn->SetLineColor(kGreen-9);
-      g3c_mn->SetLineStyle(kSolid);//kDotted);
-      g3c_mn->Draw("SAMEL");
+      g3c_mn->SetLineStyle(kSolid);
+      g3c_mn->Draw("SAMEL");    
     }
 
     g1c_e->SetFillStyle(3003);
     g1c_e->SetFillColor(kBlue);
     g1c_e->Draw("SAME E3");
     g1c_pl->SetLineColor(kBlue-9);
-    g1c_pl->SetLineStyle(kSolid);//kDotted);
+    g1c_pl->SetLineStyle(kSolid);
     g1c_pl->Draw("SAMEL");
     g1c_mn->SetLineColor(kBlue-9);
-    g1c_mn->SetLineStyle(kSolid);//kDotted);
-    g1c_mn->Draw("SAMEL");
+    g1c_mn->SetLineStyle(kSolid);
+    g1c_mn->Draw("SAMEL");    
 
     g2c_e->SetFillStyle(3003);
     g2c_e->SetFillColor(kRed);
     g2c_e->Draw("SAME E3");
     g2c_pl->SetLineColor(kRed-9);
-    g2c_pl->SetLineStyle(kSolid);//kDotted);
+    g2c_pl->SetLineStyle(kSolid);
     g2c_pl->Draw("SAMEL");
     g2c_mn->SetLineColor(kRed-9);
-    g2c_mn->SetLineStyle(kSolid);//kDotted);
-    g2c_mn->Draw("SAMEL");
-    
+    g2c_mn->SetLineStyle(kSolid);
+    g2c_mn->Draw("SAMEL");    
+
     if (dothree) {
       g3c->SetMarkerStyle(kOpenSquare);
       g3c->SetMarkerColor(kGreen+2);
@@ -936,6 +1033,73 @@ void compareJECversions(string algo="AK5PFchs",
     g2c->SetLineColor(kRed);
     g2c->Draw("SAMEPL");
     
+    tex->DrawLatex(0.19,0.75,Form("p_{T,%s} = 1000 GeV",cgen));
+    if (l1) tex->DrawLatex(0.19,0.68,Form("#LT#mu#GT = %1.1f",_mu));
+
+    //TLegend *leg1c = tdrLeg(0.60, dothree ? 0.66 : 0.73, 0.90, 0.90);
+    TLegend *leg1c = tdrLeg(0.57, dothree ? 0.66 : 0.73, 0.87, 0.90);
+    leg1c->SetHeader(texmap[a]);
+    leg1c->AddEntry(g2c,s2,"LPF");
+    leg1c->AddEntry(g1c,s1,"LPF");
+    if (dothree) leg1c->AddEntry(g3c,s3,"LPF");
+
+    gPad->RedrawAxis();
+  }
+
+  // ***** E = 1000
+  {
+    c1e->cd();
+    //h->DrawClone("AXIS");
+
+    if (dothree) {
+      g3e_e->SetFillStyle(3003);
+      g3e_e->SetFillColor(kGreen+2);
+      g3e_e->Draw("SAME E3");
+      g3e_pl->SetLineColor(kGreen-9);
+      g3e_pl->SetLineStyle(kSolid);//kDotted);
+      g3e_pl->Draw("SAMEL");
+      g3e_mn->SetLineColor(kGreen-9);
+      g3e_mn->SetLineStyle(kSolid);//kDotted);
+      g3e_mn->Draw("SAMEL");
+    }
+
+    g1e_e->SetFillStyle(3003);
+    g1e_e->SetFillColor(kBlue);
+    g1e_e->Draw("SAME E3");
+    g1e_pl->SetLineColor(kBlue-9);
+    g1e_pl->SetLineStyle(kSolid);//kDotted);
+    g1e_pl->Draw("SAMEL");
+    g1e_mn->SetLineColor(kBlue-9);
+    g1e_mn->SetLineStyle(kSolid);//kDotted);
+    g1e_mn->Draw("SAMEL");
+
+    g2e_e->SetFillStyle(3003);
+    g2e_e->SetFillColor(kRed);
+    g2e_e->Draw("SAME E3");
+    g2e_pl->SetLineColor(kRed-9);
+    g2e_pl->SetLineStyle(kSolid);//kDotted);
+    g2e_pl->Draw("SAMEL");
+    g2e_mn->SetLineColor(kRed-9);
+    g2e_mn->SetLineStyle(kSolid);//kDotted);
+    g2e_mn->Draw("SAMEL");
+    
+    if (dothree) {
+      g3e->SetMarkerStyle(kOpenSquare);
+      g3e->SetMarkerColor(kGreen+2);
+      g3e->SetLineColor(kGreen+2);
+      g3e->Draw("SAMEPL");
+    }
+
+    g1e->SetMarkerStyle(kFullSquare);
+    g1e->SetMarkerColor(kBlue);
+    g1e->SetLineColor(kBlue);
+    g1e->Draw("SAMEPL");
+    
+    g2e->SetMarkerStyle(kFullCircle);
+    g2e->SetMarkerColor(kRed);
+    g2e->SetLineColor(kRed);
+    g2e->Draw("SAMEPL");
+    
     //tex->DrawLatex(0.20,0.88,Form("E_{%s} = 1000 GeV%s, %s",cgen,
     //				  l1||l2l3 ? Form(", #LT#mu#GT = %1.1f",_mu) : "",
     //				  cm));
@@ -945,11 +1109,12 @@ void compareJECversions(string algo="AK5PFchs",
     tex->DrawLatex(0.19,0.75,Form("E_{%s} = 1000 GeV",cgen));
     if (l1) tex->DrawLatex(0.19,0.68,Form("#LT#mu#GT = %1.1f",_mu));
 
-    TLegend *leg1c = tdrLeg(0.60, dothree ? 0.66 : 0.73, 0.90, 0.90);
-    leg1c->SetHeader(texmap[a]);
-    leg1c->AddEntry(g2c,s2,"LPF");
-    leg1c->AddEntry(g1c,s1,"LPF");
-    if (dothree) leg1c->AddEntry(g3c,s3,"LPF");
+    //TLegend *leg1e = tdrLeg(0.60, dothree ? 0.66 : 0.73, 0.90, 0.90);
+    TLegend *leg1e = tdrLeg(0.57, dothree ? 0.66 : 0.73, 0.87, 0.90);
+    leg1e->SetHeader(texmap[a]);
+    leg1e->AddEntry(g2e,s2,"LPF");
+    leg1e->AddEntry(g1e,s1,"LPF");
+    if (dothree) leg1e->AddEntry(g3e,s3,"LPF");
 
     //if (!mc) cmsPrel(_lumi);
     //if (mc)  cmsPrel(0);
@@ -1013,7 +1178,8 @@ void compareJECversions(string algo="AK5PFchs",
     tex->DrawLatex(0.19,0.75,"|#eta| = 0");
     if (l1) tex->DrawLatex(0.19,0.68,Form("#LT#mu#GT = %1.1f",_mu));
 
-    TLegend *leg1d = tdrLeg(0.60, dothree ? 0.66 : 0.72, 0.90, 0.90);
+    //TLegend *leg1d = tdrLeg(0.60, dothree ? 0.66 : 0.72, 0.90, 0.90);
+    TLegend *leg1d = tdrLeg(0.57, dothree ? 0.66 : 0.72, 0.87, 0.90);
     leg1d->SetHeader(texmap[a]);
     leg1d->AddEntry(g2d,s2,"LPF");
     leg1d->AddEntry(g1d,s1,"LPF");
@@ -1027,14 +1193,16 @@ void compareJECversions(string algo="AK5PFchs",
   if (_pdf) {
     c1a->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Pt030.pdf",a,cm,cs));
     c1b->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Pt100.pdf",a,cm,cs));
-    c1c->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Q1000.pdf",a,cm,cs));
+    c1c->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Pt1000.pdf",a,cm,cs));
     c1d->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Eta00.pdf",a,cm,cs));
+    c1e->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Q1000.pdf",a,cm,cs));
   }
   if (_C) {
     c1a->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Pt030.C",a,cm,cs));
     c1b->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Pt100.C",a,cm,cs));
-    c1c->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Q1000.C",a,cm,cs));
+    c1c->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Pt1000.C",a,cm,cs));
     c1d->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Eta00.C",a,cm,cs));
+    c1e->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Q1000.C",a,cm,cs));
   }
 
   // ***** Multiple pT bins for ratio only
@@ -1127,7 +1295,8 @@ void compareJECversions(string algo="AK5PFchs",
     leg->SetFillStyle(kNone);
     leg->AddEntry(g21a,Form("%s / %s (p_{T,%s}=30 GeV)",s2s,s1s,cgen),"LP");
     leg->AddEntry(g21b,Form("%s / %s (p_{T,%s}=100 GeV)",s2s,s1s,cgen),"LP");
-    leg->AddEntry(g21c,Form("%s / %s (E_{%s}=1000 GeV)",s2s,s1s,cgen),"LP");
+    leg->AddEntry(g21c,Form("%s / %s (p_{T,%s}=1000 GeV)",s2s,s1s,cgen),"LP");
+    //leg->AddEntry(g21c,Form("%s / %s (E_{%s}=1000 GeV)",s2s,s1s,cgen),"LP");
     leg->Draw();
 
     //if (!mc) cmsPrel(_lumi);
