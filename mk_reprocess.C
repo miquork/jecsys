@@ -11,12 +11,12 @@
   gROOT->ProcessLine(".L reprocess.C+");
   gROOT->ProcessLine(".L softrad.C+");
   gROOT->ProcessLine(".L multijet.C+");
-  gROOT->ProcessLine(".L globalFitL3res.C+");
+  gROOT->ProcessLine(".L globalFitL3Res.C+");
 
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  reprocess();
+  //reprocess();
 
   // Calculate soft radiation (ISR+FSR) corrections
   // and uncertainty eigenvectors for global fit

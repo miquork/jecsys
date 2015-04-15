@@ -11,5 +11,7 @@
   gROOT->ProcessLine(".L drawSourceCorrelations.C+");
 
   // run
-  drawSourceCorrelations();
+  drawSourceCorrelations("Total");
+  drawSourceCorrelations("TotalNoFlavorNoTime");
+  drawSourceCorrelations("TotalNoTime","AK7PF");
 }

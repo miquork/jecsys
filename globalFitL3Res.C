@@ -30,6 +30,7 @@
 using namespace std;
 
 bool dofsr = true;
+bool _paper = true; // pas-v6
 unsigned int _nsamples(0);
 unsigned int _nmethods(0);
 
@@ -337,6 +338,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     */
     if (s=="zeejet" && imethod==0) {
       escale = 0.005; // electron (ECAL) scale
+      //escale = 0.002; // with Zee mass scale fix
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_%d",(1<<(n0+1) | (1<<(n1+1))), i));
     }
@@ -370,6 +372,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     //if (i==n1+0) { escale = 0.005; } // gamma+jet
     //if (i==n1+1) { escale = 0.005; } // Zee+jet
     //if (s=="gamjet" && m=="mpfchs1") { escale = 0.005; } // GT
+    // EM footprint uncertainties for photons and electrons
     if (s=="gamjet" && m=="mpfchs1") { escale = 0.002; } // V8
     if (s=="zeejet" && m=="mpfchs1") { escale = 0.005; }
 
@@ -478,6 +481,18 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   h->GetXaxis()->SetNoExponent();
   h->DrawClone("AXIS");
 
+  //////////////////////////////////////////////
+  // for pas-v6, recenter uncertainty around fit
+  TF1 *jesshift = new TF1("jesshift",jesFit,minpt,maxpt,njesFit);
+  //jesshift->SetParameters(0.9783, -0.0324, 0.054); // AN2015_023_v1 Table 1
+  jesshift->SetParameters(0.9784, -0.0362, 0.054); // AN2015_023_v2 Table 1
+  for (int i = 1; i != herr_ref->GetNbinsX()+1; ++i) {
+    double x = herr_ref->GetBinCenter(i);
+    if (etamin==0 && _paper) herr_ref->SetBinContent(i, jesshift->Eval(x));
+  }
+  delete jesshift;
+  ///////////////////////////////////////////////
+
   //TCanvas *c0 = new TCanvas("c0","c0",600,600);
   TCanvas *c0 = tdrCanvas("c0",h,2,11,true);
   gPad->SetLogx();
@@ -519,6 +534,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     assert(dofsr);
     tex->DrawLatex(0.20,0.75,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
   }
+  tex->DrawLatex(0.20, 0.22, "Before global fit");
 
   herr_ref->SetLineWidth(2);
   herr_ref->SetLineColor(kYellow+3);
@@ -713,10 +729,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   if (etamin==0) tex->DrawLatex(0.20,0.75,"|#eta|<1.3, #alpha=0.3#rightarrow0");
   else tex->DrawLatex(0.20,0.75,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
 
-  tex->DrawLatex(0.20,0.23,Form("#chi^{2} / NDF = %1.1f / %d",
+  //tex->DrawLatex(0.20,0.23,Form("#chi^{2} / NDF = %1.1f / %d",
+  //			chi2_gbl, Nk-np));
+  //tex->DrawLatex(0.20,0.18,Form("(data %1.1f / %d, sources %1.1f / %d)",
+  //			chi2_data,Nk,chi2_src,nsrc_true));
+
+  tex->DrawLatex(0.20,0.22,"After global fit");
+  tex->DrawLatex(0.20,0.17,Form("#chi^{2} / NDF = %1.1f / %d",
 				chi2_gbl, Nk-np));
-  tex->DrawLatex(0.20,0.18,Form("(data %1.1f / %d, sources %1.1f / %d)",
-				chi2_data,Nk,chi2_src,nsrc_true));
 
   is += np;
   // Fitted lepton/photon scales too much detailed for the paper
@@ -827,6 +847,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   gStyle->SetOptStat(111111);
 
   if (etamin==0) c2->SaveAs("pdf/globalFitL3res_hsrc.pdf");
+  else {
+    c2->SaveAs(Form("pdf/globalFitL3res_hsrc_eta%1.0f-%1.0f.pdf",
+		    10*etamin, 10*etamax));
+  }
   gStyle->SetOptStat(0);
 
   // Draw FSR corrections redone
@@ -860,8 +884,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 
       int ibm = isample + nsamples*imethod;
       TH1D *hk = hks[ibm]; assert(hk);
-      if (isample==nsample0) hk->GetXaxis()->SetRangeUser(40,800);
-      if (isample!=nsample0) hk->GetXaxis()->SetRangeUser(30,300);
+      if (isample==nsample0) {
+	hk->GetXaxis()->SetRangeUser(40,800);
+	//if (imethod==0) hk->GetXaxis()->SetRangeUser(60,800); // 2015-01-29
+      }
+      if (isample!=nsample0) {
+	hk->GetXaxis()->SetRangeUser(30,300);
+	//if (imethod==0) hk->GetXaxis()->SetRangeUser(60,800); // 2015-01-29
+      }
       hk->SetLineColor(colors[isample-nsample0]-10);
       hk->SetFillColor(colors[isample-nsample0]-10);
       hk->SetFillStyle(kNone);
@@ -869,7 +899,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
       hk->DrawClone("SAME E3");
       hk->SetFillStyle(3002);
       hk->DrawClone("SAME E3");
-      (new TGraph(hk))->DrawClone("SAMEL");
+      //(new TGraph(hk))->DrawClone("SAMEL");
+      TGraph *gk = new TGraph(hk);
+      for (int i = gk->GetN()-1; i != -1; --i) {
+	if (gk->GetX()[i] < hk->GetXaxis()->GetXmin())
+	  gk->RemovePoint(i);
+      }
+      gk->Draw("SAMEL");
 
       leg1->AddEntry(hk, " ", "FL");
 
@@ -916,6 +952,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     if (etamin==0) {
       c3->SaveAs(Form("pdf/globalFitL3res_%s_kfsr.pdf",methods[imethod]));
       c3->SaveAs(Form("pdfC/globalFitL3res_%s_kfsr.C", methods[imethod]));
+    }
+    else {
+      c3->SaveAs(Form("pdf/globalFitL3res_%s_kfsr_eta%1.0f-%1.0f.pdf",
+		      methods[imethod],10*etamin,10*etamax));
     }
   } // for imethod
   

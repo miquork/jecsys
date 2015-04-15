@@ -10,7 +10,13 @@
   gROOT->ProcessLine(".L compareJECversions.C+");
   gROOT->ProcessLine(".exception");
 
-  /*
+  // Patch for pas-v6
+  //compareJECversions("AK5PF",true,false,false); // Fig.9left(top)
+  //compareJECversions("AK5PFchs",true,false,false); // Fig.9left(bottom)
+  //compareJECversions("AK5PFchs",false,true,false); // Fig.13topleft
+  //compareJECversions("AK5PFchs",false,false,true); // Fig.24topleft
+
+
   compareJECversions("AK5PFchs",true,true,true); // L1+L2L3+Res
   compareJECversions("AK5PF",   true,true,true); // L1+L2L3+Res
   compareJECversions("AK7PFchs",true,true,true); // L1+L2L3+Res
@@ -35,10 +41,12 @@
   compareJECversions("AK5PF",   true,false,false); // L1
   compareJECversions("AK7PFchs",true,false,false); // L1
   compareJECversions("AK7PF",   true,false,false); // L1
-  */
+
 
   compareJECversions("AK5PF",true,false,false); // L1
   compareJECversions("AK5PFchs",true,false,false); // L1
   compareJECversions("AK5PFchs",false,true,false); // L2L3
   compareJECversions("AK5PFchs",false,false,true); // Res
+  compareJECversions("AK5PFchs",true,true,true); // All
+
 }

@@ -518,3 +518,115 @@ TCanvas* tdrCanvas(const char* canvName, TH1D *h,
   
   return canv;
 }
+
+
+
+// Give the macro empty histograms for h->Draw("AXIS");
+// Create h after calling setTDRStyle to get all the settings right
+// Created by: Mikko Voutilainen (HIP)
+TCanvas* tdrDiCanvas(const char* canvName, TH1D *hup, TH1D *hdw,
+		   int iPeriod = 2, int iPos = 11) {
+
+  setTDRStyle();
+
+  // Reference canvas size
+  // We'll add a subpad that is a fraction (1/3) of the top canvas size,
+  // while keeping margins and text sizes as they were for a single pad
+  int W_ref = 600;
+  int H_ref = 600;
+
+  // Set bottom pad relative height and relative margin
+  float F_ref = 1./3.;
+  float M_ref = 0.03;
+
+  // Set reference margins
+  float T_ref = 0.07;
+  float B_ref = 0.13;
+  float L = 0.15;
+  float R = 0.05;
+
+  // Calculate total canvas size and pad heights
+  int W = W_ref;
+  int H = H_ref * (1 + (1-T_ref-B_ref)*F_ref+M_ref);
+  float Hup = H_ref * (1-B_ref);
+  float Hdw = H - Hup;
+
+  // references for T, B, L, R
+  float Tup = T_ref * H_ref / Hup;
+  float Tdw = M_ref * H_ref / Hdw;
+  float Bup = 0.01;
+  float Bdw = B_ref * H_ref / Hdw;
+
+  TCanvas *canv = new TCanvas(canvName,canvName,50,50,W,H);
+  canv->SetFillColor(0);
+  canv->SetBorderMode(0);
+  canv->SetFrameFillStyle(0);
+  canv->SetFrameBorderMode(0);
+  canv->SetFrameLineColor(0); // fix from Anne-Laure Pequegnot
+  canv->SetFrameLineWidth(0); // fix from Anne-Laure Pequegnot
+  // FOR JEC plots, prefer to keep ticks on both sides
+  //canv->SetTickx(0);
+  //canv->SetTicky(0);
+
+  canv->Divide(1,2);
+
+  canv->cd(1);
+  gPad->SetPad(0, Hdw / H, 1, 1);
+  gPad->SetLeftMargin( L );
+  gPad->SetRightMargin( R );
+  gPad->SetTopMargin( Tup );
+  gPad->SetBottomMargin( Bup );
+
+  assert(hup);
+  
+  // Scale text sizes and margins to match normal size
+  hup->GetYaxis()->SetTitleOffset(1.25 * Hup / H_ref);
+  hup->GetXaxis()->SetTitleOffset(1.0);
+  hup->SetTitleSize(hup->GetTitleSize("Y") * H_ref / Hup, "Y");
+  hup->SetLabelSize(hup->GetLabelSize("Y") * H_ref / Hup, "Y");
+
+  // Set tick lengths to match original
+  hup->SetTickLength(hup->GetTickLength("Y") * Hup / H_ref, "Y");
+  hup->SetTickLength(hup->GetTickLength("X") * H_ref / Hup, "X");
+
+  hup->Draw("AXIS");
+
+  // writing the lumi information and the CMS "logo"
+  CMS_lumi( (TCanvas*)gPad, iPeriod, iPos );
+
+  canv->cd(2);
+  gPad->SetPad(0, 0, 1, Hdw / H);
+  gPad->SetLeftMargin( L );
+  gPad->SetRightMargin( R );
+  gPad->SetTopMargin( Tdw );
+  gPad->SetBottomMargin( Bdw );
+
+  assert(hdw);
+  hdw->GetYaxis()->SetTitleOffset(1.25);
+  hdw->GetXaxis()->SetTitleOffset(1.0);
+
+  // Scale text sizes and margins to match normal size
+  hdw->GetYaxis()->SetTitleOffset(1.25 * Hdw / H_ref);
+  hdw->GetXaxis()->SetTitleOffset(1.0);
+  hdw->SetTitleSize(hdw->GetTitleSize("Y") * H_ref / Hdw, "Y");
+  hdw->SetLabelSize(hdw->GetLabelSize("Y") * H_ref / Hdw, "Y");
+  hdw->SetTitleSize(hdw->GetTitleSize("X") * H_ref / Hdw, "X");
+  hdw->SetLabelSize(hdw->GetLabelSize("X") * H_ref / Hdw, "X");
+
+  // Set tick lengths to match original (these are fractions of axis length)
+  hdw->SetTickLength(hdw->GetTickLength("Y") * H_ref / Hup, "Y"); //?? ok if 1/3
+  hdw->SetTickLength(hdw->GetTickLength("X") * H_ref / Hdw, "X");
+
+  // Reduce divisions to match smaller height (default n=510, optim=kTRUE)
+  hdw->GetYaxis()->SetNdivisions(504);
+
+  hdw->Draw("AXIS");
+
+  canv->cd(0);
+
+  canv->Update();
+  canv->RedrawAxis();
+  canv->GetFrame()->Draw();
+  
+  return canv;
+}

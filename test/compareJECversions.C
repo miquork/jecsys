@@ -175,7 +175,8 @@ void compareJECversions(string algo="AK5PFchs",
   //const char *s2s = "2012V8"; //TMP
 
   // Summer13
-  string sid1 = (_mc ? "START53_V26_MC" : "FT_53_V21_AN6_DATA");
+  string sid1 = "GR_R_42_V23";
+  //string sid1 = (_mc ? "START53_V26_MC" : "FT_53_V21_AN6_DATA"); // 8 TeV?!
   //string sid1 = (_mc ? "Winter14_V4_MC" : "Winter14_V4_DATA"); // TMP
   const char *cid1 = sid1.c_str();
   const char *a1 = a;
@@ -352,12 +353,16 @@ void compareJECversions(string algo="AK5PFchs",
   if (_paper) {
     //if (l1 && !l2l3 && !res) h->GetYaxis()->SetRangeUser(0.7,1.2);
     if (l1 && !l2l3 && !res) h->GetYaxis()->SetRangeUser(0.5,1.4);
-    if (!l1 && l2l3 && !res) h->GetYaxis()->SetRangeUser(0.85,1.6);
-    if (!l1 && !l2l3 && res) h->GetYaxis()->SetRangeUser(0.85,1.4);
+    //if (!l1 && l2l3 && !res) h->GetYaxis()->SetRangeUser(0.85,1.6);
+    if (!l1 && l2l3 && !res) h->GetYaxis()->SetRangeUser(0.85,1.8); // pas-v6
+    //if (!l1 && !l2l3 && res) h->GetYaxis()->SetRangeUser(0.85,1.4);
+    if (!l1 && !l2l3 && res) h->GetYaxis()->SetRangeUser(0.85,1.45); // pas-v6
     //
     if (l1 && !l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.5,1.4);
-    if (!l1 && l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.85,1.6);
-    if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.85,1.4);
+    //if (!l1 && l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.85,1.6);
+    if (!l1 && l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.85,1.6); // pas-v6
+    //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.85,1.4);
+    if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.85,1.45); // pas-v6
     //
     if (l1 && !l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
     if (!l1 && l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);

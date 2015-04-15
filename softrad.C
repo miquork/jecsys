@@ -17,7 +17,7 @@
 #include "TVectorD.h"
 #include "TMath.h"
 
-#include "../tools.h"
+//#include "../tools.h"
 #include "tdrstyle_mod14.C"
 
 #include <string>
@@ -69,6 +69,13 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   const int npt2 = sizeof(ptbins2)/sizeof(ptbins2[0])-1;
   TH1D *hpt2 = new TH1D("hpt2","",npt2,&ptbins2[0]);
   TProfile *ppt2 = new TProfile("ppt2","",npt2,&ptbins2[0]);
+
+  // dijet bins
+  const double ptbins4[] = {20, 62, 107, 175, 242, 310, 379, 467,
+			    628, 839, 1121, 1497, 2000};
+  const int npt4 = sizeof(ptbins4)/sizeof(ptbins4[0])-1;
+  TH1D *hpt4 = new TH1D("hpt4","",npt4,&ptbins4[0]);
+  TProfile *ppt4 = new TProfile("ppt4","",npt4,&ptbins4[0]);
 
   TLatex *tex = new TLatex();
   tex->SetNDC();
@@ -149,6 +156,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  // Sort points into new graphs vs alpha
 	  TH1D *hpt = (isample==0 ? hpt2 : hpt1);
 	  TProfile *ppt = (isample==0 ? ppt2 : ppt1);
+	  if (isample==3) { hpt = hpt4; ppt = ppt4; } // pas-v6
 	  for (int i = 0; i != g->GetN(); ++i) {
 	    
 	    double pt = g->GetX()[i];
@@ -242,8 +250,14 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  leg->AddEntry(g,texlabel[cs],"P");
 	} // for isample
 
-	c0->SaveAs(Form("pdf/paper_softrad_%s_%s_vspt.pdf",ct,cm));
-	c0->SaveAs(Form("pdfC/paper_softrad_%s_%s_vspt.C",ct,cm));
+	if (etamin==0) {
+	  c0->SaveAs(Form("pdf/paper_softrad_%s_%s_vspt.pdf",ct,cm));
+	  c0->SaveAs(Form("pdfC/paper_softrad_%s_%s_vspt.C",ct,cm));
+	}
+	else {
+	  c0->SaveAs(Form("pdf/an_softrad_%s_%s_eta%1.0f-%1.0f_vspt.pdf",
+			  ct,cm,10*etamin,10*etamax));
+	}
       } // paper
 
     } // for imethod
@@ -376,12 +390,13 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	      }
 	      int n = gk->GetN();
 	      TProfile *ppt = (isample==0 ? ppt2 : ppt1);
+	      if (isample==3) { ppt = ppt4; } // pas-v6
 	      double pt = ppt->GetBinContent(ppt->FindBin(ipt));
 	      gk->SetPoint(n, pt, f1->GetParameter(1));
 	      gk->SetPointError(n, 0, f1->GetParError(1));
-	    }
-	  }
-	}
+	    } // f1->GetNDF()>=0
+	  } // ga->GetN()>2
+	} // for itpt
 	
       } // for isample
       
@@ -464,6 +479,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  TH1D *hk = (TH1D*)(isample==0 ? hpt2->Clone() : hpt1->Clone());
 	  hk->SetName(Form("hkfsr_%s_%s",cm,cs));
 	  TProfile *ppt = (isample==0 ? ppt2 : ppt1);
+	  if (isample==3) { ppt = ppt4; } // pas-v6
 	  for (int i = 1; i != hk->GetNbinsX()+1; ++i) {
 	    double pt = ppt->GetBinContent(i);
 	    if (pt>30 && pt<1300) {

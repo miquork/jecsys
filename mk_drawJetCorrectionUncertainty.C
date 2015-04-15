@@ -25,16 +25,20 @@
   // Single source test
   //drawJetCorrectionUncertainty("AK5PFchs"); // no source files
   // Print out source files (only setup for AK5PF + true pair)
-  drawJetCorrectionUncertainty("AK5PF",true); // also source files
+  //drawJetCorrectionUncertainty("AK5PF",true); // also source files
 
   // Whole shebang
-  /*
-  //drawJetCorrectionUncertainty("AK5PF",false); // no source files (quick)
-  drawJetCorrectionUncertainty("AK5PF,true"); // also source files
+
+  // Switch JECUncert to JECSource with 'bool _useAbsUncert = false'
+  drawJetCorrectionUncertainty("AK5PF",false); // no source files (quick)
+  //drawJetCorrectionUncertainty("AK5PF,true"); // also source files
   drawJetCorrectionUncertainty("AK5PFchs");
   drawJetCorrectionUncertainty("AK7PF");
   drawJetCorrectionUncertainty("AK7PFchs");
-  drawJetCorrectionUncertainty("AK5CALO");
-  drawJetCorrectionUncertainty("AK7CALO");
-  */
+  //drawJetCorrectionUncertainty("AK5CALO");
+  //drawJetCorrectionUncertainty("AK7CALO");
+
+
+  // Fixes for pas-v6
+  //drawJetCorrectionUncertainty("AK5PFchs",false);
 }

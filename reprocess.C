@@ -64,6 +64,16 @@ void reprocess() {
   TFile *fzee = new TFile("rootfiles/Zee_2015-01-08.root","READ"); // newL1V6
   assert(fzee && !fzee->IsZombie());
 
+  // On 27 Jan 2015, at 16:31, Rajdeep Mohan Chatterjee  
+  // Re: Updated L2Res for new L1 - please rerun
+  //TFile *fzee = new TFile("rootfiles/Zee_JEC_V6.root","READ");
+  //assert(fzee && !fzee->IsZombie());
+  //
+  // On 19 Feb 2015, at 14:16, Rajdeep Mohan Chatterjee
+  // Re: Updated L2Res for new L1 - please rerun
+  //TFile *fzee = new TFile("rootfiles/Zee_JEC_V6_Summary.root"); // postW14V8
+  //assert(fzee && !fzee->IsZombie());
+
   // On 08 Jan 2015, at 14:21, Dominik Haitz
   // Re: Plot updates for the paper
   TFile *fzmm = new TFile("rootfiles/Zmm_2015-01-08.root","READ"); // newL1V6
@@ -74,9 +84,32 @@ void reprocess() {
   TFile *feta = new TFile("rootfiles/th2d_jeteta_zpt.root","READ");
   assert(feta && !feta->IsZombie());
 
+  // On 27 Jan 2015, at 14:04, Dominik Haitz
+  // Re: 53X electron momentum corrections
+  //TFile *fm = new TFile("rootfiles/Zmm-Zee.root","READ");
+  //assert(fm && !fm->IsZombie());
+
+  // On 27 Jan 2015, at 16:31, Rajdeep Mohan Chatterjee  
+  // Re: Updated L2Res for new L1 - please rerun
+  TFile *fm = new TFile("rootfiles/Zee_JEC_V6_ZMassVsZPt.root");
+  assert(fm && !fm->IsZombie());
+
+
+  // On 29 Jan 2015, at 14:28, Dominik Haitz
+  // Re: 53X electron momentum corrections
+  TFile *fmzee = new TFile("rootfiles/Zee-massvspt.root");
+  assert(fmzee && !fmzee->IsZombie());
+  TFile *fmzmm = new TFile("rootfiles/Zmm-massvspt.root");
+  assert(fmzmm && !fmzmm->IsZombie());
+
   // This is used for correctly averaging JEC and its uncertainty
   // for the wide eta bins used in global fit combinations
   TH2D *h2eta = (TH2D*)feta->Get("data"); assert(h2eta);
+
+  // This is used for scaling Z mass back to 1 for Zee and Zmm
+  //TProfile *pzm = (TProfile*)fm->Get(""); assert(pzm);
+  TH1D *hmzee = (TH1D*)fmzee->Get("zmass_zpt_Zee_ratio"); assert(hmzee);
+  TH1D *hmzmm = (TH1D*)fmzmm->Get("zmass_zpt_Zmm_ratio"); assert(hmzmm);
   
   map<string, TFile*> files;
   files["dijet"] = fdj;
@@ -103,11 +136,13 @@ void reprocess() {
   rename["gamjet"]["mpfchs1"] = "MPFchs"; 
   rename["gamjet"]["ptchs"] = "PtBalchs"; 
 
-  /* // Files from Rajdeep, pre-newL1
+  // Files from Rajdeep, pre-newL1, newL1V6 (post W14V8)
+  /*
   rename["zeejet"]["ratio"] = "DataByMC"; 
   rename["zeejet"]["data"] = "Data"; 
   rename["zeejet"]["mc"] = "MC"; 
-  rename["zeejet"]["mpfchs"] = "MPFchs";
+  //rename["zeejet"]["mpfchs"] = "MPFchs"; // pre-newL1
+  rename["zeejet"]["mpfchs"] = "MPFchs_Fix"; // newL1V6 (post W14V8)
   rename["zeejet"]["mpfchs1"] = "MPFchs_Fix";
   rename["zeejet"]["ptchs"] = "PtBalchs"; 
   */
@@ -250,7 +285,7 @@ void reprocess() {
 
 	    // If samples missing break-up into e.g. [3,3.2] and [3.2,5.2] bins
 	    // or merged [0,1.3] bin, patch here
-	    //if (s=="zeejet" && eta1==0 && fabs(eta2-1.3)<0.1) { eta2=1.305; }
+	    if (s=="zeejet" && eta1==0 && fabs(eta2-1.3)<0.1) { eta2=1.305; }
 
 	    // If some subsets of data missing, patch (skip) here
 	    // gamjet missing non-CHS graphs
@@ -277,12 +312,12 @@ void reprocess() {
 			 rename[s][t], rename[s][d],
 			 100.*alpha, 10.*eta1, 10.*eta2);
 	    } // gamjet
-	    if (false&& s=="zeejet") { // GT
-	      c = Form("%s_%s_a%1.0f_eta%1.0f_%1.0f",
-		       rename[s][d], rename[s][t],
-		       100.*alpha, 1000.*eta1, 1000.*eta2);
-	    } // zeejet
-	    //if (s=="zmmjet") { // GT, newL1
+	    //if (s=="zeejet") { // GT, newL1V6 (post W14V8)
+	    //c = Form("%s_%s_a%1.0f_eta%1.0f_%1.0f",
+	    //       rename[s][d], rename[s][t],
+	    //       100.*alpha, 1000.*eta1, 1000.*eta2);
+	    //} // zeejet
+	    //if (s=="zmmjet") { // GT, newL1, newL1V6 (post W14V8)
 	    if (s=="zmmjet" || s=="zeejet") { // newL1V6
 	      c = Form("%s_%s_a%1.0f_eta%02.0f_%02.0f_L1L2L3Res",
 		       rename[s][d], rename[s][t], 100.*alpha,
@@ -314,6 +349,43 @@ void reprocess() {
 	      if (g->GetY()[i]==0 && g->GetEY()[i]==0) g->RemovePoint(i);
 	      // clean out weird points from Sebastien's data
 	      else if (g->GetX()[i]>4000 || g->GetX()[i]<10) g->RemovePoint(i);
+	    }
+
+	    // PATCH 2015-01-26: fix Zee mass scale of +0.5 in data/MC
+	    // use flat value for now, replace with Zee mass graph later
+	    if (false && s=="zeejet" && (d=="data" || d=="ratio")) {
+	      for (int i = 0; i != g->GetN(); ++i) {
+		double ipt = hmzee->FindBin(g->GetX()[i]);
+		double k = hmzee->GetBinContent(ipt);
+		double ek = hmzee->GetBinError(ipt);
+		g->SetPoint(i, g->GetX()[i], g->GetY()[i]*k);
+ 		g->SetPointError(i, g->GetEX()[i], 
+				 sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
+	      }
+	    }
+	    // PATCH 2015-01-29 try same for Zmm
+	    // => Not working so well, chi2/NDF gets significantly worse
+ 	    if (false && s=="zmmjet" && (d=="data" || d=="ratio")) {
+ 	      for (int i = 0; i != g->GetN(); ++i) {
+ 		double ipt = hmzmm->FindBin(g->GetX()[i]);
+ 		double k = hmzmm->GetBinContent(ipt);
+ 		double ek = hmzmm->GetBinError(ipt);
+ 		g->SetPoint(i, g->GetX()[i], g->GetY()[i]*k);
+ 		g->SetPointError(i, g->GetEX()[i], 
+				 sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
+ 	      }
+ 	    }
+
+	    // TEST 2015-01-29: remove first two points at pT<60 GeV
+	    // from pTbal for: (i) photon+jet (-2.8/2), (ii) Zmm+jet (-9.2/3),
+	    // (iii) Zee+jet (-7.3 / 3)
+	    // The best we have with Z mass fixes plus cutting out pTbal<60 GeV
+	    // is 87.5 / 84, compared to 111.5 / 92 otherwise
+	    if (false && (s=="gamjet" || s=="zmmjet" || s=="zeejet")
+		&& t=="ptchs") {
+	      for (int i = g->GetN()-1; i != -1; --i) {
+		if (g->GetX()[i]<60.) g->RemovePoint(i);
+	      }
 	    }
 
 	    dout->cd();

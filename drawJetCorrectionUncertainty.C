@@ -33,7 +33,7 @@ bool _twobythree = true; // for paper
 bool _paper = true; //  for paper
 
 // Plot uncertainty (true) or source (false)
-bool _absUncert = true;
+bool _absUncert = true;//false
 // NB: All source files are currently printed together with AK5PF uncertainty
 bool _doTXT = true; // create uncertainty and source text files
 
