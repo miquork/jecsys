@@ -23,13 +23,15 @@
 
 #include <string>
 #include <fstream>
+#include <map>
 
 using namespace std;
 
 // Don't plot individual bins, just keep 4x2
 bool _minimal = false;//true;
 bool _fourbytwo = false;
-bool _twobythree = true; // for paper
+bool _twobythree = false;//true; // for paper
+bool _extra = false; // single pion plots
 bool _paper = true; //  for paper
 
 // Plot uncertainty (true) or source (false)
@@ -118,7 +120,7 @@ struct uncert {
   int fcolor;
   int fstyle;
   string option;
-  const char* opt;
+  //const char* opt; // fails in ROOT6
   uncert(string name_, string title_, jec::ErrorTypes type_,
 	 string method_, string jetalgo_, double mu_,
 	 int lcolor_, int lstyle_, int lwid_ = 1,
@@ -132,7 +134,7 @@ struct uncert {
     fcolor(fcolor_), fstyle(fstyle_),
     option(option_) {
 
-    opt = option.c_str();
+    //opt = option.c_str();
     assert(method=="default" || method=="mpf" || method=="pt");
     assert(mu>=0 || mu==-1);
   }
@@ -149,6 +151,8 @@ void plotUncertainty(vector<uncert> const& sys,
 void drawJetCorrectionUncertainty(string algo = "AK5PF",
 				  bool doTXT = _doTXT,
 				  bool minimal = _minimal) {
+
+  writeExtraText = false; // for JEC paper CWR
   
   _doTXT = doTXT;
   _minimal = minimal;
@@ -419,7 +423,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
                       kGreen+2, kSolid, 1, // line
                       kGreen+2, kOpenSquare, // marker
                       kNone, kNone, "LP")); // fill
-  syt.push_back(uncert("time_runa", "TimeRunA",
+  syt.push_back(uncert("time_runa", "TimePtRunA",
                        jec::kTimePtRunA,
                        "default", "default", -1, // defaults
                        kRed, kNone, 1, // line
@@ -530,7 +534,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
      c  = new TCanvas("c2x3","c2x3",1200,1800);
      c->Divide(2,3);
    }
-   assert(c);
+   //assert(c);
   _canvas = c;
   _icanvas = 1;
 
@@ -541,6 +545,21 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
 
   // Data uncertainty
   // vs pT
+  if (_paper && _absUncert) {
+  plotUncertainty(sy, 0, sy.size(), jetAlg, Form("%s_Eta00",sd),
+		  "JEC uncertainty", s, "|#eta_{jet}|=0", ym,10,"fixEta",0.);
+  plotUncertainty(sy, 0, sy.size(), jetAlg, Form("%s_Eta27",sd),
+		  "JEC uncertainty", s, "|#eta_{jet}|=2.7", ym,10,"fixEta",2.7);
+  plotUncertainty(sy, 0, sy.size(), jetAlg, Form("%s_Eta35",sd),
+		  "JEC uncertainty", s, "|#eta_{jet}|=3.5", ym,10,"fixEta",3.5);
+  //
+  plotUncertainty(sy, 0, sy.size(), jetAlg, Form("%s_Pt30",sd),
+		  "JEC uncertainty", s, "p_{T}=30 GeV", ym,10,"fixPt",30.);
+  plotUncertainty(sy, 0, sy.size(), jetAlg, Form("%s_Pt100",sd),
+		  "JEC uncertainty", s, "p_{T}=100 GeV", ym,10,"fixPt",100.);
+  plotUncertainty(sy, 0, sy.size(), jetAlg, Form("%s_Pt1000",sd),
+		  "JEC uncertainty", s, "p_{T}=1000 GeV", ym,10,"fixPt",1000.);
+  }
   if (_fourbytwo) {
 
   plotUncertainty(sy, 0, sy.size(), jetAlg, Form("%s_Eta00",sd),
@@ -581,7 +600,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
 		  "JEC uncertainty", s, "p_{T}=1000 GeV", ym,10,"fixPt",1000.);
   }
 
-  _canvas->SaveAs(Form("pdf/%s.pdf",sd));
+  if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",sd));
   _icanvas = 1;
 
   _minimal = minimaltmp;
@@ -646,7 +665,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
 		  "p_{T}=500 GeV", ym,10,"fixPt",500.);
   }
 
-  _canvas->SaveAs(Form("pdf/%s.pdf",sm));
+  if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",sm));
   _icanvas = 1;
 
   string sspu = Form("%s_PileUp_%s",cu,names[jetAlg]);
@@ -656,6 +675,20 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
 
   // PU uncertainty
   // vs pT
+  if (_paper && _absUncert) {
+  plotUncertainty(sypu, 0, sypu.size(), jetAlg, Form("%s_Eta00",spu),
+		  "JEC uncertainty", s,
+		  "|#eta_{jet}|=0", ymaxpu,10,"fixEta",0.);
+  plotUncertainty(sypu, 0, sypu.size(), jetAlg, Form("%s_Eta27",spu),
+		  "JEC uncertainty", s,
+		  "|#eta_{jet}|=2.7", ymaxpu,10,"fixEta",2.7);
+  plotUncertainty(sypu, 0, sypu.size(), jetAlg, Form("%s_Eta35",spu),
+		  "JEC uncertainty", s,
+		  "|#eta_{jet}|=3.5", ymaxpu,10,"fixEta",3.5);
+  plotUncertainty(sypu, 0, sypu.size(), jetAlg, Form("%s_Pt30",spu),
+		  "JEC uncertainty", s,
+		  "p_{T}=30 GeV", ymaxpu,10,"fixPt",30.);
+  }
   if (_fourbytwo) {
 
   plotUncertainty(sypu, 0, sypu.size(), jetAlg, Form("%s_Eta00",spu),
@@ -709,10 +742,9 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
   plotUncertainty(sypu, 0, sypu.size(), jetAlg, Form("%s_Pt500",spu),
 		  "JEC uncertainty", s,
 		  "p_{T}=500 GeV", ymaxpu,10,"fixPt",500.);
-
   }
 
-  _canvas->SaveAs(Form("pdf/%s.pdf",spu));
+  if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",spu));
   _icanvas = 1;
 
   string ssrel = Form("%s_Relative_%s",cu,names[jetAlg]);
@@ -720,6 +752,18 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
 
   // Relative scale uncertainty
   // vs pT
+  if (_paper && _absUncert) {
+
+  plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta27",srel),
+		  "JEC uncertainty", s,
+		  "|#eta_{jet}|=2.7", 4,10,"fixEta",2.7);
+  plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Pt30",srel),
+		  "JEC uncertainty", s,
+		  "p_{T}=30 GeV", 4,10,"fixPt",30.);
+  plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Pt100",srel),
+		  "JEC uncertainty", s,
+		  "p_{T}=100 GeV", 4,10,"fixPt",100.);
+  }
   if (_fourbytwo) {
 
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta00",srel),
@@ -775,7 +819,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
 		  "p_{T}=500 GeV", 4,10,"fixPt",500.);
   }
 
-  _canvas->SaveAs(Form("pdf/%s.pdf",srel));
+  if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",srel));
   _icanvas = 1;
 
 
@@ -839,7 +883,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
 		  10,10,"fixPt",500.);
   }
 
-  _canvas->SaveAs(Form("pdf/%s.pdf",sCorrGroups));
+  if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",sCorrGroups));
   _icanvas = 1;
 
 
@@ -849,6 +893,11 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
 
   // Absolute scale pT dependent uncertainty
   // vs pT
+  if (_paper && !_absUncert) {
+  plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Eta00",spt),
+		  "JEC uncertainty", s,
+		  "|#eta_{jet}|=0", 2,10,"fixEta",0.);
+  }
   if (_fourbytwo) {
 
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Eta00",spt),
@@ -904,7 +953,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
 		  "p_{T}=500 GeV", 2,10,"fixPt",500.);
   }
 
-  _canvas->SaveAs(Form("pdf/%s.pdf",spt));
+  if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",spt));
   _icanvas = 1;
 
   string ssf = Form("%s_Flavor_%s",cu,names[jetAlg]);
@@ -915,6 +964,21 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
 
   // Flavor uncertainty
   // vs pT
+  if (_paper && !_absUncert) {
+  plotUncertainty(syf, 0, syf.size(), jetAlg, Form("%s_Eta00",sf),
+                  "JEC uncertainty", s,
+                  "|#eta_{jet}|=0", 5,10,"fixEta",0.);
+  plotUncertainty(syf, 0, syf.size(), jetAlg, Form("%s_Eta27",sf),
+                  "JEC uncertainty", s,
+                  "|#eta_{jet}|=2.7", 5,10,"fixEta",2.7);
+  plotUncertainty(syf, 0, syf.size(), jetAlg, Form("%s_Pt30",sf),
+                  "JEC uncertainty", s,
+                  "p_{T}=30 GeV", 5,10,"fixPt",30.);
+  //
+  plotUncertainty(syf, 0, syf.size(), jetAlg, Form("%s_Pt100",sf),
+                  "JEC uncertainty", s,
+                  "p_{T}=100 GeV", 5,10,"fixPt",100.);
+  }
   if (_fourbytwo) {
 
   plotUncertainty(syf, 0, syf.size(), jetAlg, Form("%s_Eta00",sf),
@@ -970,7 +1034,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
                   "p_{T}=500 GeV", 5,10,"fixPt",500.);
   }
 
-  _canvas->SaveAs(Form("pdf/%s.pdf",sf));
+  if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",sf));
   _icanvas = 1;
 
   _minimal = minimaltmp;
@@ -980,11 +1044,22 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
   string sst = Form("%s_Time_%s",cu,names[jetAlg]);
   const char *st = sst.c_str();
 
+  // Drop TimeEta for |eta|=0 plot
+  vector<uncert> syt0(syt.begin()+1,syt.end());
+
   // Time uncertainty
   // vs pT
+  if (_paper && !_absUncert) {
+  plotUncertainty(syt0, 0, syt0.size(), jetAlg, Form("%s_Eta00",st),
+                  "JEC uncertainty", s,
+                  "|#eta_{jet}|=0", 3.2,10,"fixEta",0.);
+  plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Pt30",st),
+                  "JEC uncertainty", s,
+                  "p_{T}=30 GeV", 3.2,10,"fixPt",30.);
+  }
   if (_fourbytwo) {
 
-  plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Eta00",st),
+  plotUncertainty(syt0, 0, syt0.size(), jetAlg, Form("%s_Eta00",st),
                   "JEC uncertainty", s,
                   "|#eta_{jet}|=0", 3.2,10,"fixEta",0.);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Eta20",st),
@@ -1015,7 +1090,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
   }
   if (_twobythree) {
     
-  plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Eta00",st),
+  plotUncertainty(syt0, 0, syt0.size(), jetAlg, Form("%s_Eta00",st),
                   "JEC uncertainty", s,
                   "|#eta_{jet}|=0", 3.2,10,"fixEta",0.);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Pt30",st),
@@ -1039,7 +1114,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
   //
   _absUncert = absUncertTmp;
 
-  _canvas->SaveAs(Form("pdf/%s.pdf",st));
+  if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",st));
   _icanvas = 1;
 
   absUncertTmp = _absUncert;
@@ -1099,21 +1174,24 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
   }
 
   // Additional plots for JEC plots
-  plotUncertainty(sys, 0, sys.size(), jetAlg, Form("%s_Pt070",css),
-                  "JEC uncertainty", s,
-                  "p_{T}=70 GeV", -5,10,"fixPt",70.);
-  plotUncertainty(sys, 0, sys.size(), jetAlg, Form("%s_Pt100",css),
-                  "JEC uncertainty", s,
-                  "p_{T}=100 GeV", -5,10,"fixPt",100.);
-  plotUncertainty(sys, 0, sys.size(), jetAlg, Form("%s_Pt600",css),
-                  "JEC uncertainty", s,
-                  "p_{T}=600 GeV", -5,10,"fixPt",600.);
+  if (_extra) {
+
+    plotUncertainty(sys, 0, sys.size(), jetAlg, Form("%s_Pt070",css),
+		    "JEC uncertainty", s,
+		    "p_{T}=70 GeV", -5,10,"fixPt",70.);
+    plotUncertainty(sys, 0, sys.size(), jetAlg, Form("%s_Pt100",css),
+		    "JEC uncertainty", s,
+		    "p_{T}=100 GeV", -5,10,"fixPt",100.);
+    plotUncertainty(sys, 0, sys.size(), jetAlg, Form("%s_Pt600",css),
+		    "JEC uncertainty", s,
+		    "p_{T}=600 GeV", -5,10,"fixPt",600.);
+  }
 
   _absUncert = absUncertTmp;
 
-  _canvas->SaveAs(Form("pdf/%s.pdf",css));
+  if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",css));
   _icanvas = 0;
-  delete _canvas;
+  if (_canvas) delete _canvas;
 
 } // L3Uncertainty_new
 
@@ -1297,19 +1375,23 @@ void plotUncertainty(vector<uncert> const& sys,
 	gup->SetPoint(n, var, +100. * err / r);
 	gdw->SetPoint(n, var, -100. * err / r);
 	h->SetBinError(ix+1, 100. * err / r);
+	h->SetBinContent(ix+1, 0);
       }
     } // for ix
 
-    TString opt2 = u.opt;
-    if (opt2.Contains("F")) {
+    //cout << "u.opt="<<u.opt<<" / u.option="<<u.option << endl << flush;
+    assert(u.option=="L" || u.option=="LF" || u.option=="LP" ||
+	   u.option=="LFP");
+    TString *opt2 = new TString(u.option.c_str());
+    if (opt2->Contains("F")) {
       //cout << "x" << flush;
       h->SetMarkerStyle(kNone);
       h->SetLineStyle(kNone);
       h->SetFillStyle(u.fstyle);
       h->SetFillColor(u.fcolor);
-      h->Draw("SAME E3");
+      h->DrawClone("SAME E3");
       if (c2) { c2->cd(); h->DrawClone("SAME E3"); c1->cd(); }
-      opt2.ReplaceAll("F","");
+      opt2->ReplaceAll("F","");
     }
     g->SetLineColor(u.lcolor);
     g->SetLineStyle(u.lstyle);
@@ -1318,11 +1400,11 @@ void plotUncertainty(vector<uncert> const& sys,
     g->SetMarkerStyle(u.mstyle);
     g->SetFillColor(u.fcolor);
     g->SetFillStyle(u.fstyle);
-    g->Draw(opt2);
-    if (c2) { c2->cd(); g->DrawClone(opt2); c1->cd(); }
+    g->DrawClone(*opt2);
+    if (c2) { c2->cd(); g->DrawClone(*opt2); c1->cd(); }
 
-    if (isys<nsys1) leg1->AddEntry(g, u.title.c_str(), u.opt);
-    else            leg2->AddEntry(g, u.title.c_str(), u.opt);
+    if (isys<nsys1) leg1->AddEntry(g, u.title.c_str(), u.option.c_str());
+    else            leg2->AddEntry(g, u.title.c_str(), u.option.c_str());
 
   } // for isys
 

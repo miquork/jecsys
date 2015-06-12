@@ -145,6 +145,7 @@ private:
 
   // scale factor for AK7 offset (jet area R=0.7/R=0.5)
   double _ajet;
+};
 
   class ResponseFunc : public ROOT::Math::IBaseFunctionOneDim
   {
@@ -173,6 +174,6 @@ private:
     double _rho;
     double _jeta;
   };
-};
+
 
 #endif /* __JECUNCERTAINTY__ */

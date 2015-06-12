@@ -17,6 +17,7 @@ namespace jec {
     friend ErrorTypes operator~(const ErrorTypes& err);
     friend ErrorTypes operator&(const ErrorTypes& err1, const ErrorTypes& err2);
     friend ErrorTypes operator|(const ErrorTypes& err1, const ErrorTypes& err2);
+    friend ErrorTypes operator^(const ErrorTypes& err1, const ErrorTypes& err2);
 
   private:
     // Each unsigned long int is 4 bytes or 32 bits long,

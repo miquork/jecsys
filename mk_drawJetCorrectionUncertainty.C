@@ -3,7 +3,7 @@
 {
   //gSystem->SetIncludePath("-Iinclude -I.");
   //cout << "Include path: " << gSystem->GetIncludePath() << endl;
-  gROOT->ProcessLine(".L tdrstyle_mod.C");
+  //gROOT->ProcessLine(".L tdrstyle_mod.C");
 
   // For JEC central value
   gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/Utilities.cc+");
@@ -17,7 +17,7 @@
   gROOT->ProcessLine(".L ErrorTypes.cpp+");
   gROOT->ProcessLine(".L JECUncertainty.cpp+");
 
-  gROOT->ProcessLine(".exception");
+  //gROOT->ProcessLine(".exception");
   gROOT->ProcessLine(".L drawJetCorrectionUncertainty.C+");
   
   setTDRStyle();
@@ -30,15 +30,15 @@
   // Whole shebang
 
   // Switch JECUncert to JECSource with 'bool _useAbsUncert = false'
-  drawJetCorrectionUncertainty("AK5PF",false); // no source files (quick)
+  //drawJetCorrectionUncertainty("AK5PF",false); // no source files (quick)
   //drawJetCorrectionUncertainty("AK5PF,true"); // also source files
-  drawJetCorrectionUncertainty("AK5PFchs");
-  drawJetCorrectionUncertainty("AK7PF");
-  drawJetCorrectionUncertainty("AK7PFchs");
+  //drawJetCorrectionUncertainty("AK5PFchs");
+  //drawJetCorrectionUncertainty("AK7PF");
+  //drawJetCorrectionUncertainty("AK7PFchs");
   //drawJetCorrectionUncertainty("AK5CALO");
   //drawJetCorrectionUncertainty("AK7CALO");
 
 
-  // Fixes for pas-v6
-  //drawJetCorrectionUncertainty("AK5PFchs",false);
+  // Final paper plots, only (run with both _absUncert=true, false)
+  drawJetCorrectionUncertainty("AK5PFchs",false);
 }
