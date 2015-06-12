@@ -13,6 +13,7 @@
 //#include "settings12.h"
 
 #include <fstream>
+#include <map>
 
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
@@ -140,9 +141,10 @@ void compareJECversions(string algo="AK5PFchs",
 			bool l1=true, bool l2l3=true, bool res=true,
 			string type="DATA") {
 
-  gROOT->ProcessLine(".L tdrstyle_mod12.C");
+  //gROOT->ProcessLine(".L tdrstyle_mod12.C");
   setTDRStyle();
-  
+  writeExtraText = false; // for JEC paper CWR
+
   assert(type=="DATA" || type=="MC");
   const bool mc = (type=="MC");
   _mc = mc;
@@ -316,7 +318,7 @@ void compareJECversions(string algo="AK5PFchs",
     {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
      97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 362, 430,
      507, 592, 686, 790, 905, 1032, 1172, 1327, 1497, 1684,
-     _paper ? 1999 : 1890,
+     _paper ? 1999. : 1890.,
      2000, 2238, 2500};//, 2787, 3103, 3450};
   const int ndiv_pt = sizeof(x_pt)/sizeof(x_pt[0])-1 - (_paper ? 3 : 0);
   TH1D *hpt = new TH1D(Form("hpt_%s",a),
