@@ -35,7 +35,7 @@ void reprocess() {
 
   // Set TDR style to have correct graphical setttings when storing graphs
   setTDRStyle();
-
+ 
   TDirectory *curdir = gDirectory;
 
   TFile *fout = new TFile("rootfiles/jecdata.root","RECREATE");
@@ -44,39 +44,62 @@ void reprocess() {
   // Define input files //
   ////////////////////////
 
-  // On 30 Jul 2014, at 14:51, from Denis Rathjens
-  // Re: Summer14 combination files with RD MC
-  // NB: not yet updated with Winter14_V8 (i.e. fix for L1data)
-  //TFile *fdj = new TFile("rootfiles/Winter13V4_DJ.root","READ"); // GT
-  //
   // On 22 Dec 2014, at 14:14, from Rathjens, Denis
   // Re: Out of Office AutoReply: Pseudo Pt plot
-  TFile *fdj = new TFile("rootfiles/Winter14V6.root","READ"); // newL1V6
-  assert(fdj && !fdj->IsZombie());
+  //TFile *fdj = new TFile("rootfiles/Winter14V6.root","READ"); // newL1V6
+  //
+  // On 31 Jul 2015, at 12:43, Marc Stoever
+  // Re: Combination of Run II data sets
+  //TFile *fdj = new TFile("rootfiles/combination_DJ_2015-07-31.root","READ");
+  // On 05 Aug 2015, at 13:29, Marc Stoever
+  // Re: Combination of Run II data sets
+  TFile *fdj = new TFile("rootfiles/combination_DJ_2015-08-05.root","READ");
+  // On 06 Aug 2015, at 21:22, Marc Stoever
+  // Re: Next JERC meeting : Thursday August 6th 18:00
+  //TFile *fdj = new TFile("rootfiles/combination_DJ_2015-08-06.root","READ");//badeta
+  // On 07 Aug 2015, at 16:41, Marc Stoever
+  // Re: Next JERC meeting : Thursday August 6th 18:00
+  //TFile *fdj = new TFile("rootfiles/combination_DJ_2015-08-07.root","READ"); //bad!!
+  //
+  // On 13 Aug 2015, at 19:21, Marc Stoever
+  // Re: Dijet combination file
+  //TFile *fdj = new TFile("rootfiles/combination_DJ_2015-08-13.root","READ");
+  //assert(fdj && !fdj->IsZombie());
   
   // On 14 Jan 2015, at 20:36, from Viola Sordini
   // Re: news from g+j
   // (Renamed 14Jan15 to 17Jan15)
-  TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_regression_17Jan15.root","READ"); // footprint+regression
+  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_regression_17Jan15.root","READ"); // footprint+regression
+  //
+  // On 03 Aug 2015, at 20:00, Federico Preiato
+  // Re: Combination of Run II data sets
+  //TFile *fp = new TFile("rootfiles/GammaJet_response_AllMethods_alphacut020_Aug032015.root","READ");
+  // On 04 Aug 2015, at 16:26, Federico Preiato
+  // Re: Combination of Run II data sets
+  //TFile *fp = new TFile("rootfiles/GammaJet_AlphaCut010_020_030_Aug_04_2015.root","READ");
+  // On 12 Aug 2015, at 20:42, Federico Preiato
+  // Re: Closure Test Residual
+  TFile *fp = new TFile("rootfiles/GammaJet_AlphaCut010_015_020_030_Aug_12_2015.root","READ");
+  assert(fp && !fp->IsZombie());
 
   // On 08 Jan 2015, at 14:21, Dominik Haitz
   // Re: Plot updates for the paper
   TFile *fzee = new TFile("rootfiles/Zee_2015-01-08.root","READ"); // newL1V6
   assert(fzee && !fzee->IsZombie());
 
-  // On 27 Jan 2015, at 16:31, Rajdeep Mohan Chatterjee  
-  // Re: Updated L2Res for new L1 - please rerun
-  //TFile *fzee = new TFile("rootfiles/Zee_JEC_V6.root","READ");
-  //assert(fzee && !fzee->IsZombie());
-  //
-  // On 19 Feb 2015, at 14:16, Rajdeep Mohan Chatterjee
-  // Re: Updated L2Res for new L1 - please rerun
-  //TFile *fzee = new TFile("rootfiles/Zee_JEC_V6_Summary.root"); // postW14V8
-  //assert(fzee && !fzee->IsZombie());
-
   // On 08 Jan 2015, at 14:21, Dominik Haitz
   // Re: Plot updates for the paper
-  TFile *fzmm = new TFile("rootfiles/Zmm_2015-01-08.root","READ"); // newL1V6
+  //TFile *fzmm = new TFile("rootfiles/Zmm_2015-01-08.root","READ"); // newL1V6
+  //
+  // On 31 Jul 2015, at 16:23, Fischer, Max (SCC)
+  // Re: Combination of Run II data sets
+  //TFile *fzmm = new TFile("rootfiles/combination_Zjet_2015-07-31.root","READ"); // eta bins missing
+  // On 04 Aug 2015, at 18:49, Fischer, Max (SCC)
+  // Re: Combination of Run II data sets
+  //TFile *fzmm = new TFile("rootfiles/combination_ZJet_2015-08-04.root","READ"); // buggy MC?
+  // On 05 Aug 2015, at 12:14, Dominik Wilhelm Haitz
+  // Re: Combination of Run II data sets
+  TFile *fzmm = new TFile("rootfiles/combination_ZJet_2015-08-05.root","READ");
   assert(fzmm && !fzmm->IsZombie());
 
   // On 28 Feb 2014, at 14:00, from Dominik Haitz
@@ -122,12 +145,15 @@ void reprocess() {
   map<string, map<string, const char*> > rename;
 
   // Note: non-CHS results are not available for all samples, so not used
-  rename["dijet"]["ratio"] = "ratio"; 
-  rename["dijet"]["data"] = "data"; 
-  rename["dijet"]["mc"] = "MC"; 
-  rename["dijet"]["mpfchs"] = "MPFchs_VsPtAve"; 
-  rename["dijet"]["mpfchs1"] = "MPFT1chs_VsPtAve";
-  rename["dijet"]["ptchs"] = "PtBalchs";
+  //rename["dijet"]["ratio"] = "ratio"; 
+  //rename["dijet"]["data"] = "data"; 
+  //rename["dijet"]["mc"] = "MC"; 
+  //rename["dijet"]["mpfchs"] = "MPFchs_VsPtAve"; 
+  //rename["dijet"]["mpfchs1"] = "MPFT1chs_VsPtAve";
+  //rename["dijet"]["ptchs"] = "PtBalchs";
+  rename["dijet"]["mpfchs"] = "mpfchs";
+  rename["dijet"]["mpfchs1"] = "mpfchs";
+  rename["dijet"]["ptchs"] = "ptchs";
 
   rename["gamjet"]["ratio"] = "";
   rename["gamjet"]["data"] = "_DATA"; 
@@ -136,18 +162,6 @@ void reprocess() {
   rename["gamjet"]["mpfchs1"] = "MPFchs"; 
   rename["gamjet"]["ptchs"] = "PtBalchs"; 
 
-  // Files from Rajdeep, pre-newL1, newL1V6 (post W14V8)
-  /*
-  rename["zeejet"]["ratio"] = "DataByMC"; 
-  rename["zeejet"]["data"] = "Data"; 
-  rename["zeejet"]["mc"] = "MC"; 
-  //rename["zeejet"]["mpfchs"] = "MPFchs"; // pre-newL1
-  rename["zeejet"]["mpfchs"] = "MPFchs_Fix"; // newL1V6 (post W14V8)
-  rename["zeejet"]["mpfchs1"] = "MPFchs_Fix";
-  rename["zeejet"]["ptchs"] = "PtBalchs"; 
-  */
-
-  // newL1V6 from Dominik
   rename["zeejet"]["ratio"] = "ratio"; 
   rename["zeejet"]["data"] = "Data_Ee_Corr"; 
   rename["zeejet"]["mc"] = "MC_Ee_Corr"; 
@@ -155,9 +169,8 @@ void reprocess() {
   rename["zeejet"]["mpfchs1"] = "MPF_CHS";
   rename["zeejet"]["ptchs"] = "PtBal_CHS"; 
 
-  rename["zmmjet"]["ratio"] = "ratio"; 
-  //rename["zmmjet"]["data"] = "data"; // GT
-  rename["zmmjet"]["data"] = "Data"; // newL1V6
+  rename["zmmjet"]["ratio"] = "Ratio";//"ratio"; 
+  rename["zmmjet"]["data"] = "Data";
   rename["zmmjet"]["mc"] = "MC";
   rename["zmmjet"]["mpfchs"] = "MPF-notypeI_CHS";
   rename["zmmjet"]["mpfchs1"] = "MPF_CHS"; 
@@ -166,12 +179,14 @@ void reprocess() {
 
   // color and style codes
   map<string, int> style;
-  style["mpfchs"] = kFullStar;
-  style["mpf"] = kFullDiamond;
+  //style["mpfchs"] = kFullStar;
+  //style["mpf"] = kFullDiamond;
+  //style["mpfchs1"] = kFullCircle;
+  //style["mpf1"] = kFullSquare;
+  //style["ptchs"] = kOpenCircle;
+  //style["pt"] = kOpenSquare;
   style["mpfchs1"] = kFullCircle;
-  style["mpf1"] = kFullSquare;
-  style["ptchs"] = kOpenCircle;
-  style["pt"] = kOpenSquare;
+  style["ptchs"] = kOpenSquare;
 
   map<string, int> color;
   color["dijet"] = kBlack;
@@ -195,14 +210,14 @@ void reprocess() {
   dirs.push_back("mc");
 
   vector<string> types;
-  types.push_back("mpfchs");
+  //types.push_back("mpfchs");
   types.push_back("mpfchs1");
   types.push_back("ptchs");
 
   vector<string> sets;
   sets.push_back("dijet");
   sets.push_back("gamjet");
-  sets.push_back("zeejet");
+  //sets.push_back("zeejet");
   sets.push_back("zmmjet");
 
   vector<pair<double,double> > etas;
@@ -285,41 +300,55 @@ void reprocess() {
 
 	    // If samples missing break-up into e.g. [3,3.2] and [3.2,5.2] bins
 	    // or merged [0,1.3] bin, patch here
-	    if (s=="zeejet" && eta1==0 && fabs(eta2-1.3)<0.1) { eta2=1.305; }
+	    //if (s=="zeejet" && eta1==0 && fabs(eta2-1.3)<0.1) { eta2=1.305; }
+	    //if (s=="zmmjet" && fabs(eta1-3.0)<0.1) { eta2=3.1; }
+	    //if (s=="zmmjet" && fabs(eta1-3.2)<0.1) { eta1=3.1; }
+	    if (s=="dijet"  && fabs(eta1-3.2)<0.1) { eta2=5.0; }
+	    //if (s=="gamjet"  && fabs(alpha-0.3)<0.1) { alpha=0.2; }
+	    if (s=="gamjet"  && fabs(eta1-0.0)<0.1) { eta2=1.3; }
+	    if (s=="gamjet"  && fabs(eta1-0.8)<0.1) { eta1=0.0; }
+	    //if (s=="gamjet"  && fabs(eta1-1.3)<0.1) { eta2=2.0; }
+	    //if (s=="gamjet"  && fabs(eta1-1.9)<0.1) { eta1=2.0; eta2=3.0; }
+	    //if (s=="gamjet"  && fabs(eta1-2.5)<0.1) { eta1=2.0; eta2=3.0; }
+	    //if (s=="gamjet"  && fabs(eta1-3.0)<0.1) { eta2=5.2; }
+	    //if (s=="gamjet"  && fabs(eta1-3.2)<0.1) { eta1=3.0; }
 
 	    // If some subsets of data missing, patch (skip) here
 	    // gamjet missing non-CHS graphs
 	    //if (s=="gamjet" && (t=="mpf" || t=="mpf1" || t=="pt"))
 	    //continue;
-	    if (s=="dijet" && (fabs(eta1-0.783)<0.1 || fabs(eta2-0.783)<0.1))
-		continue;
+	    //if (s=="dijet" && (fabs(eta1-0.783)<0.1 || fabs(eta2-0.783)<0.1))
+	    //continue;
 
 	    // Reconstruct naming scheme used in each of the files
 	    // If non-conventional naming schemes, patch here
 	    const char *c(0);
 	    if (s=="dijet") {
-	      c = Form("%s_a%1.0f_eta%1.0f_%1.0f_%s",
-		       rename[s][t], 100.*alpha, 10.*eta1, 10.*eta2,
-		       rename[s][d]);
+	      //c = Form("%s_a%1.0f_eta%1.0f_%1.0f_%s",
+	      //       rename[s][t], 100.*alpha, 10.*eta1, 10.*eta2,
+	      //       rename[s][d]);
+	      c = Form("%s/eta%02.0f-%02.0f/%s_%s_a%1.0f",
+		       dd, 10.*eta1, 10.*eta2, rename[s][t], ss, 100.*alpha);
 	    } // dijet
 	    if (s=="gamjet") {
-	      if (t=="mpfchs") // special *_raw_* naming for non-type-I MPF
-		c = Form("%s%s_raw_a%1.0f_eta%02.0f_%02.0f",
-			 rename[s][t], rename[s][d],
-			 100.*alpha, 10.*eta1, 10.*eta2);
-	      else
-		c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f",
-			 rename[s][t], rename[s][d],
-			 100.*alpha, 10.*eta1, 10.*eta2);
+	      //if (t=="mpfchs") // special *_raw_* naming for non-type-I MPF
+		//c = Form("%s%s_raw_a%1.0f_eta%02.0f_%02.0f",
+	      // rename[s][t], rename[s][d],
+	      //	 100.*alpha, 10.*eta1, 10.*eta2);
+	      //else
+	      c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f",
+		       rename[s][t], rename[s][d],
+		       100.*alpha, 10.*eta1, 10.*eta2);
 	    } // gamjet
-	    //if (s=="zeejet") { // GT, newL1V6 (post W14V8)
-	    //c = Form("%s_%s_a%1.0f_eta%1.0f_%1.0f",
-	    //       rename[s][d], rename[s][t],
-	    //       100.*alpha, 1000.*eta1, 1000.*eta2);
-	    //} // zeejet
-	    //if (s=="zmmjet") { // GT, newL1, newL1V6 (post W14V8)
-	    if (s=="zmmjet" || s=="zeejet") { // newL1V6
+	    if (s=="zeejet") {
 	      c = Form("%s_%s_a%1.0f_eta%02.0f_%02.0f_L1L2L3Res",
+		       rename[s][d], rename[s][t], 100.*alpha,
+		       10.*eta1, 10.*eta2);
+		       
+	    } // zeejet
+	    if (s=="zmmjet") {
+	      //c = Form("%s_%s_a%1.0f_eta%02.0f_%02.0f_L1L2L3Res",
+	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2L3",
 		       rename[s][d], rename[s][t], 100.*alpha,
 		       10.*eta1, 10.*eta2);
 		       
@@ -348,7 +377,19 @@ void reprocess() {
 	    for (int i = g->GetN()-1; i != -1; --i) {
 	      if (g->GetY()[i]==0 && g->GetEY()[i]==0) g->RemovePoint(i);
 	      // clean out weird points from Sebastien's data
-	      else if (g->GetX()[i]>4000 || g->GetX()[i]<10) g->RemovePoint(i);
+	      //else if (g->GetX()[i]>4000 || g->GetX()[i]<10) g->RemovePoint(i);
+	      // Z+jet points with too small errors
+	      else if (s=="zmmjet" &&
+		       (g->GetEY()[i]<0.01 ||
+			(g->GetX()[i]>140 && g->GetEY()[i]<0.03) ||
+			fabs(eta1-3.0)<0.1))
+		g->RemovePoint(i);
+	      // Remove bad point with too small uncertainty
+	      else if (s=="dijet" &&
+		       ((fabs(eta1-1.3)<0.1 && fabs(g->GetX()[i]-200)<10) ||
+			(fabs(eta1-1.9)<0.1 && fabs(g->GetX()[i]-200)<10) ||
+			(fabs(eta1-2.5)<0.1 && fabs(g->GetX()[i]-200)<10)))
+		g->RemovePoint(i);
 	    }
 
 	    // PATCH 2015-01-26: fix Zee mass scale of +0.5 in data/MC
@@ -391,7 +432,8 @@ void reprocess() {
 	    dout->cd();
 
 	    // Set uniform naming scheme and graphical style
-	    g->SetName(Form("%s_%s_a%1.0f",tt,ss,100.*alpha));
+	    //g->SetName(Form("%s_%s_a%1.0f",tt,ss,100.*alpha));
+	    g->SetName(Form("%s_%s_a%1.0f",tt,ss,100.*alphas[ialpha]));
 	    g->UseCurrentStyle(); // Basic TDR style
 	    g->SetMarkerStyle(style[t]);
 	    g->SetMarkerColor(color[s]);
@@ -429,7 +471,16 @@ void reprocess() {
     // New JEC for plotting on the back
     FactorizedJetCorrector *jec;
     {
-      s = Form("%s/Winter14_V8_DATA_L2L3Residual_AK5PFchs.txt",cd);
+      //s = Form("%s/Winter14_V8_DATA_L2L3Residual_AK5PFchs.txt",cd);
+      //s = Form("%s/Summer15_50ns_DATA_L2L3Residual_AK4PFchs.txt",cd);
+      //s = Form("%s/Summer15_50nsV1_DATA_L2L3Residual_AK4PFchs.txt",cd);
+      //s = Form("%s/Summer15_50nsV2_DATA_L2L3Residual_AK4PFchs.txt",cd);
+      //s = Form("%s/Summer15_50nsV2_DATA_L2L3Residual_AK4PFchs.txt.LOGLIN",cd);
+      //s = Form("%s/Summer15_50nsV3_DATA_L2L3Residual_AK4PFchs.txt",cd);
+      //s = Form("%s/Summer15_50nsV3M1_DATA_L2L3Residual_AK4PFchs.txt",cd);
+      //s = Form("%s/Summer15_50nsV3M2_DATA_L2L3Residual_AK4PFchs.txt",cd);
+      s = Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt",cd);
+      //s = Form("%s/Summer15_50nsV3M2_DATA_L2L3Residual_AK4PFchs.txt.LOGLIN",cd);
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -437,18 +488,28 @@ void reprocess() {
       jec = new FactorizedJetCorrector(vpar);
     }
 
+    // Reference Run I JEC for plotting on the back
+    FactorizedJetCorrector *jecrun1;
+    {
+      s = Form("%s/Winter14_V8_DATA_L2L3Residual_AK5PFchs.txt",cd);
+      cout << s << endl;
+      JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
+      vector<JetCorrectorParameters> vpar;
+      vpar.push_back(*par_l2l3res);
+      jecrun1 = new FactorizedJetCorrector(vpar);
+    }
+
     // Store old JEC for undoing it in global fit
     // NB: global fit ideally needs a temporary pT-flat L3Res as input
-    FactorizedJetCorrector *jecold;
-    {
-      //s = Form("%s/Winter14_V1_DATA_L2L3Residual_AK5PFchs.txt",cd); // GT
-      s = Form("%s/Winter14_V6_DATA_L2L3Residual_AK5PFchs.txt",cd); // newL1V6
-      cout << s << endl;
-      JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> v;
-      v.push_back(*par_old);
-      jecold = new FactorizedJetCorrector(v);
-    }
+    //FactorizedJetCorrector *jecold;
+    //{
+    //s = Form("%s/Winter14_V6_DATA_L2L3Residual_AK5PFchs.txt",cd);
+    //cout << s << endl;
+    //JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
+    //vector<JetCorrectorParameters> v;
+    //v.push_back(*par_old);
+    //jecold = new FactorizedJetCorrector(v);
+    //}
 
     // Difference between pT-dependent and flat L1
     FactorizedJetCorrector *jecl1flat;
@@ -463,7 +524,8 @@ void reprocess() {
     FactorizedJetCorrector *jecl1pt;
     {
       //s = Form("%s/Winter14_V1_DATA_L1FastJet_AK5PFchs.txt",cd); // GT
-      s = Form("%s/Winter14_V6_DATA_L1FastJet_AK5PFchs.txt",cd); // newL1V6
+      //s = Form("%s/Winter14_V6_DATA_L1FastJet_AK5PFchs.txt",cd); // newL1V6
+      s = Form("%s/Winter14_V8_DATA_L1FastJet_AK5PFchs.txt",cd); // newL1V6
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -471,15 +533,30 @@ void reprocess() {
       jecl1pt = new FactorizedJetCorrector(v);
     }
 
+    // Run I uncertainty
+    s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // V8
+    s2 = "TotalNoFlavorNoTime";
+    cout << s << ":" << s2 << endl << flush;
+    JetCorrectorParameters *p_ref1 = new JetCorrectorParameters(s,s2);
+    JetCorrectionUncertainty *unc_ref1 = new JetCorrectionUncertainty(*p_ref1);
+
     // Total uncertainty, excluding Flavor and Time
-    //s = Form("%s/Winter14_V5_DATA_Uncertainty_AK5PFchs.txt",cd); // GT
-    s = Form("%s/Winter14_V10M_DATA_Uncertainty_AK5PFchs.txt",cd); // V8
-    cout << s << endl << flush;
-    JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(s);
+    //s = Form("%s/Winter14_V10M_DATA_Uncertainty_AK5PFchs.txt",cd); // V8 Run I
+    //s = Form("txt/Summer15_50nsV2_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
+    //s = Form("txt/Summer15_50nsV3_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    //s = Form("txt/Summer15_50nsV3M2_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
+    s = Form("%s/Summer15_50nsV4_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
+    s2 = "TotalNoFlavorNoTime";
+    cout << s << ":" << s2 << endl << flush;
+    JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
+    JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p_unc);
 
     // Partial uncertainties
-    //s = Form("%s/Winter14_V5_DATA_UncertaintySources_AK5PFchs.txt",cd); // GT
-    s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // V8
+    //s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // V8
+    //s = Form("txt/Summer15_50nsV2_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
+    //s = Form("txt/Summer15_50nsV3_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    //s = Form("txt/Summer15_50nsV3M2_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
+    s = Form("%s/Summer15_50nsV4_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_ref = new JetCorrectorParameters(s,s2);
@@ -540,6 +617,10 @@ void reprocess() {
       TH1D *herr_pt = new TH1D("herr_pt",";p_{T} (GeV);p_{T} uncertainty;",
 			       npt, &ptbins[0]);
 
+      // Run I JEC central value
+      TH1D *hrun1 = new TH1D("hrun1",";p_{T} (GeV);Run I JES;",
+			     npt, &ptbins[0]);
+
       // JEC central value
       TH1D *hjes = new TH1D("hjes",";p_{T} (GeV);Old JES;",npt, &ptbins[0]);
 
@@ -564,9 +645,9 @@ void reprocess() {
 
 	// Loop over fine eta bins to average JEC and uncertainties
 	double sumval(0), sumerr2(0), sumw(0);
-	double sumjes(0), sumvall1flat(0), sumvall1pt(0);
+	double sumrun1(0), sumjes(0), sumvall1flat(0), sumvall1pt(0);
 	double sumerr2_pt(0), sumerr2_hcal(0), sumerr2_ecal(0), sumerr2_pu(0);
-	double sumerr2_noflv(0), sumerr2_ref(0);
+	double sumerr2_noflv(0), sumerr2_ref(0), sumerr2_ref1(0);
 	for (int jeta = 0; jeta != neta; ++jeta) {
 
 	  assert(eta2 > eta1);
@@ -588,9 +669,16 @@ void reprocess() {
 	  sumval += w*val;
 	  sumw += w; // sum weights only once
 
-	  jecold->setJetEta(eta);
-	  jecold->setJetPt(pt);
-	  double jes = 1./jecold->getCorrection();
+	  // reference JEC
+	  jecrun1->setJetEta(eta);
+	  jecrun1->setJetPt(pt);
+	  double jesrun1 = 1./jecrun1->getCorrection();
+	  sumrun1 += w*jesrun1;
+
+	  // old JEC
+	  //jecold->setJetEta(eta);
+	  //jecold->setJetPt(pt);
+	  double jes = 1.; //1./jecold->getCorrection();
 	  sumjes += w*jes;
 
 	  jecl1flat->setJetEta(eta);
@@ -619,6 +707,11 @@ void reprocess() {
 	  unc_ref->setJetPt(pt);
 	  double err_ref = unc_ref->getUncertainty(true);
 	  sumerr2_ref += w*err_ref*err_ref;
+
+	  unc_ref1->setJetEta(eta);
+	  unc_ref1->setJetPt(pt);
+	  double err_ref1 = unc_ref1->getUncertainty(true);
+	  sumerr2_ref1 += w*err_ref1*err_ref1;
 
 	  unc_pt->setJetEta(eta);
 	  unc_pt->setJetPt(pt);
@@ -652,6 +745,7 @@ void reprocess() {
 	// normalize uncertainties (quadratic instead of linear addition)
 	double err = sqrt(sumerr2 / sumw);
 	double err_ref = sqrt(sumerr2_ref / sumw);
+	double err_ref1 = sqrt(sumerr2_ref1 / sumw);
 	double err_pt = sqrt(sumerr2_pt / sumw);
 	double err_hcal = sqrt(sumerr2_hcal / sumw);
 	double err_ecal = sqrt(sumerr2_ecal / sumw);
@@ -666,7 +760,7 @@ void reprocess() {
 	herr_noflv->SetBinContent(ipt, val);
 	herr_mpf->SetBinContent(ipt, val);
 	herr_pt->SetBinContent(ipt, val);
-	
+
 	herr->SetBinError(ipt, val*err);
 	herr_ref->SetBinError(ipt, val*err_ref);
 	herr_spr->SetBinError(ipt,val*sqrt(err_hcal*err_hcal
@@ -675,6 +769,10 @@ void reprocess() {
 	herr_noflv->SetBinError(ipt, val*err_noflv);
 	herr_mpf->SetBinError(ipt, val*err_pt);
 	herr_pt->SetBinError(ipt, val*sqrt(err_pt*err_pt+err_pu*err_pu));
+
+	double run1 = (sumrun1 / sumw);
+	hrun1->SetBinContent(ipt, run1);
+	hrun1->SetBinError(ipt, run1*err_ref1);//run1*err);
 
 	double jes = (sumjes / sumw);
 	hjes->SetBinContent(ipt, jes);
@@ -719,6 +817,11 @@ void reprocess() {
       herr_pt->SetFillStyle(1001);
       herr_pt->SetFillColor(kYellow+1);
       herr_pt->Write();
+
+      hrun1->SetMarkerSize(0);
+      hrun1->SetFillStyle(1001);
+      hrun1->SetFillColor(kCyan+1);
+      hrun1->Write();
 
       hjes->Write();
       hl1bias->Write();

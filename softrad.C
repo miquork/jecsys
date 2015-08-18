@@ -27,35 +27,48 @@
 
 const double _lumi = 19800.;
 
-//bool dodijet = true;//false;
+bool dodijet = true;//false;
 
 using namespace std;
 
-TF1 *_fitError_func(0);
-TMatrixD *_fitError_emat(0);
-Double_t fitError(Double_t *xx, Double_t *p);
+TF1 *_sr_fitError_func(0);
+TMatrixD *_sr_fitError_emat(0);
+Double_t sr_fitError(Double_t *xx, Double_t *p);
 
 // Soft radiation corrections for L3Res
 void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 
   setTDRStyle();
+  writeExtraText = false; // for JEC paper CWR
 
   TDirectory *curdir = gDirectory;
 
   // Open jecdata.root produced by reprocess.C
-  TFile *fin = new TFile("rootfiles/jecdata.root","UPDATE");
+  TFile *fin = new TFile("rootfiles/jecdata_runI_20fb.root","READ");
+  //TFile *fin = new TFile("rootfiles/jecdata.root","READ");
   assert(fin && !fin->IsZombie());
+  //
+  TFile *fout = new TFile("rootfiles/jecdata.root","UPDATE");
+  assert(fout && !fout->IsZombie());
   
   const int ntypes = 3;
   const char* types[ntypes] = {"data", "mc", "ratio"};
   const int nmethods = 2;
   const char* methods[nmethods] = {"mpfchs1", "ptchs"};
-  const int nsamples = (dodijet ? 4 : 3);
-  const char* samples[4] = {"gamjet", "zeejet", "zmmjet", "dijet"};
+  //const int nsamples = (dodijet ? 4 : 3);
+  //const char* samples[4] = {"gamjet", "zeejet", "zmmjet", "dijet"};
+  const int nsamples = (dodijet ? 3 : 2);
+  const char* samples[3] = {"gamjet", "zmmjet", "dijet"};
+  const int idj = (dodijet ? nsamples-1 : -1);
   string sbin = Form("eta%02.0f-%02.0f",10*etamin,10*etamax);
   const char* bin = sbin.c_str();
   const int nalphas = 4;
   const int alphas[nalphas] = {30, 20, 15, 10};
+  // TEMP TEMP TEMP
+  // For Run 2 gamma+jet sample compatibility
+  //const int nalphas = 3;
+  //const int alphas[nalphas] = {30, 20, 10};
+  //
 
   // Z+jet bins
   const double ptbins1[] = {30, 40, 50, 60, 75, 95, 125, 180, 300, 1000};
@@ -64,8 +77,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   TProfile *ppt1 = new TProfile("ppt1","",npt1,&ptbins1[0]);
 
   // gamma+jet bins
-  const double ptbins2[] = {30, 40, 50, 60, 75, 100, 125, 155, 180,
-			    210, 250, 300, 350, 400, 500, 600, 800};
+  //const double ptbins2[] = {30, 40, 50, 60, 75, 100, 125, 155, 180,
+  //		    210, 250, 300, 350, 400, 500, 600, 800};
+  const double ptbins2[] = {40, 60, 85, 100, 130, 175, 250, 300, 1000};
   const int npt2 = sizeof(ptbins2)/sizeof(ptbins2[0])-1;
   TH1D *hpt2 = new TH1D("hpt2","",npt2,&ptbins2[0]);
   TProfile *ppt2 = new TProfile("ppt2","",npt2,&ptbins2[0]);
@@ -137,7 +151,16 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  const int a = alphas[ialpha];
 	  // Get graph made vs pT
 	  string s = Form("%s/%s/%s_%s_a%d",types[itype],bin,cm,cs,a);
-	  TGraphErrors *g = (TGraphErrors*)fin->Get(s.c_str());
+	  //TGraphErrors *g = (TGraphErrors*)fin->Get(s.c_str());
+	  // TEMP TEMP TEMP
+	  // Use Run 2 gamma+jet sample for pT balance	  
+	  TGraphErrors *g = 0;
+	  if (string(cs)=="gamjet" && string(cm)=="ptchs") 
+	    //if (string(cs)=="gamjet" || string(cs)=="zmmjet") 
+	    g = (TGraphErrors*)fout->Get(s.c_str());
+	  else
+	    g = (TGraphErrors*)fin->Get(s.c_str());
+	  // TEMP TMP TMP
 	  if (!g) cout << "Missing " << s << endl << flush;
 	  assert(g);
 
@@ -156,7 +179,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  // Sort points into new graphs vs alpha
 	  TH1D *hpt = (isample==0 ? hpt2 : hpt1);
 	  TProfile *ppt = (isample==0 ? ppt2 : ppt1);
-	  if (isample==3) { hpt = hpt4; ppt = ppt4; } // pas-v6
+	  //if (isample==3) { hpt = hpt4; ppt = ppt4; } // pas-v6
+	  if (isample==idj) { hpt = hpt4; ppt = ppt4; } // pas-v6
 	  for (int i = 0; i != g->GetN(); ++i) {
 	    
 	    double pt = g->GetX()[i];
@@ -241,7 +265,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	//tex->DrawLatex(0.55,0.18,"Anti-k_{T} R=0.5");
 
 	// Loop over Z+jet and gamma+jet (only, no dijet/multijet)
-	for (int  isample = 0; isample != min(3,nsamples); ++isample) {
+	//for (int  isample = 0; isample != min(3,nsamples); ++isample) {
+	for (int  isample = 0; isample != min(idj,nsamples); ++isample) {
 	  
 	  const char *cs = samples[isample];
 	  TGraphErrors *g = gemap[ct][cm][cs][30]; assert(g);
@@ -296,7 +321,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 				      hpt1->GetBinLowEdge(ipad+2)));
 	TLegend *leg = tdrLeg(0.65,0.75,0.90,0.90);
 	leg->AddEntry(gemap[ct][cm]["gamjet"][30], texlabel["gamjet"], "P");
-	leg->AddEntry(gemap[ct][cm]["zeejet"][30], texlabel["zeejet"], "P");
+	//leg->AddEntry(gemap[ct][cm]["zeejet"][30], texlabel["zeejet"], "P");
 	leg->AddEntry(gemap[ct][cm]["zmmjet"][30], texlabel["zmmjet"], "P");
 	leg->AddEntry(gemap[ct][cm]["dijet"][30], texlabel["dijet"], "P");
       }
@@ -328,7 +353,12 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  const double minalpha = (isample==0 ? 10./ipt : 5./ipt);
 	  // Constrain slope to within reasonable values
 	  // in the absence of sufficient data using priors
-	  if (true) { // use priors
+	  // TEMP TEMP TEMP
+	  //if (true) { // use priors
+	  // turn off priors
+	  //if (false) { // use priors
+	  if (!(string(cs)=="gamjet" && string(cm)=="ptchs")) {
+	  // TEMP TEMP TEMP
 	    int n = ga->GetN();
 	    // For response, limit to 1+/-0.02 (we've corrected for L3Res
 	    ga->SetPoint(n, 1.5, 1);
@@ -390,7 +420,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	      }
 	      int n = gk->GetN();
 	      TProfile *ppt = (isample==0 ? ppt2 : ppt1);
-	      if (isample==3) { ppt = ppt4; } // pas-v6
+	      //if (isample==3) { ppt = ppt4; } // pas-v6
+	      if (isample==idj) { ppt = ppt4; } // pas-v6
 	      double pt = ppt->GetBinContent(ppt->FindBin(ipt));
 	      gk->SetPoint(n, pt, f1->GetParameter(1));
 	      gk->SetPointError(n, 0, f1->GetParError(1));
@@ -441,7 +472,11 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  TF1 *fk = new TF1(Form("fk_%s_%s_%s",ct,cm,cs),
 			    "[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
 			    30,1300);
+	  // TEMP TEMP TEMP
 	  fk->SetParameters(-0.25,-0.5);
+	  // Change parameters for Run 2
+	  //fk->SetParameters(0,0,0);
+	  // TEMP TEMP TEMP
 	  fk->SetLineColor(gk->GetLineColor());
 	  gk->Fit(fk, "QRN");
 
@@ -456,9 +491,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  TMatrixD emat(n,n);
 	  gMinuit->mnemat(emat.GetMatrixArray(), n);
 	  TF1 *fke = new TF1(Form("fk_%s_%s_%s",ct,cm,cs),
-			     fitError, 30, 1300, 1);
-	  _fitError_func = fk;
-	  _fitError_emat = &emat;
+			     sr_fitError, 30, 1300, 1);
+	  _sr_fitError_func = fk;
+	  _sr_fitError_emat = &emat;
 
 	  fke->SetLineStyle(kSolid);
 	  fke->SetLineColor(fk->GetLineColor()-10);
@@ -471,7 +506,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  gk->DrawClone("SAME Pz");
 
 	  // Store soft radiation corrections in fsr subdirectory
-	  assert(fin->cd(ct));
+	  assert(fout->cd(ct));
 	  assert(gDirectory->cd(bin));
 	  if (!gDirectory->FindObject("fsr")) gDirectory->mkdir("fsr");
 	  assert(gDirectory->cd("fsr"));
@@ -479,7 +514,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  TH1D *hk = (TH1D*)(isample==0 ? hpt2->Clone() : hpt1->Clone());
 	  hk->SetName(Form("hkfsr_%s_%s",cm,cs));
 	  TProfile *ppt = (isample==0 ? ppt2 : ppt1);
-	  if (isample==3) { ppt = ppt4; } // pas-v6
+	  //if (isample==3) { ppt = ppt4; } // pas-v6
+	  if (isample==2) { ppt = ppt4; } // pas-v6
 	  for (int i = 1; i != hk->GetNbinsX()+1; ++i) {
 	    double pt = ppt->GetBinContent(i);
 	    if (pt>30 && pt<1300) {
@@ -544,18 +580,19 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   c3->SaveAs("pdf/softrad_2x6_kfsr.pdf");
 
   fin->Close();
+  fout->Close();
   curdir->cd();
 } // softrad
 
-Double_t fitError(Double_t *xx, Double_t *p) {
+Double_t sr_fitError(Double_t *xx, Double_t *p) {
 
-  assert(_fitError_func);
-  assert(_fitError_emat);
+  assert(_sr_fitError_func);
+  assert(_sr_fitError_emat);
   double x = *xx;
   double k = p[0];
-  TF1 *f = _fitError_func;
+  TF1 *f = _sr_fitError_func;
   int n = f->GetNpar();
-  TMatrixD &emat = (*_fitError_emat);
+  TMatrixD &emat = (*_sr_fitError_emat);
   assert(emat.GetNrows()==n);
   assert(emat.GetNcols()==n);
   

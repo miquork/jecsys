@@ -22,7 +22,7 @@
 
 namespace jec {
   
-  enum JetAlgo  {AK5PF, AK5PFchs, AK5JPT, AK5CALO,
+  enum JetAlgo  {AK4PF, AK4PFchs, AK4JPT, AK4CALO,
 		 AK7PF, AK7PFchs, AK7CALO};
   enum DataType {DATA, MC, PY, HW};
 }
@@ -40,7 +40,7 @@ inline double absmax(double a, double b) {
 class JECUncertainty {
 public:
   
-  JECUncertainty(const jec::JetAlgo& algo = jec::AK5PF,
+  JECUncertainty(const jec::JetAlgo& algo = jec::AK4PF,
 		 const jec::DataType& type = jec::DATA,
 		 const jec::ErrorTypes& errType = jec::kData,
 		 const double mu = 19.81);
