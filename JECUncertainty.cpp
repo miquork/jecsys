@@ -25,7 +25,9 @@ JECUncertainty::JECUncertainty(const jec::JetAlgo& algo,
 {
 
   _fjes = 0; _emat = 0; _fhb = _fl1 = 0;
-  _fl3ref = _fl3up = _fl3dw = _fl2up = 0;
+  //_fl3ref = _fl3up = _fl3dw = _fl2up = 0;
+  _fl3 =_fl2 = 0;
+  _hl3 = _hl3ref = _hl2ref = 0;
 
   _algo = algo;
   _calo = (_algo==jec::AK4CALO || _algo==jec::AK7CALO);
@@ -131,6 +133,10 @@ void JECUncertainty::_InitL1() {
   //
   // Winter14_V6:
   // https://twiki.cern.ch/twiki/pub/CMS/JECtxtFiles/Winter14_V6_DataMcSF_L1FastJet.tar.gz
+  //
+  // Summer15_50nsV5 (DataMcSF):
+  // On 09 Aug 2015, at 09:52, Charles Harrington
+  // Re: L1Res status
 
   map<jec::JetAlgo, const char*> names;
   names[jec::AK4PF] = "AK4PF";
@@ -145,9 +151,10 @@ void JECUncertainty::_InitL1() {
 
   // For PileUpPt in DATA
   { 
-    const char *a = "AK5PFchs"; // !! TEMP hack
-    const char *s = Form("%sWinter14_V0_DATA_L1FastJetPU_%s_pt.txt",d,a);
+    //const char *a = "AK5PFchs"; // !! TEMP hack
+    //const char *s = Form("%sWinter14_V0_DATA_L1FastJetPU_%s_pt.txt",d,a);
     //const char *s = Form("%sWinter14_V6_DATA_RC_%s.txt",d,a);
+    const char *s = Form("%sSummer15_50nsV4_DATA_L1RC_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -155,9 +162,10 @@ void JECUncertainty::_InitL1() {
     _jecL1DTflat = new FactorizedJetCorrector(v);
   }
   {
-    const char *a = "AK5PFchs"; // !! TEMP hack
-    const char *s = Form("%sWinter14_V0_MC_L1FastJetPU_%s_pt.txt",d,a);
+    //const char *a = "AK5PFchs"; // !! TEMP hack
+    //const char *s = Form("%sWinter14_V0_MC_L1FastJetPU_%s_pt.txt",d,a);
     //const char *s = Form("%sWinter14_V6_MC_RC_%s.txt",d,a);
+    const char *s = Form("%sSummer15_50nsV4_MC_L1RC_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -166,9 +174,10 @@ void JECUncertainty::_InitL1() {
   }
   // For PileUpPt in MC
   {
-    const char *a = "AK5PFchs"; // !! TEMP hack
+    //const char *a = "AK5PFchs"; // !! TEMP hack
     //const char *s = Form("%sWinter14_V1_DATA_L1FastJet_%s.txt",d,a);
-    const char *s = Form("%sWinter14_V6_DATA_L1FastJet_%s.txt",d,a);
+    //const char *s = Form("%sWinter14_V6_DATA_L1FastJet_%s.txt",d,a);
+    const char *s = Form("%sSummer15_50nsV4_DATA_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -176,9 +185,10 @@ void JECUncertainty::_InitL1() {
     _jecL1DTpt = new FactorizedJetCorrector(v);
   }
   {
-    const char *a = "AK5PFchs"; // !! TEMP hack
+    //const char *a = "AK5PFchs"; // !! TEMP hack
     //const char *s = Form("%sWinter14_V1_MC_L1FastJet_%s.txt",d,a);
-    const char *s = Form("%sWinter14_V6_MC_L1FastJet_%s.txt",d,a);
+    //const char *s = Form("%sWinter14_V6_MC_L1FastJet_%s.txt",d,a);
+    const char *s = Form("%sSummer15_50nsV4_MC_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -187,9 +197,10 @@ void JECUncertainty::_InitL1() {
   }
   // For PileUpDataMC
   {
-    const char *a = "AK5PFchs"; // !! TEMP hack
+    //const char *a = "AK5PFchs"; // !! TEMP hack
     //const char *s = Form("%sWinter14_DataMcSF_L1FastJetPU_%s.txt",d,a);
-    const char *s = Form("%sWinter14_V6_DataMcSF_L1FastJetPU_%s.txt",d,a);
+    //const char *s = Form("%sWinter14_V6_DataMcSF_L1FastJetPU_%s.txt",d,a);
+    const char *s = Form("%sDataMcSF_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -199,24 +210,30 @@ void JECUncertainty::_InitL1() {
 
   // For PileUpPtRef (L3Res only using AK5PFchs)
   {
-    const char *a = "AK5PFchs"; // !! L3Res only for this
-    const char *s = Form("%sWinter14_V0_DATA_L1FastJetPU_%s_pt.txt",d,a);
+    //const char *a = "AK5PFchs"; // !! L3Res only for this
+    //const char *s = Form("%sWinter14_V0_DATA_L1FastJetPU_%s_pt.txt",d,a);
     //const char *s = Form("%sWinter14_V6_DATA_RC_%s.txt",d,a);
+    const char *a = "AK4PFchs"; // !! L3Res only for this
+    const char *s = Form("%sSummer15_50nsV4_MC_L1RC_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
     v.push_back(*l1);
-    _jecL1DTflat_ak5pfchs = new FactorizedJetCorrector(v);
+    //_jecL1DTflat_ak5pfchs = new FactorizedJetCorrector(v);
+    _jecL1MCflat_ak4pfchs = new FactorizedJetCorrector(v);
   }
   {
-    const char *a = "AK5PFchs"; // !! L3Res only for this
+    //const char *a = "AK5PFchs"; // !! L3Res only for this
     //const char *s = Form("%sWinter14_V1_DATA_L1FastJet_%s.txt",d,a);
-    const char *s = Form("%sWinter14_V6_DATA_L1FastJet_%s.txt",d,a);
+    //const char *s = Form("%sWinter14_V6_DATA_L1FastJet_%s.txt",d,a);
+    const char *a = "AK4PFchs"; // !! L3Res only for this
+    const char *s = Form("%sSummer15_50nsV4_MC_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
     v.push_back(*l1);
-    _jecL1DTpt_ak5pfchs = new FactorizedJetCorrector(v);
+    //_jecL1DTpt_ak5pfchs = new FactorizedJetCorrector(v);
+    _jecL1MCpt_ak4pfchs = new FactorizedJetCorrector(v);
   }
 
 } // InitL1
@@ -250,21 +267,24 @@ void JECUncertainty::_InitJEC() {
   //s = Form("%sWinter14_V6_DATA_L1FastJet_%s.txt",d,a);
   //s = Form("%sWinter14_V6_DATA_L1FastJet_%s.txt",d,"AK5PFchs");
   //s = Form("%sSummer15_50nsV2_DATA_L1FastJet_%s.txt",d,a);
-  s = Form("%sSummer15_50nsV3_DATA_L1FastJet_%s.txt",d,a);
+  //s = Form("%sSummer15_50nsV3_DATA_L1FastJet_%s.txt",d,a);
+  s = Form("%sSummer15_50nsV4_DATA_L1FastJet_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
   //s = Form("%sWinter14_V4_DATA_L2Relative_%s.txt",d,a);
   //s = Form("%sWinter14_V6_DATA_L2Relative_%s.txt",d,a);
   //s = Form("%sWinter14_V6_DATA_L2Relative_%s.txt",d,"AK5PFchs");
   //s = Form("%sSummer15_50nsV2_DATA_L2Relative_%s.txt",d,a);
-  s = Form("%sSummer15_50nsV3_DATA_L2Relative_%s.txt",d,a);
+  //s = Form("%sSummer15_50nsV3_DATA_L2Relative_%s.txt",d,a);
+  s = Form("%sSummer15_50nsV4_DATA_L2Relative_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
   //s = Form("%sWinter14_V4_DATA_L3Absolute_%s.txt",d,a);
   //s = Form("%sWinter14_V6_DATA_L3Absolute_%s.txt",d,a);
   //s = Form("%sWinter14_V6_DATA_L3Absolute_%s.txt",d,"AK5PFchs");
   //s = Form("%sSummer15_50nsV2_DATA_L3Absolute_%s.txt",d,a);
-  s = Form("%sSummer15_50nsV3_DATA_L3Absolute_%s.txt",d,a);
+  //s = Form("%sSummer15_50nsV3_DATA_L3Absolute_%s.txt",d,a);
+  s = Form("%sSummer15_50nsV4_DATA_L3Absolute_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
   // Only one L3Residual derived for now (although we will later clone this)
@@ -274,7 +294,8 @@ void JECUncertainty::_InitJEC() {
   //s = Form("%sWinter14_V8_DATA_L2L3Residual_%s.txt",d,a);
   //s = Form("%sWinter14_V8_DATA_L2L3Residual_%s.txt",d,"AK5PFchs");
   //s = Form("%sSummer15_50nsV2_DATA_L2L3Residual_%s.txt",d,a);
-  s = Form("%sSummer15_50nsV3M2_DATA_L2L3Residual_%s.txt",d,a);
+  //s = Form("%sSummer15_50nsV3M2_DATA_L2L3Residual_%s.txt",d,a);
+  s = Form("%sSummer15_50nsV4_DATA_L2L3Residual_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
 
@@ -287,10 +308,12 @@ void JECUncertainty::_InitJEC() {
   _jec = _jecDefault;
 
   {
-    const char *a = "AK5PFchs";
+    //const char *a = "AK5PFchs";
     // Another version using Random Cone offset (L1 V0)
-    s = Form("%sWinter14_V0_DATA_L1FastJetPU_%s_pt.txt",d,a);
+    //s = Form("%sWinter14_V0_DATA_L1FastJetPU_%s_pt.txt",d,a);
     //s = Form("%sWinter14_V6_DATA_RC_%s.txt",d,a);
+    const char *a = "AK4PFchs";
+    s = Form("%sSummer15_50nsV4_DATA_L1RC_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1v0 = new JetCorrectorParameters(s);
     
@@ -353,6 +376,7 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sWinter14_V6_DATA_L2L3Residual_%s.txt.LOGLIN",d,a);
     //s = Form("%sWinter14_V7_DATA_L2L3Residual_%s.txt.LOGLIN",d,a);
     //s = Form("%sSummer15_50nsV2_DATA_L2L3Residual_%s.txt.LOGLIN",d,a);
+    //s = Form("%sSummer15_50nsV3M2_DATA_L2L3Residual_%s.txt.LOGLIN",d,a);
     s = Form("%sSummer15_50nsV3M2_DATA_L2L3Residual_%s.txt.LOGLIN",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
@@ -1016,6 +1040,7 @@ double JECUncertainty::_PileUpDataMC(const double pTprime, const double eta) {
   // Winter14 Data/MC uncertainty from scale factor variation vs rho
   // https://indico.cern.ch/event/308741/contribution/4/material/slides/1.pdf
   // pages 7-8 (JERC talk by Ia Iashvili)
+  /*
   double rhomin = 7;
   double rhomax = 14;
   double rhoavg = 10;
@@ -1027,154 +1052,121 @@ double JECUncertainty::_PileUpDataMC(const double pTprime, const double eta) {
   double l1 = _L1Data(pTraw, eta);
   
   double sys = fabs(l1-1) * max(fabs(sfmin-sfavg), fabs(sfmax-sfavg));
-			     
+  */
+
+  // Run II: assess Data/MC uncertainty as 10%-unit on SF
+  // This is about the variation seen, and similar to the lumi uncertainty
+  // Summer15_50nsV5
+  //double rhoavg = 10;
+  //double sfavg = _L1SF(pTprime, eta, rhoavg);
+  double errsf = 0.10;
+  //double pTraw = _Rjet(pTprime, eta) * pTprime;
+  //double l1 = _L1MC(pTraw, eta);
+  double l1 = _Rjet(pTprime, eta, -1, -1, _jecL1MCpt);
+  double sys = fabs(l1-1) * errsf;
+  		     
   return sys;
 } // PileUpDataMC
 
 
-// Pile-up uncertainty from pT dependence
-// Implemented as difference between MC truth (V1) and Random Cone (V0),
-// with log-linear pT dependence corrected for as with L2Residuals
-// BB uncertainty spans the whole detector due to dijet balance
+// PileUpPt re-implemented for Run II
+// Simplified a bit by using up variation in MC only
+// no separate reference algo for L2res and L3res (AK4PFchs both),
+// and with new L2res, L3res parameterizations
 double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
 
-  // Limit eta to [-5,5] because V0 files don't go further out
-  // Even closer in, because bias goes nuts in the last bin out
-  double maxeta = 4.5;
-  double etax = max(-maxeta,min(maxeta,eta));
-  double x = fabs(etax);
+  double x = fabs(eta);
+  double etax = max(-4.5,min(4.5,eta));
 
-  FactorizedJetCorrector *_l1flat = (_errType==jec::kData ?
-				     _jecL1DTflat : _jecL1MCflat);
-  FactorizedJetCorrector *_l1pt = (_errType==jec::kData ?
-				   _jecL1DTpt : _jecL1MCpt);
+  FactorizedJetCorrector *_l1flat = _jecL1MCflat;
+  FactorizedJetCorrector *_l1pt = _jecL1MCpt;
+
+  FactorizedJetCorrector *_l1flatref = _jecL1MCflat_ak4pfchs;
+  FactorizedJetCorrector *_l1ptref = _jecL1MCpt_ak4pfchs;
 
   double sysref(0), syseta(0), syszero(0), sys(0);
-  // Absolute scale offset fit with log(x)/x for AK5PFchs, which gives the
-  // reference scale uncertainty. Assumption is that this uncertainty is only
-  // coming from the neutral part of the jet core so that the uncertainty is
-  // the same for all the algorithms and cone sizes (or should we scale?)
 
-  // Only do this once since it's very time-consuming
-  // Reference L1 residual is from AK5PFchs L3Residual fit
-  if (!_fl3ref) {
-    
-    FactorizedJetCorrector *_l1flatref = _jecL1DTflat_ak5pfchs;
-    FactorizedJetCorrector *_l1ptref = _jecL1DTpt_ak5pfchs;
+  if (!_fl3 && !_hl3 && !_hl3ref) {
 
-    // Shape effectively used in L3Residual fit for low pT
-    // ([2] was fixed in the end to a reasonable value, but shape was tested)
-    _fl3ref = new TF1("fl3ref","[0]*([1]+[2]*TMath::Log(x))/x",30,1000);
-    _fl3ref->SetParameters(1,-2.36997, 0.413917); 
-    _fl3ref->FixParameter(1,-2.36997); // shape fixed in global fit
-    _fl3ref->FixParameter(2, 0.413917); // shape fixed in global fit
-    _fl3up = (TF1*)_fl3ref->Clone("fl3up");
-    _fl3dw = (TF1*)_fl3ref->Clone("fl3dw");
-
-    // L3Res low pT shape plus L2Residual shape
-    // For more precise modeling should fit L3Res from 30 GeV up,
-    // and L2Res from 60-70 GeV up, but this is probably accurate enough
-    _fl2up = new TF1("fl2up","[0]*(([1]+[2]*TMath::Log(x))/x+[2]+[3]*TMath::Log(x))",
-		     30,1000);
-    _fl2up->SetParameters(1,-2.36997,0.413917,0,0); 
-    _fl2up->FixParameter(1,-2.36997); // shape fixed in global fit
-    _fl2up->FixParameter(2, 0.413917); // shape fixed in global fit
+    _fl3 = new TF1("fl3","[0]+[1]*max(0.,[2]+[3]*pow(x,[4]))",60,300);
+    _fl3->SetParameters(0,1, 0.03091e+00,-5.11540e-02,-1.54227e-01); // SPRH
+    _fl3->FixParameter(2, 0.03091e+00); // shape fixed in global fit
+    _fl3->FixParameter(3, -5.11540e-02); // shape fixed in global fit
+    _fl3->FixParameter(4, -1.54227e-01); // shape fixed in global fit
 
     const double x_pt[] =
-      {28, 32, 37, 43, 49, 56, 64, 74, 84,
+      {10, 12, 15, 18, 21, 24, 
+       28, 32, 37, 43, 49, 56, 64, 74, 84,
        97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 362, 430,
        507, 592, 686, 790, 905, 1032};
     const int ndiv_pt = sizeof(x_pt)/sizeof(x_pt[0])-1;
-    
-    double x_eta[] = {-1.4,-1.2,-1.0, -0.8,-0.6,-0.4,-0.2,0.,
-		      0, 0.2,0.4,0.6,0.8,1.0, 1.2,1.4};
+
+    _hl3 = new TH1D("hl3",";p_{T} (GeV);Offset error",ndiv_pt,x_pt);
+    _hl3ref = new TH1D("hl3ref",";p_{T} (GeV);Offset error",ndiv_pt,x_pt);
+
+    double x_eta[] = //{0,0};
+      {-1.4,-1.2,-1.0, -0.8,-0.6,-0.4,-0.2,0.,
+       0, 0.2,0.4,0.6,0.8,1.0, 1.2,1.4};
     const int ndiv_eta = sizeof(x_eta)/sizeof(x_eta[0])-1;
     
     // Average offset uncertainty over barrel (|eta|<1.3),
-    // then fit with log(x)/x to extra effective reference uncertainty
-    // (since L3Residual was studied including log(x)/x in the fit)
-    // Difference to log(x) will be absorbed to PileUpPtBB (syseta) 
-    //
-    // What fraction of the full Flat-Pt difference do we use?
-    // Global fit gave -35 +/- 25% for the PileUpPtBB as fit parameter
-    // Use max of 10%(algo), 60% (algo) vs 35%(ak5pfchs)) as systematic
-    // Difference between algo and AK5PFchs should result in larger systematic
-    // than 25% variation for AK5PFchs itself
-    //
-    // V8PT: +5.4 +/- 23.1%, so -20%(algo), 30%(algo) vs 5%(ak5pfchs)
-    // So with fixed L1 data we are far more consistent with zero bias in L1
-    // Still, keep the 5% shift to minimize low pT change wrt previous GT
-    const double k0(0.05), kdw(-0.20), kup(0.30);
-    TGraph *g3r = new TGraph(0);
-    TGraph *g3up = new TGraph(0);
-    TGraph *g3dw = new TGraph(0);
+    // then fit with L3Res shape
+    // Run II fit has no constraint on PU (-133 +/- 170% favored) so use 100%
+    // Summer15_50nsV5
+    const double kfactor(1);
     for (int ipt = 0; ipt != ndiv_pt; ++ipt) {
       
       double pt = 0.5*(x_pt[ipt] + x_pt[ipt+1]);
       
-      double sumw(0), sumsysr(0), sumsysup(0), sumsysdw(0);
+      double sumw(0), sumsys(0), sumsysref(0);
       for (int ieta = 0; ieta != ndiv_eta; ++ieta) {
 	
 	double etab = 0.5*(x_eta[ieta]+x_eta[ieta+1]);
-	double l1fr = _Rjet(pt, etab, -1, -1, _l1flatref);
-	double l1pr = _Rjet(pt, etab, -1, -1, _l1ptref);
-	double sysr = k0 * (l1fr / l1pr - 1);
-	sumsysr += sysr;
-	sumw    += 1;
 	double l1f = _Rjet(pt, etab, -1, -1, _l1flat);
 	double l1p = _Rjet(pt, etab, -1, -1, _l1pt);
-	double sysup = kup * (l1f / l1p - 1);
-	sumsysup += sysup;
-	double sysdw = kdw * (l1f / l1p - 1);
-	sumsysdw += sysdw;
+	double sys = kfactor * (l1f / l1p - 1);
+	sumsys += sys;
+	sumw   += 1;
+
+	// L3res is really only fitted to AK4PFchs (=ref)
+	double l1fref = _Rjet(pt, etab, -1, -1, _l1flatref);
+	double l1pref = _Rjet(pt, etab, -1, -1, _l1ptref);
+	double sysref = kfactor * (l1fref / l1pref - 1);
+	sumsysref += sysref;
       } // for ieta
-      double sysr = sumsysr / sumw;
-      g3r->SetPoint(ipt, pt, sysr);
-      double sysup = sumsysup / sumw;
-      g3up->SetPoint(ipt, pt, sysup);
-      double sysdw = sumsysdw / sumw;
-      g3dw->SetPoint(ipt, pt, sysdw);
+      double sys = sumsys / sumw;
+      double sysref = sumsysref / sumw;
+
+      _hl3->SetBinContent(_hl3->FindBin(pt), sys);
+      _hl3ref->SetBinContent(_hl3ref->FindBin(pt), sysref);
     } // for ipt
     
-    g3r->Fit(_fl3ref, "QRN");
-    g3up->Fit(_fl3up, "QRN");
-    g3dw->Fit(_fl3dw, "QRN");
-    g3up->Fit(_fl2up, "QRN");
-    delete g3r;
-    delete g3up;
-    delete g3dw;
-  } // !_fl3ref
+    _hl3ref->Fit(_fl3, "QRN");
+  } // !_fl3
 
   // Residual offset uncertainty remaining after L3Res
+  // Double-counting a bit, because also included in L2(L3)Res part
+  // Maybe relevant, if reference algos for dijet and Z+jet balance differ
+  // (e.g. AK8chs vs AK4chs only)
   if (_errType & jec::kPileUpPtRef) {
-    sysref = absmax(_fl3up->Eval(pTprime) - _fl3ref->Eval(pTprime),
-		    _fl3dw->Eval(pTprime) - _fl3ref->Eval(pTprime));
-    //delete f1;
+    // Don't recalculate eta average, but just interpolate in pT
+    double pt = max(10.,min(1032.,pTprime));
+    sysref = _hl3->Interpolate(pt) - _fl3->Eval(pt);
   } // sysref
 
   // Residual relative PU offset after applying dijet balance comes from
-  // different shapes 'a+(b+c*log(x))/x' for L1 and 'a+b*log(x)' for L2Residual
-  // Also subtract the residual offset from barrel, assuming the sign
-  // and magnitude are correlated between different eta regions
-  // (use +60% consistently for variation and barrel average)
+  // fitting offset residual with L2res shape, for AK4PFchs (=ref)
+  // (now a constant, was [0]+[1]*log(x) in Run I)
+  // The residual offset from barrel cancels out some of the residual
+  // offset in the forward regions in the pTprobe/pTtag ratio
+  // (use +100% consistently for forward variation and barrel average)
   if ( (x>=0.0 && x<1.3 && _errType & jec::kPileUpPtBB) ||
        (x>=1.3 && x<2.5 && _errType & jec::kPileUpPtEC1) ||
        (x>=2.5 && x<3.0 && _errType & jec::kPileUpPtEC2) ||
        (x>=3.0 && x<5.5 && _errType & jec::kPileUpPtHF) ||
        _errType & jec::kPileUpMuZero ) {
 
-    // kfactor gives the maximal size of the effect,
-    // which we estimate from the global fit range [10%,60%]
-    // by just taking 60% (assuming this gives largest variation)
-    // Even if this is not true for every single case, keep 60%
-    // to have the signs of the variations correlated
-    //
-    // V8PT gives fit range [-18%,+28%] so take 30% instead of 60%
     double kfactor = 1;
-    if (x<1.3)           kfactor = 0.30;//0.60;
-    if (x>=1.3 && x<2.5) kfactor = 0.30;//0.60;
-    if (x>=2.5 && x<3.0) kfactor = 0.30;//0.60;
-    if (x>=3.0)          kfactor = 0.30;//0.60;
 
     const double x_pt[] =
       {28, 32, 37, 43, 49, 56, 64, 74, 84,
@@ -1182,25 +1174,21 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
        507, 592, 686, 790, 905, 1032};
     const int ndiv_pt = sizeof(x_pt)/sizeof(x_pt[0])-1;
 
-    assert(_fl3ref);
-    TGraph *g = new TGraph(0);
+    if (!_hl2ref) _hl2ref = new TH1D("hl2ref",";p_{T} (GeV); Offset residual",
+				     ndiv_pt, x_pt);
+
     for (int ipt = 0; ipt != ndiv_pt; ++ipt) {
 
       double pt = 0.5*(x_pt[ipt] + x_pt[ipt+1]);
-      double l1f = _Rjet(pt, etax, -1, -1, _l1flat);
-      double l1p = _Rjet(pt, etax, -1, -1, _l1pt);
-      //double sysb = kfactor * (l1f / l1p - 1) - _fl1ref->Eval(pTprime);
-      double sysb = kfactor * (l1f / l1p - 1) - _fl2up->Eval(pTprime);
-      g->SetPoint(ipt, pt, sysb);
+      double l1fref = _Rjet(pt, etax, -1, -1, _l1flatref);
+      double l1pref = _Rjet(pt, etax, -1, -1, _l1ptref);
+      // probe vs tag, so barrel offset residual cancels out
+      double sysrefb = kfactor*(l1fref/l1pref-1) - _hl3ref->Interpolate(pt);
+      _hl2ref->SetBinContent(_hl2ref->FindBin(pt), sysrefb);
     } // for ipt
     
-    // Shape used in L2Residual fit
-    TF1 *fl2 = new TF1("fl2", "[0]+[1]*TMath::Log(x)",
-		       _ajet>1 ? 71 : 60, 2000./cosh(etax));
-    // AK5PFchs was used for L3Residual fit so effectively goes down to 30 GeV
-    if (_algo==jec::AK4PFchs) fl2->SetRange(30, 2000./cosh(etax));
-    if (fabs(etax)>2.964) fl2->FixParameter(1, 0); // HF uses flat
-    g->Fit(fl2,"QRN");
+    TF1 *fl2 = new TF1("fl2", "[0]", 55., 3250./cosh(etax));
+    _hl2ref->Fit(fl2,"QRN");
 
     // Residual offset uncertainty remaining after L2Res
     if ( (x>=0.0 && x<1.3 && _errType & jec::kPileUpPtBB) ||
@@ -1210,24 +1198,17 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
 
       double l1f = _Rjet(pTprime, etax, -1, -1, _l1flat);
       double l1p = _Rjet(pTprime, etax, -1, -1, _l1pt);
-      //syseta = kfactor * (l1f / l1p - 1) - _fl1ref->Eval(pTprime)
-      //	- f1->Eval(pTprime);
-      // BUG: 2015-01-014, need to match definition of sysb that we fit to fl2
-      // (is _fl3up instead of _lf2up correct, then?)
-      // (I guess so, ad _fl2up ~ _fl3up + fl2)
-      double sysb = kfactor * (l1f / l1p - 1) - _fl3up->Eval(pTprime);
-      syseta = sysb - fl2->Eval(pTprime);
+      //double sysb = kfactor * (l1f / l1p - 1) - _hl3->Interpolate(pTprime);
+      // probe corrected for offset absorbed in L3Res and L2Res for AK4PFchs
+      double sysb = kfactor * (l1f / l1p - 1) - _fl3->Eval(pTprime);
+      syseta = sysb - fl2->Eval(pTprime); // Run II
     }
 
     // Residual offset absorbed into L3Res and biasing <mu>=0
     if (_errType & jec::kPileUpMuZero) {
-      //syszero = _fl1ref->Eval(pTprime) + f1->Eval(pTprime);
-      // BUG: 2015-01-14, should use largest variation here as well,
-      //      i.e. _fl1up instead of _fl1ref (f1 is alredy with kup)
-      syszero = _fl3up->Eval(pTprime) + fl2->Eval(pTprime);
+      syszero = fl2->Eval(pTprime) + _fl3->Eval(pTprime); // Run II
     }
     
-    delete g;
     delete fl2;
   } // syseta
 
@@ -1246,10 +1227,8 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
   return sys;
 } // _PileUpPt
 
-
 // (Obsolete version of) Pile-up uncertainty from pT dependence
 // Implemented as difference between MC truth (V1) and Random Cone (V0),
-//double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
 double JECUncertainty::_PileUpEnvelope(const double pTprime, const double eta) {
 
   // Limit eta to [-5,5] because V0 files don't go further out
@@ -1257,70 +1236,16 @@ double JECUncertainty::_PileUpEnvelope(const double pTprime, const double eta) {
   double maxeta = 4.5;
   double etax = max(-maxeta,min(maxeta,eta));
 
-  // - PileUpPtBB is included in the global fit, with result -0.3489 +/- 0.2550,
-  //   thus the |eta|<1.3 uncertainty can be reduced to 25.5%
-  // - It seems justified that the uncertainty for the other regions should be
-  //   comparable to bias limit for BB, i.e. smaller than 35% + 25% = 60%
-  // - In the future, one could also consider how dijet balance (+Z/gamma+jet)
-  //   constrains PileUpPt uncertainty in other eta regions
-  //
-  // V8PT: +5.4 +/- 23.1% => max 5% + 23% = 28% ~ 30%
-  double kfactor = 0.30;//0.60;//1;
-  //double x = fabs(etax);
-  //if (x<1.3)           kfactor = 0.25;//0.2550;
-  //if (x>=1.3 && x<2.5) kfactor = 0.30;
-  //if (x>=2.5 && x<3.0) kfactor = 0.60;
-  //if (x>=3.0)          kfactor = 1.00;
+  double kfactor = 1;
 
-  _jec = _jecDefault;
-  double pT_p = _Rjet(pTprime, etax) * pTprime;  
-  _jec = _jecWithL1V0;
-  double pT_v0p = _Rjet(pTprime, etax) * pTprime;
-  _jec = _jecDefault;
+  FactorizedJetCorrector *_l1flat = _jecL1MCflat;
+  FactorizedJetCorrector *_l1pt = _jecL1MCpt;
   //
-  double l1n_p = _L1DataFlat(pT_v0p, etax); // V0Data
-  double l1s_p = _L1Data(pT_p, etax); // V1Data = V1MC * V0Data / V0MC
-  double sys_p = kfactor * (l1n_p / l1s_p - 1);
-  //
-  double l1nb_p = _L1MCFlat(pT_v0p, etax);
-  double l1sb_p = _L1MC(pT_p, etax);
-  double sysb_p = kfactor * (l1nb_p / l1sb_p - 1);
+  double l1f = _Rjet(pTprime, etax, -1, -1, _l1flat);
+  double l1p = _Rjet(pTprime, etax, -1, -1, _l1pt);
+  double sys = kfactor * (l1f / l1p - 1);
 
-  _jec = _jecDefault;
-  double pT_m = _Rjet(pTprime, -etax) * pTprime;
-  _jec = _jecWithL1V0;
-  double pT_v0m = _Rjet(pTprime, -etax) * pTprime;
-  _jec = _jecDefault;    
-  //
-  double l1n_m = _L1DataFlat(pT_v0m, -etax);
-  double l1s_m = _L1Data(pT_m, -etax);
-  double sys_m = kfactor * (l1n_m / l1s_m - 1);
-  //
-  double l1nb_m = _L1MCFlat(pT_v0m, -etax);
-  double l1sb_m = _L1MC(pT_m, -etax);
-  double sysb_m = kfactor * (l1nb_m / l1sb_m - 1);
-    
-  // Symmetrize
-  double sys = 0.5*(sys_p + sys_m);
-  double sysb = 0.5*(sysb_p + sysb_m);
-
-  if(sys > 1) {
-    std::cout << "strange uncertainty value: << " << sys*_ajet << " _PileUpBias:" << pT_p << "," << eta << " l1:" << l1n_p << "," << l1s_p << '\n';
-  }
-
-  // Check that bias consistent for data and MC files
-  if (fabs(sys-sysb)>0.001) {
-    if (debug) {
-      cout << "In PileUpBias(pTprime="<<pTprime<<",eta="<<eta<<"): ";
-      cout << "sys="<<sys<<" sysb="<<sysb<<" diff="<<fabs(sys-sysb)<<endl<<flush;
-    }
-    // Fail if difference outside comfort zone;
-    //assert(fabs(sys-sysb)<0.002);
-  }
-
-  return sys * _ajet;// _ajet: jet area/ 0.5^2
-  
-  //return 0;
+  return sys;
 } // _PileUpEnvelope
 
 // Combine jet flavor uncertainties
@@ -1965,6 +1890,7 @@ double JECUncertainty::_TimePt(const double pt, int epoch) const {
   return err;
 }
 
+/*
 // Random Cone offset for data
 double JECUncertainty::_L1DataFlat(const double pT, const double eta) {
 
@@ -1988,6 +1914,7 @@ double JECUncertainty::_L1MCFlat(const double pT, const double eta) {
   _jecL1MCflat->setJetPt(pT);
   return ( _jecL1MCflat->getCorrection() );
 }
+*/
 
 // Scaled offset for data (MC truth * RandomConeData / RandomConeMC)
 double JECUncertainty::_L1Data(const double pT, const double eta) {

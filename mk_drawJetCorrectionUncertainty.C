@@ -23,18 +23,17 @@
   setTDRStyle();
 
   // Single source test
-  drawJetCorrectionUncertainty("AK4PFchs",false); //no source files, minimal
+  //drawJetCorrectionUncertainty("AK4PFchs",false); //no source files, minimal
   // Print out source files (only setup for AK4PFchs + true pair)
   //drawJetCorrectionUncertainty("AK4PFchs",true); // also source files
 
   // Whole shebang
 
   // Switch JECUncert to JECSource with 'bool _useAbsUncert = false'
-  //drawJetCorrectionUncertainty("AK4PFchs",false); // no source files (quick)
-  //drawJetCorrectionUncertainty("AK4PFchs",true"); // also source files
-  //drawJetCorrectionUncertainty("AK4PF");
-  //drawJetCorrectionUncertainty("AK7PFchs");
-  //drawJetCorrectionUncertainty("AK7PF");
+  drawJetCorrectionUncertainty("AK4PFchs",true); // also source files
+  drawJetCorrectionUncertainty("AK4PF");
+  //drawJetCorrectionUncertainty("AK8PFchs");
+  //drawJetCorrectionUncertainty("AK8PF");
   //drawJetCorrectionUncertainty("AK4CALO");
   //drawJetCorrectionUncertainty("AK7CALO");
 

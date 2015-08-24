@@ -273,12 +273,12 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 			kGray+2, kOpenDiamond, // marker
 			kNone, kNone, "LP")); // fill
   // Remove from paper plots after pas-v6
-  //sypu.push_back(uncert("puenvelope", "PU envelope (opt)",
-  //		jec::kPileUpEnvelope,
-  //		"default", "default", -1, // defaults
-  //		kGray+1, kSolid, 1, // line
-  //		kGray+1, kNone, // marker
-  //		kNone, kNone, "LP")); // fill
+  sypu.push_back(uncert("puenvelope", "PU envelope (opt)",
+  		jec::kPileUpEnvelope,
+  		"default", "default", -1, // defaults
+  		kGray+1, kSolid, 1, // line
+  		kGray+1, kNone, // marker
+  		kNone, kNone, "LP")); // fill
 
   vector<uncert> syrel;
   syrel.push_back(uncert("relative", "SubTotalRelative",
@@ -504,11 +504,20 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 
   jec::JetAlgo jetAlg = d_algo;
 
-  double r = (jetAlg==jec::AK7PF||jetAlg==jec::AK7PFchs||jetAlg==jec::AK7CALO ?
-	      0.7 : 0.5);
-  string sa = ((jetAlg==jec::AK4CALO||jetAlg==jec::AK7CALO) ?
-	       "Calo" : ((jetAlg==jec::AK4PFchs||jetAlg==jec::AK7PFchs)
-			 ? "PF+CHS" : "PF"));
+  //double r = (jetAlg==jec::AK7PF||jetAlg==jec::AK7PFchs||jetAlg==jec::AK7CALO ?
+  //      0.7 : 0.5);
+  double r(0);
+  if (jetAlg==jec::AK8PF||jetAlg==jec::AK8PFchs||jetAlg==jec::AK8CALO) r = 0.7;
+  if (jetAlg==jec::AK7PF||jetAlg==jec::AK7PFchs||jetAlg==jec::AK7CALO) r = 0.7;
+  if (jetAlg==jec::AK5PF||jetAlg==jec::AK5PFchs||jetAlg==jec::AK5CALO) r = 0.5;
+  if (jetAlg==jec::AK4PF||jetAlg==jec::AK4PFchs||jetAlg==jec::AK4CALO) r = 0.4;
+  string sa = "";
+  if (jetAlg==jec::AK4CALO||jetAlg==jec::AK5CALO||
+      jetAlg==jec::AK7CALO||jetAlg==jec::AK8CALO) sa = "Calo";
+  if (jetAlg==jec::AK4PFchs||jetAlg==jec::AK5PFchs||
+      jetAlg==jec::AK7PFchs||jetAlg==jec::AK8PFchs) sa = "PF+CHS";
+  if (jetAlg==jec::AK4PF||jetAlg==jec::AK5PF||
+      jetAlg==jec::AK7PF||jetAlg==jec::AK8PF) sa = "PF";
   string ss = Form("R=%1.1f %s", r, sa.c_str());
   const char *s = ss.c_str();
 
@@ -517,10 +526,16 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   map<jec::JetAlgo, const char*> names;
   names[jec::AK4PF] = "AK4PF";
   names[jec::AK4PFchs] = "AK4PFchs";
+  names[jec::AK5PF] = "AK5PF";
+  names[jec::AK5PFchs] = "AK5PFchs";
   names[jec::AK7PF] = "AK7PF";
   names[jec::AK7PFchs] = "AK7PFchs";
+  names[jec::AK8PF] = "AK8PF";
+  names[jec::AK8PFchs] = "AK8PFchs";
   names[jec::AK4CALO] = "AK4CALO";
+  names[jec::AK5CALO] = "AK5CALO";
   names[jec::AK7CALO] = "AK7CALO";
+  names[jec::AK8CALO] = "AK8CALO";
 
   string ssd = Form("%s_DATA_Summary_%s", cu, names[jetAlg]);
   const char *sd = ssd.c_str();
@@ -672,7 +687,8 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   string sspu = Form("%s_PileUp_%s",cu,names[jetAlg]);
   const char *spu = sspu.c_str();
 
-  double ymaxpu = (jetAlg==jec::AK4PF || jetAlg==jec::AK4PFchs ?  3. : 5.);
+  //double ymaxpu = (jetAlg==jec::AK4PF || jetAlg==jec::AK4PFchs ?  3. : 5.);
+  double ymaxpu = 18;
 
   // PU uncertainty
   // vs pT
@@ -751,73 +767,75 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   string ssrel = Form("%s_Relative_%s",cu,names[jetAlg]);
   const char *srel = ssrel.c_str();
 
+  double ymaxrel = 18.;
+
   // Relative scale uncertainty
   // vs pT
   if (_paper && _absUncert) {
 
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta27",srel),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=2.7", 4,10,"fixEta",2.7);
+		  "|#eta_{jet}|=2.7", ymaxrel,10,"fixEta",2.7);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Pt30",srel),
 		  "JEC uncertainty", s,
-		  "p_{T}=30 GeV", 4,10,"fixPt",30.);
+		  "p_{T}=30 GeV", ymaxrel,10,"fixPt",30.);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Pt100",srel),
 		  "JEC uncertainty", s,
-		  "p_{T}=100 GeV", 4,10,"fixPt",100.);
+		  "p_{T}=100 GeV", ymaxrel,10,"fixPt",100.);
   }
   if (_fourbytwo) {
 
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta00",srel),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=0", 4,10,"fixEta",0.);
+		  "|#eta_{jet}|=0", ymaxrel,10,"fixEta",0.);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta20",srel),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=2.0", 4,10,"fixEta",2.0);
+		  "|#eta_{jet}|=2.0", ymaxrel,10,"fixEta",2.0);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta27",srel),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=2.7", 4,10,"fixEta",2.7);
+		  "|#eta_{jet}|=2.7", ymaxrel,10,"fixEta",2.7);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta42",srel),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=4.2", 4,10,"fixEta",4.2);
+		  "|#eta_{jet}|=4.2", ymaxrel,10,"fixEta",4.2);
   // vs eta
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Pt30",srel),
 		  "JEC uncertainty", s,
-		  "p_{T}=30 GeV", 4,10,"fixPt",30.);
+		  "p_{T}=30 GeV", ymaxrel,10,"fixPt",30.);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Pt100",srel),
 		  "JEC uncertainty", s,
-		  "p_{T}=100 GeV", 4,10,"fixPt",100.);
+		  "p_{T}=100 GeV", ymaxrel,10,"fixPt",100.);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_E500",srel),
 		  "JEC uncertainty", s,
-		  "E=500 GeV", 4,10,"fixE",500.);
+		  "E=500 GeV", ymaxrel,10,"fixE",500.);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_E2000",srel),
 		  "JEC uncertainty", s,
-		  "E=2000 GeV", 4,10,"fixE",2000.);
+		  "E=2000 GeV", ymaxrel,10,"fixE",2000.);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_E1000",srel),
 		  "JEC uncertainty", s,
-		  "E=1000 GeV", 4,10,"fixE",1000.); // moved last
+		  "E=1000 GeV", ymaxrel,10,"fixE",1000.); // moved last
   }
   if (_twobythree) {
 
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta00",srel),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=0", 4,10,"fixEta",0.);
+		  "|#eta_{jet}|=0", ymaxrel,10,"fixEta",0.);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Pt30",srel),
 		  "JEC uncertainty", s,
-		  "p_{T}=30 GeV", 4,10,"fixPt",30.);
+		  "p_{T}=30 GeV", ymaxrel,10,"fixPt",30.);
   //
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta27",srel),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=2.7", 4,10,"fixEta",2.7);
+		  "|#eta_{jet}|=2.7", ymaxrel,10,"fixEta",2.7);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Pt100",srel),
 		  "JEC uncertainty", s,
-		  "p_{T}=100 GeV", 4,10,"fixPt",100.);
+		  "p_{T}=100 GeV", ymaxrel,10,"fixPt",100.);
   //
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta35",srel),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=3.5", 4,10,"fixEta",3.5);
+		  "|#eta_{jet}|=3.5", ymaxrel,10,"fixEta",3.5);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Pt500",srel),
 		  "JEC uncertainty", s,
-		  "p_{T}=500 GeV", 4,10,"fixPt",500.);
+		  "p_{T}=500 GeV", ymaxrel,10,"fixPt",500.);
   }
 
   if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",srel));
@@ -832,55 +850,55 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   if (_fourbytwo) {
 
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_Eta00",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "|#eta_{jet}|=0",
+		  "JEC uncertainty", "R=0.4 PF", "|#eta_{jet}|=0",
 		  10,10,"fixEta",0.);
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_Eta20",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "|#eta_{jet}|=2.0",
+		  "JEC uncertainty", "R=0.4 PF", "|#eta_{jet}|=2.0",
 		  10,10,"fixEta",2.0);
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_Eta27",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "|#eta_{jet}|=2.7",
+		  "JEC uncertainty", "R=0.4 PF", "|#eta_{jet}|=2.7",
 		  10,10,"fixEta",2.7);
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_Eta42",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "|#eta_{jet}|=4.2",
+		  "JEC uncertainty", "R=0.4 PF", "|#eta_{jet}|=4.2",
 		  10,10,"fixEta",4.2);
   // vs eta
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_Pt30",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "p_{T}=30 GeV",
+		  "JEC uncertainty", "R=0.4 PF", "p_{T}=30 GeV",
 		  10,10,"fixPt",30.);
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_Pt100",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "p_{T}=100 GeV",
+		  "JEC uncertainty", "R=0.4 PF", "p_{T}=100 GeV",
 		  10,10,"fixPt",100.);
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_E500",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "E=500 GeV",
+		  "JEC uncertainty", "R=0.4 PF", "E=500 GeV",
 		  10,10,"fixPt",500.);
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_E2000",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "E=2000 GeV",
+		  "JEC uncertainty", "R=0.4 PF", "E=2000 GeV",
 		  10,10,"fixE",500.);
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_E1000",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "E=1000 GeV",
+		  "JEC uncertainty", "R=0.4 PF", "E=1000 GeV",
 		  10,10,"fixE",2000.);
   }
   if (_twobythree) {
 
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_Eta00",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "|#eta_{jet}|=0",
+		  "JEC uncertainty", "R=0.4 PF", "|#eta_{jet}|=0",
 		  10,10,"fixEta",0.);
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_Pt30",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "p_{T}=30 GeV",
+		  "JEC uncertainty", "R=0.4 PF", "p_{T}=30 GeV",
 		  10,10,"fixPt",30.);
   //
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_Eta27",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "|#eta_{jet}|=2.7",
+		  "JEC uncertainty", "R=0.4 PF", "|#eta_{jet}|=2.7",
 		  10,10,"fixEta",2.7);
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_Pt100",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "p_{T}=100 GeV",
+		  "JEC uncertainty", "R=0.4 PF", "p_{T}=100 GeV",
 		  10,10,"fixPt",100.);
   //
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_Eta35",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "|#eta_{jet}|=3.5",
+		  "JEC uncertainty", "R=0.4 PF", "|#eta_{jet}|=3.5",
 		  10,10,"fixEta",3.5);
   plotUncertainty(syCorrGroups, 0, syCorrGroups.size(), jetAlg, Form("%s_Pt500",sCorrGroups),
-		  "JEC uncertainty", "R=0.5 PF", "p_{T}=500 GeV",
+		  "JEC uncertainty", "R=0.4 PF", "p_{T}=500 GeV",
 		  10,10,"fixPt",500.);
   }
 
@@ -892,66 +910,68 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   string sspt = Form("%s_AbsolutePt_%s",cu,names[jetAlg]);
   const char *spt = sspt.c_str();
 
+  double ymaxpt = 5; // 2
+
   // Absolute scale pT dependent uncertainty
   // vs pT
   if (_paper && !_absUncert) {
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Eta00",spt),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=0", 2,10,"fixEta",0.);
+		  "|#eta_{jet}|=0", ymaxpt,10,"fixEta",0.);
   }
   if (_fourbytwo) {
 
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Eta00",spt),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=0", 2,10,"fixEta",0.);
+		  "|#eta_{jet}|=0", ymaxpt,10,"fixEta",0.);
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Eta20",spt),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=2.0", 2,10,"fixEta",2.0);
+		  "|#eta_{jet}|=2.0", ymaxpt,10,"fixEta",2.0);
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Eta27",spt),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=2.7", 2,10,"fixEta",2.7);
+		  "|#eta_{jet}|=2.7", ymaxpt,10,"fixEta",2.7);
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Eta42",spt),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=4.2", 2,10,"fixEta",4.2);
+		  "|#eta_{jet}|=4.2", ymaxpt,10,"fixEta",4.2);
   // vs eta
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Pt30",spt),
 		  "JEC uncertainty", s,
-		  "p_{T}=30 GeV", 2,10,"fixPt",30.);
+		  "p_{T}=30 GeV", ymaxpt,10,"fixPt",30.);
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Pt100",spt),
 		  "JEC uncertainty", s,
-		  "p_{T}=100 GeV", 2,10,"fixPt",100.);
+		  "p_{T}=100 GeV", ymaxpt,10,"fixPt",100.);
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_E500",spt),
 		  "JEC uncertainty", s,
-		  "E=500 GeV", 2,10,"fixE",500.);
+		  "E=500 GeV", ymaxpt,10,"fixE",500.);
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_E2000",spt),
 		  "JEC uncertainty", s,
-		  "E=2000 GeV", 2,10,"fixE",2000.);
+		  "E=2000 GeV", ymaxpt,10,"fixE",2000.);
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_E1000",spt),
 		  "JEC uncertainty", s,
-		  "E=1000 GeV", 2,10,"fixE",1000.); // moved last
+		  "E=1000 GeV", ymaxpt,10,"fixE",1000.); // moved last
   }
   if (_twobythree) {
 
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Eta00",spt),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=0", 2,10,"fixEta",0.);
+		  "|#eta_{jet}|=0", ymaxpt,10,"fixEta",0.);
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Pt30",spt),
 		  "JEC uncertainty", s,
-		  "p_{T}=30 GeV", 2,10,"fixPt",30.);
+		  "p_{T}=30 GeV", ymaxpt,10,"fixPt",30.);
   //
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Eta27",spt),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=2.7", 2,10,"fixEta",2.7);
+		  "|#eta_{jet}|=2.7", ymaxpt,10,"fixEta",2.7);
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Pt100",spt),
 		  "JEC uncertainty", s,
-		  "p_{T}=100 GeV", 2,10,"fixPt",100.);
+		  "p_{T}=100 GeV", ymaxpt,10,"fixPt",100.);
   //
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Eta35",spt),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}|=3.5", 2,10,"fixEta",3.5);
+		  "|#eta_{jet}|=3.5", ymaxpt,10,"fixEta",3.5);
   plotUncertainty(sypt, 0, sypt.size(), jetAlg, Form("%s_Pt500",spt),
 		  "JEC uncertainty", s,
-		  "p_{T}=500 GeV", 2,10,"fixPt",500.);
+		  "p_{T}=500 GeV", ymaxpt,10,"fixPt",500.);
   }
 
   if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",spt));
@@ -1045,6 +1065,8 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   string sst = Form("%s_Time_%s",cu,names[jetAlg]);
   const char *st = sst.c_str();
 
+  double ymaxt = 6;//3.2;
+
   // Drop TimeEta for |eta|=0 plot
   vector<uncert> syt0(syt.begin()+1,syt.end());
 
@@ -1053,64 +1075,64 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   if (_paper && !_absUncert) {
   plotUncertainty(syt0, 0, syt0.size(), jetAlg, Form("%s_Eta00",st),
                   "JEC uncertainty", s,
-                  "|#eta_{jet}|=0", 3.2,10,"fixEta",0.);
+                  "|#eta_{jet}|=0", ymaxt,10,"fixEta",0.);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Pt30",st),
                   "JEC uncertainty", s,
-                  "p_{T}=30 GeV", 3.2,10,"fixPt",30.);
+                  "p_{T}=30 GeV", ymaxt,10,"fixPt",30.);
   }
   if (_fourbytwo) {
 
   plotUncertainty(syt0, 0, syt0.size(), jetAlg, Form("%s_Eta00",st),
                   "JEC uncertainty", s,
-                  "|#eta_{jet}|=0", 3.2,10,"fixEta",0.);
+                  "|#eta_{jet}|=0", ymaxt,10,"fixEta",0.);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Eta20",st),
                   "JEC uncertainty", s,
-                  "|#eta_{jet}|=2.0", 3.2,10,"fixEta",2.0);
+                  "|#eta_{jet}|=2.0", ymaxt,10,"fixEta",2.0);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Eta27",st),
                   "JEC uncertainty", s,
-                  "|#eta_{jet}|=2.7", 3.2,10,"fixEta",2.7);
+                  "|#eta_{jet}|=2.7", ymaxt,10,"fixEta",2.7);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Eta42",st),
                   "JEC uncertainty", s,
-                  "|#eta_{jet}|=4.2", 3.2,10,"fixEta",4.2);
+                  "|#eta_{jet}|=4.2", ymaxt,10,"fixEta",4.2);
   // vs eta
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Pt30",st),
                   "JEC uncertainty", s,
-                  "p_{T}=30 GeV", 3.2,10,"fixPt",30.);
+                  "p_{T}=30 GeV", ymaxt,10,"fixPt",30.);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Pt100",st),
                   "JEC uncertainty", s,
-                  "p_{T}=100 GeV", 3.2,10,"fixPt",100.);
+                  "p_{T}=100 GeV", ymaxt,10,"fixPt",100.);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_E500",st),
                   "JEC uncertainty", s,
-                  "E=500 GeV", 3.2,10,"fixE",500.);
+                  "E=500 GeV", ymaxt,10,"fixE",500.);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_E2000",st),
                   "JEC uncertainty", s,
-                  "E=2000 GeV", 3.2,10,"fixE",2000.);
+                  "E=2000 GeV", ymaxt,10,"fixE",2000.);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_E1000",st),
                   "JEC uncertainty", s,
-                  "E=1000 GeV", 3.2,10,"fixE",1000.); // moved last
+                  "E=1000 GeV", ymaxt,10,"fixE",1000.); // moved last
   }
   if (_twobythree) {
     
   plotUncertainty(syt0, 0, syt0.size(), jetAlg, Form("%s_Eta00",st),
                   "JEC uncertainty", s,
-                  "|#eta_{jet}|=0", 3.2,10,"fixEta",0.);
+                  "|#eta_{jet}|=0", ymaxt,10,"fixEta",0.);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Pt30",st),
                   "JEC uncertainty", s,
-                  "p_{T}=30 GeV", 3.2,10,"fixPt",30.);
+                  "p_{T}=30 GeV", ymaxt,10,"fixPt",30.);
   //
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Eta27",st),
                   "JEC uncertainty", s,
-                  "|#eta_{jet}|=2.7", 3.2,10,"fixEta",2.7);
+                  "|#eta_{jet}|=2.7", ymaxt,10,"fixEta",2.7);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Pt100",st),
                   "JEC uncertainty", s,
-                  "p_{T}=100 GeV", 3.2,10,"fixPt",100.);
+                  "p_{T}=100 GeV", ymaxt,10,"fixPt",100.);
   //
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Eta35",st),
                   "JEC uncertainty", s,
-                  "|#eta_{jet}|=3.5", 3.2,10,"fixEta",3.5);
+                  "|#eta_{jet}|=3.5", ymaxt,10,"fixEta",3.5);
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Pt500",st),
                   "JEC uncertainty", s,
-                  "p_{T}=500 GeV", 3.2,10,"fixPt",500.);
+                  "p_{T}=500 GeV", ymaxt,10,"fixPt",500.);
   }
   //
   _absUncert = absUncertTmp;
@@ -1260,7 +1282,7 @@ void plotUncertainty(vector<uncert> const& sys,
   //cout << "Got here 1" << endl << flush;
   
   const double *x(0), *x0(0);
-  int ndiv0;
+  int ndiv0(0);
   assert(type=="fixEta" || type=="fixPt" || type=="fixE");
   double eta(0), pt(0), e(0), ndiv(0);
   if (type=="fixEta") { 
@@ -1469,17 +1491,17 @@ void plotUncertainty(vector<uncert> const& sys,
     //JECUncertainty rjet5c(jec::AK4CALO, jec::DATA, jec::kData, d_mu);
     //JECUncertainty rjet7c(jec::AK4CALO, jec::DATA, jec::kData, d_mu);
 
-    //ofstream fout5p("txt/Summer15_50nsV3M2_DATA_Uncertainty_AK4PF.txt",ios::out);
+    //ofstream fout5p("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK4PF.txt",ios::out);
     //fout5p << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5s("txt/Summer15_50nsV3M2_DATA_Uncertainty_AK4PFchs.txt",ios::out);
+    ofstream fout5s("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK4PFchs.txt",ios::out);
     fout5s << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout5c("txt/Summer15_50nsV3M2_DATA_Uncertainty_AK4Calo.txt",ios::out);
+//     ofstream fout5c("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK4Calo.txt",ios::out);
 //     fout5c << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout7p("txt/Summer15_50nsV3M2_DATA_Uncertainty_AK7PF.txt",ios::out);
+//     ofstream fout7p("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK7PF.txt",ios::out);
 //     fout7p << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout7s("txt/Summer15_50nsV3M2_DATA_Uncertainty_AK7PFchs.txt",ios::out);
+//     ofstream fout7s("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK7PFchs.txt",ios::out);
 //     fout7s << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout7c("txt/Summer15_50nsV3M2_DATA_Uncertainty_AK7Calo.txt",ios::out);
+//     ofstream fout7c("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK7Calo.txt",ios::out);
 //     fout7c << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
 //     JECUncertainty rjet5px(jec::AK4PF, jec::DATA, jec::kMC, d_mu);
@@ -1489,17 +1511,17 @@ void plotUncertainty(vector<uncert> const& sys,
 //     JECUncertainty rjet5cx(jec::AK4CALO, jec::DATA, jec::kMC, d_mu);
 //     JECUncertainty rjet7cx(jec::AK7CALO, jec::DATA, jec::kMC, d_mu);
 
-//     ofstream fout5px("txt/Summer15_50nsV3M2_MC_Uncertainty_AK4PF.txt",ios::out);
+//     ofstream fout5px("txt/Summer15_50nsV4M1_MC_Uncertainty_AK4PF.txt",ios::out);
 //     fout5px << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    ofstream fout5sx("txt/Summer15_50nsV3M2_MC_Uncertainty_AK4PFchs.txt",ios::out);
+    ofstream fout5sx("txt/Summer15_50nsV4M1_MC_Uncertainty_AK4PFchs.txt",ios::out);
     fout5sx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout5cx("txt/Summer15_50nsV3M2_MC_Uncertainty_AK4Calo.txt",ios::out);
+//     ofstream fout5cx("txt/Summer15_50nsV4M1_MC_Uncertainty_AK4Calo.txt",ios::out);
 //     fout5cx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout7px("txt/Summer15_50nsV3M2_MC_Uncertainty_AK7PF.txt",ios::out);
+//     ofstream fout7px("txt/Summer15_50nsV4M1_MC_Uncertainty_AK7PF.txt",ios::out);
 //     fout7px << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout7sx("txt/Summer15_50nsV3M2_MC_Uncertainty_AK7PFchs.txt",ios::out);
+//     ofstream fout7sx("txt/Summer15_50nsV4M1_MC_Uncertainty_AK7PFchs.txt",ios::out);
 //     fout7sx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout7cx("txt/Summer15_50nsV3M2_MC_Uncertainty_AK7Calo.txt",ios::out);
+//     ofstream fout7cx("txt/Summer15_50nsV4M1_MC_Uncertainty_AK7Calo.txt",ios::out);
 //     fout7cx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
     for (int ieta = 0; ieta != ndiv_eta; ++ieta) {
@@ -1589,25 +1611,25 @@ void plotUncertainty(vector<uncert> const& sys,
     //if (name=="JECUncert_DATA_AK4PFchs_Eta00") {
     
     // Note: AK4PFchs is CHS, AK7PF is non-CHS (AK7PFchs on Jan 25)
-    ofstream fout5("txt/Summer15_50nsV3M2_DATA_UncertaintySources_AK4PFchs.txt",ios::out);
-    fout5 << "#Uncertainty sources for Summer15_50nsV3M2_DATA_AK4PFchs" << endl;
+    ofstream fout5("txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK4PFchs.txt",ios::out);
+    fout5 << "#Uncertainty sources for Summer15_50nsV4M1_DATA_AK4PFchs" << endl;
     cout << "Storing uncertainties to: "
-	 << "txt/Summer15_50nsV3M2_DATA_UncertaintySources_AK4PFchs.txt" << endl;
- //    ofstream fout5x("txt/Summer15_50nsV3M2_DATA_UncertaintySources_AK4PF.txt",ios::out);
-//     fout5x << "#Uncertainty sources for Summer15_50nsV3M2_DATA_AK4PF" << endl;
+	 << "txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK4PFchs.txt" << endl;
+ //    ofstream fout5x("txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK4PF.txt",ios::out);
+//     fout5x << "#Uncertainty sources for Summer15_50nsV4M1_DATA_AK4PF" << endl;
 //     cout << "Storing uncertainties to: "
-// 	 << "txt/Summer15_50nsV3M2_DATA_UncertaintySources_AK4PF.txt" << endl;
+// 	 << "txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK4PF.txt" << endl;
 //     //
-//     ofstream fout7("txt/Summer15_50nsV3M2_DATA_UncertaintySources_AK7PFchs.txt",
+//     ofstream fout7("txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK7PFchs.txt",
 // 		   ios::out);
-//     fout7 << "#Uncertainty sources for Summer15_50nsV3M2_DATA_AK7PFchs" << endl;
+//     fout7 << "#Uncertainty sources for Summer15_50nsV4M1_DATA_AK7PFchs" << endl;
 //     cout << "Storing uncertainties to: "
-// 	 << "txt/Summer15_50nsV3M2_DATA_UncertaintySources_AK7PFchs.txt" << endl;
-//     ofstream fout7x("txt/Summer15_50nsV3M2_DATA_UncertaintySources_AK7PF.txt",
+// 	 << "txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK7PFchs.txt" << endl;
+//     ofstream fout7x("txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK7PF.txt",
 // 		    ios::out);
-//     fout7x << "#Uncertainty sources for Summer15_50nsV3M2_DATA_AK7PF" << endl;
+//     fout7x << "#Uncertainty sources for Summer15_50nsV4M1_DATA_AK7PF" << endl;
 //     cout << "Storing uncertainties to: "
-// 	 << "txt/Summer15_50nsV3M2_DATA_UncertaintySources_AK7PF.txt" << endl;
+// 	 << "txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK7PF.txt" << endl;
 
     jec::ErrorTypes vsrc[] =
       //{jec::kAbsolute, jec::kRelative, jec::kPtExtra};
