@@ -124,6 +124,7 @@ void drawCMSresponse() {
   TH1D *h = new TH1D("h",";Jet |#eta|;Simulated jet response",40,0,4.8);
   h->SetMaximum(1.25);
   h->SetMinimum(0.5);
+  lumi_8TeV = "";
   TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
 
   TLegend *leg1 = tdrLeg(0.25,0.25,0.55,0.30);
@@ -164,7 +165,7 @@ void drawCMSresponse() {
   l->SetLineStyle(kDashed);
   l->DrawLine(3.2,0.7,3.2,1.1);
 
-  tex->DrawLatex(0.30,0.86,"2012 JES: Anti-k_{t} R = 0.5, PF+CHS");
+  tex->DrawLatex(0.23,0.86,"2012 JES: Anti-k_{t} R = 0.5, PF+CHS");
 
   tex->DrawLatex(0.19,0.78,"Barrel");
   tex->DrawLatex(0.47,0.78,"Endcap"); //0.42
