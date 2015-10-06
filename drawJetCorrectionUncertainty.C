@@ -410,6 +410,14 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
                        kBlack, kFullTriangleDown, // marker
                        kNone, kNone, "LP")); // fill
 
+  vector<uncert> syteta;
+  syteta.push_back(uncert("time_eta", "TimeEta",
+			  jec::kTimeEta,
+			  "default", "default", -1, // defaults
+			  kYellow+3, kSolid, 1, // line
+			  kBlack, kNone, // marker
+			  kYellow, 1001, "LF")); // fill
+
   vector<uncert> syt;
   syt.push_back(uncert("time_eta", "TimeEta",
                        jec::kTimeEta,
@@ -1056,6 +1064,13 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
   plotUncertainty(syt, 0, syt.size(), jetAlg, Form("%s_Pt30",st),
                   "JEC uncertainty", s,
                   "p_{T}=30 GeV", 3.2,10,"fixPt",30.);
+  }
+  if (_paper && !_absUncert && absUncertTmp) {
+    _absUncert = true;
+    plotUncertainty(syteta, 0, syteta.size(), jetAlg, Form("%s_Pt30",st),
+		    "JEC uncertainty", s,
+		    "p_{T}=30 GeV", 4,10,"fixPt",30.);
+    _absUncert = false;
   }
   if (_fourbytwo) {
 
