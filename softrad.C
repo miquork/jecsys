@@ -31,14 +31,15 @@ const double _lumi = 19800.;
 
 using namespace std;
 
-TF1 *_fitError_func(0);
-TMatrixD *_fitError_emat(0);
-Double_t fitError(Double_t *xx, Double_t *p);
+TF1 *_sr_fitError_func(0);
+TMatrixD *_sr_fitError_emat(0);
+Double_t sr_fitError(Double_t *xx, Double_t *p);
 
 // Soft radiation corrections for L3Res
 void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 
   setTDRStyle();
+  writeExtraText = false; // for JEC paper CWR
 
   TDirectory *curdir = gDirectory;
 
@@ -230,7 +231,10 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	h->GetXaxis()->SetNoExponent();
 	h->SetMinimum(0.88);
 	h->SetMaximum(1.13);
-	
+
+	writeExtraText = true;
+	extraText = (string(ct)=="mc" ? "Simulation" : "");
+	lumi_8TeV = (string(ct)=="mc" ? "" : "19.7 fb^{-1}");
 	TCanvas *c0 = tdrCanvas(Form("c0_%s_%s",cm,ct), h, 2, 11, true);
 	c0->SetLogx();
 	
@@ -456,9 +460,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  TMatrixD emat(n,n);
 	  gMinuit->mnemat(emat.GetMatrixArray(), n);
 	  TF1 *fke = new TF1(Form("fk_%s_%s_%s",ct,cm,cs),
-			     fitError, 30, 1300, 1);
-	  _fitError_func = fk;
-	  _fitError_emat = &emat;
+			     sr_fitError, 30, 1300, 1);
+	  _sr_fitError_func = fk;
+	  _sr_fitError_emat = &emat;
 
 	  fke->SetLineStyle(kSolid);
 	  fke->SetLineColor(fk->GetLineColor()-10);
@@ -547,15 +551,15 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   curdir->cd();
 } // softrad
 
-Double_t fitError(Double_t *xx, Double_t *p) {
+Double_t sr_fitError(Double_t *xx, Double_t *p) {
 
-  assert(_fitError_func);
-  assert(_fitError_emat);
+  assert(_sr_fitError_func);
+  assert(_sr_fitError_emat);
   double x = *xx;
   double k = p[0];
-  TF1 *f = _fitError_func;
+  TF1 *f = _sr_fitError_func;
   int n = f->GetNpar();
-  TMatrixD &emat = (*_fitError_emat);
+  TMatrixD &emat = (*_sr_fitError_emat);
   assert(emat.GetNrows()==n);
   assert(emat.GetNcols()==n);
   
