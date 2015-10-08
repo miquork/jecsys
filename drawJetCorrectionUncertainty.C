@@ -373,13 +373,13 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
   			kNone, kNone, "LP")); // fill
 
   vector<uncert> syf;
-  syf.push_back(uncert("flavor_gluon", "Gluon",
+  syf.push_back(uncert("flavor_gluon", "Gluons",
                        jec::kFlavorPureGluon,
                       "default", "default", -1, // defaults
                       kYellow+3, kSolid, 1, // line
                       kBlack, kNone, // marker
                       kYellow, 1001, "LF")); // fill
-  syf.push_back(uncert("flavor_qcd", "QCD Mixture",
+  syf.push_back(uncert("flavor_qcd", "QCD mixture",
                        jec::kFlavorQCD,
                       "default", "default", -1, // defaults
                       kGreen+2, kSolid, 1, // line
@@ -403,7 +403,7 @@ void drawJetCorrectionUncertainty(string algo = "AK5PF",
                        kBlue, kNone, 1, // line
                        kBlue, kFullTriangleUp, // marker
                        kNone, kNone, "LP")); // fill
-  syf.push_back(uncert("flavor", "Bottom",
+  syf.push_back(uncert("flavor", "Bottom quarks",
                        jec::kFlavorPureBottom,
                        "default", "default", -1, // defaults
                        kBlack, kNone, 1, // line
