@@ -92,6 +92,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   
   TDirectory *curdir = gDirectory;
   setTDRStyle();
+  writeExtraText = false; // for JEC paper CWR
 
   TFile *f = new TFile("rootfiles/jecdata.root","READ");
   assert(f && !f->IsZombie());
@@ -473,7 +474,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 
   const int maxpt = 1600;
   const int minpt = 30;
-  TH1D *h = new TH1D("h",";p_{T} (GeV);Response (Data/MC)",
+  TH1D *h = new TH1D("h",";p_{T} (GeV);Jet response (ratio)",
 		     maxpt-minpt,minpt,maxpt);
   h->SetMinimum(etamin==0 ? 0.93 : 0.80);
   h->SetMaximum(etamin==0 ? 1.08 : 1.20);
@@ -538,7 +539,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 
   herr_ref->SetLineWidth(2);
   herr_ref->SetLineColor(kYellow+3);
-  herr_ref->SetLineStyle(kDotted);
+  herr_ref->SetLineStyle(kDashed);
   herr_ref->DrawClone("SAME E3");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
   legp->AddEntry(herr_ref," ","");
@@ -712,7 +713,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   //gPad->SetLogx();
 
   h = (TH1D*)h->Clone("h1");
-  h->SetYTitle("Shifted response (Data/MC)");  
+  h->SetYTitle("Post-fit jet response (ratio)");  
 
   TCanvas *c1 = tdrCanvas("c1",h,2,11,true);
   gPad->SetLogx();
