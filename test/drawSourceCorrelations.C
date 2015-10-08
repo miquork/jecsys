@@ -9,6 +9,7 @@
 void drawSourceCorrelations(string subset = "Total", string algo = "AK5PFchs") {
 
   setTDRStyle();
+  writeExtraText = false; // for JEC paper CWR
 
   // Autogenerate list of sources from UncertaintySources.txt with this macro:
   // grep '\[' CondFormats/JetMETObjects/data/Winter14_V5_DATA_UncertaintySources_AK5PFchs.txt | sed 's/\]/"\);/' | sed 's/\[/s.push_back\("/'
@@ -130,8 +131,8 @@ void drawSourceCorrelations(string subset = "Total", string algo = "AK5PFchs") {
 
   TH2D *h2 = new TH2D("h2",";p_{T} (GeV);p_{T} (GeV)",
 		      npt, ptbins, npt, ptbins);
-  TH2D *h2x = new TH2D("h2x",";100^{i_{#eta}}p_{T} (GeV)"
-		       ";100^{i_{#eta}}p_{T} (GeV)",
+  TH2D *h2x = new TH2D("h2x",";100^{j#eta}p_{T} (GeV)"
+		       ";100^{j#eta}p_{T} (GeV)",
 		       netapt, etaptbins, netapt, etaptbins);
 
   const double zmin = -0.75;//-0.5;//-0.4;//-0.25;
@@ -245,7 +246,7 @@ void drawSourceCorrelations(string subset = "Total", string algo = "AK5PFchs") {
     //h2->GetZaxis()->SetRangeUser(0,1-1e-4);
     h2->GetZaxis()->SetRangeUser(zmin+1e-4,1-1e-4);
 
-    gPad->SetRightMargin(0.14);//0.12);
+    gPad->SetRightMargin(0.15);//0.14);//0.12);
     gPad->SetLeftMargin(0.17);
     gPad->SetBottomMargin(0.16);// pas-v6; to match 42R
     gPad->RedrawAxis();
@@ -285,8 +286,8 @@ void drawSourceCorrelations(string subset = "Total", string algo = "AK5PFchs") {
 
   // Multiple eta bins
   {
-    TH1D *h1x = new TH1D("h1x",";100^{i#eta} #times p_{T} (GeV)"
-			 ";100^{i#eta} #times p_{T} (GeV)",
+    TH1D *h1x = new TH1D("h1x",";100^{j#eta} #times p_{T} (GeV)"
+			 ";100^{j#eta} #times p_{T} (GeV)",
 			 netapt,etaptbins);
     h1x->SetMinimum(etaptbins[0]);
     h1x->SetMaximum(etaptbins[netapt]);
@@ -308,7 +309,7 @@ void drawSourceCorrelations(string subset = "Total", string algo = "AK5PFchs") {
 
     h1x->GetXaxis()->SetTitleOffset(1.2);
     
-    gPad->SetRightMargin(0.14);//0.12);
+    gPad->SetRightMargin(0.15);//0.14);//0.12);
     gPad->SetLeftMargin(0.17);
     gPad->SetBottomMargin(0.16);//0.15);
     gPad->RedrawAxis();
