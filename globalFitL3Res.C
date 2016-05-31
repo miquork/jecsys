@@ -1,6 +1,6 @@
 // File: globalFitL3Res.C
 // Created by Mikko Voutilainen, on June 9th, 2014
-// Updated on Oct 25, 2014 (cleanup for 8 TeV JEC paper)
+// Updated on Aug 12, 2015 (Run 2 global fit, patch hard-coded 0.98)
 // Purpose: Use JEC combination file to fit L3Res globally
 //          including scale uncertainties, FSR eigenvectors etc.
 #include "TFile.h"
@@ -29,8 +29,10 @@
 
 using namespace std;
 
-bool dofsr = true;
-bool _paper = true; // pas-v6
+bool dofsr = true; // correct for FSR
+bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
+bool _paper = true;
+//bool _g_dcsonly = false;
 unsigned int _nsamples(0);
 unsigned int _nmethods(0);
 
@@ -40,6 +42,7 @@ vector<TGraphErrors*> *_vdt(0);
 vector<TGraphErrors*> *_vpt(0);
 vector<TGraphErrors*> *_vdt2(0);
 vector<TGraphErrors*> *_vpt2(0);
+vector<TGraphErrors*> *_vdt3(0);
 vector<TH1D*> *_vsrc;
 void jesFitter(Int_t &npar, Double_t *grad, Double_t &chi2, Double_t *par,
 	       Int_t flag);
@@ -49,40 +52,118 @@ TF1 *_fitError_func(0);
 TMatrixD *_fitError_emat(0);
 Double_t fitError(Double_t *xx, Double_t *p);
 
-const int njesFit = 2; // scale+HB+fixedPileUpPt
+//const int njesFit = 1; // scale only
+//const int njesFit = 2; // scale+HB+fixedPileUpPt
 //const int njesFit = 3; // scale+HB+PileUpPt
+bool hbpt = false;//true; // pT dependent HB scale instead of PileUpPt
+const int njesFit = 4; // scale+HBxPt+PileUpPt
+bool erffit = false;//true; // error function fit
+bool stepfit = true;
+bool basicfit = false;
+const double ptminJesFit = 30;//300;
 TF1 *fhb(0), *fl1(0); double _etamin(0);
 Double_t jesFit(Double_t *x, Double_t *p) {
 
   double pt = *x;
 
   // Initialize SinglePionHCAL and PileUpPt shapes
-  if (!fhb) fhb = new TF1("fhb","max(0,[0]+[1]*pow(x,[2]))",10,3500);
+  if (!fhb) fhb = new TF1("fhb","max(0.,[0]+[1]*pow(x,[2]))",10,3500);
   fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
   if (!fl1) fl1 = new TF1("fl1","1+([0]+[1]*log(x))/x",30,2000);
-  fl1->SetParameters(-2.36997, 0.413917);
+  //fl1->SetParameters(-2.36997, 0.413917); // Run I
+  fl1->SetParameters(-0.7866069, 0.1330742); // Run II
  
+  // Just fitting a constant scale factor for RelativePt uncertainty
+  if (njesFit==1) {
+    return p[0];
+  }
+
   // Directly using fitted SPR HCAL shape (from JECUncertainty.cpp)
   if (njesFit==2) {
 
     // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
     double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
-    return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
-	    //    + -0.090 * (fl1->Eval(pt)-fl1->Eval(ptref))); // GT, newL1V6
-	    + 0.054 * (fl1->Eval(pt)-fl1->Eval(ptref))); // newL1 V8
-    //+ 0.00 * (fl1->Eval(pt)-fl1->Eval(ptref))); // newL1
+    double ptx = (stepfit ? max(150.,min(340.,pt)) : pt); // 147.4/87 V2M2
+
+    return (p[0] + p[1]/3.*100*(fhb->Eval(ptx)-fhb->Eval(ptref)));
   } // njesFit==2
 
+
   // HB scale + const + residual log-pT offset
-  if (njesFit==3) {
+  if (njesFit==3 && !hbpt) {
 
     // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
     // p[2]: fraction of PileUpPtBB uncertainty
     //double ptref = 225.; // GT
     double ptref = 208.; // newL1
-    return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
-	    + p[2]*(fl1->Eval(pt)-fl1->Eval(ptref)));
+    //return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
+    //    + p[2]*(fl1->Eval(pt)-fl1->Eval(ptref)));
+    double ptx = max(220.,min(300.,pt));
+    return (p[0] + p[1]/3.*100*(fhb->Eval(ptx)-fhb->Eval(ptref))
+	    + p[2]*(fl1->Eval(ptx)-fl1->Eval(ptref)));
   } // njesFit==3
+
+  // pT-dependent HB scale + const
+  if (njesFit==3 && hbpt) {
+
+    // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
+    // p[3]: HCAL scale log-linear pT dependence
+    double ptref = 208.;
+    double hbscale = p[1] + p[2]*log(pt/ptref);
+    return (p[0] + hbscale/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref)));
+  } // njesFit==3
+
+  // Less physical error function fit
+  if (njesFit==4 && erffit) {
+    
+    //return (p[0] + p[1]*TMath::Erf((log(pt/p[2]) / log(p[3]/p[2]))));
+    return (p[0] + p[1]*TMath::Erf((log(pt) - log(p[2])) / p[3]));
+    //return (p[0] + p[1]*TMath::Erf((pt - p[2]) / p[3]));
+  } // njesFit==4
+
+  // Directly using fitted SPR HCAL shape (from JECUncertainty.cpp)
+  if (njesFit==4 && stepfit) {
+
+    // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
+    double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
+    //double x0(150), x1(340);
+    double x0(150), x1(400);
+    double r(1), k(100./3.);
+    double f = fhb->Eval(pt);
+    double f0 = fhb->Eval(x0);
+    double f1 = fhb->Eval(x1);
+    double fref = fhb->Eval(ptref);
+//     if (pt<x0) {
+//       r = (p[0] + (p[1]-p[2])*k*(f0-fref)) + p[2]*k*(f - fref);
+//     }
+//     if (pt>=x0 && pt<x1) {
+//       r = p[0] + p[1]*k*(f - fref);
+//     }
+//     if (pt>=x1) {
+//       r = (p[0] + (p[1]-p[3])*k*(f1-fref)) + p[3]*k*(f - fref);
+//     }
+    double r3p = p[0] + p[1]*k*(f-fref);
+    double r1p = p[2] + p[3]*k*(f-fref);
+    double w = (pt-x0)/(x1-x0); // linear version
+    //double w = (log(pt)-log(x0))/(log(x1)-log(x0)); // log-linear version
+    if (pt<x0) r = r3p;
+    if (pt>=x0 && pt<x1) r = r3p*(1-w) + r1p*w;
+    if (pt>=x1) r = r1p;
+
+    return r;
+  } // njesFit==4
+
+  // pT-dependent HB scale + const + residual log-pT offset
+  if (njesFit==4 && basicfit) {
+
+    // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
+    // p[2]: fraction of PileUpPtBB uncertainty
+    // p[3]: HCAL scale log-linear pT dependence
+    double ptref = 208.;
+    double hbscale = p[1] + p[3]*log(pt/ptref);
+    return (p[0] + hbscale/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
+	    + p[2]*(fl1->Eval(pt)-fl1->Eval(ptref)));
+  } // njesFit==4
 
 }
 
@@ -104,11 +185,52 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   const int nmethods = 2;
   const char* methods[nmethods] = {"ptchs","mpfchs1"};
   _nmethods = nmethods; // for multijets in global fit
+
   // Global fit with multijets
   const int nsamples = 4;
   const int nsample0 = 1; // first Z/gamma+jet sample
   const char* samples[4] = {(etamin==0 ? "multijet" : "dijet"),
 			    "gamjet", "zeejet", "zmmjet"};
+  const int igj = 0;
+  const int izee = 1;
+  const int izmm = 2;
+
+
+  /*
+  // Global fit without multijets
+  const int nsamples = 3;
+  const int nsample0 = 0; // first Z/gamma+jet sample
+  const char* samples[3] = {"gamjet", "zeejet", "zmmjet"};
+  const int igj = 0;
+  const int izee = 1;
+  const int izmm = 2;
+  */
+  // old default
+  /*
+  const int nsamples = 3;
+  const int nsample0 = 1; // first Z/gamma+jet sample
+  const char* samples[3] = {(etamin==0 ? "multijet" : "dijet"),
+			    "gamjet", "zmmjet"};
+  const int igj = 0;
+  const int izee = 1; // TEMP
+  const int izmm = 1;
+  */
+  /*
+  const int nsamples = 2;
+  const int nsample0 = 0; // first Z/gamma+jet sample
+  const char* samples[2] = {"gamjet", "zmmjet"};
+  */
+  /*
+  const int nsamples = 1;
+  const int nsample0 = 0; // first Z/gamma+jet sample
+  const char* samples[1] = {"gamjet"};
+  */
+  /*
+  const int nsamples = 2;
+  const int nsample0 = 1; // first Z/gamma+jet sample
+  const char* samples[2] = {(etamin==0 ? "multijet" : "dijet"), "gamjet"};
+  */
+  //
   _nsamples = nsamples; // for multijets in global fit
   // Global fit without multijets
   //const int nsamples = 3;
@@ -119,8 +241,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   const char* bin = sbin.c_str();
 
   assert(f->cd(ct));
-  assert(gDirectory->cd(bin));
-  TDirectory *d = gDirectory;
+  TDirectory *din1 = f->GetDirectory(ct); assert(din1);
+  assert(din1->cd(bin));
+  TDirectory *d = din1->GetDirectory(bin); assert(d);
+  d->cd();
 
 
   ///////////////////////////////////////////////
@@ -130,6 +254,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   // Load data points
   vector<TGraphErrors*> gs;
   vector<TGraphErrors*> gs2;
+  vector<TGraphErrors*> gs3;
   for (int imethod = 0; imethod != nmethods; ++imethod) {
     for (int isample = 0; isample != nsamples; ++isample) {
 
@@ -157,11 +282,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
       
       gs.push_back(g);
       gs2.push_back((TGraphErrors*)g->Clone(Form("%s_shifted",g->GetName())));
+      gs3.push_back((TGraphErrors*)g->Clone(Form("%s_raw",g->GetName())));
     } // for isample
   } // for imethod
 
   _vdt = &gs;
   _vdt2 = &gs2;
+  _vdt3 = &gs3;
   
   // Load pT fractions for multijet balancing
   vector<TGraphErrors*> gfs, gfs2;
@@ -201,6 +328,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 
   // Load JEC uncertainty band
   TH1D *herr = (TH1D*)d->Get("herr"); assert(herr);
+  TH1D *hrun1 = (TH1D*)d->Get("hrun1"); assert(hrun1);
   TH1D *hjes = (TH1D*)d->Get("hjes"); assert(hjes);
   TH1D *herr_ref = (TH1D*)d->Get("herr_ref"); assert(herr_ref);
   TH1D *herr_noflv = (TH1D*)d->Get("herr_noflv"); assert(herr_noflv);
@@ -220,6 +348,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
       if (!h) cout << "Histo "<<s<<" not found!" << endl << flush;
       assert(h);
 
+      // For correcting L1L2L3-L1 to L1L2L3-RC
+      TH1D *hl1 = (TH1D*)d->Get("hl1bias"); assert(hl1);
+
       int ibm = isample + nsamples*imethod;
       h->SetName(Form("bm%d_%s",(1<<ibm),h->GetName()));
 
@@ -228,6 +359,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
       // Correct data for FSR
       TGraphErrors *g = (*_vdt)[ibm];
       TGraphErrors *g2 = (*_vdt2)[ibm];
+      TGraphErrors *g3 = (*_vdt3)[ibm];
       TGraphErrors *gf = (_vpt->size()==nmethods ? (*_vpt)[imethod] : 0);
       TGraphErrors *gf2 = (_vpt2->size()==nmethods ? (*_vpt2)[imethod] : 0);
       for (int i = 0; i != g->GetN(); ++i) {
@@ -235,13 +367,17 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 	double pt = g->GetX()[i];
 	double r = g->GetY()[i];
 	double kfsr = (dofsr ? 1./(1+alpha*h->GetBinContent(h->FindBin(pt))):1);
-	double scale = 0.98; // correct out previous L3Res
+	double l1 = (dol1bias && string(cm)=="mpfchs1" && string(cs)=="gamjet" ?
+		     1./hl1->GetBinContent(hl1->FindBin(pt)) : 1);
+	// 0.98 was on until Aug 12, 10:12am :(
+	double scale = 1.00;//0.98; // correct out previous L3Res
 	if (etamin!=0) {
 	  int ijes = min(max(1,hjes->FindBin(pt)),hjes->GetNbinsX());
 	  scale = hjes->GetBinContent(ijes);
 	}
-	g->SetPoint(i, pt, scale*r*kfsr);
-	g2->SetPoint(i, pt, scale*r*kfsr);
+	g->SetPoint(i, pt, scale*l1*r*kfsr);
+	g2->SetPoint(i, pt, scale*l1*r*kfsr);
+	g3->SetPoint(i, pt, scale*l1*r);
 	
 	// For multijet, correct instead for reference JES
 	if (string(cs)=="multijet" && gf) {
@@ -250,6 +386,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 	  // Don't correct g, we need raw input for global fit
 	  //g->SetPoint(i, pt, jesref * r);
 	  g2->SetPoint(i, pt, jesref * r);
+	  g3->SetPoint(i, pt, jesref * r);
 	  double jes = herr->GetBinContent(herr->FindBin(pt));
 	  gf2->SetPoint(i, ptref, jes / r);
 	}
@@ -258,6 +395,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 	  double jesref = herr0->GetBinContent(herr0->FindBin(pt));
 	  g->SetPoint(i, pt, r*kfsr * jesref);
 	  g2->SetPoint(i, pt, r*kfsr * jesref);
+	  g3->SetPoint(i, pt, r * jesref);
 	}
 
       } // for i
@@ -288,6 +426,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 	h->Scale(alpha); // set which nominal points this applies to
 	h->SetName(Form("bm%d_%s",(1<<ibm),h->GetName()));
 
+	// TEMP TEMP TEMP
+	// Scale FSR uncertainty by x10 to see the impact on Run 2 fit
+	//h->Scale(10.0);
+	//if (!(string(cs)=="gamjet" && string(cm)=="ptchs"))
+	//if (!(string(cs)=="gamjet"))
+	//h->Scale(4.0);
+	// TEMP TEMP TEMP
+
 	hs.push_back(h);
       } // for isample
     } // for imethod
@@ -317,9 +463,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     }
     if (s=="gamjet" && imethod==0) {
       //escale = 0.005; // photon (ECAL) scale without regression
-      escale = 0.002; // photon (ECAL) scale with regression
+      //escale = 0.002; // photon (ECAL) scale with regression (Run I)
+      escale = 0.010; // Run II guess
       // Use same source for both MPF and pT balance
-      h2->SetName(Form("bm%d_scale_%d",(1<<(n0+0) | (1<<(n1+0))), i));
+      h2->SetName(Form("bm%d_scale_%d",(1<<(n0+igj) | (1<<(n1+igj))), i));
       is = hs.size();
     }
     /*
@@ -338,15 +485,19 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     }
     */
     if (s=="zeejet" && imethod==0) {
-      escale = 0.005; // electron (ECAL) scale
+      //escale = 0.005; // electron (ECAL) scale (Run I)
       //escale = 0.002; // with Zee mass scale fix
+      //escale = 0.010; // Run II guess
+      escale = 0.005; // 76X guess
       // Use same source for both MPF and pT balance
-      h2->SetName(Form("bm%d_scale_%d",(1<<(n0+1) | (1<<(n1+1))), i));
+      h2->SetName(Form("bm%d_scale_%d",(1<<(n0+izee) | (1<<(n1+izee))), i));
     }
     if (s=="zmmjet" && imethod==0) {
       // Use same source for both MPF and pT balance
-      escale = 0.002; // muon (tracker) scale
-      h2->SetName(Form("bm%d_scale_%d",(1<<(n0+2) | (1<<(n1+2))), i));
+      //escale = 0.002; // muon (tracker) scale (Run I)
+      //escale = 0.010; // Run II guess
+      escale = 0.005; // 76X guess
+      h2->SetName(Form("bm%d_scale_%d",(1<<(n0+izmm) | (1<<(n1+izmm))), i));
     }
 
     // Same scale uncertainty applies to all pT bins
@@ -374,8 +525,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     //if (i==n1+1) { escale = 0.005; } // Zee+jet
     //if (s=="gamjet" && m=="mpfchs1") { escale = 0.005; } // GT
     // EM footprint uncertainties for photons and electrons
-    if (s=="gamjet" && m=="mpfchs1") { escale = 0.002; } // V8
-    if (s=="zeejet" && m=="mpfchs1") { escale = 0.005; }
+    //if (s=="gamjet" && m=="mpfchs1") { escale = 0.002; } // V8
+    //if (s=="gamjet" && m=="mpfchs1") { escale = 0.010; } // 2015-10-21
+    if (s=="gamjet" && m=="mpfchs1") { escale = 0.005; } // 76X
+    //if (s=="zeejet" && m=="mpfchs1") { escale = 0.005; }
+    //if (s=="zeejet" && m=="mpfchs1") { escale = 0.010; } // 2015-12-10
+    if (s=="zeejet" && m=="mpfchs1") { escale = 0.005; } // 76X
 
     for (int j = 1; j != h2->GetNbinsX()+1; ++j) {
       h2->SetBinContent(j, escale);
@@ -413,7 +568,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   // We could therefore fit it, but it could bias high pT end too much
   // Current compromise is to include the lower end shift of -9% in L3Res
   // and to keep this as a systematic so fit uses more high pT information
-  if (njesFit==2) { // if njesFit==3, this systematic is included in the fit
+  if (false && njesFit<=2) { // if njesFit==3, this systematic is included in the fit
 
     for (unsigned int i = 0; i != _vdt->size(); ++i) {
       
@@ -427,8 +582,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 	  h2->SetBinContent(j, 1-hl1->GetBinContent(j));
 	  h2->SetBinError(j, fabs(1-hl1->GetBinContent(j)));
 	  // PileUpPt source applies to all samples and both MPF and pT balance
-	  h2->SetName(Form("bm%d_l1bias_%d",(1<<(n0+0)|1<<(n0+1)|1<<(n0+2)|
-					     1<<(n1+0)|1<<(n1+1)|1<<(n1+2)),i));
+	  //h2->SetName(Form("bm%d_l1bias_%d",(1<<(n0+0)|1<<(n0+1)|1<<(n0+2)|
+	  //				     1<<(n1+0)|1<<(n1+1)|1<<(n1+2)),i));
+	  // TEMP TEMP TEMP
+	  // Only switch PileUpPt source for MPF (due to L1L2L3-L1 method)
+	  //h2->SetName(Form("bm%d_l1bias_%d",(1<<(n1+0)|1<<(n1+1)|1<<(n1+2)),i));
+	  // Hack to fix pT. dep of missing gamma+jet MPF footprint correction
+	  //h2->SetName(Form("bm%d_l1bias_%d",1<<(n1+igj),i));
+	  // TEMP TEMP TEMP
 	}
 	else {
 	  h2->SetBinContent(j, 0);
@@ -472,30 +633,48 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   // Draw original data  //
   /////////////////////////
 
-  const int maxpt = 1600;
+  const int maxpt = 3500;//1600;
   const int minpt = 30;
   TH1D *h = new TH1D("h",";p_{T} (GeV);Jet response (ratio)",
 		     maxpt-minpt,minpt,maxpt);
-  h->SetMinimum(etamin==0 ? 0.93 : 0.80);
-  h->SetMaximum(etamin==0 ? 1.08 : 1.20);
+  //h->SetMinimum(etamin==0 ? 0.93 : 0.80);
+  //h->SetMaximum(etamin==0 ? 1.08 : 1.20);
+  //h->SetMinimum(etamin>=3 ? 0.00 : (etamin>=1.9 ? 0.50 : 0.79)); // 0.82
+  //h->SetMaximum(etamin>=3 ? 2.00 : (etamin>=1.9 ? 1.50 : 1.24)); // 1.20
+  //h->SetMinimum(etamin>=3 ? 0.50 : (etamin>=2.5 ? 0.70 : 0.85)); // 74X V7
+  //h->SetMaximum(etamin>=3 ? 1.75 : (etamin>=2.5 ? 1.45 : 1.20)); // 74X V7
+  //h->SetMinimum(etamin>=3 ? 0.50 : (etamin>=2.5 ? 0.70 : 0.93)); // 74X V7
+  //h->SetMaximum(etamin>=3 ? 1.75 : (etamin>=2.5 ? 1.45 : 1.08)); // 74X V7
+  //h->SetMinimum(etamin>=3 ? 0.50 : (etamin>=2.5 ? 0.70 : 0.92)); // 76X V1
+  //h->SetMaximum(etamin>=3 ? 1.75 : (etamin>=2.5 ? 1.45 : 1.12)); // 76X V1
+  h->SetMinimum(etamin>=3 ? 0.50 : (etamin>=2.5 ? 0.70 : 0.91)); // 76X V1
+  h->SetMaximum(etamin>=3 ? 1.75 : (etamin>=2.5 ? 1.45 : 1.15)); // 76X V1
   h->GetXaxis()->SetMoreLogLabels();
   h->GetXaxis()->SetNoExponent();
   h->DrawClone("AXIS");
 
   //////////////////////////////////////////////
   // for pas-v6, recenter uncertainty around fit
-  TF1 *jesshift = new TF1("jesshift",jesFit,minpt,maxpt,njesFit);
-  //jesshift->SetParameters(0.9783, -0.0324, 0.054); // AN2015_023_v1 Table 1
-  jesshift->SetParameters(0.9784, -0.0362, 0.054); // AN2015_023_v2 Table 1
-  for (int i = 1; i != herr_ref->GetNbinsX()+1; ++i) {
-    double x = herr_ref->GetBinCenter(i);
-    if (etamin==0 && _paper) herr_ref->SetBinContent(i, jesshift->Eval(x));
-  }
-  delete jesshift;
+  //TF1 *jesshift = new TF1("jesshift",jesFit,minpt,maxpt,njesFit);
+  //jesshift->SetParameters(0.9784, -0.0362, 0.054); // AN2015_023_v2 Table 1
+  //for (int i = 1; i != herr_ref->GetNbinsX()+1; ++i) {
+  //double x = herr_ref->GetBinCenter(i);
+  //if (etamin==0 && _paper) herr_ref->SetBinContent(i, jesshift->Eval(x));
+  //}
+  //delete jesshift;
   ///////////////////////////////////////////////
 
   //TCanvas *c0 = new TCanvas("c0","c0",600,600);
-  TCanvas *c0 = tdrCanvas("c0",h,2,11,true);
+  //lumi_13TeV = "42 pb^{-1}";
+  //lumi_13TeV = "25 ns - 16 pb^{-1}";
+  //lumi_13TeV = "Run2015D - 25 ns - 106.5 pb^{-1}";
+  //lumi_13TeV = "Run2015D - 25 ns - 121 pb^{-1}";
+  //lumi_13TeV = (_g_dcsonly ? 
+  //		"Run2015D-DCSOnly - 25 ns - 980 pb^{-1}" :
+  //		"Run2015D-Cert - 25 ns - 552 pb^{-1}");
+  //lumi_13TeV = "Run2015D - Oct 19 - 1.28 fb^{-1}";
+  lumi_13TeV = "Run2015D - Golden - 2.1 fb^{-1}";
+  TCanvas *c0 = tdrCanvas("c0",h,4,11,true);
   gPad->SetLogx();
   
   //cmsPrel(19800.);
@@ -528,12 +707,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   TLatex *tex = new TLatex();
   tex->SetNDC(); tex->SetTextSize(0.045);
   if (etamin==0) {
-    if (dofsr) tex->DrawLatex(0.20,0.75,"|#eta|<1.3, #alpha=0.3#rightarrow0");
-    else       tex->DrawLatex(0.20,0.75,"|#eta|<1.3, #alpha=0.3");
+    if (dofsr) tex->DrawLatex(0.20,0.79,"|#eta|<1.3, #alpha<0.3#rightarrow0");
+    else       tex->DrawLatex(0.20,0.79,"|#eta|<1.3, #alpha<0.3");
   }
   else {
     assert(dofsr);
-    tex->DrawLatex(0.20,0.75,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
+    tex->DrawLatex(0.20,0.79,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
   }
   tex->DrawLatex(0.20, 0.22, "Before global fit");
 
@@ -544,6 +723,15 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   (new TGraph(herr_ref))->DrawClone("SAMEL");
   legp->AddEntry(herr_ref," ","");
   legm->AddEntry(herr_ref,"JES unc.","FL");
+
+  hrun1->SetLineWidth(2);
+  hrun1->SetLineColor(kCyan+3);
+  hrun1->SetLineStyle(kDashed);
+  hrun1->DrawClone("SAME E3");
+  (new TGraph(hrun1))->DrawClone("SAMEL");
+  legp->AddEntry(hrun1," ","");
+  legm->AddEntry(hrun1,"Run 1","FL");
+
 
   for (unsigned int i = 0; i != _vdt->size(); ++i) {
 
@@ -563,21 +751,88 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     g2->DrawClone("SAMEPz");
   }
 
+  ///////////////////////
+  // Draw raw response
+  //////////////////////
+
+  h = (TH1D*)h->Clone("h0b");
+  h->SetYTitle("Raw jet response (ratio)");  
+
+  TCanvas *c0b = tdrCanvas("c0b",h,4,11,true);
+  gPad->SetLogx();
+
+  legpf->Draw();
+  legmf->Draw();
+  legp->Draw();
+  legm->Draw();
+
+  if (etamin==0) tex->DrawLatex(0.20,0.79,"|#eta|<1.3, #alpha<0.3");
+  else tex->DrawLatex(0.20,0.79,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
+
+  tex->DrawLatex(0.20, 0.22, "Before FSR correction");
+
+  herr_ref->DrawClone("SAME E3");
+  (new TGraph(herr_ref))->DrawClone("SAMEL");
+
+  hrun1->DrawClone("SAME E3");
+  (new TGraph(hrun1))->DrawClone("SAMEL");
+
+  herr_ref->SetFillStyle(kNone);
+  herr_ref->DrawClone("SAME E3");
+  (new TGraph(herr_ref))->DrawClone("SAMEL");
+  herr_ref->SetFillStyle(1001);
+
+  hrun1->SetFillStyle(kNone);
+  hrun1->DrawClone("SAME E3");
+  (new TGraph(hrun1))->DrawClone("SAMEL");
+  hrun1->SetFillStyle(1001);
+
+  for (unsigned int i = 0; i != _vdt3->size(); ++i) {
+    
+    TGraphErrors *g3 = (*_vdt3)[i];
+    // Skip multijet downward points
+    g3->DrawClone("SAMEPz");
+  }
+
 
   ///////////////////////
   // Perform global fit
   //////////////////////
 
   // Fit function
-  //TF1 *jesfit = new TF1("jesfit",jesFit,30,3000,njesFit);
   // 2015-01-17: use only range visible on plots (one g+jet point at >2.5 TeV)
   TF1 *jesfit = new TF1("jesfit",jesFit,minpt,maxpt,njesFit);
   jesfit->SetLineColor(kBlack);
-  if (njesFit==2) {
-    jesfit->SetParameters(0.9828, -0.00608);
+  if (njesFit==1) {
+    jesfit->SetParameter(0, 0.95);
   }
-  if (njesFit==3) {
+  if (njesFit==2) {
+    //jesfit->SetParameters(0.9828, -0.00608);
+    jesfit->SetParameters(0.9350, -0.0922);
+  }
+  if (njesFit==3 && !hbpt) {
     jesfit->SetParameters(0.99, -0.035, -0.09);
+  }
+  if (njesFit==3 && hbpt) {
+    jesfit->SetParameters(0.98, -0.035, 0.01);
+  }
+  if (njesFit==4 && basicfit) {
+    jesfit->SetParameters(0.98, -0.035, -0.09, 0.01);
+  }
+  if (njesFit==4 && stepfit) {
+    //jesfit->SetParameters( 0.9708, 0.4081, 250., 400.);
+    //jesfit->SetParLimits(2,100,300);
+    //jesfit->SetParLimits(3,350,600);
+    //jesfit->FixParameter(2, 250.);
+    //jesfit->FixParameter(3, 400.);
+    //jesfit->SetParameters( 0.9708, 0.4081, 0.001, 0.001);
+    jesfit->SetParameters( 0.985, 0.03, 1.03, -0.09 );
+  }
+  if (njesFit==4 && erffit) {
+    jesfit->SetParameters(0.985, 0.02, 200, 0.5); // log(pt)
+    //jesfit->SetParameters(0.975, 0.02, 250, 50);
+    //jesfit->SetParameters(0.9785, +0.0199, 100, 100);
+    //jesfit->FixParameter(3,100);
   }
   _jesFit = jesfit;
   
@@ -646,6 +901,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   }
 
   cout << endl;
+  cout << "*** Processing eta bin " << etamin<<" - "<<etamax << " ***" << endl;
   cout << "Global chi2/ndf = " << chi2_gbl
        << " / " << Nk-np << " for " << Nk <<" data points, "
        << np << " fit parameters and "
@@ -664,6 +920,17 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     cout << Form("%2d: %9.4f +/- %6.4f,   ",
 		 i+1,tmp_par[i],sqrt(emat[i][i]));// << endl;
   }
+  cout << endl;
+  // For l2l3res.C
+  cout << Form("    // eta bin %1.1f - %1.1f", etamin, etamax) << endl;
+  cout << "    {";
+  for (int i = 0; i != np; ++i) {
+    cout << Form("%7.4f%s",tmp_par[i],i==np-1 ? "}," : ",");
+  }
+  cout << endl;
+
+  cout << "Constant scale @ HCAL=0: ";
+  cout << jesfit->Eval(fhb->GetX(1,1,30)) << endl;
   cout << endl;
 
   cout << "Error matrix:" << endl;
@@ -709,29 +976,28 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   // Draw shifted data
   ///////////////////////
 
-  //TCanvas *c1 = new TCanvas("c1","c1",600,600);
-  //gPad->SetLogx();
-
   h = (TH1D*)h->Clone("h1");
+  //h->SetYTitle("Shifted jet response (ratio)");  
   h->SetYTitle("Post-fit jet response (ratio)");  
 
-  TCanvas *c1 = tdrCanvas("c1",h,2,11,true);
+  TCanvas *c1 = tdrCanvas("c1",h,4,11,true);
   gPad->SetLogx();
-
-  //h->DrawClone("AXIS");
-  //cmsPrel(19800.);  
-  //CMS_lumi(c1, 2, 0);
 
   legpf->Draw();
   legmf->Draw();
   legp->Draw();
   legm->Draw();
 
-  if (etamin==0) tex->DrawLatex(0.20,0.75,"|#eta|<1.3, #alpha=0.3#rightarrow0");
-  else tex->DrawLatex(0.20,0.75,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
+  TLine *l = new TLine();
+  l->SetLineStyle(kDashed);
+  l->DrawLine(h->GetMinimum(),
+	      6500./cosh(etamin),
+	      h->GetMinimum()+0.5*(h->GetMaximum()-h->GetMinimum()),
+	      6500./cosh(etamin));
 
-  //tex->DrawLatex(0.20,0.23,Form("#chi^{2} / NDF = %1.1f / %d",
-  //			chi2_gbl, Nk-np));
+  if (etamin==0) tex->DrawLatex(0.20,0.79,"|#eta|<1.3, #alpha<0.3#rightarrow0");
+  else tex->DrawLatex(0.20,0.79,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
+
   //tex->DrawLatex(0.20,0.18,Form("(data %1.1f / %d, sources %1.1f / %d)",
   //			chi2_data,Nk,chi2_src,nsrc_true));
 
@@ -740,19 +1006,23 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 				chi2_gbl, Nk-np));
 
   is += np;
+
   // Fitted lepton/photon scales too much detailed for the paper
-  // tex->DrawLatex(0.20,0.79,Form("#gamma #times (%1.3f#pm%1.3f)",
-  // 				1+0.005*tmp_par[is],
-  // 				0.005*sqrt(emat[is][is])));
-  // tex->DrawLatex(0.20,0.73,Form("e #times (%1.3f#pm%1.3f)",
-  // 				1+0.005*tmp_par[is+1],
-  // 				0.005*sqrt(emat[is+1][is+1])));
-  // tex->DrawLatex(0.20,0.67,Form("#mu #times (%1.3f#pm%1.3f)",
-  // 				1+0.002*tmp_par[is+2],
-  // 				0.002*sqrt(emat[is+2][is+2])));
+  //tex->DrawLatex(0.20,0.73,Form("#gamma #times (%1.3f#pm%1.3f)",
+  //			1+0.01*tmp_par[is],
+  //			0.01*sqrt(emat[is][is])));
+  //tex->DrawLatex(0.20,0.73,Form("e #times (%1.3f#pm%1.3f)",
+  //			1+0.005*tmp_par[is+1],
+  //			0.005*sqrt(emat[is+1][is+1])));
+  //tex->DrawLatex(0.20,0.67,Form("#mu #times (%1.3f#pm%1.3f)",
+  //			1+0.01*tmp_par[is+2],
+  //			0.01*sqrt(emat[is+2][is+2])));
 
   herr_ref->DrawClone("SAME E3");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
+
+  hrun1->DrawClone("SAME E3");
+  (new TGraph(hrun1))->DrawClone("SAMEL");
 
   // Return SPR uncertainty to unnormalized
   for (int i = 1; i != herr_spr->GetNbinsX()+1; ++i) {
@@ -769,6 +1039,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   herr_ref->DrawClone("SAME E3");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
   herr_ref->SetFillStyle(1001);
+
+  hrun1->SetFillStyle(kNone);
+  hrun1->DrawClone("SAME E3");
+  (new TGraph(hrun1))->DrawClone("SAMEL");
+  hrun1->SetFillStyle(1001);
 
   _jesFit->SetNpx(1000);
   _jesFit->DrawClone("SAME");
@@ -788,6 +1063,35 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     }
     
     g2->DrawClone("SAMEPz");
+  }
+
+  // Draw constant fit as reference as well (Run 2)
+  if (false) {
+
+    double vp[6][2] = // 
+      {{ 0.9409 , 0.0073},  // 0-1.3
+       { 0.9352 , 0.0046},  // 1.3-1.9
+       { 0.9160 , 0.0049},  // 1.9.2.5
+       { 0.8755 , 0.0056},  // 2.5-3.0
+       { 0.7568 , 0.0085},  // 3.0-3.2
+       { 0.7556 , 0.0067}}; // 3.2-5.2
+
+    double ix = int(etamin*10+0.5);
+    double val(0), err(0);
+    if (ix==0)  { val = vp[0][0]; err = vp[0][1]; }
+    if (ix==13) { val = vp[1][0]; err = vp[1][1]; }
+    if (ix==19) { val = vp[2][0]; err = vp[2][1]; }
+    if (ix==25) { val = vp[3][0]; err = vp[3][1]; }
+    if (ix==30) { val = vp[4][0]; err = vp[4][1]; }
+    if (ix==32) { val = vp[5][0]; err = vp[5][1]; }
+
+    TLine *l = new TLine();
+    l->SetLineStyle(kDashed);
+    l->SetLineColor(kGray+1);
+    l->DrawLine(minpt, val, maxpt, val);
+    l->SetLineStyle(kDashDotted);
+    l->DrawLine(minpt, val+err, maxpt, val+err);
+    l->DrawLine(minpt, val-err, maxpt, val-err);
   }
 
   TF1 *fke = new TF1("fitError", fitError, minpt, maxpt, 1);
@@ -825,15 +1129,48 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   } // for ieig
 
   c0->RedrawAxis();
+  c0b->RedrawAxis();
   c1->RedrawAxis();
 
+  if (false) { // Overlay effect of time slew change
+
+    TDirectory *dir = gDirectory;
+    TFile *fts = new TFile("rootfiles/JEClosure_757p1_with753JEC.root","READ");
+    assert(fts && !fts->IsZombie());
+
+    TDirectory *d = fts->GetDirectory("ak4PFJetAnalyzer");
+    assert(d);
+    TGraphErrors *g0 = (TGraphErrors*)d->Get("grMean_ak4PF");
+    assert(g0);
+    
+    TGraphErrors *g = (TGraphErrors*)g0->Clone();
+    //for (int i = 0; i != g->GetN(); ++i) {
+    //g->SetPoint(i, g->GetX()[i], 0.952+(1-g->GetY()[i]));
+    //}
+
+    c0->cd();
+    tdrDraw(g,"PL",kFullStar,kBlack);
+    
+    c1->cd();
+    tdrDraw(g,"PL",kFullStar,kBlack);
+
+    fts->Close();
+    dir->cd();
+  }
+
   if (etamin==0) {
-    c0->SaveAs("pdf/globalFitL3res_orig.pdf");
-    c0->SaveAs("pdfC/globalFitL3res_orig.C");
-    c1->SaveAs("pdf/globalFitL3res_shifted.pdf");
-    c1->SaveAs("pdfC/globalFitL3res_shifted.C");
+    if (dofsr) {
+      c0b->SaveAs("pdf/globalFitL3res_raw.pdf");
+      c0b->SaveAs("pdfC/globalFitL3res_raw.C");
+      c0->SaveAs("pdf/globalFitL3res_orig.pdf");
+      c0->SaveAs("pdfC/globalFitL3res_orig.C");
+      c1->SaveAs("pdf/globalFitL3res_shifted.pdf");
+      c1->SaveAs("pdfC/globalFitL3res_shifted.C");
+    }
   }
   else {
+    c0b->SaveAs(Form("pdf/globalFitL3res_raw_eta%1.0f-%1.0f.pdf",
+		     10*etamin,10*etamax));
     c0->SaveAs(Form("pdf/globalFitL3res_orig_eta%1.0f-%1.0f.pdf",
 		    10*etamin,10*etamax));
     c1->SaveAs(Form("pdf/globalFitL3res_shifted_eta%1.0f-%1.0f.pdf",
@@ -855,22 +1192,19 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   gStyle->SetOptStat(0);
 
   // Draw FSR corrections redone
-  //TCanvas *c3 = new TCanvas("c3","c3",1200,600);
-  //c3->Divide(2,1);
-  //cmsPrel(19800.,true);
-  //CMS_lumi(c3, 2, 0);
 
-  int colors[nsamples] = {kBlue, kGreen+2,kRed};
+  int colors[3] = {kBlue, kGreen+2,kRed};
+  //int colors[nsamples] = {kBlue, kGreen+2,kRed};
+  //int colors[nsamples] = {kBlue, kRed};
+  //int colors[nsamples] = {kBlue};
   for (int imethod = 0; imethod != nmethods; ++imethod) {
 
-    //c3->cd(imethod+1);
-    //gPad->SetLogx();
-    h->SetMinimum(imethod==0 ? -0.20 : -0.04);
-    h->SetMaximum(imethod==0 ? +0.30 : +0.06);
+    h->SetMinimum(-0.06);//imethod==0 ? -0.20 : -0.20);//-0.04);
+    h->SetMaximum(+0.09);//imethod==0 ? +0.30 : +0.30);//+0.06);
     h->SetYTitle("k_{FSR} = dR/d#alpha (ratio)");
-    //h->DrawClone("AXIS");
     h = (TH1D*)h->Clone(Form("h3_%d",imethod));
-    TCanvas *c3 = tdrCanvas(Form("c3_%d",imethod),h,2,11,true);
+
+    TCanvas *c3 = tdrCanvas(Form("c3_%d",imethod),h,4,11,true);
     c3->SetLogx();
 
     TLegend *leg1 = tdrLeg(0.58,0.65,0.88,0.90);
@@ -885,14 +1219,18 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 
       int ibm = isample + nsamples*imethod;
       TH1D *hk = hks[ibm]; assert(hk);
-      if (isample==nsample0) {
-	hk->GetXaxis()->SetRangeUser(40,800);
-	//if (imethod==0) hk->GetXaxis()->SetRangeUser(60,800); // 2015-01-29
-      }
-      if (isample!=nsample0) {
-	hk->GetXaxis()->SetRangeUser(30,300);
-	//if (imethod==0) hk->GetXaxis()->SetRangeUser(60,800); // 2015-01-29
-      }
+
+      double minx = (isample==nsample0 ? 40  : 30);
+      double maxx = (isample==nsample0 ? 900 : 600);//800 : 300);
+      hk->GetXaxis()->SetRangeUser(minx,maxx);
+
+      //if (isample==nsample0) {
+      //hk->GetXaxis()->SetRangeUser(40,800);
+      //}
+      //if (isample!=nsample0) {
+      //hk->GetXaxis()->SetRangeUser(30,300);
+      //}
+
       hk->SetLineColor(colors[isample-nsample0]-10);
       hk->SetFillColor(colors[isample-nsample0]-10);
       hk->SetFillStyle(kNone);
@@ -900,10 +1238,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
       hk->DrawClone("SAME E3");
       hk->SetFillStyle(3002);
       hk->DrawClone("SAME E3");
+
       //(new TGraph(hk))->DrawClone("SAMEL");
       TGraph *gk = new TGraph(hk);
       for (int i = gk->GetN()-1; i != -1; --i) {
-	if (gk->GetX()[i] < hk->GetXaxis()->GetXmin())
+	//if (gk->GetX()[i] < hk->GetXaxis()->GetXmin())
+	if (gk->GetX()[i] < minx || gk->GetX()[i] > maxx)
 	  gk->RemovePoint(i);
       }
       gk->Draw("SAMEL");
@@ -940,12 +1280,19 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 	hke->SetBinError(ipt, sqrt(err2));
       } // for ipt
       
-      if (isample==nsample0) hke->GetXaxis()->SetRangeUser(40,800);
-      if (isample!=nsample0) hke->GetXaxis()->SetRangeUser(30,300);
+      //if (isample==nsample0) hke->GetXaxis()->SetRangeUser(40,800);
+      //if (isample!=nsample0) hke->GetXaxis()->SetRangeUser(30,300);
+      hke->GetXaxis()->SetRangeUser(minx,maxx);
       hke->SetFillStyle(1001);
       hke->SetLineColor(hk->GetLineColor()+10);
       hke->DrawClone("SAME E3");
-      (new TGraph(hke))->DrawClone("SAMEL");
+      //(new TGraph(hke))->DrawClone("SAMEL");
+      TGraph *gke = new TGraph(hke);
+      for (int i = gke->GetN()-1; i != -1; --i) {
+        if (gke->GetX()[i] < minx || gke->GetX()[i] > maxx)
+          gke->RemovePoint(i);
+      }
+      gke->Draw("SAMEL");
 
       leg2->AddEntry(hke, texlabel[samples[isample]], "FL");
     } // for isample
@@ -996,6 +1343,8 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 	double pt = g->GetX()[i];
 	double data = g->GetY()[i];
 	double sigma = g->GetEY()[i];
+
+	if (pt < ptminJesFit) continue;
 
 	// Calculate fit value at this point
 	for (int ipar = 0; ipar != _jesFit->GetNpar(); ++ipar) {
@@ -1052,14 +1401,10 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 	    g2->SetPoint(i, pt, data + shifts);
 
 	    // For multijets, store also downward extrapolation
-	    if (TString(g->GetName()).Contains("multijet")) { //&&
-		//_vpt2->size()==2) {
-		//_vpt2->size()==_nmethods) {
+	    if (TString(g->GetName()).Contains("multijet")) {
 		assert(_vpt->size()==_nmethods);
 		assert(_vpt2->size()==_nmethods);
 
-	      //TGraphErrors *gf = (*_vpt)[ig%(_vdt->size()/2)];
-	      //TGraphErrors *gf2 = (*_vpt2)[ig/(_vdt->size()/2)];
 	      unsigned int imethod = ig/_nsamples; assert(imethod<_nmethods);
 	      TGraphErrors *gf = (*_vpt)[imethod]; assert(gf);
 	      TGraphErrors *gf2 = (*_vpt2)[imethod]; assert(gf2);
@@ -1092,8 +1437,11 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 } // jesFitter
 
 
+// Calculate fit uncertainty for an arbitrary function
+// using standard error propagation with differentials
 Double_t fitError(Double_t *xx, Double_t *pp) {
 
+  // Sanity checks on inputs
   assert(_fitError_func);
   assert(_fitError_emat);
   double x = *xx;
@@ -1104,20 +1452,23 @@ Double_t fitError(Double_t *xx, Double_t *pp) {
   assert(emat.GetNrows()==n);
   assert(emat.GetNcols()==n);
   
+  // Partial derivatives as differentials with 10% step size
   vector<double> df(n);
   for (int i = 0; i != n; ++i) {
 
     double p = f->GetParameter(i);
-    //double dp = 0.1*f->GetParError(i);
-    double dp = 0.1*sqrt(emat[i][i]);
+    double dp = 0.1*sqrt(emat[i][i]); // step size 10% of uncertainty
     f->SetParameter(i, p+dp);
     double fup = f->Eval(x);
     f->SetParameter(i, p-dp);
     double fdw = f->Eval(x);
     f->SetParameter(i, p);
+
+    // Calculate partial derivative as a simple differential
     df[i] = (dp ? (fup - fdw) / (2.*dp) : 0);
   }
 
+  // Perform standard error propagation
   double sumerr2(0);
   for (int i = 0; i != n; ++i) {
     for (int j = 0; j != n; ++j) {
@@ -1128,5 +1479,4 @@ Double_t fitError(Double_t *xx, Double_t *pp) {
   double err = sqrt(sumerr2);
 
   return (f->Eval(x) + k*err);
-  //return (0.1);//*k);//*err);
 }

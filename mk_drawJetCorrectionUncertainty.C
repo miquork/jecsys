@@ -23,22 +23,27 @@
   setTDRStyle();
 
   // Single source test
-  //drawJetCorrectionUncertainty("AK5PFchs"); // no source files
-  // Print out source files (only setup for AK5PF + true pair)
-  //drawJetCorrectionUncertainty("AK5PF",true); // also source files
+  drawJetCorrectionUncertainty("AK4PFchs",false); //no source files, minimal
+  // Print out source files (only setup for AK4PFchs + true pair)
+  //drawJetCorrectionUncertainty("AK4PFchs",true); // also source files
 
   // Whole shebang
 
   // Switch JECUncert to JECSource with 'bool _useAbsUncert = false'
-  //drawJetCorrectionUncertainty("AK5PF",false); // no source files (quick)
-  //drawJetCorrectionUncertainty("AK5PF,true"); // also source files
-  //drawJetCorrectionUncertainty("AK5PFchs");
-  //drawJetCorrectionUncertainty("AK7PF");
-  //drawJetCorrectionUncertainty("AK7PFchs");
-  //drawJetCorrectionUncertainty("AK5CALO");
+  /*
+  drawJetCorrectionUncertainty("AK4PFchs",true); // also source files
+  drawJetCorrectionUncertainty("AK4PF",true); // also source files
+  drawJetCorrectionUncertainty("AK8PFchs",true); // also source files
+  drawJetCorrectionUncertainty("AK8PF",true); // also source files
+  */
+  //drawJetCorrectionUncertainty("AK4PFchs",false); // no source files
+  //drawJetCorrectionUncertainty("AK4PF");
+  //drawJetCorrectionUncertainty("AK8PFchs",true);
+  //drawJetCorrectionUncertainty("AK8PF");
+  //drawJetCorrectionUncertainty("AK4CALO");
   //drawJetCorrectionUncertainty("AK7CALO");
 
 
   // Final paper plots, only (run with both _absUncert=true, false)
-  drawJetCorrectionUncertainty("AK5PFchs",false);
+  drawJetCorrectionUncertainty("AK4PFchs",false);
 }

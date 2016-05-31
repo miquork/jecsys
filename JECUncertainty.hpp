@@ -16,14 +16,17 @@
 // ROOT (root.cern.ch) modules
 #include "TMatrixD.h"
 #include "TF1.h"
+#include "TH1D.h"
 
 #include <iostream>
 #include <string>
 
 namespace jec {
   
-  enum JetAlgo  {AK5PF, AK5PFchs, AK5JPT, AK5CALO,
-		 AK7PF, AK7PFchs, AK7CALO};
+  enum JetAlgo  {AK4PF, AK4PFchs, AK4CALO, AK4JPT,
+		 AK5PF, AK5PFchs, AK5CALO, AK5JPT,
+		 AK7PF, AK7PFchs, AK7CALO, AK7JPT,
+		 AK8PF, AK8PFchs, AK8CALO, AK8JPT};
   enum DataType {DATA, MC, PY, HW};
 }
 
@@ -40,7 +43,7 @@ inline double absmax(double a, double b) {
 class JECUncertainty {
 public:
   
-  JECUncertainty(const jec::JetAlgo& algo = jec::AK5PF,
+  JECUncertainty(const jec::JetAlgo& algo = jec::AK4PF,
 		 const jec::DataType& type = jec::DATA,
 		 const jec::ErrorTypes& errType = jec::kData,
 		 const double mu = 19.81);
@@ -73,7 +76,7 @@ public:
   //
   double _Relative(double pTprime, double eta) const;
   double _RelativeJER(double pTprime, double eta) const;
-  double _RelativeFSR(double eta) const;
+  double _RelativeFSR(double pTprime, double eta) const;
   double _RelativeStat(double pTprime, double eta) const;
   double _RelativePt(double pTprime, double eta) const;
   //
@@ -110,7 +113,8 @@ public:
   double _jesfitunc(double x, TF1 *f, TMatrixD *emat) const;
 
   // helpers for calculating PileUpPt systematics
-  TF1 *_fl3ref, *_fl3up, *_fl3dw, *_fl2up;
+  TF1 *_fl3, *_fl2;
+  TH1D *_hl3, *_hl3ref, *_hl2ref;
 
 private:
   jec::JetAlgo _algo;
@@ -133,13 +137,18 @@ private:
   FactorizedJetCorrector *_jecL1MCflat;
   FactorizedJetCorrector *_jecL1MCpt;
   FactorizedJetCorrector *_jecL1sf;
-  FactorizedJetCorrector *_jecL1DTflat_ak5pfchs;
-  FactorizedJetCorrector *_jecL1DTpt_ak5pfchs;
+  //FactorizedJetCorrector *_jecL1DTflat_ak5pfchs;
+  //FactorizedJetCorrector *_jecL1DTpt_ak5pfchs;
+  FactorizedJetCorrector *_jecL1MCflat_ak4pfchs;
+  FactorizedJetCorrector *_jecL1MCpt_ak4pfchs;
   FactorizedJetCorrector *_jecL2ResFlat;
   FactorizedJetCorrector *_jecL2ResPt;
+  FactorizedJetCorrector *_jecL2ResMPF;
+  FactorizedJetCorrector *_jecL2ResBal;
+  JetCorrectionUncertainty *_uncL2ResStat;
   FactorizedJetCorrector *_jecL2jerup;
   FactorizedJetCorrector *_jecL2jerdw;
-  FactorizedJetCorrector *_jecL2stat;
+  //FactorizedJetCorrector *_jecL2stat;
 
   double _mu;
 

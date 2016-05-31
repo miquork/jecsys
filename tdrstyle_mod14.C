@@ -1,4 +1,7 @@
 // Collect all the #includes here
+#ifndef __TDRSTYLEMOD14__
+#define __TDRSTYLEMOD14__
+
 #include "TROOT.h"
 #include "TGraph.h"
 #include "TLegend.h"
@@ -630,3 +633,5 @@ TCanvas* tdrDiCanvas(const char* canvName, TH1D *hup, TH1D *hdw,
   
   return canv;
 }
+
+#endif /* __TDRSTYLEMOD14__ */

@@ -26,19 +26,21 @@
 
 using namespace std;
 
+const bool _m_dcsonly = false;
+
 // Remove empty bins
 void cleanGraph(TGraphErrors *g) {
   for (int i = g->GetN(); i != -1; --i)
     if (g->GetY()[i]==0) g->RemovePoint(i);
 }
 
-TF1 *_fitError_func(0);
-TMatrixD *_fitError_emat(0);
-Double_t fitError(Double_t *xx, Double_t *p);
+TF1 *_mj_fitError_func(0);
+TMatrixD *_mj_fitError_emat(0);
+Double_t mj_fitError(Double_t *xx, Double_t *p);
 
 const int np = 3; // Need 2 pars for now for globalFitL3Res.C to work
 //const int np = 2;
-TF1 *fhb(0), *fl1(0);
+TF1 *mj_fhb(0), *mj_fl1(0);
 Double_t multiFit(Double_t *x, Double_t *p) {
 
   // Use log3 to match FSR uncertainty band shapes in global fit
@@ -46,27 +48,31 @@ Double_t multiFit(Double_t *x, Double_t *p) {
 
   // same 2-parameter fit as for L3Res
   // Initialize SinglePionHCAL and PileUpPt shapes
-  if (!fhb) fhb = new TF1("fhb","max(0,[0]+[1]*pow(x,[2]))",10,3500);
-  fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
-  if (!fl1) fl1 = new TF1("fl1","1+([0]+[1]*log(x))/x",30,2000);
-  fl1->SetParameters(-2.36997, 0.413917);
+  if (!mj_fhb) mj_fhb = new TF1("mj_fhb","TMath::Max(0.,[0]+[1]*pow(x,[2]))",
+				10,3500);
+  mj_fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
+  if (!mj_fl1) mj_fl1 = new TF1("mj_fl1","1+([0]+[1]*TMath::Log(x))/x",30,2000);
+  //mj_fl1->SetParameters(-2.36997, 0.413917); // Run I
+  mj_fl1->SetParameters(-0.7866069, 0.1330742); // Run II
 
   double pt = x[0];
   double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
-  return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
-	  + (0*p[2])-0.25 * (fl1->Eval(pt)-fl1->Eval(ptref)));
-	  //+ -0.090 * (fl1->Eval(pt)-fl1->Eval(ptref)));
+  return (p[0] + p[1]/3.*100*(mj_fhb->Eval(pt)-mj_fhb->Eval(ptref))
+	  + (p[2])-0.25 * (mj_fl1->Eval(pt)-mj_fl1->Eval(ptref)));
+	  //+ -0.090 * (mj_fl1->Eval(pt)-mj_fl1->Eval(ptref)));
 } // multiFit
 
-int cnt(0), Nk(0);
+int mj_cnt(0), mj_Nk(0);
 TF1 *_multiFit(0);
 TH1D *_herr(0);
-vector<TGraphErrors*> *_vdt(0), *_vpt(0), *_vdt2(0), *_vpt2(0);
-vector<TH1D*> *_vsrc(0);
+vector<TGraphErrors*> *_mj_vdt(0), *_mj_vpt(0), *_mj_vdt2(0), *_mj_vpt2(0);
+vector<TH1D*> *_mj_vsrc(0);
 void multiFitter(Int_t &npar, Double_t *grad, Double_t &chi2, Double_t *par,
 		 Int_t flag);
 
 void multijet(bool usemjb = true) {
+
+  cout << "Calling multijet("<<usemjb<<");"<<endl<<flush;
 
   TDirectory *curdir = gDirectory;
   setTDRStyle();
@@ -75,45 +81,129 @@ void multijet(bool usemjb = true) {
 		     700, 800, 1000, 1200, 1500};
   const int npt = sizeof(ptbins)/sizeof(ptbins[0])-1;
   
-  // On 21 Jun 2014, at 18:47, from Anne-Laure Pequegnot
-  // Re: Need graphs
-  //TFile *fmd = new TFile("rootfiles/MULTIJET_Run2012ABCD-22Jan2013_analysis_woPU_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_beforePrescaleReweighting.root","READ"); // data, GT
-  // On 18 Dec 2014, at 22:48, from Anne-Laure Pequegnot 
-  // Re: Multijet data with the corrected L1Residuals
-  //TFile *fmd = new TFile("rootfiles/MULTIJET_Run2012ABCD-22Jan2013_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix_afterPrescaleReweighting.root","READ"); // data, newL1
   // On 12 Jan 2015, at 11:21, from Anne-Laure Pequegnot
   // Re: Updated L2Res for new L1 - please rerun
-  TFile *fmd = new TFile("rootfiles/MULTIJET_Run2012ABCD-22Jan2013_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix_afterPrescaleReweighting-v6.root","READ"); // data, newL1V6
+  //TFile *fmd = new TFile("rootfiles/MULTIJET_Run2012ABCD-22Jan2013_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix_afterPrescaleReweighting-v6.root","READ"); // data, newL1V6
+  //
+  // On 31 Jul 2015, at 10:15, Anne-Laure Pequegnot
+  // Re: multijet
+  //TFile *fmd = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015B-PromptReco_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting.root","READ");
+  //
+  // On 01 Oct 2015, at 10:41, Anne-Laure Cunrath Pequegnot
+  // Re: multijet results on 2015D data
+  //TFile *fmd = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-PromptReco_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting.root","READ");
+  //
+  // On 17 Oct 2015, at 12:05, Anne-Laure Pequegnot
+  // Re: JEC update with 1/fb -- orange alert?
+  //TFile *fmd = new TFile(_m_dcsonly ? 
+  //			 "rootfiles/MULTIJET_data_JetHT_Run2015D-PromptReco_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting_onlyL2Res_DCSOnly.root" :
+  //			 "rootfiles/MULTIJET_data_JetHT_Run2015D-PromptReco_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting_onlyL2Res.root",
+  //
+  // On 28 Oct 2015, at 17:52, Anne-Laure Pequegnot
+  // Re: Update with October 19 json file
+  //TFile *fmd = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx25_miniAOD_woPU_pt30_eta50_notRmPUJets.root",
+  // => BUG?? Should have been data
+  //
+  // On 27 Nov 2015, at 21:27, Anne-Laure Pequegnot 
+  // Re: pileup re-weighting
+  //TFile *fmd1 = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-merged_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting_json13Nov15.root",
+  // => overwritten by Dec 01 files
+  //TFile *fmd2 = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-merged_miniAOD_woPU_pt10_eta50_notRmPUJets_beforePrescaleReweighting_json13Nov15.root",
+  // => overwritten by Dec 01 files
+  //
+  // On 01 Dec 2015, at 21:51, Anne-Laure Pequegnot
+  // Re: pileup re-weighting
+  //TFile *fmd1 = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-merged_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting_json13Nov15.root","READ");
+  //TFile *fmd2 = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-merged_miniAOD_woPU_pt10_eta50_notRmPUJets_beforePrescaleReweighting_json13Nov15.root","READ");
+  //
 
+  // On 04 Dec 2015, at 10:14, Anne-Laure Pequegnot
+  // Re: pileup re-weighting
+  // => 74X V7
+  //TFile *fmd = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-merged_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting_json13Nov15_04Dec15.root","READ");
+  //TFile *fmd2 = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-merged_miniAOD_woPU_pt10_eta50_notRmPUJets_beforePrescaleReweighting_json13Nov15_04Dec15.root","READ");
+  //TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_notRmPUJets_recoilPtHLTBin_type1fix_04Dec15.root","READ");
+  //TFile *fe1 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_notRmPUJets_recoilPtHLTBin_type1fix_04Dec15.root","READ");
+  //TFile *fe2 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt10_eta50_notRmPUJets_recoilPtHLTBin_type1fix_04Dec15.root","READ");
+  //
+  // On 17 Feb 2016, at 10:22, Anne-Laure Pequegnot
+  // Re: L2Res for 76X
+  // => 76X V2
+  TFile *fmd = new TFile("rootfiles/MULTIJET_data_2015-merged_pt30_eta30_notRmPUJets_beforePrescaleReweighting.root","READ");
+  //TFile *fmd2 = new TFile("rootfiles/MULTIJET_data_2015-merged_pt10_eta30_notRmPUJets_beforePrescaleReweighting.root","READ");
+  TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-500ToInf_analysis_woPU_pt30_eta30_notRmPUJets.root","READ");
+  TFile *fe1 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-500ToInf_analysis_woPU_pt30_eta30_notRmPUJets.root","READ");
+  TFile *fe2 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-500ToInf_analysis_woPU_pt10_eta30_notRmPUJets.root","READ");
+
+
+  // fmd, fmc: pt30 balancing results for MJB and MPF
+  // fe1, fe2: pt30 (MJB) and pt10 (MPF) Crecoil mapping
   assert(fmd && !fmd->IsZombie());
+  //assert(fmd2 && !fmd2->IsZombie());
+  assert(fmc && !fmc->IsZombie());
+  assert(fe2 && !fe2->IsZombie());
+  assert(fe1 && !fe1->IsZombie());
+
+  // Load MJB and MPF from pt30 file: reduces bias no pTrecoil binning
+  // However, later use pt10 for the MPF lever arm: this is longer
   assert(fmd->cd("MJB"));
-  assert(gDirectory->cd("PtBin"));
-  TGraphErrors *gmd1 = (TGraphErrors*)gDirectory->Get("gMJB_RefObjPt");
+  //assert(gDirectory->cd("PtBin"));
+  //TGraphErrors *gmd1 = (TGraphErrors*)gDirectory->Get("gMJB_RefObjPt");
+  TDirectory *din1 = fmd->GetDirectory("MJB"); assert(din1);
+  assert(din1->cd("PtBin"));
+  TDirectory *din2 = din1->GetDirectory("PtBin"); assert(din2);
+  TGraphErrors *gmd1 = (TGraphErrors*)din2->Get("gMJB_RefObjPt");
   assert(gmd1); gmd1->SetName("MJB");
   //
   assert(fmd->cd("MPF"));
-  assert(gDirectory->cd("PtBin"));
-  TGraphErrors *gmd2 = (TGraphErrors*)gDirectory->Get("gMPF_RefObjPt");
+  //assert(gDirectory->cd("PtBin"));
+  //TGraphErrors *gmd2 = (TGraphErrors*)gDirectory->Get("gMPF_RefObjPt");
+  TDirectory *din3 = fmd->GetDirectory("MPF"); assert(din3);
+  assert(din3->cd("PtBin"));
+  TDirectory *din4 = din3->GetDirectory("PtBin"); assert(din4);
+  TGraphErrors *gmd2 = (TGraphErrors*)din4->Get("gMPF_RefObjPt");
   assert(gmd2); gmd2->SetName("MPF");
 
-  // On 21 Jun 2014, at 18:47, from Anne-Laure Pequegnot
-  // Re: Need graphs
-  //TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix.root","READ"); // MC
   // On 12 Jan 2015, at 11:21, from Anne-Laure Pequegnot
   // Re: Updated L2Res for new L1 - please rerun
-  TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix-v6.root","READ"); // MC, newL1V6
+  //TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix-v6.root","READ"); // MC, newL1V6
+  //
+  // On 31 Jul 2015, at 10:15, Anne-Laure Pequegnot
+  // Re: multijet
+  //TFile *fmc = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx50_miniAOD_woPU_pt30_eta50_notRmPUJets.root","READ");
+  //
+  // On 01 Oct 2015, at 10:41, Anne-Laure Cunrath Pequegnot
+  // Re: multijet results on 2015D data
+  //TFile *fmc = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx25_miniAOD_woPU_pt30_eta50_notRmPUJets.root","READ");
+  //
+  // On 17 Oct 2015, at 12:05, Anne-Laure Pequegnot
+  // Re: JEC update with 1/fb -- orange alert?
+  //TFile *fmc = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx25_miniAOD_woPU_pt30_eta50_notRmPUJets-2.root","READ");
+  //
+  // On 27 Nov 2015, at 21:27, Anne-Laure Pequegnot 
+  // Re: pileup re-weighting
+  //TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_notRmPUJets_recoilPtHLTBin_type1fix.root","READ");
 
-  assert(fmc && !fmc->IsZombie());
   assert(fmc->cd("MJB"));
-  assert(gDirectory->cd("PtBin"));
-  TGraphErrors *gmc1 = (TGraphErrors*)gDirectory->Get("gMJB_RefObjPt");
+  //assert(gDirectory->cd("PtBin"));
+  //TGraphErrors *gmc1 = (TGraphErrors*)gDirectory->Get("gMJB_RefObjPt");
+  TDirectory *dmc1 = fmc->GetDirectory("MJB"); assert(dmc1);
+  assert(dmc1->cd("PtBin"));
+  TDirectory *dmc2 = dmc1->GetDirectory("PtBin"); assert(dmc2);
+  TGraphErrors *gmc1 = (TGraphErrors*)dmc2->Get("gMJB_RefObjPt");
   assert(gmc1); gmc1->SetName("MJB");
 
   assert(fmc->cd("MPF"));
-  assert(gDirectory->cd("PtBin"));
-  TGraphErrors *gmc2 = (TGraphErrors*)gDirectory->Get("gMPF_RefObjPt");
+  //assert(gDirectory->cd("PtBin"));
+  //TGraphErrors *gmc2 = (TGraphErrors*)gDirectory->Get("gMPF_RefObjPt");
+  TDirectory *dmc3 = fmc->GetDirectory("MPF"); assert(dmc3);
+  assert(dmc3->cd("PtBin"));
+  TDirectory *dmc4 = dmc3->GetDirectory("PtBin"); assert(dmc4);
+  TGraphErrors *gmc2 = (TGraphErrors*)dmc4->Get("gMPF_RefObjPt");
   assert(gmc2); gmc2->SetName("MPF");
 
+  //fmc->Close();
+  
   // Remove "empty" points (from TH1D to TGraph conversion?)
   cleanGraph(gmd1); cleanGraph(gmc1);
   cleanGraph(gmd2); cleanGraph(gmc2);
@@ -139,9 +229,11 @@ void multijet(bool usemjb = true) {
     for (unsigned int isrc = 0; isrc != src.size(); ++isrc) {
    
       assert(fs->cd(cm));
-      assert(gDirectory->cd("PtBin"));
+      TDirectory *ds1 = fs->GetDirectory(cm); assert(ds1);
+      assert(ds1->cd("PtBin"));
+      TDirectory *ds2 = ds1->GetDirectory("PtBin"); assert(ds2);
       const char *cs = src[isrc].c_str();
-      TGraphErrors *gjec = (TGraphErrors*)gDirectory->Get(Form("g%s_%s",cm,cs));
+      TGraphErrors *gjec = (TGraphErrors*)ds2->Get(Form("g%s_%s",cm,cs));
       assert(gjec);
       string s = Form("%s_multijet_src%d", im==0 ? "ptchs" : "mpfchs1", isrc);
       TH1D *hs = new TH1D(Form("bm%d_%s",1<<im, s.c_str()),
@@ -165,17 +257,48 @@ void multijet(bool usemjb = true) {
   // (When was this file obtained? In which e-mail?)
   // (Should I use instead the 08Jul14 pt30 file from mail below?)
   //TFile *fe = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_mc_woPUJets_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_QCD-HT.root","READ"); // MC
-  TFile *fe = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix.root","READ"); // newL1V6
   //TFile *fe = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_RefObjPt_resize_woPUJets_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_afterPrescaleReweighting_withSystErrors_QCD-HT-v6.root","READ"); // MC, newL1V6
-  assert(fe && !fe->IsZombie());
+  //TFile *fe = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix.root","READ"); // newL1V6
+  //
+  // On 31 Jul 2015, at 10:15, Anne-Laure Pequegnot
+  // Re: multijet
+  //TFile *fe = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015B-PromptReco_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting.root","READ");
+  //
+  // On 01 Oct 2015, at 10:41, Anne-Laure Cunrath Pequegnot
+  // Re: multijet results on 2015D data
+  //TFile *fe = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-PromptReco_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting.root","READ");
+  //
+  // On 17 Oct 2015, at 12:05, Anne-Laure Pequegnot
+  // Re: JEC update with 1/fb -- orange alert?
+  //TFile *fe = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx25_miniAOD_woPU_pt30_eta50_notRmPUJets-2.root","READ");
+  //
+  // On 27 Nov 2015, at 21:27, Anne-Laure Pequegnot 
+  // Re: pileup re-weighting
+  //TFile *fe1 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_notRmPUJets_recoilPtHLTBin_type1fix.root","READ");
+  //
 
   // On 08 Jul 2014, at 17:02, from Anne-Laure Pequegnot
   // Re: Need graphs
   // This one is pT>10 GeV for MPF
   //TFile *fe2 = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_mc_woPUJets_pt10_eta50_puJetIdT_recoilPtHLTBin_type1fix_QCD-HT.root","READ");
-  TFile *fe2 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt10_eta50_puJetIdT_recoilPtHLTBin_type1fix-v6.root","READ"); // newL1V6
   //TFile *fe2 = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_RefObjPt_resize_woPUJets_pt10_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_afterPrescaleReweighting_withSystErrors_QCD-HT-v6.root","READ"); // newL1V6
-  assert(fe2 && !fe2->IsZombie());
+  //TFile *fe2 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt10_eta50_puJetIdT_recoilPtHLTBin_type1fix-v6.root","READ"); // newL1V6
+  //
+  // On 31 Jul 2015, at 10:15, Anne-Laure Pequegnot
+  // Re: multijet
+  //TFile *fe2 = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx50_miniAOD_woPU_pt30_eta50_notRmPUJets.root","READ");
+  //
+  // On 01 Oct 2015, at 10:41, Anne-Laure Cunrath Pequegnot
+  // Re: multijet results on 2015D data
+  //TFile *fe2 = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx25_miniAOD_woPU_pt30_eta50_notRmPUJets.root","READ");
+  //
+  // On 17 Oct 2015, at 12:05, Anne-Laure Pequegnot
+  // Re: JEC update with 1/fb -- orange alert?
+  //TFile *fe2 = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx25_miniAOD_woPU_pt30_eta50_notRmPUJets-2.root","READ");
+  //
+  // On 27 Nov 2015, at 21:27, Anne-Laure Pequegnot 
+  // Re: pileup re-weighting
+  //TFile *fe2 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt10_eta50_notRmPUJets_recoilPtHLTBin_type1fix.root","READ");
 
   TFile *fjes = new TFile("rootfiles/jecdata.root","READ");
   assert(fjes && !fjes->IsZombie());
@@ -191,13 +314,16 @@ void multijet(bool usemjb = true) {
   string s2 = (usemjb ? "ptchs" : "mpfchs1");
   const char *cm2 = s2.c_str();
 
+  // Get MJB and MPF lever arms from MC
+  // Use pt30 for MJB and pt10 for MPF, even though
+  // pTrecoil binning for both uses pt30
+  
   // cExp stored in a TCanvas so need to do some digging to get it out
   //TCanvas *c1e = (TCanvas*)fe->Get("cExp_sum_Fi_log_fi_RecoilPt");
   //assert(c1e);
   //TGraphErrors *ge1 = (TGraphErrors*)c1e->FindObject("Exp_sum_Fi_log_fi");
   // newL1V6:
-  TGraphErrors *ge1 = (TGraphErrors*)fe->Get("recoilJets/gExp_sum_Fi_log_fi_RecoilPt");
-  assert(ge1);
+  TGraphErrors *ge1 = (TGraphErrors*)fe1->Get("recoilJets/gExp_sum_Fi_log_fi_RecoilPt");
 
   //TCanvas *c2e = (TCanvas*)fe2->Get("cExp_sum_Fi_log_fi_RecoilPt");
   //assert(c1e);
@@ -218,11 +344,16 @@ void multijet(bool usemjb = true) {
   ge2 = (TGraphErrors*)ge2->Clone();
   //delete c1e;
   //delete c2e;
-  fe->Close();
-  fe2->Close();
+  //fe1->Close();
+  //fe2->Close();
 
   //const double ptx = 325; // something wrong with MC below this (v2)
-  const double ptx(250), pty(1350); // data 230-1350, but <300 doesn't work well
+  //const double ptx(250), pty(1350); // data 230-1350, but <300 doesn't work well
+  //const double ptx(200), pty(900); // data 210-1000
+  //const double ptx(200), pty(1300); // data 250-1250 (MC 2250)
+  //const double ptx(200), pty(_m_dcsonly ? 1300 : 900); // data 250-850 (MC 2250, data 1250 bad?)
+  //const double ptx(200), pty(1300); // data 250-130 (MC 2250)
+  const double ptx(200), pty(1900); // data 250-130 (MC 2250)
   for (int i = ge->GetN()-1; i != -1; --i) {
     if (ge->GetY()[i]==0 || ge->GetX()[i]<ptx || ge->GetX()[i]>pty)
       ge->RemovePoint(i);
@@ -236,13 +367,16 @@ void multijet(bool usemjb = true) {
       ge2->RemovePoint(i);
   }
   for (int i = gm->GetN()-1; i != -1; --i) {
-    if (gm->GetY()[i]==0 || gm->GetX()[i]<ptx) gm->RemovePoint(i);
+    if (gm->GetY()[i]==0 || gm->GetX()[i]<ptx || gm->GetX()[i]>pty)
+      gm->RemovePoint(i);
   }
   for (int i = gm1->GetN()-1; i != -1; --i) {
-    if (gm1->GetY()[i]==0 || gm1->GetX()[i]<ptx) gm1->RemovePoint(i);
+    if (gm1->GetY()[i]==0 || gm1->GetX()[i]<ptx || gm1->GetX()[i]>pty)
+      gm1->RemovePoint(i);
   }
   for (int i = gm2->GetN()-1; i != -1; --i) {
-    if (gm2->GetY()[i]==0 || gm2->GetX()[i]<ptx) gm2->RemovePoint(i);
+    if (gm2->GetY()[i]==0 || gm2->GetX()[i]<ptx || gm2->GetX()[i]>pty)
+      gm2->RemovePoint(i);
   }
 
   cout << "Ngm1 = " << gm1->GetN() << " Ngm2 = " << gm2->GetN()
@@ -343,7 +477,7 @@ void multijet(bool usemjb = true) {
     tdrDraw(gmm20,"P",kOpenSquare,kGreen+2);
     tdrDraw(gmm30,"P",kOpenSquare,kBlue);
 
-    TF1 *f0 = new TF1("f0","[0]+[1]*pow(x,[2])",200,1200);
+    TF1 *f0 = new TF1("f0","[0]+[1]*TMath::Power(x,[2])",200,1200);
     f0->SetParameters(1,-0.5,-0.5);
 
     f0->SetLineStyle(kDashed);
@@ -450,7 +584,8 @@ void multijet(bool usemjb = true) {
     g0->SetMarkerColor(kRed);
     g0->SetLineColor(kRed);
     
-    TF1 *f1 = new TF1("f1","[0]+[1]*log(x/[3])+[2]*pow(log(x/[3]),2)",80,1600);
+    TF1 *f1 = new TF1("f1","[0]+[1]*TMath::Log(x/[3])"
+		      "+[2]*TMath::Power(log(x/[3]),2)",80,1600);
     f1->SetParameters(1,0);
     TLine *l = new TLine();
     l->SetLineColor(kBlue-10);
@@ -538,7 +673,8 @@ void multijet(bool usemjb = true) {
     gn->Draw("SAME Pz");
     g0->Draw("SAME Pz");
     
-    TF1 *f2 = new TF1("f2","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
+    TF1 *f2 = new TF1("f2","[0]+[1]*TMath::Log(0.01*x)"
+		      "+[2]*TMath::Power(log(0.01*x),2)",
 		      30,1600);
     f2->SetParameters(1,0,0);
     f2->SetLineColor(kBlack);
@@ -548,9 +684,9 @@ void multijet(bool usemjb = true) {
     const int n = f2->GetNpar();
     TMatrixD emat(n, n);
     gMinuit->mnemat(&emat[0][0], n);
-    _fitError_emat = &emat;
-    _fitError_func = f2;
-    TF1 *f2e = new TF1("f2e",fitError,30,1600,1);
+    _mj_fitError_emat = &emat;
+    _mj_fitError_func = f2;
+    TF1 *f2e = new TF1("f2e",mj_fitError,30,1600,1);
     f2e->SetLineColor(kBlack);
     f2e->SetLineStyle(kDotted);
     f2e->SetParameter(0,+1);
@@ -579,7 +715,7 @@ void multijet(bool usemjb = true) {
 
     //delete c2;
     
-    fe->Close();
+    //fe1->Close();
     curdir->cd();
     
     c1->RedrawAxis();
@@ -598,21 +734,21 @@ void multijet(bool usemjb = true) {
     vpt.push_back((TGraphErrors*)ge2->Clone());
     vpt2.push_back((TGraphErrors*)ge1->Clone());
     vpt2.push_back((TGraphErrors*)ge2->Clone());
-    _vdt = &vdt;
-    _vdt2 = &vdt2;
-    _vpt = &vpt;
-    _vpt2 = &vpt2;
-    _vsrc = &vsrc;
+    _mj_vdt = &vdt;
+    _mj_vdt2 = &vdt2;
+    _mj_vpt = &vpt;
+    _mj_vpt2 = &vpt2;
+    _mj_vsrc = &vsrc;
     
     TF1 *fm = new TF1("multiFit",multiFit,30,1800,np);
     fm->SetParameters(0.982,-0.005,0.);
     _multiFit = fm;
     
     // Add number of fit and nuisance parameters
-    const int nsrc = _vsrc->size();
+    const int nsrc = _mj_vsrc->size();
     Int_t Npar = np+nsrc;
     
-    cout << "Global fit has " << np << " fit parameters and "
+    cout << "Global multijet fit has " << np << " fit parameters and "
 	 << nsrc << " nuisance parameters" << endl;
     
     // Set initial values for the fit function
@@ -630,7 +766,7 @@ void multijet(bool usemjb = true) {
     
     // Run fitter (multiple times if needed)
     const int nFit = 1;
-    cnt = 0;
+    mj_cnt = 0;
     for (int i = 0; i != nFit; ++i)
       fitter->ExecuteCommand("MINI", 0, 0);
     TMatrixD ematg(Npar, Npar);
@@ -652,14 +788,14 @@ void multijet(bool usemjb = true) {
       chi2_src += pow(a[i],2);
     }
     
-    TGraphErrors *gn2 = (*_vdt2)[0]; assert(gn2);
+    TGraphErrors *gn2 = (*_mj_vdt2)[0]; assert(gn2);
     for (int i = 0; i != gn2->GetN(); ++i) {
       double x = gn2->GetX()[i];
       double y = gn2->GetY()[i];
       double ey = gn2->GetEY()[i];
       chi2_data += pow((y - fm->Eval(x)) / ey, 2);
     }
-    TGraphErrors *gn3 = (*_vdt2)[1]; assert(gn3);
+    TGraphErrors *gn3 = (*_mj_vdt2)[1]; assert(gn3);
     for (int i = 0; i != gn3->GetN(); ++i) {
       double x = gn3->GetX()[i];
       double y = gn3->GetY()[i];
@@ -667,19 +803,19 @@ void multijet(bool usemjb = true) {
       chi2_data += pow((y - fm->Eval(x)) / ey, 2);
     }
 
-    TGraphErrors *gi2 = (*_vpt2)[0]; assert(gi2);
-    TGraphErrors *gi3 = (*_vpt2)[1]; assert(gi3);
+    TGraphErrors *gi2 = (*_mj_vpt2)[0]; assert(gi2);
+    TGraphErrors *gi3 = (*_mj_vpt2)[1]; assert(gi3);
 
     // Setup calculation for uncertainty of interpolated JES
-    TF1 *fme = new TF1("fme",fitError,30,1800,1);
-    _fitError_func = fm;
+    TF1 *fme = new TF1("fme",mj_fitError,30,1800,1);
+    _mj_fitError_func = fm;
     TMatrixD emat2(np, np);
     for (int i = 0; i != np; ++i) {
       for (int j = 0; j != np; ++j) {
 	emat2[i][j] = ematg[i][j];
       } // for i
     } // for j
-    _fitError_emat = &emat2;
+    _mj_fitError_emat = &emat2;
     fme->SetParameter(0,+1);
     
     // Update uncertainty of interpolated and inferred JES
@@ -694,11 +830,11 @@ void multijet(bool usemjb = true) {
     
     cout << endl;
     cout << "Global chi2/ndf = " << chi2_gbl
-	 << " / " << Nk-np << " for " << Nk <<" data points, "
+	 << " / " << mj_Nk-np << " for " << mj_Nk <<" data points, "
 	 << np << " fit parameters and "
 	 << nsrc << " uncertainty sources" << endl;
     cout << endl;
-    cout << "For data chi2/ndf = " << chi2_data << " / " << Nk << endl;
+    cout << "For data chi2/ndf = " << chi2_data << " / " << mj_Nk << endl;
     cout << "For sources chi2/ndf = " << chi2_src << " / " << nsrc << endl;
     
     cout << "Fit parameters:" << endl;
@@ -709,7 +845,7 @@ void multijet(bool usemjb = true) {
     
     cout << "Uncertainty sources:" << endl;
     for (int i = np; i != Npar; ++i) {
-      if ((i-np)%6==0) cout << (*_vsrc)[i-np]->GetName() << endl;
+      if ((i-np)%6==0) cout << (*_mj_vsrc)[i-np]->GetName() << endl;
       cout << Form("%2d: %12.3f,   ",i-np+1,a[i]);// << endl;
       if ((i-np)%3==2) cout << endl;
     }
@@ -786,7 +922,7 @@ void multijet(bool usemjb = true) {
     gn2s->DrawClone("SAMEP");
 
     tex->DrawLatex(0.55,0.20,Form("#chi^{2} / NDF = %1.1f / %d",
-				  chi2_gbl, Nk-np));
+				  chi2_gbl, mj_Nk-np));
 
 
     // Factorize error matrix into eigenvectors
@@ -836,8 +972,11 @@ void multijet(bool usemjb = true) {
       TFile *fout = new TFile("rootfiles/jecdata.root","UPDATE");
       assert(fout && !fout->IsZombie());
       
-      assert(gDirectory->cd("ratio"));
-      assert(gDirectory->cd("eta00-13"));
+      assert(fout->cd("ratio"));
+      TDirectory *dout1 = fout->GetDirectory("ratio"); assert(dout1);
+      assert(dout1->cd("eta00-13"));
+      TDirectory *dout2 = dout1->GetDirectory("eta00-13"); assert(dout2);
+      dout2->cd();
       
       if (gm1) {
 	gm1->SetMarkerStyle(kOpenCircle);
@@ -868,8 +1007,10 @@ void multijet(bool usemjb = true) {
 	ge2->Write(Form("%s_multijet_a30","ptf10"),TObject::kOverwrite);
       }
 
-      if (!gDirectory->FindObject("fsr")) gDirectory->mkdir("fsr");
-      assert(gDirectory->cd("fsr"));
+      if (!dout2->FindObject("fsr")) dout2->mkdir("fsr");
+      assert(dout2->cd("fsr"));
+      TDirectory *dout3 = dout2->GetDirectory("fsr"); assert(dout3);
+      dout3->cd();
 
       if (hmes.size()!=0 && hmes[0]) {
 	TH1D *hm = (TH1D*)hmes[0]->Clone(); hm->Reset();
@@ -902,15 +1043,15 @@ void multijet(bool usemjb = true) {
 
 
 
-Double_t fitError(Double_t *xx, Double_t *p) {
+Double_t mj_fitError(Double_t *xx, Double_t *p) {
 
-  assert(_fitError_func);
-  assert(_fitError_emat);
+  assert(_mj_fitError_func);
+  assert(_mj_fitError_emat);
   double x = *xx;
   double k = p[0];
-  TF1 *f = _fitError_func;
+  TF1 *f = _mj_fitError_func;
   int n = f->GetNpar();
-  TMatrixD &emat = (*_fitError_emat);
+  TMatrixD &emat = (*_mj_fitError_emat);
   assert(emat.GetNrows()==n);
   assert(emat.GetNcols()==n);
   
@@ -944,12 +1085,12 @@ void multiFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 	       Int_t flag) {
 
   // Basic checks
-  assert(_vdt);
-  assert(_vpt);
-  assert(_vdt->size()==_vpt->size());
-  assert(_vsrc);
-  assert(int(_vsrc->size())==npar-_multiFit->GetNpar()); // nuisance per source
-  assert(_vdt->size()<=sizeof(int)*8); // bitmap large enough
+  assert(_mj_vdt);
+  assert(_mj_vpt);
+  assert(_mj_vdt->size()==_mj_vpt->size());
+  assert(_mj_vsrc);
+  assert(int(_mj_vsrc->size())==npar-_multiFit->GetNpar()); // nuisance per source
+  assert(_mj_vdt->size()<=sizeof(int)*8); // bitmap large enough
 
   Double_t *ps = &par[_multiFit->GetNpar()];
   int ns = npar - _multiFit->GetNpar();
@@ -957,7 +1098,7 @@ void multiFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
   // Starting JES, i.e. first fixed reference point
   //double jes0 = 0.982;
   //double ejes0 = 0.002;
-  double pt0 = (*_vpt)[0]->GetY()[0] * (*_vdt)[0]->GetX()[0];
+  double pt0 = (*_mj_vpt)[0]->GetY()[0] * (*_mj_vdt)[0]->GetX()[0];
   int ipt0 = _herr->FindBin(pt0);
   double jes0 = _herr->GetBinContent(ipt0);
   double ejes0 = _herr->GetBinError(ipt0);
@@ -967,7 +1108,7 @@ void multiFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
     // do the following calculation:
     // chi2 = sum_i( (x_i+sum_s(a_s y_si) -fit)^2/sigma_i^2) + sum_s(a_s^2)
     chi2 = 0;
-    Nk = 0;
+    mj_Nk = 0;
 
     // Setup parameters for the fit function
     for (int ipar = 0; ipar != _multiFit->GetNpar(); ++ipar) {
@@ -977,10 +1118,10 @@ void multiFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
     // Loop over input data (graphs x bins)
     // - for each point, add up source eigenvectors x nuisance parameters
     // - then calculate chi2 adding up residuals + nuisance parameters + jes0
-    for (unsigned int ig = 0; ig != _vdt->size(); ++ig) {
+    for (unsigned int ig = 0; ig != _mj_vdt->size(); ++ig) {
 
-      TGraphErrors *g = (*_vdt)[ig]; assert(g);
-      TGraphErrors *gp = (*_vpt)[ig]; assert(gp);
+      TGraphErrors *g = (*_mj_vdt)[ig]; assert(g);
+      TGraphErrors *gp = (*_mj_vpt)[ig]; assert(gp);
       assert(g->GetN()==gp->GetN());
 
       for (int i = 0; i != g->GetN(); ++i) {
@@ -998,9 +1139,9 @@ void multiFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 
 	// Calculate total shift caused by all nuisance parameters
 	double shifts = 0;
-	for (unsigned int is = 0; is != _vsrc->size(); ++is) {
+	for (unsigned int is = 0; is != _mj_vsrc->size(); ++is) {
 
-	  TH1D *hsrc = (*_vsrc)[is]; assert(hsrc);
+	  TH1D *hsrc = (*_mj_vsrc)[is]; assert(hsrc);
 	  // Bitmap controls which datasets this eigenvector applies to
 	  int bitmap; char foo[256];
 	  sscanf(hsrc->GetName(),"bm%d_%s", &bitmap,foo);
@@ -1017,18 +1158,18 @@ void multiFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 	// Add chi2 from residual
 	double chi = (data + shifts - fit) / sigma;
 	chi2 += chi * chi;
-	++Nk;
+	++mj_Nk;
 
-	// if _vdt2 is provided, store shifted data there
-	if (_vdt2 && _vdt2->size()==_vdt->size()) {
-	  TGraphErrors *g2 = (*_vdt2)[ig];
+	// if _mj_vdt2 is provided, store shifted data there
+	if (_mj_vdt2 && _mj_vdt2->size()==_mj_vdt->size()) {
+	  TGraphErrors *g2 = (*_mj_vdt2)[ig];
 	  if (g2 && g2->GetN()==g->GetN() && g2->GetX()[i]==ptrecoil) {
 	    g2->SetPoint(i, ptrecoil, (data + shifts) * jesref);
 	  }
 	}
-	// if _vpt2 is provided, store shifted reference points there
-	if (_vpt2 && _vpt2->size()==_vpt->size()) {
-	  TGraphErrors *gp2 = (*_vpt2)[ig];
+	// if _mj_vpt2 is provided, store shifted reference points there
+	if (_mj_vpt2 && _mj_vpt2->size()==_mj_vpt->size()) {
+	  TGraphErrors *gp2 = (*_mj_vpt2)[ig];
 	  if (gp2 && gp2->GetN()==gp->GetN()) {// &&
 	    gp2->SetPoint(i, ptref, jesref);
 	    // Add uncertainties after the fit when they're available
@@ -1048,7 +1189,7 @@ void multiFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
     chi2 += chi * chi;
     
     // Give some feedback on progress in case loop gets stuck
-    if ((++cnt)%1000==0) cout << "." << flush;
+    if ((++mj_cnt)%1000==0) cout << "." << flush;
   } // if flag
   else {
     if (grad) {}; // suppress warning;

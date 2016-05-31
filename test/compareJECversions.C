@@ -25,10 +25,10 @@ bool _usenegative = false;
 bool _usepositive = false;
 
 bool _useptgen = true; // iterate to produce JEC vs pTgen
-bool _dothree  = true; // compare three JECs instead of just two
+bool _dothree  = false; // compare three JECs instead of just two
 bool _paper    = true; // graphical settings for the paper (e.g. y-axis range)
 
-const double _mu = 20;//19.83; // 20/fb at 8 TeV (htrpu)
+const double _mu = 12.8;//20;//19.83; // 20/fb at 8 TeV (htrpu)
 //const double _lumi = 19800.;
 bool _pdf = true; // save .pdf
 bool _C   = true; // save .C
@@ -103,7 +103,7 @@ double getEtaPtE(FactorizedJetCorrector *jec, double eta, double pt, double e,
     _thejec = jec;
     fCorrPt->SetParameters(eta, mu);
     // Find ptreco that gives pTreco*JEC = pTgen
-    double ptreco = fCorrPt->GetX(ptgen,5,4000);
+    double ptreco = fCorrPt->GetX(ptgen,5,6500);
 
     setEtaPtE(jec, eta, ptreco, e, mu);
   }
@@ -141,7 +141,6 @@ void compareJECversions(string algo="AK5PFchs",
 			bool l1=true, bool l2l3=true, bool res=true,
 			string type="DATA") {
 
-  //gROOT->ProcessLine(".L tdrstyle_mod12.C");
   setTDRStyle();
   writeExtraText = false; // for JEC paper CWR
 
@@ -154,50 +153,70 @@ void compareJECversions(string algo="AK5PFchs",
   const char *str;
 
   // Initialize function used to invert JEC
-  fCorrPt = new TF1("fCorrPt",funcCorrPt,1,4000,2);
-  bool dothree = (_dothree && !(l1 && TString(a).Contains("chs")));
+  fCorrPt = new TF1("fCorrPt",funcCorrPt,1,6500,2);
+  //bool dothree = (_dothree && !(l1 && TString(a).Contains("chs")));
+  bool dothree = _dothree;
 
   // Legends
   const char *cm0 = "DATA";
   const char *cm = type.c_str();
-  //string sgen = (_useptgen ? "ptcl" : "raw");
   string sgen = (_useptgen ? "corr" : "raw");
   const char *cgen = sgen.c_str();
 
-  // Latest 53X V5 (Winter14_V5)
-  //string sid2 = (_mc ? "Winter14_V4_MC" : "Winter14_V4_DATA");
-  // Even latest 53X V5 (Winter14_V8)
-  string sid2 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
+  // 2015 JEC, 76X
+  //string sid2 = (_mc ? "Summer15_25nsV6_MC" : "Summer15_25nsV6_DATA");
+  string sid2 = (_mc ? "Fall15_25nsV1_MC" : "Fall15_25nsV1_DATA");
   const char *cid2 = sid2.c_str();
   const char *a2 = a;
-  //const char *s2 = "20/fb (8 TeV)";//"2012, 20/fb";//"Winter14_V5";
-  const char *s2 = "20 fb^{-1} (8 TeV)";//"2012, 20/fb";//"Winter14_V5";
-  const char *s2s = "2012";//"V5";
-  //const char *s2 = "20/fb (W14V8)"; //TMP
-  //const char *s2s = "2012V8"; //TMP
+  //const char *s2 = "1.3 fb^{-1} (13 TeV)";
+  //const char *s2s = "2012";
+  //const char *s2 = "2.1 fb^{-1} (13 TeV)";
+  const char *s2 = "76Xv1 (13 TeV)";
+  const char *s2s = "76X";
+  // PATCH 2012 with clones
+  //if (algo=="AK4PF") a2 = "AK5PF";
+  //if (algo=="AK4PFchs") a2 = "AK5PFchs";
 
-  // Summer13
-  string sid1 = "GR_R_42_V23";
-  //string sid1 = (_mc ? "START53_V26_MC" : "FT_53_V21_AN6_DATA"); // 8 TeV?!
-  //string sid1 = (_mc ? "Winter14_V4_MC" : "Winter14_V4_DATA"); // TMP
+  // 2012 JEC
+  //string sid1 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
+  // 74X JEC
+  string sid1 = (_mc ? "Summer15_25nsV7_MC" : "Summer15_25nsV7_DATA");
   const char *cid1 = sid1.c_str();
   const char *a1 = a;
-  //const char *s1 = "5/fb (7 TeV)";//"2011, 5/fb";//"Summer13";
-  const char *s1 = "5 fb^{-1} (7 TeV)";//"2011, 5/fb";//"Summer13";
-  const char *s1s = "2011";//"GT";
-  //const char *s1 = "20/fb (W14V4)"; //TMP
-  //const char *s1s = "2012V4"; //TMP
+  //const char *s1 = "20 fb^{-1} (8 TeV)";
+  //const char *s1s = "2012";
+  //const char *s1 = "1.3 fb^{-1} (13 TeV)";
+  const char *s1 = "74Xv7 (13 TeV)";
+  const char *s1s = "74X";
+  // PATCH 2012 with clones
+  //if (algo=="AK4PF") a1 = "AK5PF";
+  //if (algo=="AK4PFchs") a1 = "AK5PFchs";
 
-  // 2010 (? Or should this be Fall10? Which L1 corrections, Hybrid or FastJet?)
-  string sid3 = "START38_V13";
+  // 2012 JEC
+  string sid3 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
   const char *cid3 = sid3.c_str();
   const char *a3 = a;
-  //const char *s3 = "36/pb (7 TeV)";//"2010, 36/pb";
-  const char *s3 = "36 pb^{-1} (7 TeV)";//"2010, 36/pb";
-  const char *s3s = "2010";
+  const char *s3 = "20 fb^{-1} (8 TeV)";
+  const char *s3s = "74X";
+  if (algo=="AK4PF") a3 = "AK5PF";
+  if (algo=="AK4PFchs") a3 = "AK5PFchs";
+
+  // 2011 JEC
+  //string sid1 = "GR_R_42_V23";
+  //const char *cid1 = sid1.c_str();
+  //const char *a1 = a;
+  //const char *s1 = "5 fb^{-1} (7 TeV)";
+  //const char *s1s = "2011";
+
+  // 2010 JEC
+  //string sid3 = "START38_V13";
+  //const char *cid3 = sid3.c_str();
+  //const char *a3 = a;
+  //const char *s3 = "36 pb^{-1} (7 TeV)";
+  //const char *s3s = "2010";
   // PATCH 2010 with clones AK7PF/PFchs
-  if (algo=="AK7PF") a3 = "AK5PF";
-  if (algo=="AK7PFchs") a3 = "AK5PFchs";
+  //if (algo=="AK7PF") a3 = "AK5PF";
+  //if (algo=="AK7PFchs") a3 = "AK5PFchs";
 
 
   str=Form("CondFormats/JetMETObjects/data/%s_L1FastJet_%s.txt",cid1,a1);
@@ -228,26 +247,9 @@ void compareJECversions(string algo="AK5PFchs",
   str=Form("CondFormats/JetMETObjects/data/%s_L2L3Residual_%s.txt",cid2,a2);
   if (!mc) cout << str << endl << flush;
   JetCorrectorParameters *JetCorPar2 = (mc ? 0 : new JetCorrectorParameters(str));
-  //str=Form("CondFormats/JetMETObjects/data/%s_Uncertainty_%s.txt",cid2,a2);
-  //str=Form("../txt/Winter14_V8M_DATA_Uncertainty_%s.txt",a2);
-  //str=Form("../txt/Winter14_V10M_DATA_Uncertainty_%s.txt",a2);
   str=Form("CondFormats/JetMETObjects/data/%s_Uncertainty_%s.txt",cid2,a2);
   cout << str << endl << flush;
   JetCorrectionUncertainty *jecUnc2 = new JetCorrectionUncertainty(str);
-
-  // JEC in 2010 JINST paper
-  /*
-    str=Form("CondFormats/JetMETObjects/data/Fall10_L1Offset_%s_SCALED.txt",a); cout << str << endl << flush;
-    JetCorrectorParameters *JetCorPar1L1 = new JetCorrectorParameters(str);
-    str=Form("CondFormats/JetMETObjects/data/Fall10_L2Relative_%s.txt",a); cout << str << endl << flush;
-    JetCorrectorParameters *JetCorPar1L2 = new JetCorrectorParameters(str);
-    str=Form("CondFormats/JetMETObjects/data/Fall10_L3Absolute_%s.txt",a); cout << str << endl << flush;
-    JetCorrectorParameters *JetCorPar1L3 = new JetCorrectorParameters(str);
-    str=Form("CondFormats/JetMETObjects/data/Fall10_L2L3Residual_%s.txt",a); if (mc) cout << str << endl << flush;
-    JetCorrectorParameters *JetCorPar1 = (mc ? 0 : new JetCorrectorParameters(str));
-    str=Form("CondFormats/JetMETObjects/data/Jec10V1_Uncertainty_%s.txt",a); cout << str << endl << flush;
-    JetCorrectionUncertainty *jecUnc1 = new JetCorrectionUncertainty(str);
-  */
 
   vector<JetCorrectorParameters> vParam1;
   if (l1)   vParam1.push_back(*JetCorPar1L1);
@@ -266,7 +268,8 @@ void compareJECversions(string algo="AK5PFchs",
   FactorizedJetCorrector *JEC3(0);
   JetCorrectionUncertainty *jecUnc3(0);
   if (dothree) {
-    // Note the reversed naming scheme
+    // Note the reversed naming scheme in 2010
+    /*
     str=Form("CondFormats/JetMETObjects/data/%s_%s_L1FastJet.txt",cid3,a3);
     cout << str << endl << flush;
     JetCorrectorParameters *JetCorPar3L1 = new JetCorrectorParameters(str);
@@ -282,6 +285,23 @@ void compareJECversions(string algo="AK5PFchs",
     str=Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty.txt",cid3,a3);
     cout << str << endl << flush;
     jecUnc3 = new JetCorrectionUncertainty(str);
+    */
+
+    str=Form("CondFormats/JetMETObjects/data/%s_L1FastJet_%s.txt",cid3,a3);
+    cout << str << endl << flush;
+    JetCorrectorParameters *JetCorPar3L1 = new JetCorrectorParameters(str);
+    str=Form("CondFormats/JetMETObjects/data/%s_L2Relative_%s.txt",cid3,a3);
+    cout << str << endl << flush;
+    JetCorrectorParameters *JetCorPar3L2 = new JetCorrectorParameters(str);
+    str=Form("CondFormats/JetMETObjects/data/%s_L3Absolute_%s.txt",cid3,a3);
+    cout << str << endl << flush;
+    JetCorrectorParameters *JetCorPar3L3 = new JetCorrectorParameters(str);
+    str=Form("CondFormats/JetMETObjects/data/%s_L2L3Residual_%s.txt",cid3,a3);
+    if (!mc) cout << str << endl << flush;
+    JetCorrectorParameters *JetCorPar3 = (mc ? 0 : new JetCorrectorParameters(str));
+    str=Form("CondFormats/JetMETObjects/data/%s_Uncertainty_%s.txt",cid3,a3);
+    cout << str << endl << flush;
+    JetCorrectionUncertainty *jecUnc3 = new JetCorrectionUncertainty(str);
 
     vector<JetCorrectorParameters> vParam3;
     if (l1)   vParam3.push_back(*JetCorPar3L1);
@@ -297,9 +317,6 @@ void compareJECversions(string algo="AK5PFchs",
   //_JEC1 = JEC1;
 
   TCanvas *c0 = new TCanvas(Form("c0_%s",a),Form("c0_%s",a),600,600);
-  //TCanvas *c1a = new TCanvas(Form("c1a_%s",a),Form("c1a_%s",a),600,600);
-  //TCanvas *c1b = new TCanvas(Form("c1b_%s",a),Form("c1b_%s",a),600,600);
-  //TCanvas *c1c = new TCanvas(Form("c1c_%s",a),Form("c1c_%s",a),600,600);
 
   TCanvas *c2 = new TCanvas(Form("c2_%s",a),Form("c2_%s",a),600,600);
 
@@ -330,16 +347,6 @@ void compareJECversions(string algo="AK5PFchs",
   hpt->SetMinimum(0.);
   hpt->SetMaximum(2.);
 
-  //h->GetYaxis()->SetTitle(Form("%s %s%s%s%s",a,cl1,cl2l3,cpl,cres));
-  /*
-  h->SetMinimum(l1 ? 0.85 : 1.00);
-  h->SetMaximum(l1 ? 1.30 : 1.45);
-  if ((res && !l1 && !l2l3) || (l2l3 && !res && !l1)) {
-    h->SetMinimum(0.95);
-    h->SetMaximum(1.25);
-  }
-  if (l2l3 && algo=="CALO") h->SetMaximum(2.2);
-  */
   h->GetYaxis()->SetTitle(Form("%s%s%s%s",cl1,cl2l3,cpl,cres));
   if (_paper) {
     if (l1 && !l2l3 && !res) h->SetYTitle("Pileup offset correction");
@@ -353,36 +360,32 @@ void compareJECversions(string algo="AK5PFchs",
   h->SetMinimum(0.3);
   h->SetMaximum(2.0);
   if (_paper) {
-    //if (l1 && !l2l3 && !res) h->GetYaxis()->SetRangeUser(0.7,1.2);
     if (l1 && !l2l3 && !res) h->GetYaxis()->SetRangeUser(0.5,1.4);
-    //if (!l1 && l2l3 && !res) h->GetYaxis()->SetRangeUser(0.85,1.6);
-    if (!l1 && l2l3 && !res) h->GetYaxis()->SetRangeUser(0.85,1.8); // pas-v6
-    //if (!l1 && !l2l3 && res) h->GetYaxis()->SetRangeUser(0.85,1.4);
-    if (!l1 && !l2l3 && res) h->GetYaxis()->SetRangeUser(0.85,1.45); // pas-v6
+    if (!l1 && l2l3 && !res) h->GetYaxis()->SetRangeUser(0.85,1.8);
+    if (!l1 && !l2l3 && res) h->GetYaxis()->SetRangeUser(0.85,1.45);
     //
     if (l1 && !l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.5,1.4);
-    //if (!l1 && l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.85,1.6);
-    if (!l1 && l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.85,1.6); // pas-v6
-    //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.85,1.4);
-    if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.85,1.45); // pas-v6
+    if (!l1 && l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.85,1.6);
+    if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.85,1.45);
     //
     if (l1 && !l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
     if (!l1 && l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
     if (!l1 && !l2l3 && res) hpt->GetXaxis()->SetRangeUser(10,1999);
   }
 
-  lumi_7TeV  = (dothree ? "36 pb^{-1} + 4.9 fb^{-1}" : "4.9 fb^{-1}");
+  //lumi_7TeV  = (dothree ? "36 pb^{-1} + 4.9 fb^{-1}" : "4.9 fb^{-1}");
+  lumi_13TeV  = "19.8 fb^{-1} (8 TeV) + 1.3--2.1 fb^{-1}";
 
   TH1D *h1a = (TH1D*)h->Clone(Form("h1a_%s",a));
-  TCanvas *c1a = tdrCanvas(Form("c1a_%s",a),h1a,3,11,kSquare);
+  TCanvas *c1a = tdrCanvas(Form("c1a_%s",a),h1a,4,11,kSquare);
   TH1D *h1b = (TH1D*)h->Clone(Form("h1b_%s",a));
-  TCanvas *c1b = tdrCanvas(Form("c1b_%s",a),h1b,3,11,kSquare);
+  TCanvas *c1b = tdrCanvas(Form("c1b_%s",a),h1b,4,11,kSquare);
   TH1D *h1c = (TH1D*)h->Clone(Form("h1c_%s",a));
-  TCanvas *c1c = tdrCanvas(Form("c1c_%s",a),h1c,3,11,kSquare);
+  TCanvas *c1c = tdrCanvas(Form("c1c_%s",a),h1c,4,11,kSquare);
   TH1D *h1e = (TH1D*)h->Clone(Form("h1e_%s",a));
-  TCanvas *c1e = tdrCanvas(Form("c1e_%s",a),h1e,3,11,kSquare);
+  TCanvas *c1e = tdrCanvas(Form("c1e_%s",a),h1e,4,11,kSquare);
 
-  TCanvas *c1d = tdrCanvas(Form("c1d_%s",a),hpt,3,11,kSquare);
+  TCanvas *c1d = tdrCanvas(Form("c1d_%s",a),hpt,4,11,kSquare);
   if (_paper) hpt->SetTitleOffset(0.97); // comma otherwise cut off
 
   TGraph *g1a = new TGraph(0);
@@ -506,7 +509,7 @@ void compareJECversions(string algo="AK5PFchs",
 	double pt = ptbins[j];
 	double energy = pt*cosh(eta);
 
-	if (energy < 4000.) {
+	if (energy < 6500.) {
 	  // Asymmetric corrections now
 	  double y1 = 0.5*(getEtaPtE(JEC1, +eta, pt, energy)
 			    + getEtaPtE(JEC1, -eta, pt, energy));
@@ -514,7 +517,7 @@ void compareJECversions(string algo="AK5PFchs",
 			    + getEtaPtE(JEC2, -eta, pt, energy));
 
 	  g21->SetPoint(g21->GetN(), eta, y2/y1);
-	} // energy < 4000
+	} // energy < 6500
       } // for j
     } // pt bins
  
@@ -523,7 +526,7 @@ void compareJECversions(string algo="AK5PFchs",
       double pt = 30.;
       double energy = pt*cosh(eta);
       
-      if (energy < 4000.) {
+      if (energy < 6500.) {
 	// Asymmetric corrections now
 	double y1 = 0.5*(getEtaPtE(JEC1, +eta, pt, energy)
 			  + getEtaPtE(JEC1, -eta, pt, energy));
@@ -575,7 +578,7 @@ void compareJECversions(string algo="AK5PFchs",
       double pt = 100.;
       double energy = pt*cosh(eta);
       
-      if (energy < 4000.) {
+      if (energy < 6500.) {
 	// Asymmetric corrections now
 	double y1 = 0.5*(getEtaPtE(JEC1, +eta, pt, energy)
 			 + getEtaPtE(JEC1, -eta, pt, energy));
@@ -627,7 +630,7 @@ void compareJECversions(string algo="AK5PFchs",
       double pt = 1000.;
       double energy = pt*cosh(eta);
       
-      if (energy < 4000.) {
+      if (energy < 6500.) {
 	// Asymmetric corrections now
 	double y1 = 0.5*(getEtaPtE(JEC1, +eta, pt, energy)
 			 + getEtaPtE(JEC1, -eta, pt, energy));
@@ -735,7 +738,7 @@ void compareJECversions(string algo="AK5PFchs",
       double pt = hpt->GetBinCenter(i);
       double energy = pt*cosh(eta);
       
-      if (pt>10 && energy < 4000.) {
+      if (pt>10 && energy < 6500.) {
 	// Asymmetric corrections now
 	double y1 = 0.5*(getEtaPtE(JEC1, +eta, pt, energy)
 			  + getEtaPtE(JEC1, -eta, pt, energy));

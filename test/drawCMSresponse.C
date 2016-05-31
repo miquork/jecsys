@@ -46,7 +46,7 @@ TF1 *_jecpt(0);
 double getResp(double ptgen, double eta, double jeta, double mu) {
 
   _jecpt->SetParameters(eta, jeta, rhoFromMu(mu));
-  double ptmeas = _jecpt->GetX(ptgen, 1, 4000);
+  double ptmeas = _jecpt->GetX(ptgen, 1, 6500);
   double resp = ptmeas / _jecpt->Eval(ptmeas); // 1/jec
 
   return resp;
@@ -69,24 +69,34 @@ void drawCMSresponse() {
   if (!_jec) {
 
     const char *sd = "CondFormats/JetMETObjects/data";
-    const char *st = "Winter14_V5_MC";
+    //const char *st = "Winter14_V5_MC";
+    //const char *st = "Winter14_V8_DATA";
+    //const char *st = "Summer15_25nsV3_DATA";
+    //const char *st = "Summer15_25nsV6_DATA";
+    //const char *st = "Summer15_25nsV7_DATA";
+    const char *st = "Fall15_25nsV1_DATA";
     const char *s;
 
     //s = Form("%s/%s_L1FastJet_AK5PFchs.txt",sd,st); cout << s << endl;
     //JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
-    s = Form("%s/%s_L2Relative_AK5PFchs.txt",sd,st); cout << s << endl;
+    //s = Form("%s/%s_L2Relative_AK5PFchs.txt",sd,st); cout << s << endl;
+    s = Form("%s/%s_L2Relative_AK4PFchs.txt",sd,st); cout << s << endl;
     JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
-    s = Form("%s/%s_L3Absolute_AK5PFchs.txt",sd,st); cout << s << endl;
+    //s = Form("%s/%s_L3Absolute_AK5PFchs.txt",sd,st); cout << s << endl;
+    s = Form("%s/%s_L3Absolute_AK4PFchs.txt",sd,st); cout << s << endl;
     JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
+    s = Form("%s/%s_L2L3Residual_AK4PFchs.txt",sd,st); cout << s << endl;
+    JetCorrectorParameters *l2l3 = new JetCorrectorParameters(s);
 
     vector<JetCorrectorParameters> v;
     //v.push_back(l1);
     v.push_back(*l2);
     v.push_back(*l3);
+    v.push_back(*l2l3);
     _jec = new FactorizedJetCorrector(v);
   }
   if (!_jecpt) {
-    _jecpt = new TF1("jecpt",fJECPt,0,4000,3);
+    _jecpt = new TF1("jecpt",fJECPt,0,6500,3);
   }
 
   //double ergs[] = {30, 60, 110, 400, 2000};
@@ -94,7 +104,7 @@ void drawCMSresponse() {
   double pts[] = {10, 30, 100, 400, 2000};
   const int npt = sizeof(pts)/sizeof(pts[0]);
   const int neta = 48;//52;
-  const int jeta = TMath::Pi()*0.5*0.5;
+  const int jeta = TMath::Pi()*0.4*0.4;
   const int mu = 0;
 
   TGraph *gs[npt];
@@ -110,7 +120,7 @@ void drawCMSresponse() {
       double eta = (ieta+0.5)*0.1;
       //double pt = energy / cosh(eta);
       double energy = pt * cosh(eta);
-      if (pt >= 10. && energy < 4000.) {
+      if (pt >= 10. && energy < 6500.) {
 
 	double jes = getResp(pt, eta, jeta, mu);
 	int n = g->GetN();
@@ -121,11 +131,17 @@ void drawCMSresponse() {
 
 
   // Draw results
-  TH1D *h = new TH1D("h",";Jet |#eta|;Simulated jet response",40,0,4.8);
+  //TH1D *h = new TH1D("h",";Jet |#eta|;Simulated jet response",40,0,4.8);
+  TH1D *h = new TH1D("h",";Jet |#eta|;Data jet response",40,0,4.8);
   h->SetMaximum(1.25);
   h->SetMinimum(0.5);
+  //extraText = "Simulation Preliminary";
+  extraText = "Preliminary";
   lumi_8TeV = "";
-  TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
+  //lumi_13TeV = "";
+  lumi_13TeV = "2.1 fb^{-1}";
+  //TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
+  TCanvas *c1 = tdrCanvas("c1",h,4,0,kSquare);
 
   TLegend *leg1 = tdrLeg(0.25,0.25,0.55,0.30);
   TLegend *leg2 = tdrLeg(0.25,0.20,0.55,0.25);
@@ -165,7 +181,10 @@ void drawCMSresponse() {
   l->SetLineStyle(kDashed);
   l->DrawLine(3.2,0.7,3.2,1.1);
 
-  tex->DrawLatex(0.23,0.86,"2012 JES: Anti-k_{t} R = 0.5, PF+CHS");
+  //tex->DrawLatex(0.30,0.86,"2012 JES: Anti-k_{t} R = 0.4, PF+CHS");
+  //tex->DrawLatex(0.30,0.86,"53X JES: Anti-k_{t} R = 0.5, PF+CHS");
+  //tex->DrawLatex(0.30,0.86,"74X JES: Anti-k_{t} R = 0.4, PF+CHS");
+  tex->DrawLatex(0.30,0.86,"76X JES: Anti-k_{t} R = 0.4, PF+CHS");
 
   tex->DrawLatex(0.19,0.78,"Barrel");
   tex->DrawLatex(0.47,0.78,"Endcap"); //0.42
