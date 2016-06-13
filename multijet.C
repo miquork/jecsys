@@ -81,125 +81,67 @@ void multijet(bool usemjb = true) {
 		     700, 800, 1000, 1200, 1500};
   const int npt = sizeof(ptbins)/sizeof(ptbins[0])-1;
   
-  // On 12 Jan 2015, at 11:21, from Anne-Laure Pequegnot
-  // Re: Updated L2Res for new L1 - please rerun
-  //TFile *fmd = new TFile("rootfiles/MULTIJET_Run2012ABCD-22Jan2013_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix_afterPrescaleReweighting-v6.root","READ"); // data, newL1V6
-  //
-  // On 31 Jul 2015, at 10:15, Anne-Laure Pequegnot
-  // Re: multijet
-  //TFile *fmd = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015B-PromptReco_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting.root","READ");
-  //
-  // On 01 Oct 2015, at 10:41, Anne-Laure Cunrath Pequegnot
-  // Re: multijet results on 2015D data
-  //TFile *fmd = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-PromptReco_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting.root","READ");
-  //
-  // On 17 Oct 2015, at 12:05, Anne-Laure Pequegnot
-  // Re: JEC update with 1/fb -- orange alert?
-  //TFile *fmd = new TFile(_m_dcsonly ? 
-  //			 "rootfiles/MULTIJET_data_JetHT_Run2015D-PromptReco_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting_onlyL2Res_DCSOnly.root" :
-  //			 "rootfiles/MULTIJET_data_JetHT_Run2015D-PromptReco_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting_onlyL2Res.root",
-  //
-  // On 28 Oct 2015, at 17:52, Anne-Laure Pequegnot
-  // Re: Update with October 19 json file
-  //TFile *fmd = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx25_miniAOD_woPU_pt30_eta50_notRmPUJets.root",
-  // => BUG?? Should have been data
-  //
-  // On 27 Nov 2015, at 21:27, Anne-Laure Pequegnot 
-  // Re: pileup re-weighting
-  //TFile *fmd1 = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-merged_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting_json13Nov15.root",
-  // => overwritten by Dec 01 files
-  //TFile *fmd2 = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-merged_miniAOD_woPU_pt10_eta50_notRmPUJets_beforePrescaleReweighting_json13Nov15.root",
-  // => overwritten by Dec 01 files
-  //
-  // On 01 Dec 2015, at 21:51, Anne-Laure Pequegnot
-  // Re: pileup re-weighting
-  //TFile *fmd1 = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-merged_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting_json13Nov15.root","READ");
-  //TFile *fmd2 = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-merged_miniAOD_woPU_pt10_eta50_notRmPUJets_beforePrescaleReweighting_json13Nov15.root","READ");
-  //
-
-  // On 04 Dec 2015, at 10:14, Anne-Laure Pequegnot
-  // Re: pileup re-weighting
-  // => 74X V7
-  //TFile *fmd = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-merged_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting_json13Nov15_04Dec15.root","READ");
-  //TFile *fmd2 = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-merged_miniAOD_woPU_pt10_eta50_notRmPUJets_beforePrescaleReweighting_json13Nov15_04Dec15.root","READ");
-  //TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_notRmPUJets_recoilPtHLTBin_type1fix_04Dec15.root","READ");
-  //TFile *fe1 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_notRmPUJets_recoilPtHLTBin_type1fix_04Dec15.root","READ");
-  //TFile *fe2 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt10_eta50_notRmPUJets_recoilPtHLTBin_type1fix_04Dec15.root","READ");
-  //
   // On 17 Feb 2016, at 10:22, Anne-Laure Pequegnot
   // Re: L2Res for 76X
   // => 76X V2
-  TFile *fmd = new TFile("rootfiles/MULTIJET_data_2015-merged_pt30_eta30_notRmPUJets_beforePrescaleReweighting.root","READ");
-  //TFile *fmd2 = new TFile("rootfiles/MULTIJET_data_2015-merged_pt10_eta30_notRmPUJets_beforePrescaleReweighting.root","READ");
-  TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-500ToInf_analysis_woPU_pt30_eta30_notRmPUJets.root","READ");
-  TFile *fe1 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-500ToInf_analysis_woPU_pt30_eta30_notRmPUJets.root","READ");
-  TFile *fe2 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-500ToInf_analysis_woPU_pt10_eta30_notRmPUJets.root","READ");
-
+  //TFile *fmd = new TFile("rootfiles/MULTIJET_data_2015-merged_pt30_eta30_notRmPUJets_beforePrescaleReweighting.root","READ");
+  ////TFile *fmd2 = new TFile("rootfiles/MULTIJET_data_2015-merged_pt10_eta30_notRmPUJets_beforePrescaleReweighting.root","READ");
+  //TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-500ToInf_analysis_woPU_pt30_eta30_notRmPUJets.root","READ");
+  //TFile *fe1 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-500ToInf_analysis_woPU_pt30_eta30_notRmPUJets.root","READ");
+  //TFile *fe2 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-500ToInf_analysis_woPU_pt10_eta30_notRmPUJets.root","READ");
 
   // fmd, fmc: pt30 balancing results for MJB and MPF
   // fe1, fe2: pt30 (MJB) and pt10 (MPF) Crecoil mapping
-  assert(fmd && !fmd->IsZombie());
-  //assert(fmd2 && !fmd2->IsZombie());
-  assert(fmc && !fmc->IsZombie());
-  assert(fe2 && !fe2->IsZombie());
-  assert(fe1 && !fe1->IsZombie());
+  //assert(fmd && !fmd->IsZombie());
+  ////assert(fmd2 && !fmd2->IsZombie());
+  //assert(fmc && !fmc->IsZombie());
+  //assert(fe2 && !fe2->IsZombie());
+  //assert(fe1 && !fe1->IsZombie());
+
+  // New file format for 2016 (much simpler like this!)
+  //
+  // On 30 May 2016, at 21:57, Andrey A. Popov
+  // Re: Inputs to global fit from multijet analysis
+  //TFile *f = new TFile("rootfiles/multijet_2016_v1.root","READ");
+  //
+  // On 01 Jun 2016, at 21:26, Andrey A. Popov
+  // Re: Inputs to global fit from multijet analysis
+  TFile *f = new TFile("rootfiles/multijet_2016_v2.root","READ");
+  assert(f && !f->IsZombie());
 
   // Load MJB and MPF from pt30 file: reduces bias no pTrecoil binning
   // However, later use pt10 for the MPF lever arm: this is longer
-  assert(fmd->cd("MJB"));
-  //assert(gDirectory->cd("PtBin"));
-  //TGraphErrors *gmd1 = (TGraphErrors*)gDirectory->Get("gMJB_RefObjPt");
-  TDirectory *din1 = fmd->GetDirectory("MJB"); assert(din1);
-  assert(din1->cd("PtBin"));
-  TDirectory *din2 = din1->GetDirectory("PtBin"); assert(din2);
-  TGraphErrors *gmd1 = (TGraphErrors*)din2->Get("gMJB_RefObjPt");
+  //assert(fmd->cd("MJB"));
+  //TDirectory *din1 = fmd->GetDirectory("MJB"); assert(din1);
+  //assert(din1->cd("PtBin"));
+  //TDirectory *din2 = din1->GetDirectory("PtBin"); assert(din2);
+  //TGraphErrors *gmd1 = (TGraphErrors*)din2->Get("gMJB_RefObjPt");
+  TGraphErrors *gmd1 = (TGraphErrors*)f->Get("Data/Pt30/MJB");
   assert(gmd1); gmd1->SetName("MJB");
   //
-  assert(fmd->cd("MPF"));
-  //assert(gDirectory->cd("PtBin"));
-  //TGraphErrors *gmd2 = (TGraphErrors*)gDirectory->Get("gMPF_RefObjPt");
-  TDirectory *din3 = fmd->GetDirectory("MPF"); assert(din3);
-  assert(din3->cd("PtBin"));
-  TDirectory *din4 = din3->GetDirectory("PtBin"); assert(din4);
-  TGraphErrors *gmd2 = (TGraphErrors*)din4->Get("gMPF_RefObjPt");
+  //assert(fmd->cd("MPF"));
+  //TDirectory *din3 = fmd->GetDirectory("MPF"); assert(din3);
+  //assert(din3->cd("PtBin"));
+  //TDirectory *din4 = din3->GetDirectory("PtBin"); assert(din4);
+  //TGraphErrors *gmd2 = (TGraphErrors*)din4->Get("gMPF_RefObjPt");
+  TGraphErrors *gmd2 = (TGraphErrors*)f->Get("Data/Pt30/MPF");
   assert(gmd2); gmd2->SetName("MPF");
 
-  // On 12 Jan 2015, at 11:21, from Anne-Laure Pequegnot
-  // Re: Updated L2Res for new L1 - please rerun
-  //TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix-v6.root","READ"); // MC, newL1V6
-  //
-  // On 31 Jul 2015, at 10:15, Anne-Laure Pequegnot
-  // Re: multijet
-  //TFile *fmc = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx50_miniAOD_woPU_pt30_eta50_notRmPUJets.root","READ");
-  //
-  // On 01 Oct 2015, at 10:41, Anne-Laure Cunrath Pequegnot
-  // Re: multijet results on 2015D data
-  //TFile *fmc = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx25_miniAOD_woPU_pt30_eta50_notRmPUJets.root","READ");
-  //
-  // On 17 Oct 2015, at 12:05, Anne-Laure Pequegnot
-  // Re: JEC update with 1/fb -- orange alert?
-  //TFile *fmc = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx25_miniAOD_woPU_pt30_eta50_notRmPUJets-2.root","READ");
-  //
-  // On 27 Nov 2015, at 21:27, Anne-Laure Pequegnot 
-  // Re: pileup re-weighting
-  //TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_notRmPUJets_recoilPtHLTBin_type1fix.root","READ");
 
-  assert(fmc->cd("MJB"));
-  //assert(gDirectory->cd("PtBin"));
-  //TGraphErrors *gmc1 = (TGraphErrors*)gDirectory->Get("gMJB_RefObjPt");
-  TDirectory *dmc1 = fmc->GetDirectory("MJB"); assert(dmc1);
-  assert(dmc1->cd("PtBin"));
-  TDirectory *dmc2 = dmc1->GetDirectory("PtBin"); assert(dmc2);
-  TGraphErrors *gmc1 = (TGraphErrors*)dmc2->Get("gMJB_RefObjPt");
+  //assert(fmc->cd("MJB"));
+  //TDirectory *dmc1 = fmc->GetDirectory("MJB"); assert(dmc1);
+  //assert(dmc1->cd("PtBin"));
+  //TDirectory *dmc2 = dmc1->GetDirectory("PtBin"); assert(dmc2);
+  //TGraphErrors *gmc1 = (TGraphErrors*)dmc2->Get("gMJB_RefObjPt");
+  TGraphErrors *gmc1 = (TGraphErrors*)f->Get("MC/Pt30/MJB");
   assert(gmc1); gmc1->SetName("MJB");
 
-  assert(fmc->cd("MPF"));
-  //assert(gDirectory->cd("PtBin"));
-  //TGraphErrors *gmc2 = (TGraphErrors*)gDirectory->Get("gMPF_RefObjPt");
-  TDirectory *dmc3 = fmc->GetDirectory("MPF"); assert(dmc3);
-  assert(dmc3->cd("PtBin"));
-  TDirectory *dmc4 = dmc3->GetDirectory("PtBin"); assert(dmc4);
-  TGraphErrors *gmc2 = (TGraphErrors*)dmc4->Get("gMPF_RefObjPt");
+  //assert(fmc->cd("MPF"));
+  //TDirectory *dmc3 = fmc->GetDirectory("MPF"); assert(dmc3);
+  //assert(dmc3->cd("PtBin"));
+  //TDirectory *dmc4 = dmc3->GetDirectory("PtBin"); assert(dmc4);
+  //TGraphErrors *gmc2 = (TGraphErrors*)dmc4->Get("gMPF_RefObjPt");
+  TGraphErrors *gmc2 = (TGraphErrors*)f->Get("MC/Pt30/MPF");
   assert(gmc2); gmc2->SetName("MPF");
 
   //fmc->Close();
@@ -252,54 +194,6 @@ void multijet(bool usemjb = true) {
     } // for isrc
   } // for im
   
-  // Get cExp for recoil (available for data and MC, but can only use one)
-  // This one is pT>30 GeV for MJB
-  // (When was this file obtained? In which e-mail?)
-  // (Should I use instead the 08Jul14 pt30 file from mail below?)
-  //TFile *fe = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_mc_woPUJets_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_QCD-HT.root","READ"); // MC
-  //TFile *fe = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_RefObjPt_resize_woPUJets_pt30_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_afterPrescaleReweighting_withSystErrors_QCD-HT-v6.root","READ"); // MC, newL1V6
-  //TFile *fe = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_puJetIdT_recoilPtHLTBin_type1fix.root","READ"); // newL1V6
-  //
-  // On 31 Jul 2015, at 10:15, Anne-Laure Pequegnot
-  // Re: multijet
-  //TFile *fe = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015B-PromptReco_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting.root","READ");
-  //
-  // On 01 Oct 2015, at 10:41, Anne-Laure Cunrath Pequegnot
-  // Re: multijet results on 2015D data
-  //TFile *fe = new TFile("rootfiles/MULTIJET_data_JetHT_Run2015D-PromptReco_miniAOD_woPU_pt30_eta50_notRmPUJets_beforePrescaleReweighting.root","READ");
-  //
-  // On 17 Oct 2015, at 12:05, Anne-Laure Pequegnot
-  // Re: JEC update with 1/fb -- orange alert?
-  //TFile *fe = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx25_miniAOD_woPU_pt30_eta50_notRmPUJets-2.root","READ");
-  //
-  // On 27 Nov 2015, at 21:27, Anne-Laure Pequegnot 
-  // Re: pileup re-weighting
-  //TFile *fe1 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt30_eta50_notRmPUJets_recoilPtHLTBin_type1fix.root","READ");
-  //
-
-  // On 08 Jul 2014, at 17:02, from Anne-Laure Pequegnot
-  // Re: Need graphs
-  // This one is pT>10 GeV for MPF
-  //TFile *fe2 = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_mc_woPUJets_pt10_eta50_puJetIdT_recoilPtHLTBin_type1fix_QCD-HT.root","READ");
-  //TFile *fe2 = new TFile("rootfiles/cExp_sum_Fi_log_fi_RecoilPt_RefObjPt_resize_woPUJets_pt10_eta50_puJetIdT_HLTsel_woPtRecoilCut_recoilPtHLTBin_type1fix_afterPrescaleReweighting_withSystErrors_QCD-HT-v6.root","READ"); // newL1V6
-  //TFile *fe2 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt10_eta50_puJetIdT_recoilPtHLTBin_type1fix-v6.root","READ"); // newL1V6
-  //
-  // On 31 Jul 2015, at 10:15, Anne-Laure Pequegnot
-  // Re: multijet
-  //TFile *fe2 = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx50_miniAOD_woPU_pt30_eta50_notRmPUJets.root","READ");
-  //
-  // On 01 Oct 2015, at 10:41, Anne-Laure Cunrath Pequegnot
-  // Re: multijet results on 2015D data
-  //TFile *fe2 = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx25_miniAOD_woPU_pt30_eta50_notRmPUJets.root","READ");
-  //
-  // On 17 Oct 2015, at 12:05, Anne-Laure Pequegnot
-  // Re: JEC update with 1/fb -- orange alert?
-  //TFile *fe2 = new TFile("rootfiles/MULTIJET_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_bx25_miniAOD_woPU_pt30_eta50_notRmPUJets-2.root","READ");
-  //
-  // On 27 Nov 2015, at 21:27, Anne-Laure Pequegnot 
-  // Re: pileup re-weighting
-  //TFile *fe2 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-100ToInf_analysis_woPU_pt10_eta50_notRmPUJets_recoilPtHLTBin_type1fix.root","READ");
-
   TFile *fjes = new TFile("rootfiles/jecdata.root","READ");
   assert(fjes && !fjes->IsZombie());
 
@@ -317,19 +211,12 @@ void multijet(bool usemjb = true) {
   // Get MJB and MPF lever arms from MC
   // Use pt30 for MJB and pt10 for MPF, even though
   // pTrecoil binning for both uses pt30
-  
-  // cExp stored in a TCanvas so need to do some digging to get it out
-  //TCanvas *c1e = (TCanvas*)fe->Get("cExp_sum_Fi_log_fi_RecoilPt");
-  //assert(c1e);
-  //TGraphErrors *ge1 = (TGraphErrors*)c1e->FindObject("Exp_sum_Fi_log_fi");
-  // newL1V6:
-  TGraphErrors *ge1 = (TGraphErrors*)fe1->Get("recoilJets/gExp_sum_Fi_log_fi_RecoilPt");
+  //TGraphErrors *ge1 = (TGraphErrors*)fe1->Get("recoilJets/gExp_sum_Fi_log_fi_RecoilPt");
+  TGraphErrors *ge1 = (TGraphErrors*)f->Get("Data/Pt30/CRecoil");
+  assert(ge1);
 
-  //TCanvas *c2e = (TCanvas*)fe2->Get("cExp_sum_Fi_log_fi_RecoilPt");
-  //assert(c1e);
-  //TGraphErrors *ge2 = (TGraphErrors*)c2e->FindObject("Exp_sum_Fi_log_fi");
-  // newL1V6:
-  TGraphErrors *ge2 = (TGraphErrors*)fe2->Get("recoilJets/gExp_sum_Fi_log_fi_RecoilPt");
+  //TGraphErrors *ge2 = (TGraphErrors*)fe2->Get("recoilJets/gExp_sum_Fi_log_fi_RecoilPt");
+  TGraphErrors *ge2 = (TGraphErrors*)f->Get("Data/Pt10/CRecoil");
   assert(ge2);
 
   TGraphErrors *ge = (usemjb ? ge1 : ge2);

@@ -53,12 +53,12 @@ TMatrixD *_fitError_emat(0);
 Double_t fitError(Double_t *xx, Double_t *p);
 
 //const int njesFit = 1; // scale only
-//const int njesFit = 2; // scale+HB+fixedPileUpPt
+const int njesFit = 2; // scale+HB+fixedPileUpPt
 //const int njesFit = 3; // scale+HB+PileUpPt
 bool hbpt = false;//true; // pT dependent HB scale instead of PileUpPt
-const int njesFit = 4; // scale+HBxPt+PileUpPt
-bool erffit = false;//true; // error function fit
-bool stepfit = true;
+//const int njesFit = 4; // scale+HBxPt+PileUpPt
+bool erffit = true; // error function fit
+bool stepfit = false;//true;
 bool basicfit = false;
 const double ptminJesFit = 30;//300;
 TF1 *fhb(0), *fl1(0); double _etamin(0);
@@ -79,7 +79,7 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   }
 
   // Directly using fitted SPR HCAL shape (from JECUncertainty.cpp)
-  if (njesFit==2) {
+  if (njesFit==2 && !erffit) {
 
     // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
     double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
@@ -114,11 +114,22 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   } // njesFit==3
 
   // Less physical error function fit
-  if (njesFit==4 && erffit) {
+  if (njesFit==2 && erffit) {
     
     //return (p[0] + p[1]*TMath::Erf((log(pt/p[2]) / log(p[3]/p[2]))));
-    return (p[0] + p[1]*TMath::Erf((log(pt) - log(p[2])) / p[3]));
+    //return (p[0] + p[1]*TMath::Erf((log(pt) - log(p[2])) / p[3]));
     //return (p[0] + p[1]*TMath::Erf((pt - p[2]) / p[3]));
+
+    //p[2] = 225;
+    //p[3] = 0.4;
+    //return (p[0] + p[1]*0.5*(1+TMath::Erf((log(pt)-log(p[2]))/p[3])) );
+    
+    
+    double mupt = 225;
+    double sigmapt = 0.4;
+    //p[2] = 0;
+    //return ( p[0] + p[1]*0.5*(1+TMath::Erf((log(pt)-log(mupt))/sigmapt)) + p[2]/pt);
+    return ( p[0] + p[1]*0.5*(1+TMath::Erf((log(pt)-log(mupt))/sigmapt)));
   } // njesFit==4
 
   // Directly using fitted SPR HCAL shape (from JECUncertainty.cpp)
@@ -173,7 +184,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   
   TDirectory *curdir = gDirectory;
   setTDRStyle();
-  writeExtraText = false; // for JEC paper CWR
+  writeExtraText = true; // for JEC paper CWR
 
   TFile *f = new TFile("rootfiles/jecdata.root","READ");
   assert(f && !f->IsZombie());
@@ -185,7 +196,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   const int nmethods = 2;
   const char* methods[nmethods] = {"ptchs","mpfchs1"};
   _nmethods = nmethods; // for multijets in global fit
-
+  /*
   // Global fit with multijets
   const int nsamples = 4;
   const int nsample0 = 1; // first Z/gamma+jet sample
@@ -194,9 +205,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   const int igj = 0;
   const int izee = 1;
   const int izmm = 2;
+  */
 
 
-  /*
   // Global fit without multijets
   const int nsamples = 3;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -204,7 +215,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   const int igj = 0;
   const int izee = 1;
   const int izmm = 2;
-  */
+
   // old default
   /*
   const int nsamples = 3;
@@ -673,7 +684,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   //		"Run2015D-DCSOnly - 25 ns - 980 pb^{-1}" :
   //		"Run2015D-Cert - 25 ns - 552 pb^{-1}");
   //lumi_13TeV = "Run2015D - Oct 19 - 1.28 fb^{-1}";
-  lumi_13TeV = "Run2015D - Golden - 2.1 fb^{-1}";
+  //lumi_13TeV = "Run2015D - Golden - 2.1 fb^{-1}";
+  //lumi_13TeV = "Run2016, 590 pb^{-1}";
+  lumi_13TeV = "Run2016, 0.6 fb^{-1}";
   TCanvas *c0 = tdrCanvas("c0",h,4,11,true);
   gPad->SetLogx();
   
@@ -707,12 +720,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   TLatex *tex = new TLatex();
   tex->SetNDC(); tex->SetTextSize(0.045);
   if (etamin==0) {
-    if (dofsr) tex->DrawLatex(0.20,0.79,"|#eta|<1.3, #alpha<0.3#rightarrow0");
-    else       tex->DrawLatex(0.20,0.79,"|#eta|<1.3, #alpha<0.3");
+    if (dofsr) tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3#rightarrow0");
+    else       tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3");
   }
   else {
     assert(dofsr);
-    tex->DrawLatex(0.20,0.79,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
+    tex->DrawLatex(0.20,0.73,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
   }
   tex->DrawLatex(0.20, 0.22, "Before global fit");
 
@@ -766,8 +779,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   legp->Draw();
   legm->Draw();
 
-  if (etamin==0) tex->DrawLatex(0.20,0.79,"|#eta|<1.3, #alpha<0.3");
-  else tex->DrawLatex(0.20,0.79,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
+  if (etamin==0) tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3");
+  else tex->DrawLatex(0.20,0.73,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
 
   tex->DrawLatex(0.20, 0.22, "Before FSR correction");
 
@@ -806,9 +819,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
   if (njesFit==1) {
     jesfit->SetParameter(0, 0.95);
   }
-  if (njesFit==2) {
+  if (njesFit==2 && !erffit) {
     //jesfit->SetParameters(0.9828, -0.00608);
     jesfit->SetParameters(0.9350, -0.0922);
+  }
+  if (njesFit==2 && erffit) {
+    jesfit->SetParameters(0.982, 0.022);
   }
   if (njesFit==3 && !hbpt) {
     jesfit->SetParameters(0.99, -0.035, -0.09);
@@ -829,10 +845,16 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
     jesfit->SetParameters( 0.985, 0.03, 1.03, -0.09 );
   }
   if (njesFit==4 && erffit) {
-    jesfit->SetParameters(0.985, 0.02, 200, 0.5); // log(pt)
+    //jesfit->SetParameters(0.985, 0.02, 200, 0.5); // log(pt)
+    //jesfit->SetParameters(0.982, 0.024, 225, 0.4); // log(pt)
+    //
     //jesfit->SetParameters(0.975, 0.02, 250, 50);
     //jesfit->SetParameters(0.9785, +0.0199, 100, 100);
     //jesfit->FixParameter(3,100);
+    //
+    jesfit->SetParameters(0.982, 0.022, 0.5, 0.); // log(pt)
+    jesfit->FixParameter(2,0.);
+    jesfit->FixParameter(3,0.);
   }
   _jesFit = jesfit;
   
@@ -995,8 +1017,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3) {
 	      h->GetMinimum()+0.5*(h->GetMaximum()-h->GetMinimum()),
 	      6500./cosh(etamin));
 
-  if (etamin==0) tex->DrawLatex(0.20,0.79,"|#eta|<1.3, #alpha<0.3#rightarrow0");
-  else tex->DrawLatex(0.20,0.79,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
+  if (etamin==0) tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3#rightarrow0");
+  else tex->DrawLatex(0.20,0.73,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
 
   //tex->DrawLatex(0.20,0.18,Form("(data %1.1f / %d, sources %1.1f / %d)",
   //			chi2_data,Nk,chi2_src,nsrc_true));

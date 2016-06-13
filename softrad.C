@@ -48,11 +48,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 
   // Open jecdata.root produced by reprocess.C
   //TFile *fin = new TFile("rootfiles/jecdata_runI_20fb.root","READ");
-  //TFile *fin = new TFile("rootfiles/jecdata.root","READ");
+  //TFile *fin = new TFile("rootfiles/jecdata_76X.root","READ");
   //assert(fin && !fin->IsZombie());
   //
-  //TFile *fout = new TFile("rootfiles/jecdata.root","UPDATE");
-  //assert(fout && !fout->IsZombie());
   TFile *finout = new TFile("rootfiles/jecdata.root","UPDATE");
   assert(finout && !finout->IsZombie());
   
@@ -80,9 +78,12 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   // Z+jet bins
   //const double ptbins1[] = {30, 40, 50, 60, 75, 95, 125, 180, 300, 1000};
   //const double ptbins1[] = {30, 40, 50, 60, 75, 95, 125, 180, 300, 400, 1000};
+  //const double ptbins1[] = {30, 40, 50, 60, 85, 105, 130, 175, 230,
+  //		    300, 400, 500, 700, 1000, 1500}; // 76X
   const double ptbins1[] = {30, 40, 50, 60, 85, 105, 130, 175, 230,
-			    300, 400, 500, 700, 1000, 1500};
+			    300, 400}; // 80X
   const int npt1 = sizeof(ptbins1)/sizeof(ptbins1[0])-1;
+  double ptmax1 = ptbins1[npt1];
   TH1D *hpt1 = new TH1D("hpt1","",npt1,&ptbins1[0]);
   TProfile *ppt1 = new TProfile("ppt1","",npt1,&ptbins1[0]);
 
@@ -93,8 +94,11 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   //const double ptbins2[] = {40, 60, 85, 100, 130, 175, 250, 300, 400,
   //		    500, 700, 1000, 1500};
   const double ptbins2[] = {40, 50, 60, 85, 105, 130, 175, 230, 300, 400,
-			    500, 700, 1000, 1500};
+			    500, 700, 1000, 1500}; // 76X
+  //const double ptbins2[] = {40, 50, 60, 85, 105, 130, 175, 230, 300, 400,
+  //		    500, 700}; // 80X-200/pb
   const int npt2 = sizeof(ptbins2)/sizeof(ptbins2[0])-1;
+  double ptmax2 = ptbins2[npt2];
   TH1D *hpt2 = new TH1D("hpt2","",npt2,&ptbins2[0]);
   TProfile *ppt2 = new TProfile("ppt2","",npt2,&ptbins2[0]);
 
@@ -187,10 +191,13 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  // Clean out empty points
 	  // as well as trigger-biased ones for dijets
 	  // as well as weird gamma+jet high pT point
+	  // as well as half-empty Z+jet high pT points
 	  for (int i = g->GetN()-1; i != -1; --i) {
 	    if (g->GetY()[i]==0 || g->GetEY()[i]==0 ||
-		(string(cs)=="dijet" && g->GetX()[i]<70.)) // ||
-		//(string(cs)=="gamjet" && g->GetX()[i]>600. && etamin!=0))
+		(string(cs)=="dijet" && g->GetX()[i]<70.)  ||
+		(string(cs)=="gamjet" && g->GetX()[i]>ptmax2) ||
+		(string(cs)=="zeejet" && g->GetX()[i]>ptmax1) ||
+		(string(cs)=="zmmjet" && g->GetX()[i]>ptmax1))
 	      g->RemovePoint(i);
 	  }
 
@@ -256,9 +263,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  TGraphErrors *g = gemap[cd][cm][cs][a]; assert(g);
 
 	  // Clean out points with very large uncertainty for plot readability
-	  for (int i = g->GetN()-1; i != -1; --i) {
-	    if (g->GetEY()[i]>0.02) g->RemovePoint(i);
-	  }
+	  //for (int i = g->GetN()-1; i != -1; --i) {
+	  //if (g->GetEY()[i]>0.02) g->RemovePoint(i);
+	  //}
 
 	  g->Draw("SAME Pz");
 
@@ -281,7 +288,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	//	      "Run2015D-DCSOnly - 25 ns - 980 pb^{-1}" :
 	//	      "Run2015D-Cert - 25 ns - 552 pb^{-1}");
 	//lumi_13TeV = "Run2015D - Oct 19 - 1.28 fb^{-1}";
-	lumi_13TeV = "Run2015D - Golden - 2.1 fb^{-1}";
+	//lumi_13TeV = "Run2015D - Golden - 2.1 fb^{-1}";
+	lumi_13TeV = "Run2016 - 590 pb^{-1}";
 	TCanvas *c0 = tdrCanvas(Form("c0_%s_%s",cm,cd), h, 4, 11, true);
 	c0->SetLogx();
 	
@@ -304,7 +312,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 
 	if (etamin==0) {
 	  c0->SaveAs(Form("pdf/paper_softrad_%s_%s_vspt.pdf",cd,cm));
-	  c0->SaveAs(Form("pdfC/paper_softrad_%s_%s_vspt.C",cd,cm));
+	  //c0->SaveAs(Form("pdfC/paper_softrad_%s_%s_vspt.C",cd,cm));
 	}
 	else {
 	  c0->SaveAs(Form("pdf/an_softrad_%s_%s_eta%1.0f-%1.0f_vspt.pdf",
@@ -604,7 +612,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  hk->SetName(Form("hkfsr_%s_%s",cm,cs));
 	  TProfile *ppt = (isample==0 ? ppt2 : ppt1);
 	  //if (isample==3) { ppt = ppt4; } // pas-v6
-	  if (isample==2) { ppt = ppt4; } // pas-v6
+	  if (isample==idj) { ppt = ppt4; } // pas-v6 (fix 2016-06-02)
 	  for (int i = 1; i != hk->GetNbinsX()+1; ++i) {
 	    double pt = ppt->GetBinContent(i);
 	    if (pt>30 && pt<1300) {

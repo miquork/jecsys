@@ -74,7 +74,8 @@ void drawCMSresponse() {
     //const char *st = "Summer15_25nsV3_DATA";
     //const char *st = "Summer15_25nsV6_DATA";
     //const char *st = "Summer15_25nsV7_DATA";
-    const char *st = "Fall15_25nsV1_DATA";
+    //const char *st = "Fall15_25nsV1_DATA";
+    const char *st = "Spring16_25nsV3_MC";
     const char *s;
 
     //s = Form("%s/%s_L1FastJet_AK5PFchs.txt",sd,st); cout << s << endl;
@@ -92,7 +93,7 @@ void drawCMSresponse() {
     //v.push_back(l1);
     v.push_back(*l2);
     v.push_back(*l3);
-    v.push_back(*l2l3);
+    //v.push_back(*l2l3);
     _jec = new FactorizedJetCorrector(v);
   }
   if (!_jecpt) {
@@ -135,11 +136,12 @@ void drawCMSresponse() {
   TH1D *h = new TH1D("h",";Jet |#eta|;Data jet response",40,0,4.8);
   h->SetMaximum(1.25);
   h->SetMinimum(0.5);
+  extraText = "Simulation";
   //extraText = "Simulation Preliminary";
-  extraText = "Preliminary";
+  //extraText = "Preliminary";
   lumi_8TeV = "";
-  //lumi_13TeV = "";
-  lumi_13TeV = "2.1 fb^{-1}";
+  lumi_13TeV = "";
+  //lumi_13TeV = "2.1 fb^{-1}";
   //TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
   TCanvas *c1 = tdrCanvas("c1",h,4,0,kSquare);
 
@@ -184,7 +186,8 @@ void drawCMSresponse() {
   //tex->DrawLatex(0.30,0.86,"2012 JES: Anti-k_{t} R = 0.4, PF+CHS");
   //tex->DrawLatex(0.30,0.86,"53X JES: Anti-k_{t} R = 0.5, PF+CHS");
   //tex->DrawLatex(0.30,0.86,"74X JES: Anti-k_{t} R = 0.4, PF+CHS");
-  tex->DrawLatex(0.30,0.86,"76X JES: Anti-k_{t} R = 0.4, PF+CHS");
+  //tex->DrawLatex(0.30,0.86,"76X JES: Anti-k_{t} R = 0.4, PF+CHS");
+  tex->DrawLatex(0.23,0.86,"2016 JES: Anti-k_{T} R=0.4, PF+CHS");
 
   tex->DrawLatex(0.19,0.78,"Barrel");
   tex->DrawLatex(0.47,0.78,"Endcap"); //0.42

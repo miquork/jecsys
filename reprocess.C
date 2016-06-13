@@ -34,10 +34,15 @@ using namespace std;
 const double gRho = 7.1;
 const bool _dcsonly = false;
 
-// Minimum pTcut for gamma+jet (raise to 60 GeV for MadGraph samples
-double fpptmin(40.);   //76XV1M1:140
-double fzeeptmin(30.); //76XV1M1:50
-double fzmmptmin(30.); //76XV1M1:50
+// Minimum pTcut for gamma+jet (raise to 60 GeV for MadGraph samples?)
+double fpptmin(40.);   // photon+jet
+double fzeeptmin(30.); // Zee+jet
+double fzmmptmin(30.); // Zmm+jet
+
+// Maximum pTcut for samples (to avoid bins with too large uncertainty)
+double fpptmax(1500.);
+double fzeeptmax(400.);
+double fzmmptmax(400.);
 
 // put all the different methods in a single file for easy access for everybody
 void reprocess() {
@@ -53,223 +58,36 @@ void reprocess() {
   // Define input files //
   ////////////////////////
 
-  // On 22 Dec 2014, at 14:14, from Rathjens, Denis
-  // Re: Out of Office AutoReply: Pseudo Pt plot
-  //TFile *fdj = new TFile("rootfiles/Winter14V6.root","READ"); // newL1V6
-  //
-  // On 31 Jul 2015, at 12:43, Marc Stoever
-  // Re: Combination of Run II data sets
-  //TFile *fdj = new TFile("rootfiles/combination_DJ_2015-07-31.root","READ");
-  // On 05 Aug 2015, at 13:29, Marc Stoever
-  // Re: Combination of Run II data sets
-  //TFile *fdj = new TFile("rootfiles/combination_DJ_2015-08-05.root","READ");//***
-  // On 06 Aug 2015, at 21:22, Marc Stoever
-  // Re: Next JERC meeting : Thursday August 6th 18:00
-  //TFile *fdj = new TFile("rootfiles/combination_DJ_2015-08-06.root","READ");//badeta
-  // On 07 Aug 2015, at 16:41, Marc Stoever
-  // Re: Next JERC meeting : Thursday August 6th 18:00
-  //TFile *fdj = new TFile("rootfiles/combination_DJ_2015-08-07.root","READ"); //bad!!
-  //
-  // On 13 Aug 2015, at 19:21, Marc Stoever
-  // Re: Dijet combination file
-  //TFile *fdj = new TFile("rootfiles/combination_DJ_2015-08-13.root","READ");
-  //
-  // On 24 Aug 2015, at 15:26, Marc Stoever
-  // Re: Dijet combination file
-  //TFile *fdj = new TFile("rootfiles/combination_DJ_2015-08-15.root","READ");
-  //
-  // On 09 Sep 2015, at 19:12, Marc Stoever
-  // Re: JSON files: Collisions15 with magnet at 3.8T
-  //TFile *fdj = new TFile("rootfiles/combination_DJ_2015-09-09-25ns.root","READ");
-  //
-  // On 30 Sep 2015, at 18:28, Marc Stoever
-  // Re: dijet l2res on 2015D
-  //TFile *fdj = new TFile("rootfiles/combination_DJ_2015-09-30-25ns.root","READ");
-  //
-  // On 20 Oct 2015, at 12:46, Marc Stoever
-  // Re: JEC update with 1/fb -- orange alert?
-  //TFile *fdj = new TFile(_dcsonly ?
-  //			 "rootfiles/CombiFile_Dijet_DConly_974pb.root" :
-  //			 "rootfiles/CombiFile_Dijet_goldenJSON_547pb.root",
-  //
+
   // On 27 Oct 2015, at 16:04, Marc Stoever
   // Re: Update with October 19 json file
-  TFile *fdj = new TFile("rootfiles/CombiFile_Dijet_Cert_246908-258750.root",
-  		 "READ");
-  //
-  // Anastasia:
-  //
-  //TFile *fdj = new TFile("rootfiles/JECcombifile_DiJet_1stAttempt.root",
-  //	 "READ");
+  TFile *fdj = new TFile("rootfiles/CombiFile_Dijet_Cert_246908-258750.root","READ");
 
   assert(fdj && !fdj->IsZombie());
   
-  // On 14 Jan 2015, at 20:36, from Viola Sordini
-  // Re: news from g+j
-  // (Renamed 14Jan15 to 17Jan15)
-  //TFile *fp = new TFile("rootfiles/gamma_jet_response_all_alphas_with_raw_footprint_regression_17Jan15.root","READ"); // footprint+regression
-  //
-  // On 03 Aug 2015, at 20:00, Federico Preiato
-  // Re: Combination of Run II data sets
-  //TFile *fp = new TFile("rootfiles/GammaJet_response_AllMethods_alphacut020_Aug032015.root","READ");
-  // On 04 Aug 2015, at 16:26, Federico Preiato
-  // Re: Combination of Run II data sets
-  //TFile *fp = new TFile("rootfiles/GammaJet_AlphaCut010_020_030_Aug_04_2015.root","READ");
-  // On 12 Aug 2015, at 20:42, Federico Preiato
-  // Re: Closure Test Residual
-  //TFile *fp = new TFile("rootfiles/GammaJet_AlphaCut010_015_020_030_Aug_12_2015.root","READ");
-  //
-  // On 11 Sep 2015, at 19:18, Federico Preiato
-  // Re: File for global fit
-  //TFile *fp = new TFile("rootfiles/GammaJet_AllAlphaCut_Sept_11_2015.root","READ");
-  //
-  // On 26 Sep 2015, at 01:03, Federico Preiato
-  // Re: Golden JSON out for Run2015D JEC
-  //TFile *fp = new TFile("rootfiles/PhotonJet_Run2015D_DCSONLY_Sept_25_2015.root","READ");
-  //
-  // On 28 Sep 2015, at 12:46, Federico Preiato
-  // Re: Golden JSON out for Run2015D JEC
-  //TFile *fp = new TFile("rootfiles/PhotonJet_Run2015D_CertJson_Sept_27_2015.root","READ");
-  //
-  // On 29 Sep 2015, at 18:53, Federico Preiato
-  // Re: New file for global fit
-  //TFile *fp = new TFile("rootfiles/PhotonJet_Run2015D_CertJson_Sept_29_2015.root","READ");
-  //
-  // On 18 Oct 2015, at 15:08, Federico Preiato
-  // Re: File for combination
-  // On 21 Oct 2015, at 12:57, Federico Preiato
-  // Re: a15 in DCSOnly missing?
-  //TFile *fp = new TFile(_dcsonly ? 
-  //			//"rootfiles/GammaJet_2015_10_18_DCSOnly_980pb.root" :
-  //			"rootfiles/GammaJet_2015_10_18_DCSOnly_980pb_Fixed.root":
-  //			"rootfiles/GammaJet_2015_10_18_CertifiedJson_552pb.root",
-  //
-  // On 29 Oct 2015, at 15:24, Federico Preiato
-  // Re: a15 in DCSOnly missing?
-  //TFile *fp = new TFile("rootfiles/GammaJet_28-10-2015.root",
-  //			"READ");
-  //
-  // On 18 Nov 2015, at 20:13, Federico Preiato
-  // Re: New file
-  //TFile *fp = new TFile("rootfiles/GammaJet_ppCollision2015_17-11-2015.root",
-  //			"READ"); // 2.1 fb-1
-  //assert(fp && !fp->IsZombie());
-  //
-  // On 05 Jan 2016, at 19:20, Federico Preiato
-  // Re: New results 
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_Pythia8_04Jan2016.root","READ"); // 2.1 fb-1 + L2Res + MadGraph
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_Madgraph_04Jan2016.root","READ"); // 2.1 fb-1 + L2Res + MadGraph
-  //assert(fp && !fp->IsZombie());
-  //
-  // On 12 Jan 2016, at 18:47, Federico Preiato
-  // Re: New files
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_Pythia_2016-01-11.root","READ"); // 129.8/71, 0.982 vs 0.0768
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_plus_QCD_Pythia_2016-01-11.root","READ"); // 97.1/71, 0.9768 vs 0.0476
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_plus_QCD_Pythia_2016-01-11.root","READ"); fpptmin = 140; // 68.0/63, 0.9773 vs 0.0249 (best!) => 74X V7
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_Madgraph_2016-01-11.root","READ"); fpptmin = 60; // 116.3/69, 0.983 vs 0.0789
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_plus_QCD_Madgraph_2016-01-11.root","READ"); fpptmin = 60; // 116.0/69, 0.9800 vs 0.0771
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_plus_QCD_Madgraph_2016-01-11.root","READ"); fpptmin = 180; // 74.5/61, 0.9772 vs 0.0245
-  //
-  // On 15 Jan 2016, at 19:12, Federico Preiato
-  // Re: New files
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_Madgraph_plus_QCD_Pythia_2016-01-11.root","READ"); fpptmin = 60; // 97.4/69, 0.9752 vs 0.0474
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_Madgraph_plus_QCD_Pythia_2016-01-11.root","READ"); fpptmin = 140; // 70.2/63, 0.9764 vs 0.0260 (2nd)
-  // => should still fix pT binning of FSR+ISR corrections, add trk ineff shape
-  //
-  // On 21 Jan 2016, at 22:48, Federico 
-  // Re: global fit, 76X
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_plus_QCD_Pythia_2016-01-11.root","READ"); fpptmin = 140; // 68.0/63, 0.9773 vs 0.0249 (best!)=>74X V7
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_Pythia_76X_JECv6_Jan_20_2016.root","READ"); //fpptmin = 140; // 76X
-  //
-  // On 16 Feb 2016, at 03:25, Federico Preiato
-  // Re: global fit, 76X
-  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJetPythia_Rel76X_JECFallV1_Feb_16_2016.root","READ"); // 76X
-  //
   // On 18 Feb 2016, at 17:55, Federico Preiato 
   // Re: Combination Binning [Re: Data set comparisons]
-  TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJetPythia_Rel76X_JECFallV1_Feb_18_2016_NewBins.root","READ"); // 76X V2
+  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJetPythia_Rel76X_JECFallV1_Feb_18_2016_NewBins.root","READ"); // 76X V2
+  //
+  // On 30 May 2016, at 20:41, Federico Preiato 
+  // Re: Global Fit File
+  //TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_Pythia_2016-05-30_211pb.root","READ");
+  //
+  // On 01 Jun 2016, at 12:03, Federico Preiato
+  // Re: New File ~590pb
+  TFile *fp = new TFile("rootfiles/GammaJet_Data_vs_GJet_Pythia_2016-06_01_590pb.root","READ");
+
   assert(fp && !fp->IsZombie());
 
-
-  // On 08 Jan 2015, at 14:21, Dominik Haitz
-  // Re: Plot updates for the paper
-  //TFile *fzee = new TFile("rootfiles/Zee_2015-01-08.root","READ"); // newL1V6
-  //assert(fzee && !fzee->IsZombie());
-
-  // On 08 Jan 2015, at 14:21, Dominik Haitz
-  // Re: Plot updates for the paper
-  //TFile *fzmm = new TFile("rootfiles/Zmm_2015-01-08.root","READ"); // newL1V6
-  //
-  // On 31 Jul 2015, at 16:23, Fischer, Max (SCC)
-  // Re: Combination of Run II data sets
-  //TFile *fzmm = new TFile("rootfiles/combination_Zjet_2015-07-31.root","READ"); // eta bins missing
-  // On 04 Aug 2015, at 18:49, Fischer, Max (SCC)
-  // Re: Combination of Run II data sets
-  //TFile *fzmm = new TFile("rootfiles/combination_ZJet_2015-08-04.root","READ"); // buggy MC?
-  // On 05 Aug 2015, at 12:14, Dominik Wilhelm Haitz
-  // Re: Combination of Run II data sets
-  //TFile *fzmm = new TFile("rootfiles/combination_ZJet_2015-08-05.root","READ");
-  //
-  // On 11 Sep 2015, at 16:58, Fischer, Max 
-  // Re: Z+jet for 25 ns
-  //TFile *fzmm = new TFile("rootfiles/combination_ZJet_2015-09-11.root","READ");
-  //
-  // On 19 Oct 2015, at 09:16, Fischer, Max 
-  // Re: JEC update with 1/fb -- orange alert?
-  //TFile *fzmm = new TFile(_dcsonly ? 
-  //			  "rootfiles/combination_ZJet_DCSOnly_2015-10-18.root" :
-  //			  "rootfiles/combination_ZJet_2015-10-18.root",
-  //
-  // On 29 Oct 2015, at 20:06, Fischer, Max
-  // Re: [ekp-excalibur] Update with October 19 json file
-  //TFile *fzmm = new TFile(_dcsonly ?
-  //			  "rootfiles/combination_ZJet_2015-10-29_DCSOnly2015D.root" :
-  //			  "rootfiles/combination_ZJet_2015-10-29_golden2015D.root",
-  //			  "READ");
-  //
-  // On 19 Nov 2015, at 11:16, Fischer, Max
-  // Re: [ekp-excalibur] Update with November 13 json file
-  //TFile *fzmm = new TFile("rootfiles/combination_ZJet_2015-11-19.root","READ");
-  //
-  // On 01 Dec 2015, at 20:27, Fischer, Max
-  // Re: [ekp-excalibur] Update with November 13 json file
-  //TFile *fzmm = new TFile("rootfiles/combination_ZJet_2015-12-01.root","READ");
-  //
-  // On 07 Dec 2015, at 14:27, Fischer, Max (SCC)
-  // Re: Zee + Zmm Combination
-  //TFile *fzmm = new TFile("rootfiles/combination_ZmmJet_2015-12-07.root","READ");
-  //TFile *fzee = new TFile("rootfiles/combination_ZeeJet_2015-12-07.root","READ");
-  //
-  // On 10 Dec 2015, at 20:51, Fischer, Max 
-  // Re: Zee + Zmm Combination
-  //TFile *fzmm = new TFile("rootfiles/combination_ZmmJet_2015-12-10.root","READ"); // => 74X V7
-  //TFile *fzee = new TFile("rootfiles/combination_ZeeJet_2015-12-10.root","READ"); // => 74X V7
-  //
-  // On 27 Jan 2016, at 18:20, Fischer, Max (SCC)
-  // Re: global fit, 76X
-  //TFile *fzmm = new TFile("rootfiles/combination_ZmmJet_2016-01-27.root","READ");
-  //TFile *fzee = new TFile("rootfiles/combination_ZeeJet_2016-01-27.root","READ");
-  //
-  // On 01 Feb 2016, at 22:06, Fischer, Max
-  // Re: Corrupt files (was Re: global fit, 76X)
-  //TFile *fzmm = new TFile("rootfiles/combination_ZJet_Zmm201602012016-02-01.root","READ");
-  //TFile *fzee = new TFile("rootfiles/combination_ZJet_Zee201602012016-02-01.root","READ");
-  //
-  // On 15 Feb 2016, at 16:45, Fischer, Max (SCC)
-  // Re: Corrupt files (was Re: global fit, 76X)
-  //TFile *fzmm = new TFile("rootfiles/combination_ZJet_Zmm201602152016-02-15.root","READ");
-  //TFile *fzee = new TFile("rootfiles/combination_ZJet_Zee201602152016-02-15.root","READ");
-  //
-  // Re: Corrupt files (was Re: global fit, 76X)
-  // On 17 Feb 2016, at 11:47, Fischer, Max (SCC)
-  //TFile *fzmm = new TFile("rootfiles/combination_ZJet_Zmm201602162016-02-16.root","READ");
-  //TFile *fzee = new TFile("rootfiles/combination_ZJet_Zee201602162016-02-16.root","READ");
-  //
-  // Re: Corrupt files (was Re: global fit, 76X)
   // On 18 Feb 2016, at 12:36, Fischer, Max (SCC)
-  TFile *fzmm = new TFile("rootfiles/combination_ZJet_Zmm201602182016-02-18.root","READ"); // 76X V2
-  TFile *fzee = new TFile("rootfiles/combination_ZJet_Zee201602182016-02-18.root","READ"); // 76X V2
-
+  // Re: Corrupt files (was Re: global fit, 76X)
+  //TFile *fzmm = new TFile("rootfiles/combination_ZJet_Zmm201602182016-02-18.root","READ"); // 76X V2
+  //TFile *fzee = new TFile("rootfiles/combination_ZJet_Zee201602182016-02-18.root","READ"); // 76X V2
+  //
+  // On 31 May 2016, at 16:18, Christoph Heidecker
+  // Re: [ekp-excalibur] Your input to the JEC L3Res global fit and uncertainties
+  TFile *fzmm = new TFile("rootfiles/combination_ZJet_Zmm201605312016-05-31.root","READ");
+  TFile *fzee = new TFile("rootfiles/combination_ZJet_Zee201605312016-05-31.root","READ");
 
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
@@ -280,24 +98,12 @@ void reprocess() {
   TFile *feta = new TFile("rootfiles/th2d_jeteta_zpt.root","READ");
   assert(feta && !feta->IsZombie());
 
-  // On 27 Jan 2015, at 14:04, Dominik Haitz
-  // Re: 53X electron momentum corrections
-  //TFile *fm = new TFile("rootfiles/Zmm-Zee.root","READ");
-  //assert(fm && !fm->IsZombie());
-
-  // On 27 Jan 2015, at 16:31, Rajdeep Mohan Chatterjee  
-  // Re: Updated L2Res for new L1 - please rerun
-  TFile *fm = new TFile("rootfiles/Zee_JEC_V6_ZMassVsZPt.root");
-  assert(fm && !fm->IsZombie());
-  
-
   // On 29 Jan 2015, at 14:28, Dominik Haitz
   // Re: 53X electron momentum corrections
-  //TFile *fmzee = new TFile("rootfiles/Zee-massvspt.root","READ"); // 74X V7
   TFile *fmzee = fzee; // 76X V2
-  assert(fmzee && !fmzee->IsZombie());
-  //TFile *fmzmm = new TFile("rootfiles/Zmm-massvspt.root","READ"); // 74X V7
   TFile *fmzmm = fzmm; // 76X V2
+
+  assert(fmzee && !fmzee->IsZombie());
   assert(fmzmm && !fmzmm->IsZombie());
 
   // This is used for correctly averaging JEC and its uncertainty
@@ -305,9 +111,6 @@ void reprocess() {
   TH2D *h2eta = (TH2D*)feta->Get("data"); assert(h2eta);
 
   // This is used for scaling Z mass back to 1 for Zee and Zmm
-  //TProfile *pzm = (TProfile*)fm->Get(""); assert(pzm);
-  //TH1D *hmzee = (TH1D*)fmzee->Get("zmass_zpt_Zee_ratio"); assert(hmzee); // 74X V7
-  //TH1D *hmzmm = (TH1D*)fmzmm->Get("zmass_zpt_Zmm_ratio"); assert(hmzmm); // 74X V7
   TH1D *hmzee = (TH1D*)fmzee->Get("Ratio_ZMass_CHS_a30_eta_00_13_L1L2L3"); // 76X V2
   TH1D *hmzmm = (TH1D*)fmzmm->Get("Ratio_ZMass_CHS_a30_eta_00_13_L1L2L3"); // 76X V2
   assert(hmzee);
@@ -324,12 +127,6 @@ void reprocess() {
   map<string, map<string, const char*> > rename;
 
   // Note: non-CHS results are not available for all samples, so not used
-  //rename["dijet"]["ratio"] = "ratio"; 
-  //rename["dijet"]["data"] = "data"; 
-  //rename["dijet"]["mc"] = "MC"; 
-  //rename["dijet"]["mpfchs"] = "MPFchs_VsPtAve"; 
-  //rename["dijet"]["mpfchs1"] = "MPFT1chs_VsPtAve";
-  //rename["dijet"]["ptchs"] = "PtBalchs";
   rename["dijet"]["mpfchs"] = "mpfchs";
   rename["dijet"]["mpfchs1"] = "mpfchs";
   rename["dijet"]["ptchs"] = "ptchs";
@@ -341,15 +138,6 @@ void reprocess() {
   rename["gamjet"]["mpfchs1"] = "resp_MPFchs"; 
   rename["gamjet"]["ptchs"] = "resp_PtBalchs"; 
 
-  /*
-  rename["zeejet"]["ratio"] = "ratio"; 
-  rename["zeejet"]["data"] = "Data_Ee_Corr"; 
-  rename["zeejet"]["mc"] = "MC_Ee_Corr"; 
-  rename["zeejet"]["mpfchs"] = "MPF-notypeI_CHS";
-  rename["zeejet"]["mpfchs1"] = "MPF_CHS";
-  rename["zeejet"]["ptchs"] = "PtBal_CHS"; 
-  */
-
   rename["zeejet"]["ratio"] = "Ratio";
   rename["zeejet"]["data"] = "Data";
   rename["zeejet"]["mc"] = "MC";
@@ -357,27 +145,16 @@ void reprocess() {
   rename["zeejet"]["mpfchs1"] = "MPF_CHS"; 
   rename["zeejet"]["ptchs"] = "PtBal_CHS"; 
 
-  rename["zmmjet"]["ratio"] = "Ratio";//"ratio"; 
+  rename["zmmjet"]["ratio"] = "Ratio";
   rename["zmmjet"]["data"] = "Data";
   rename["zmmjet"]["mc"] = "MC";
   rename["zmmjet"]["mpfchs"] = "MPF-notypeI_CHS";
   rename["zmmjet"]["mpfchs1"] = "MPF_CHS"; 
   rename["zmmjet"]["ptchs"] = "PtBal_CHS"; 
-
-
   
 
   // color and style codes
-  //map<string, int> style;
   map<string, map<string, int> > style;
-  //style["mpfchs"] = kFullStar;
-  //style["mpf"] = kFullDiamond;
-  //style["mpfchs1"] = kFullCircle;
-  //style["mpf1"] = kFullSquare;
-  //style["ptchs"] = kOpenCircle;
-  //style["pt"] = kOpenSquare;
-  //style["mpfchs1"] = kFullCircle;
-  //style["ptchs"] = kOpenSquare;
 
   style["dijet"]["mpfchs1"] = kFullCircle;
   style["dijet"]["ptchs"] = kOpenSquare;
@@ -588,18 +365,25 @@ void reprocess() {
 	      // Remove too large uncertainties
 	      //else if (g->GetEY()[i]>0.05 && g->GetX()[i]>1000.) g->RemovePoint(i); // 74X
 	      //else if (g->GetEY()[i]>0.03 && g->GetX()[i]>1000.) g->RemovePoint(i); // 76x
-	      else if (g->GetEY()[i]>0.03 && g->GetX()[i]>400.) g->RemovePoint(i); // 76x
+	      //else if (g->GetEY()[i]>0.03 && g->GetX()[i]>400.) g->RemovePoint(i); // 76x
 	      // Z+jet points with too wide bin at high pT
 	      //else if ((s=="zmmjet" || s=="zeejet") &&
-	      else if ((s=="zeejet" && t=="ptchs") &&
-		       (g->GetX()[i]>300 && g->GetEX()[i]>100 &&
-			fabs(eta1-0.0)<0.1))
+	      //else if ((s=="zeejet" && t=="ptchs") &&
+	      //       (g->GetX()[i]>300 && g->GetEX()[i]>100 &&
+	      //	fabs(eta1-0.0)<0.1))
+	      //g->RemovePoint(i);
+	      else if (s=="gamjet" && 
+		       (g->GetX()[i]<fpptmin || g->GetX()[i]>fpptmax))
 		g->RemovePoint(i);
-	      else if (s=="gamjet" && g->GetX()[i]<fpptmin)
+	      else if (s=="zeejet" && 
+		       (g->GetX()[i]<fzeeptmin || g->GetX()[i]>fzeeptmax))
 		g->RemovePoint(i);
-	      else if (s=="zeejet" && g->GetX()[i]<fzeeptmin)
+	      else if (s=="zmmjet" && 
+		       (g->GetX()[i]<fzmmptmin || g->GetX()[i]>fzmmptmax))
 		g->RemovePoint(i);
-	      else if (s=="zmmjet" && g->GetX()[i]<fzmmptmin)
+	      // Remove bad point from zmmjet MPF
+	      else if (s=="zmmjet" && t=="mpfchs1" && d=="ratio" &&
+		       fabs(g->GetX()[i]-265)<35)
 		g->RemovePoint(i);
 	      // Remove bad point with too small uncertainty
 	      //else if (s=="dijet" &&
@@ -609,7 +393,47 @@ void reprocess() {
 	      //g->RemovePoint(i);
 	    } // for i
 
-	    // patch Z+jet pT center and uncertainty
+	    // patch Z+jet pT ratio uncertainty (80X-590/pb)
+	    if ((s=="zeejet" || s=="zmmjet") && d=="ratio") {
+
+	      TGraphErrors *gfixd = grs["mc"][t][s][ieta][ialpha];
+	      TGraphErrors *gfixm = grs["data"][t][s][ieta][ialpha];
+              assert(gfixd);
+              assert(gfixm);
+
+	      for (int i = 0; i != g->GetN(); ++i) {
+
+		double x = g->GetX()[i];
+		double ex = g->GetEX()[i];
+
+		double exd(0), eyd(0), eym(0);
+		for (int jd = 0; jd != gfixd->GetN(); ++jd) {
+
+		  if (fabs(x-gfixd->GetX()[jd])<ex) {
+		    //assert(eyd==0);
+		    exd = gfixd->GetEX()[jd];
+		    eyd = gfixd->GetEY()[jd];
+		  }
+		} // for jd
+		//assert(eyd!=0);
+		for (int jm = 0; jm != gfixm->GetN(); ++jm) {
+
+		  if (fabs(x-gfixm->GetX()[jm])<ex) {
+		    //assert(eym==0);
+		    eym = gfixm->GetEY()[jm];
+		  }
+		} // for jm
+		//assert(eym!=0);
+
+		g->SetPoint(i, x, g->GetY()[i]);
+		g->SetPointError(i, exd, sqrt(eyd*eyd+eym*eym));
+
+	      } // for i
+	    } // patch ratio uncertainty
+
+
+	    // patch Z+jet pT center and uncertainty (76X)
+	    /*
 	    if ((s=="zeejet" || s=="zmmjet") && d=="ratio") {
 
 	      TGraphErrors *gfix = grs["mc"][t][s][ieta][ialpha];
@@ -627,10 +451,12 @@ void reprocess() {
 		} // for j
 	      } // for i
 	    } // patch <pT>
+	    */
 
 	    // chi2/NDF=126.0/71 before Zmm+Zee scales (gam pT>40)
 	    // chi2/NDF=79.7/63 before Zmm+Zee scales (gam pT>140)
 	    // chi2/NDF=126.8/71 with Zee scale (no Zmm scale, gam pT>40)
+	    /*
 	    if (false && s=="zeejet" && (d=="data" || d=="ratio")) {
 	      for (int i = 0; i != g->GetN(); ++i) {
 		double ipt = hmzee->FindBin(g->GetX()[i]);
@@ -641,6 +467,8 @@ void reprocess() {
 				 sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
 	      }
 	    }
+	    */
+	    /*
 	    // chi2/NDF=122.7/71 with Zmm scale (no Zee scale, gam pT>40)
 	    // chi2/NDF=123.4/71 with Zmm+Zee scales (gam pT>40)
 	    // chi2/NDF=77.4/63 with Zmm scale (no Zee scale, gam pT>140)
@@ -655,7 +483,8 @@ void reprocess() {
 				 sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
  	      }
  	    }
-
+	    */
+	    /*
 	    // TEST 2015-01-29: remove first two points at pT<60 GeV
 	    // from pTbal for: (i) photon+jet (-2.8/2), (ii) Zmm+jet (-9.2/3),
 	    // (iii) Zee+jet (-7.3 / 3)
@@ -667,6 +496,7 @@ void reprocess() {
 		if (g->GetX()[i]<60.) g->RemovePoint(i);
 	      }
 	    }
+	    */
 
 	    dout->cd();
 
@@ -713,27 +543,10 @@ void reprocess() {
     // New JEC for plotting on the back
     FactorizedJetCorrector *jec;
     {
-      //s = Form("%s/Winter14_V8_DATA_L2L3Residual_AK5PFchs.txt",cd);
-      //s = Form("%s/Summer15_50ns_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_50nsV1_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_50nsV2_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_50nsV2_DATA_L2L3Residual_AK4PFchs.txt.LOGLIN",cd);
-      //s = Form("%s/Summer15_50nsV3_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_50nsV3M1_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_50nsV3M2_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt",cd); // V4
-      //s = Form("%s/Summer15_50nsV3M2_DATA_L2L3Residual_AK4PFchs.txt.LOGLIN",cd);
-      //s = Form("%s/Summer15_25nsV2H1M1_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_25nsV3_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_25nsV3M2_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_25nsV3M3_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_25nsV6M1_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_25nsV6M2_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_25nsV6M3_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_25nsV6_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer15_25nsV7M1_DATA_L2L3Residual_AK4PFchs.txt",cd); // 74X V7
-      //s = Form("%s/Fall15_25nsV1M1_DATA_L2L3Residual_AK4PFchs.txt",cd);
-      s = Form("%s/Fall15_25nsV1M2_DATA_L2L3Residual_AK4PFchs.txt",cd); // 76X V2
+      //s = Form("%s/Fall15_25nsV1M2_DATA_L2L3Residual_AK4PFchs.txt",cd); // 76X V2
+      //s = Form("%s/Spring16_25nsV3M1_DATA_L2L3Residual_AK4PFchs.txt",cd); // 80X V3M1
+      s = Form("%s/Spring16_25nsV3M1std_DATA_L2L3Residual_AK4PFchs.txt",cd); // 80X V3M1std
+      //s = Form("%s/Spring16_25nsV3_DATA_L2L3Residual_AK4PFchs.txt",cd); // 80X V3
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -758,7 +571,8 @@ void reprocess() {
     FactorizedJetCorrector *jecold;
     {
       //s = Form("%s/Winter14_V6_DATA_L2L3Residual_AK5PFchs.txt",cd); // 74X V7
-      s = Form("%s/Fall15_25ns_COMB_LOGLIN_L2Residual_v2_AK4PFchs_nokFSR.txt",cd); // 76X V2
+      //s = Form("%s/Fall15_25ns_COMB_LOGLIN_L2Residual_v2_AK4PFchs_nokFSR.txt",cd); // 76X V2
+      s = Form("%s/Spring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v3_AK4PFchs.txt",cd); // 80X V3M1
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -769,8 +583,9 @@ void reprocess() {
     // Difference between pT-dependent and flat L1
     FactorizedJetCorrector *jecl1flat;
     {
-      //s = Form("%s/Winter14_V0_DATA_L1FastJetPU_AK5PFchs_pt.txt",cd); // 74X V7
-      s = Form("%s/Fall15_25nsV1_DATA_L1RC_AK4PFchs.txt",cd); // 76X V2
+      //s = Form("%s/Fall15_25nsV1_DATA_L1RC_AK4PFchs.txt",cd); // 76X V2
+      //s = Form("%s/Spring16_25nsV2_DATA_L1RC_AK4PFchs.txt",cd); // 80X V3M1
+      s = Form("%s/Spring16_25nsV3_DATA_L1RC_AK4PFchs.txt",cd); // 80X V3
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -779,10 +594,9 @@ void reprocess() {
     }
     FactorizedJetCorrector *jecl1pt;
     {
-      //s = Form("%s/Winter14_V1_DATA_L1FastJet_AK5PFchs.txt",cd); // GT
-      //s = Form("%s/Winter14_V6_DATA_L1FastJet_AK5PFchs.txt",cd); // newL1V6
-      //s = Form("%s/Winter14_V8_DATA_L1FastJet_AK5PFchs.txt",cd); // 74X V7
-      s = Form("%s/Fall15_25nsV1_DATA_L1FastJet_AK4PFchs.txt",cd); // 76X V2
+      //s = Form("%s/Fall15_25nsV1_DATA_L1FastJet_AK4PFchs.txt",cd); // 76X V2
+      //s = Form("%s/Spring16_25nsV2_DATA_L1FastJet_AK4PFchs.txt",cd); // 80X V3M1
+      s = Form("%s/Spring16_25nsV3_DATA_L1FastJet_AK4PFchs.txt",cd); // 80X V3
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -798,41 +612,16 @@ void reprocess() {
     JetCorrectionUncertainty *unc_ref1 = new JetCorrectionUncertainty(*p_ref1);
 
     // Total uncertainty, excluding Flavor and Time
-    //s = Form("%s/Winter14_V10M_DATA_Uncertainty_AK5PFchs.txt",cd); // V8 Run I
-    //s = Form("txt/Summer15_50nsV2_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
-    //s = Form("txt/Summer15_50nsV3_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("txt/Summer15_50nsV3M2_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
-    //s = Form("%s/Summer15_50nsV4_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
-    //s = Form("txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
-    //s = Form("txt/Summer15_25nsV3M3_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
-    //s = Form("%s/Summer15_25nsV3M3_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
-    //s = Form("%s/Summer15_25nsV6M1_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer15_25nsV6M2_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer15_25nsV6M3_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer15_25nsV6_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer15_25nsV7M1_DATA_UncertaintySources_AK4PFchs.txt",cd); // 74X V7
     s = Form("%s/Fall15_25nsV1M2_DATA_UncertaintySources_AK4PFchs.txt",cd); // 76X V2
+    //s = Form("%s/Spring16_25nsV3_DATA_UncertaintySources_AK4PFchs.txt",cd); // 80X V3
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
     JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p_unc);
 
     // Partial uncertainties
-    //s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // V8
-    //s = Form("txt/Summer15_50nsV2_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
-    //s = Form("txt/Summer15_50nsV3_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("txt/Summer15_50nsV3M2_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
-    //s = Form("%s/Summer15_50nsV4_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
-    //s = Form("txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
-    //s = Form("txt/Summer15_25nsV3M3_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
-    //s = Form("%s/Summer15_25nsV3M3_DATA_UncertaintySources_AK4PFchs.txt",cd); // Run II
-    //s = Form("%s/Summer15_25nsV6M1_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer15_25nsV6M2_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer15_25nsV6M3_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer15_25nsV6_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer15_25nsV7M1_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer15_25nsV7M1_DATA_UncertaintySources_AK4PFchs.txt",cd); // 74X V7
     s = Form("%s/Fall15_25nsV1M2_DATA_UncertaintySources_AK4PFchs.txt",cd); // 76X V2
+    //s = Form("%s/Spring16_25nsV3_DATA_UncertaintySources_AK4PFchs.txt",cd); // 80X V3
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_ref = new JetCorrectorParameters(s,s2);
