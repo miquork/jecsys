@@ -25,7 +25,7 @@
 #include <vector>
 #include <map>
 
-const double _lumi = 19800.;
+const double _lumi = 2065.;//19800.;
 
 bool dodijet = true;//false;
 bool _s_dcsonly = false;
@@ -81,7 +81,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   //const double ptbins1[] = {30, 40, 50, 60, 85, 105, 130, 175, 230,
   //		    300, 400, 500, 700, 1000, 1500}; // 76X
   const double ptbins1[] = {30, 40, 50, 60, 85, 105, 130, 175, 230,
-			    300, 400}; // 80X
+			    300, 400, 500, 700, 1000}; // 80X
   const int npt1 = sizeof(ptbins1)/sizeof(ptbins1[0])-1;
   double ptmax1 = ptbins1[npt1];
   TH1D *hpt1 = new TH1D("hpt1","",npt1,&ptbins1[0]);
@@ -126,7 +126,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   TCanvas *c1 = new TCanvas("c1","c1",ndirs*400,nmethods*400);
   c1->Divide(ndirs,nmethods);
 
-  TH1D *h1 = new TH1D("h1",";p_{T} (GeV);Response",1270,30,1300);
+  TH1D *h1 = new TH1D("h1",";p_{T} (GeV);Response",1470,30,1500);
 
   // extrapolation vs alpha for each pT bin
   vector<TCanvas*> c2s(ndirs*nmethods);
@@ -146,7 +146,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   c3->Divide(ndirs,nmethods);
 
   TH1D *h3 = new TH1D("h3",";p_{T,ref} (GeV);FSR sensitivity: -dR/d#alpha [%]",
-		      1270,30,1300);
+		      1470,30,1500);
 
   cout << "Reading in data" << endl << flush;
   // Read in plots vs pT (and alpha)
@@ -159,9 +159,6 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	for (int  ialpha = 0; ialpha != nalphas; ++ialpha) {
 
 	  finout->cd();
-	  //assert(gDirectory->cd(dirs[idir]));
-	  //assert(gDirectory->cd(bin));
-	  //TDirectory *d = gDirectory;
 	  assert(finout->cd(dirs[idir]));
 	  TDirectory *din1 = finout->GetDirectory(dirs[idir]); assert(din1);
 	  assert(din1->cd(bin));
@@ -278,7 +275,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 
 	TH1D *h = new TH1D(Form("h_5%s_%s",cd,cm),
 			   Form(";p_{T} (GeV);Response (%s)",cd),
-			   1270,30,1300);
+			   1470,30,1500);
 	h->GetXaxis()->SetMoreLogLabels();
 	h->GetXaxis()->SetNoExponent();
 	h->SetMinimum(0.83);//0.88);
@@ -289,7 +286,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	//	      "Run2015D-Cert - 25 ns - 552 pb^{-1}");
 	//lumi_13TeV = "Run2015D - Oct 19 - 1.28 fb^{-1}";
 	//lumi_13TeV = "Run2015D - Golden - 2.1 fb^{-1}";
-	lumi_13TeV = "Run2016 - 590 pb^{-1}";
+	//lumi_13TeV = "Run2016 - 590 pb^{-1}";
+	//lumi_13TeV = "Run2016, 2.1 fb^{-1}";
+	lumi_13TeV = "Run2016, 2.6 fb^{-1}";
 	TCanvas *c0 = tdrCanvas(Form("c0_%s_%s",cm,cd), h, 4, 11, true);
 	c0->SetLogx();
 	
@@ -374,9 +373,10 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 
 	  int ipt = itpt->first;
 	  int jpt = hpt1->FindBin(ipt);
-	  if (jpt>npads) continue;
-	  assert(jpt<=npads);
-	  c2->cd(jpt);
+	  //if (jpt>npads) continue;
+	  //assert(jpt<=npads);
+	  //c2->cd(jpt);
+	  c2->cd(min(npads,jpt));
 	  
 	  TGraphErrors *ga = itpt->second; assert(ga);
 	  
@@ -479,8 +479,14 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	      if (dd!="ratio") ga->SetPointError(n, 0, 0.025);
 	      if (dd=="ratio") ga->SetPointError(n, 0, 0.0125);
 	      */
+	      /*
 	      // V7 constraint: HF down by -20%, negative slope from gamjet
 	      ga->SetPoint(n, 2.5, dd=="mc" ? 0. : -0.010);
+	      if (dd!="mc") ga->SetPointError(n, 0, 0.0125);
+	      if (dd=="mc") ga->SetPointError(n, 0, 0.0125);
+	      */
+	      // 80X constraint, no slope in MPF
+	      ga->SetPoint(n, 2.5, dd=="mc" ? 0. : 0.00);
 	      if (dd!="mc") ga->SetPointError(n, 0, 0.0125);
 	      if (dd=="mc") ga->SetPointError(n, 0, 0.0125);
 	    } // MPF
@@ -559,7 +565,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 
 	  TF1 *fk = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
 			    "[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
-			    30,1300);
+			    30,1500);
 	  // TEMP TEMP TEMP
 	  fk->SetParameters(-0.05,+0.01,0);//-0.25,-0.5,0);
 	  //fk->FixParameter(2,0);
@@ -581,7 +587,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  TMatrixD emat(n,n);
 	  gMinuit->mnemat(emat.GetMatrixArray(), n);
 	  TF1 *fke = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
-			     sr_fitError, 30, 1300, 1);
+			     sr_fitError, 30, 1500, 1);
 	  _sr_fitError_func = fk;
 	  _sr_fitError_emat = &emat;
 
@@ -615,7 +621,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	  if (isample==idj) { ppt = ppt4; } // pas-v6 (fix 2016-06-02)
 	  for (int i = 1; i != hk->GetNbinsX()+1; ++i) {
 	    double pt = ppt->GetBinContent(i);
-	    if (pt>30 && pt<1300) {
+	    if (pt>30 && pt<1500) {
 	      hk->SetBinContent(i, fk->Eval(pt));
 	      hk->SetBinError(i, fabs(fke->Eval(pt)-fk->Eval(pt)));
 	    }

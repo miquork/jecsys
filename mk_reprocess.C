@@ -24,7 +24,7 @@
   //     are already available in 'rootfiles/jecdata.root'
   /*
   reprocess();
-  */
+
 
   // Calculate soft radiation (ISR+FSR) corrections
   // and uncertainty eigenvectors for global fit
@@ -53,7 +53,7 @@
   globalFitL3Res(3.2,5.2); // coarse L2Res
   // Redo for plots and fit results for L3Res
   // (above eta bins may overwrite some plots)
-
+  */
   globalFitL3Res(0.0,1.3);
 
 }

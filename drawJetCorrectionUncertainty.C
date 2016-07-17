@@ -35,7 +35,7 @@ bool _extra = false; // single pion plots
 bool _paper = true; //  for paper
 
 // Plot uncertainty (true) or source (false)
-bool _absUncert = true;//false
+bool _absUncert = false;//true;//false
 // NB: All source files are currently printed together with AK4PFchs uncertainty
 bool _doTXT = true; // create uncertainty and source text files
 bool _didTXT = false;
@@ -1239,7 +1239,9 @@ void plotUncertainty(vector<uncert> const& sys,
     {8, 10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
      97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 362, 430,
      507, 592, 686, 790, 905, 1032, 1172, 1327, 1497, 1684, 1890, //1999};
-     2000 -1e-3, 2238, 2500, 2787, 3103, 3450};
+     //2000, 2238, 2500, 2787, 3103, 3450,
+     2116, 2366, 2640, 2941, 3273, 3637, 
+     4037, 4477, 4961, 5492, 6076, 7000};
   const int ndiv_pt = sizeof(x_pt)/sizeof(x_pt[0])-1;
   const double x_eta[] =
     {-5.4,-5.0,-4.4,-4,-3.5,-3,-2.8,-2.6,-2.4,-2.2,-2.0,
@@ -1251,7 +1253,7 @@ void plotUncertainty(vector<uncert> const& sys,
   // Re-determine bin edges based on maxe=4000.
   int jx(0), ndiv_new(0);
   if (type=="fixEta") {
-    double maxe = 4000;
+    double maxe = 6500;//4000;
     double minpt = 10.;
     double maxpt = maxe/cosh(typevar);
     int imin(0), imax(ndiv_pt+1);
@@ -1263,7 +1265,7 @@ void plotUncertainty(vector<uncert> const& sys,
     ndiv_new = imax-imin-1; // is ok?
   }
   if (type=="fixPt") {
-    double maxe = 4000;
+    double maxe = 6500;//4000;
     double maxeta = TMath::ACosH(maxe/typevar);
     int imin(0), imax(ndiv_eta+1);
     for (int i = 0; i != ndiv_eta; ++i) {
@@ -1336,7 +1338,7 @@ void plotUncertainty(vector<uncert> const& sys,
   h0->GetYaxis()->SetTitleOffset(1.0);
   //h0->Draw("AXIS");
 
-  if (_paper) h0->GetXaxis()->SetRangeUser(10,1999);
+  if (_paper) h0->GetXaxis()->SetRangeUser(10,3500);//1999);
   //lumi_13TeV = "Run2015D - 25ns - 121 pb^{-1}";
   //lumi_13TeV = "Run2015D - Oct 19 - 1.28 fb^{-1}"; // 74X?
   //lumi_13TeV = "Fall15_25nsV2 (76X) - 2.1 fb^{-1}"; // 76X
@@ -1510,7 +1512,8 @@ void plotUncertainty(vector<uncert> const& sys,
     //ofstream fout5s("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK4PFchs.txt",ios::out);
 
     //ofstream fouts(Form("txt/Summer15_25nsV7M1_DATA_Uncertainty_%s.txt",
-    ofstream fouts(Form("txt/Fall15_25nsV1M2_DATA_Uncertainty_%s.txt",
+    //ofstream fouts(Form("txt/Fall15_25nsV1M2_DATA_Uncertainty_%s.txt",
+    ofstream fouts(Form("txt/Spring16_25nsV4M3_DATA_Uncertainty_%s.txt",
 			(*_algnames)[d_algo]), ios::out);
     fouts << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
     //ofstream fout5s("txt/Summer15_25nsV6M3_DATA_Uncertainty_AK4PFchs.txt",ios::out);
@@ -1653,12 +1656,13 @@ void plotUncertainty(vector<uncert> const& sys,
 
 
     //ofstream fout(Form("txt/Summer15_25nsV7M1_DATA_UncertaintySources_%s.txt",
-    ofstream fout(Form("txt/Fall15_25nsV1M2_DATA_UncertaintySources_%s.txt",
+    //ofstream fout(Form("txt/Fall15_25nsV1M2_DATA_UncertaintySources_%s.txt",
+    ofstream fout(Form("txt/Spring16_25nsV4M3_DATA_UncertaintySources_%s.txt",
 		       (*_algnames)[d_algo]), ios::out);
-    fout << Form("#Uncertainty sources for Fall15_25nsV1M2_DATA_%s",
+    fout << Form("#Uncertainty sources for Spring16_25nsV4M3_DATA_%s",
 		 (*_algnames)[d_algo]) << endl;
     cout << "Storing uncertainties to: "
-	 << Form("txt/Fall15_25nsV1M2_DATA_UncertaintySources_%s.txt",
+	 << Form("txt/Spring16_25nsV4M3_DATA_UncertaintySources_%s.txt",
 		 (*_algnames)[d_algo]) << endl;
     //ofstream fout5("txt/Summer15_25nsV6M3_DATA_UncertaintySources_AK4PFchs.txt",ios::out);
     //fout5 << "#Uncertainty sources for Summer15_25nsV6M3_DATA_AK4PFchs" << endl;

@@ -77,75 +77,44 @@ void multijet(bool usemjb = true) {
   TDirectory *curdir = gDirectory;
   setTDRStyle();
 
-  double ptbins[] = {200, 250, 300, 360, 400, 450, 500, 550, 600,
-		     700, 800, 1000, 1200, 1500};
+  //double ptbins[] = {200, 250, 300, 360, 400, 450, 500, 550, 600,
+  //		     700, 800, 1000, 1200, 1500}; // 0.6/fb
+  double ptbins[] = {200, 250, 300, 370, 450, 510, 550, 600,
+		     700, 800, 900, 1000, 1200, 1400, 1600, 2600}; // 2.1/fb
   const int npt = sizeof(ptbins)/sizeof(ptbins[0])-1;
   
-  // On 17 Feb 2016, at 10:22, Anne-Laure Pequegnot
-  // Re: L2Res for 76X
-  // => 76X V2
-  //TFile *fmd = new TFile("rootfiles/MULTIJET_data_2015-merged_pt30_eta30_notRmPUJets_beforePrescaleReweighting.root","READ");
-  ////TFile *fmd2 = new TFile("rootfiles/MULTIJET_data_2015-merged_pt10_eta30_notRmPUJets_beforePrescaleReweighting.root","READ");
-  //TFile *fmc = new TFile("rootfiles/MULTIJET_MC_QCD-HT-500ToInf_analysis_woPU_pt30_eta30_notRmPUJets.root","READ");
-  //TFile *fe1 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-500ToInf_analysis_woPU_pt30_eta30_notRmPUJets.root","READ");
-  //TFile *fe2 = new TFile("rootfiles/MULTIJET_MC_QCD-HT-500ToInf_analysis_woPU_pt10_eta30_notRmPUJets.root","READ");
-
-  // fmd, fmc: pt30 balancing results for MJB and MPF
-  // fe1, fe2: pt30 (MJB) and pt10 (MPF) Crecoil mapping
-  //assert(fmd && !fmd->IsZombie());
-  ////assert(fmd2 && !fmd2->IsZombie());
-  //assert(fmc && !fmc->IsZombie());
-  //assert(fe2 && !fe2->IsZombie());
-  //assert(fe1 && !fe1->IsZombie());
-
-  // New file format for 2016 (much simpler like this!)
-  //
-  // On 30 May 2016, at 21:57, Andrey A. Popov
-  // Re: Inputs to global fit from multijet analysis
-  //TFile *f = new TFile("rootfiles/multijet_2016_v1.root","READ");
-  //
   // On 01 Jun 2016, at 21:26, Andrey A. Popov
   // Re: Inputs to global fit from multijet analysis
-  TFile *f = new TFile("rootfiles/multijet_2016_v2.root","READ");
+  //TFile *f = new TFile("rootfiles/multijet_2016_v2.root","READ");
+  //
+  // On 15 Jun 2016, at 17:51, Andrey A. Popov
+  // https://indico.cern.ch/event/542992/ (Lyon)
+  //TFile *f = new TFile("rootfiles/multijet_2016_v4.root"); // 2.1/fb, pTJ1
+  //
+  // On 21 Jun 2016, Andrey A. Popov
+  // https://indico.cern.ch/event/544654 (Lyon)
+  TFile *f = new TFile("rootfiles/multijet_2016_v5.root"); // 2.6/fb, pTJ1
+
   assert(f && !f->IsZombie());
 
   // Load MJB and MPF from pt30 file: reduces bias no pTrecoil binning
   // However, later use pt10 for the MPF lever arm: this is longer
-  //assert(fmd->cd("MJB"));
-  //TDirectory *din1 = fmd->GetDirectory("MJB"); assert(din1);
-  //assert(din1->cd("PtBin"));
-  //TDirectory *din2 = din1->GetDirectory("PtBin"); assert(din2);
-  //TGraphErrors *gmd1 = (TGraphErrors*)din2->Get("gMJB_RefObjPt");
   TGraphErrors *gmd1 = (TGraphErrors*)f->Get("Data/Pt30/MJB");
+  //TGraphErrors *gmd1 = (TGraphErrors*)f->Get("Data/Pt10/MJB");
   assert(gmd1); gmd1->SetName("MJB");
   //
-  //assert(fmd->cd("MPF"));
-  //TDirectory *din3 = fmd->GetDirectory("MPF"); assert(din3);
-  //assert(din3->cd("PtBin"));
-  //TDirectory *din4 = din3->GetDirectory("PtBin"); assert(din4);
-  //TGraphErrors *gmd2 = (TGraphErrors*)din4->Get("gMPF_RefObjPt");
   TGraphErrors *gmd2 = (TGraphErrors*)f->Get("Data/Pt30/MPF");
+  //TGraphErrors *gmd2 = (TGraphErrors*)f->Get("Data/Pt10/MPF");
   assert(gmd2); gmd2->SetName("MPF");
 
-
-  //assert(fmc->cd("MJB"));
-  //TDirectory *dmc1 = fmc->GetDirectory("MJB"); assert(dmc1);
-  //assert(dmc1->cd("PtBin"));
-  //TDirectory *dmc2 = dmc1->GetDirectory("PtBin"); assert(dmc2);
-  //TGraphErrors *gmc1 = (TGraphErrors*)dmc2->Get("gMJB_RefObjPt");
   TGraphErrors *gmc1 = (TGraphErrors*)f->Get("MC/Pt30/MJB");
+  //TGraphErrors *gmc1 = (TGraphErrors*)f->Get("MC/Pt10/MJB");
   assert(gmc1); gmc1->SetName("MJB");
-
-  //assert(fmc->cd("MPF"));
-  //TDirectory *dmc3 = fmc->GetDirectory("MPF"); assert(dmc3);
-  //assert(dmc3->cd("PtBin"));
-  //TDirectory *dmc4 = dmc3->GetDirectory("PtBin"); assert(dmc4);
-  //TGraphErrors *gmc2 = (TGraphErrors*)dmc4->Get("gMPF_RefObjPt");
+  //
   TGraphErrors *gmc2 = (TGraphErrors*)f->Get("MC/Pt30/MPF");
+  //TGraphErrors *gmc2 = (TGraphErrors*)f->Get("MC/Pt10/MPF");
   assert(gmc2); gmc2->SetName("MPF");
 
-  //fmc->Close();
-  
   // Remove "empty" points (from TH1D to TGraph conversion?)
   cleanGraph(gmd1); cleanGraph(gmc1);
   cleanGraph(gmd2); cleanGraph(gmc2);
@@ -211,11 +180,9 @@ void multijet(bool usemjb = true) {
   // Get MJB and MPF lever arms from MC
   // Use pt30 for MJB and pt10 for MPF, even though
   // pTrecoil binning for both uses pt30
-  //TGraphErrors *ge1 = (TGraphErrors*)fe1->Get("recoilJets/gExp_sum_Fi_log_fi_RecoilPt");
   TGraphErrors *ge1 = (TGraphErrors*)f->Get("Data/Pt30/CRecoil");
   assert(ge1);
 
-  //TGraphErrors *ge2 = (TGraphErrors*)fe2->Get("recoilJets/gExp_sum_Fi_log_fi_RecoilPt");
   TGraphErrors *ge2 = (TGraphErrors*)f->Get("Data/Pt10/CRecoil");
   assert(ge2);
 
@@ -229,18 +196,8 @@ void multijet(bool usemjb = true) {
   ge = (TGraphErrors*)ge->Clone();
   ge1 = (TGraphErrors*)ge1->Clone();
   ge2 = (TGraphErrors*)ge2->Clone();
-  //delete c1e;
-  //delete c2e;
-  //fe1->Close();
-  //fe2->Close();
 
-  //const double ptx = 325; // something wrong with MC below this (v2)
-  //const double ptx(250), pty(1350); // data 230-1350, but <300 doesn't work well
-  //const double ptx(200), pty(900); // data 210-1000
-  //const double ptx(200), pty(1300); // data 250-1250 (MC 2250)
-  //const double ptx(200), pty(_m_dcsonly ? 1300 : 900); // data 250-850 (MC 2250, data 1250 bad?)
-  //const double ptx(200), pty(1300); // data 250-130 (MC 2250)
-  const double ptx(200), pty(1900); // data 250-130 (MC 2250)
+  const double ptx(200), pty(1600); // data 250-1600 (last bin up to 2.6 TeV)
   for (int i = ge->GetN()-1; i != -1; --i) {
     if (ge->GetY()[i]==0 || ge->GetX()[i]<ptx || ge->GetX()[i]>pty)
       ge->RemovePoint(i);

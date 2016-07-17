@@ -23,10 +23,10 @@
 
 namespace jec {
   
-  enum JetAlgo  {AK4PF, AK4PFchs, AK4CALO, AK4JPT,
+  enum JetAlgo  {AK4PF, AK4PFchs, AK4PFpuppi, AK4CALO, AK4JPT,
 		 AK5PF, AK5PFchs, AK5CALO, AK5JPT,
 		 AK7PF, AK7PFchs, AK7CALO, AK7JPT,
-		 AK8PF, AK8PFchs, AK8CALO, AK8JPT};
+		 AK8PF, AK8PFchs, AK8PFpuppi, AK8CALO, AK8JPT};
   enum DataType {DATA, MC, PY, HW};
 }
 
@@ -34,7 +34,7 @@ namespace jec {
 TF1 *_fhb(0);
 TF1 *_fl1(0);
 Double_t _jesfit(Double_t *x, Double_t *p);
-Double_t _jeshb(double pt, double hb);
+//Double_t _jeshb(double pt, double hb);
 
 inline double absmax(double a, double b) {
   return (fabs(a) > fabs(b) ? a : b);
@@ -131,21 +131,25 @@ private:
   // JEC variations
   FactorizedJetCorrector *_jec;
   FactorizedJetCorrector *_jecDefault;
-  FactorizedJetCorrector *_jecWithL1V0;
-  FactorizedJetCorrector *_jecL1DTflat;
-  FactorizedJetCorrector *_jecL1DTpt;
+  //
+  //FactorizedJetCorrector *_jecWithL1RC;
+  //FactorizedJetCorrector *_jecL1DTflat;
+  //FactorizedJetCorrector *_jecL1DTpt;
   FactorizedJetCorrector *_jecL1MCflat;
   FactorizedJetCorrector *_jecL1MCpt;
-  FactorizedJetCorrector *_jecL1sf;
-  //FactorizedJetCorrector *_jecL1DTflat_ak5pfchs;
-  //FactorizedJetCorrector *_jecL1DTpt_ak5pfchs;
+  //FactorizedJetCorrector *_jecL1sf;
   FactorizedJetCorrector *_jecL1MCflat_ak4pfchs;
   FactorizedJetCorrector *_jecL1MCpt_ak4pfchs;
+  //
   FactorizedJetCorrector *_jecL2ResFlat;
   FactorizedJetCorrector *_jecL2ResPt;
-  FactorizedJetCorrector *_jecL2ResMPF;
-  FactorizedJetCorrector *_jecL2ResBal;
-  JetCorrectionUncertainty *_uncL2ResStat;
+  //FactorizedJetCorrector *_jecL2ResMPF;
+  //FactorizedJetCorrector *_jecL2ResBal;
+  FactorizedJetCorrector *_jecL2ResPY;
+  FactorizedJetCorrector *_jecL2ResHW;
+  //JetCorrectionUncertainty *_uncL2ResStat;
+  FactorizedJetCorrector *_jecL2ResStat;
+  //
   FactorizedJetCorrector *_jecL2jerup;
   FactorizedJetCorrector *_jecL2jerdw;
   //FactorizedJetCorrector *_jecL2stat;
