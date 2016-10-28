@@ -70,9 +70,10 @@ vector<TH1D*> *_mj_vsrc(0);
 void multiFitter(Int_t &npar, Double_t *grad, Double_t &chi2, Double_t *par,
 		 Int_t flag);
 
-void multijet(bool usemjb = true) {
+void multijet(bool usemjb = true, string epoch="") {
 
-  cout << "Calling multijet("<<usemjb<<");"<<endl<<flush;
+  cout << "Calling multijet("<<usemjb<<","<<epoch<<");"<<endl<<flush;
+  const char *cep = epoch.c_str();
 
   TDirectory *curdir = gDirectory;
   setTDRStyle();
@@ -93,7 +94,17 @@ void multijet(bool usemjb = true) {
   //
   // On 21 Jun 2016, Andrey A. Popov
   // https://indico.cern.ch/event/544654 (Lyon)
-  TFile *f = new TFile("rootfiles/multijet_2016_v5.root"); // 2.6/fb, pTJ1
+  //TFile *f = new TFile("rootfiles/multijet_2016_v5.root"); // 2.6/fb, pTJ1
+  //
+  // Andrey A. Popov
+  // https://indico.cern.ch/event/568973/
+  //TFile *f = new TFile("rootfiles/multijet_2016v8_Run2016BCD.root"); // lumi?
+  //TFile *f = new TFile("rootfiles/multijet_2016v8_Run2016G.root"); // lumi?
+  //
+  // On 19 Oct 2016, at 15:29, Andrey A. Popov
+  // https://indico.cern.ch/event/578914/
+  TFile *f = new TFile(Form("rootfiles/multijet_20161019_Run2016%s.root",cep),
+		       "READ");
 
   assert(f && !f->IsZombie());
 
@@ -163,7 +174,7 @@ void multijet(bool usemjb = true) {
     } // for isrc
   } // for im
   
-  TFile *fjes = new TFile("rootfiles/jecdata.root","READ");
+  TFile *fjes = new TFile(Form("rootfiles/jecdata%s.root",cep),"READ");
   assert(fjes && !fjes->IsZombie());
 
   TH1D *herr = (TH1D*)fjes->Get("ratio/eta00-13/herr"); assert(herr);
@@ -813,7 +824,7 @@ void multijet(bool usemjb = true) {
 
     if (true) { // Save MJB results to JEC combination file for full global fit
       
-      TFile *fout = new TFile("rootfiles/jecdata.root","UPDATE");
+      TFile *fout = new TFile(Form("rootfiles/jecdata%s.root",cep),"UPDATE");
       assert(fout && !fout->IsZombie());
       
       assert(fout->cd("ratio"));
@@ -827,14 +838,14 @@ void multijet(bool usemjb = true) {
 	gm1->SetMarkerColor(kBlack);
 	gm1->SetLineColor(kBlack);
 	gm1->SetName(Form("%s_multijet_a30","ptchs"));
-	gm1->Write(Form("%s_multijet_a30","ptchs"),TObject::kOverwrite);
+	gm1->Write(Form("%s_multijet_a30x","ptchs"),TObject::kOverwrite);
       }
       if (gm2) {
 	gm2->SetMarkerStyle(kFullCircle);
 	gm2->SetMarkerColor(kBlack);
 	gm2->SetLineColor(kBlack);
 	gm2->SetName(Form("%s_multijet_a30","mpfchs1"));
-	gm2->Write(Form("%s_multijet_a30","mpfchs1"),TObject::kOverwrite);
+	gm2->Write(Form("%s_multijet_a30x","mpfchs1"),TObject::kOverwrite);
       }
       if (ge1) {
 	ge1->SetMarkerStyle(kFullDiamond);

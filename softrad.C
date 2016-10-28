@@ -37,12 +37,15 @@ TMatrixD *_sr_fitError_emat(0);
 Double_t sr_fitError(Double_t *xx, Double_t *p);
 
 // Soft radiation corrections for L3Res
-void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
+void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
+	     string epoch="") {
 
   cout << "Calling softrad("<<etamin<<","<<etamax<<","<<dodijet<<");/n"<<flush;
+  const char *cep = epoch.c_str();
+  cout << "For epoch " << epoch << endl;
 
   setTDRStyle();
-  writeExtraText = false; // for JEC paper CWR
+  //writeExtraText = false; // for JEC paper CWR
 
   TDirectory *curdir = gDirectory;
 
@@ -51,7 +54,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   //TFile *fin = new TFile("rootfiles/jecdata_76X.root","READ");
   //assert(fin && !fin->IsZombie());
   //
-  TFile *finout = new TFile("rootfiles/jecdata.root","UPDATE");
+  TFile *finout = new TFile(Form("rootfiles/jecdata%s.root",epoch.c_str()),
+			    "UPDATE");
   assert(finout && !finout->IsZombie());
   
   const int ndirs = 3;
@@ -80,8 +84,12 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   //const double ptbins1[] = {30, 40, 50, 60, 75, 95, 125, 180, 300, 400, 1000};
   //const double ptbins1[] = {30, 40, 50, 60, 85, 105, 130, 175, 230,
   //		    300, 400, 500, 700, 1000, 1500}; // 76X
-  const double ptbins1[] = {30, 40, 50, 60, 85, 105, 130, 175, 230,
-			    300, 400, 500, 700, 1000}; // 80X
+  //const double ptbins1[] = {30, 40, 50, 60, 85, 105, 130, 175, 230,
+  //		    300, 400, 500, 700, 1000}; // 80X
+  //const double ptbins1[] = {30, 60, 90, 120, 160, 200,
+  //		    300, 500, 1000}; // 80X - RunG
+  const double ptbins1[] = // 80X - RunG V7
+    {30, 40, 50, 60, 85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 1500};
   const int npt1 = sizeof(ptbins1)/sizeof(ptbins1[0])-1;
   double ptmax1 = ptbins1[npt1];
   TH1D *hpt1 = new TH1D("hpt1","",npt1,&ptbins1[0]);
@@ -115,8 +123,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 
   map<string,const char*> texlabel;
   texlabel["gamjet"] = "#gamma+jet";
-  texlabel["zeejet"] = "Z#rightarrowee+jet";
-  texlabel["zmmjet"] = "Z#rightarrow#mu#mu+jet";
+  texlabel["zeejet"] = "Z(#rightarrowee)+jet";
+  texlabel["zmmjet"] = "Z(#rightarrow#mu#mu)+jet";
   texlabel["dijet"] = "Dijet";
   texlabel["ptchs"] = "p_{T} balance (CHS)";
   texlabel["mpfchs"] = "MPF raw (CHS)";
@@ -275,10 +283,11 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 
 	TH1D *h = new TH1D(Form("h_5%s_%s",cd,cm),
 			   Form(";p_{T} (GeV);Response (%s)",cd),
-			   1470,30,1500);
+			   //1470,30,1500);
+			   1270,30,1300); // Run I paper
 	h->GetXaxis()->SetMoreLogLabels();
 	h->GetXaxis()->SetNoExponent();
-	h->SetMinimum(0.83);//0.88);
+	h->SetMinimum(0.88);//0.83);//0.88);
 	h->SetMaximum(1.13);//1.13);
 	
 	//lumi_13TeV = (_s_dcsonly ?
@@ -288,14 +297,21 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	//lumi_13TeV = "Run2015D - Golden - 2.1 fb^{-1}";
 	//lumi_13TeV = "Run2016 - 590 pb^{-1}";
 	//lumi_13TeV = "Run2016, 2.1 fb^{-1}";
-	lumi_13TeV = "Run2016, 2.6 fb^{-1}";
+	//lumi_13TeV = "Run2016, 2.6 fb^{-1}";
+	map<string, const char*> lumimap;
+	lumimap["BCD"] = "Run2016BCD, 13 fb^{-1}";
+	lumimap["E"] = "Run2016E, 4.0 fb^{-1}";
+	lumimap["F"] = "Run2016F, 3.1 fb^{-1}";
+	lumimap["G"] = "Run2016G, 7.1 fb^{-1}";
+	lumi_13TeV = lumimap[epoch];
+
 	TCanvas *c0 = tdrCanvas(Form("c0_%s_%s",cm,cd), h, 4, 11, true);
 	c0->SetLogx();
 	
 
 	TLegend *leg = tdrLeg(0.55,0.68,0.85,0.83);
 	tex->DrawLatex(0.55,0.85,texlabel[cm]);
-	tex->DrawLatex(0.55,0.18,"|#eta| < 1.3, #alpha<0.3");
+	tex->DrawLatex(0.55,0.18,"|#eta| < 1.3, #alpha < 0.3");
 	//tex->DrawLatex(0.55,0.18,"Anti-k_{T} R=0.5");
 
 	// Loop over Z+jet and gamma+jet (only, no dijet/multijet)
@@ -310,12 +326,12 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	} // for isample
 
 	if (etamin==0) {
-	  c0->SaveAs(Form("pdf/paper_softrad_%s_%s_vspt.pdf",cd,cm));
+	  c0->SaveAs(Form("pdf/%s/paper_softrad_%s_%s_vspt.pdf",cep,cd,cm));
 	  //c0->SaveAs(Form("pdfC/paper_softrad_%s_%s_vspt.C",cd,cm));
 	}
 	else {
-	  c0->SaveAs(Form("pdf/an_softrad_%s_%s_eta%1.0f-%1.0f_vspt.pdf",
-			  cd,cm,10*etamin,10*etamax));
+	  c0->SaveAs(Form("pdf/%s/an_softrad_%s_%s_eta%1.0f-%1.0f_vspt.pdf",
+			  cep,cd,cm,10*etamin,10*etamax));
 	}
       } // paper
 
@@ -325,7 +341,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   c1->cd(0);
   //cmsPrel(_lumi, true);
   //CMS_lumi(c1, 2, 33);
-  c1->SaveAs("pdf/softrad_2x6_vspt.pdf");
+  c1->SaveAs(Form("pdf/%s/softrad_2x6_vspt.pdf",cep));
 
 
   cout << "Drawing plots vs alpha for each pT" << endl << flush;
@@ -525,7 +541,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
 	
       } // for isample
       
-      c2->SaveAs(Form("pdf/softrad_3x3_%s_%s_vsalpha.pdf",cd,cm));
+      c2->SaveAs(Form("pdf/%s/softrad_3x3_%s_%s_vsalpha.pdf",cep,cd,cm));
       
     }
   }
@@ -680,7 +696,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false) {
   c3->cd(0);
   //cmsPrel(_lumi, true);
   CMS_lumi(c3, 2, 33);
-  c3->SaveAs("pdf/softrad_2x6_kfsr.pdf");
+  c3->SaveAs(Form("pdf/%s/softrad_2x6_kfsr.pdf",cep));
 
   finout->Close();
   //fout->Close();
