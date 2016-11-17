@@ -717,7 +717,8 @@ void reprocess(string epoch="") {
       //s = Form("%s/Spring16_25nsV3_DATA_L2L3Residual_AK4PFchs.txt",cd); // 80X V3
       //s = Form("%s/Spring16_25nsV4M1_DATA_L2L3Residual_AK4PFchs.txt",cd); // 80X V4
       //s = Form("%s/Spring16_25nsV4M1_DATA_L2L3Residual_AK4PFchs.txt",cd); // 80X V4
-      s = Form("%s/Spring16_25nsV7M1%s_DATA_L2L3Residual_AK4PFchs.txt",cd,ce); // 80X V7
+      //s = Form("%s/Spring16_25nsV7M1%s_DATA_L2L3Residual_AK4PFchs.txt",cd,ce); // 80X V7
+      s = Form("%s/Spring16_25nsV7M2%s_DATA_L2L3Residual_AK4PFchs.txt",cd,ce); // 80X V7G special
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -744,7 +745,8 @@ void reprocess(string epoch="") {
     {
       //s = Form("%s/Winter14_V6_DATA_L2L3Residual_AK5PFchs.txt",cd); // 74X V7
       //s = Form("%s/Fall15_25ns_COMB_LOGLIN_L2Residual_v2_AK4PFchs_nokFSR.txt",cd); // 76X V2
-      s = Form("%s/Spring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v3_AK4PFchs.txt",cd); // 80X V3M1
+      //s = Form("%s/Spring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v3_AK4PFchs.txt",cd); // 80X V3M1
+      s = Form("%s/Spring16_25nsV7%s_DATA_L2Residual_AK4PFchs.txt",cd,ce); // 80X V7
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -757,7 +759,8 @@ void reprocess(string epoch="") {
     {
       //s = Form("%s/Fall15_25nsV1_DATA_L1RC_AK4PFchs.txt",cd); // 76X V2
       //s = Form("%s/Spring16_25nsV2_DATA_L1RC_AK4PFchs.txt",cd); // 80X V3M1
-      s = Form("%s/Spring16_25nsV3_DATA_L1RC_AK4PFchs.txt",cd); // 80X V3
+      //s = Form("%s/Spring16_25nsV3_DATA_L1RC_AK4PFchs.txt",cd); // 80X V3
+      s = Form("%s/Spring16_25nsV7%s_DATA_L1RC_AK4PFchs.txt",cd,ce); // 80X VV7
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -768,7 +771,8 @@ void reprocess(string epoch="") {
     {
       //s = Form("%s/Fall15_25nsV1_DATA_L1FastJet_AK4PFchs.txt",cd); // 76X V2
       //s = Form("%s/Spring16_25nsV2_DATA_L1FastJet_AK4PFchs.txt",cd); // 80X V3M1
-      s = Form("%s/Spring16_25nsV3_DATA_L1FastJet_AK4PFchs.txt",cd); // 80X V3
+      //s = Form("%s/Spring16_25nsV3_DATA_L1FastJet_AK4PFchs.txt",cd); // 80X V3
+      s = Form("%s/Spring16_25nsV7%s_DATA_L1FastJet_AK4PFchs.txt",cd,ce); // 80X V7
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -786,7 +790,8 @@ void reprocess(string epoch="") {
 
     // Total uncertainty, excluding Flavor and Time
     //s = Form("%s/Fall15_25nsV1M2_DATA_UncertaintySources_AK4PFchs.txt",cd); // 76X V2
-    s = Form("%s/Spring16_25nsV4M3_DATA_UncertaintySources_AK4PFchs.txt",cd); // 80X V4
+    //s = Form("%s/Spring16_25nsV4M3_DATA_UncertaintySources_AK4PFchs.txt",cd); // 80X V4
+    s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // 80X V7 special
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
@@ -794,7 +799,8 @@ void reprocess(string epoch="") {
 
     // Partial uncertainties
     //s = Form("%s/Fall15_25nsV1M2_DATA_UncertaintySources_AK4PFchs.txt",cd); // 76X V2
-    s = Form("%s/Spring16_25nsV4M3_DATA_UncertaintySources_AK4PFchs.txt",cd); // 80X V3
+    //s = Form("%s/Spring16_25nsV4M3_DATA_UncertaintySources_AK4PFchs.txt",cd); // 80X V3
+    s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // 80X V7 special
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_ref = new JetCorrectorParameters(s,s2);

@@ -25,13 +25,13 @@ bool _usenegative = false;
 bool _usepositive = false;
 
 bool _useptgen = true; // iterate to produce JEC vs pTgen
-bool _dothree  = false; // compare three JECs instead of just two
+bool _dothree  = true; // compare three JECs instead of just two
 bool _paper    = true; // graphical settings for the paper (e.g. y-axis range)
 
 const double _mu = 12.8;//20;//19.83; // 20/fb at 8 TeV (htrpu)
 //const double _lumi = 19800.;
 bool _pdf = true; // save .pdf
-bool _C   = true; // save .C
+bool _C   = false;//true; // save .C
 bool _mc(false);
 string _alg("");
 
@@ -137,7 +137,7 @@ double getEtaPtUncert(JetCorrectionUncertainty *unc,
 } // getEtaPtUncert
 
 
-void compareJECversions(string algo="AK5PFchs",
+void compareJECversions(string algo="AK4PFchs",
 			bool l1=true, bool l2l3=true, bool res=true,
 			string type="DATA") {
 
@@ -165,14 +165,17 @@ void compareJECversions(string algo="AK5PFchs",
 
   // 2015 JEC, 76X
   //string sid2 = (_mc ? "Summer15_25nsV6_MC" : "Summer15_25nsV6_DATA");
-  string sid2 = (_mc ? "Fall15_25nsV1_MC" : "Fall15_25nsV1_DATA");
+  //string sid2 = (_mc ? "Fall15_25nsV1_MC" : "Fall15_25nsV1_DATA");
+  string sid2 = (_mc ? "Spring16_25nsV8p2_MC" : "Spring16_25nsV8p2_DATA");
   const char *cid2 = sid2.c_str();
   const char *a2 = a;
   //const char *s2 = "1.3 fb^{-1} (13 TeV)";
   //const char *s2s = "2012";
   //const char *s2 = "2.1 fb^{-1} (13 TeV)";
-  const char *s2 = "76Xv1 (13 TeV)";
-  const char *s2s = "76X";
+  //const char *s2 = "76Xv1 (13 TeV)";
+  //const char *s2s = "76X";
+  const char *s2 = "80Xv8 G";// (13 TeV)";
+  const char *s2s = "G";
   // PATCH 2012 with clones
   //if (algo=="AK4PF") a2 = "AK5PF";
   //if (algo=="AK4PFchs") a2 = "AK5PFchs";
@@ -180,26 +183,35 @@ void compareJECversions(string algo="AK5PFchs",
   // 2012 JEC
   //string sid1 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
   // 74X JEC
-  string sid1 = (_mc ? "Summer15_25nsV7_MC" : "Summer15_25nsV7_DATA");
+  //string sid1 = (_mc ? "Summer15_25nsV7_MC" : "Summer15_25nsV7_DATA");
+  string sid1 = (_mc ? "Spring16_25nsV8BCD_MC" : "Spring16_25nsV8BCD_DATA");
   const char *cid1 = sid1.c_str();
   const char *a1 = a;
   //const char *s1 = "20 fb^{-1} (8 TeV)";
   //const char *s1s = "2012";
   //const char *s1 = "1.3 fb^{-1} (13 TeV)";
-  const char *s1 = "74Xv7 (13 TeV)";
-  const char *s1s = "74X";
+  //const char *s1 = "74Xv7 (13 TeV)";
+  //const char *s1s = "74X";
+  const char *s1 = "80Xv8 BCD";// (13 TeV)";
+  const char *s1s = "BCD";
   // PATCH 2012 with clones
   //if (algo=="AK4PF") a1 = "AK5PF";
   //if (algo=="AK4PFchs") a1 = "AK5PFchs";
 
   // 2012 JEC
-  string sid3 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
+  //string sid3 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
+  //string sid3 = (_mc ? "Spring16_25nsV8E_MC" : "Spring16_25nsV8E_DATA");
+  string sid3 = (_mc ? "Spring16_25nsV6_MC" : "Spring16_25nsV6_DATA");
   const char *cid3 = sid3.c_str();
   const char *a3 = a;
-  const char *s3 = "20 fb^{-1} (8 TeV)";
-  const char *s3s = "74X";
-  if (algo=="AK4PF") a3 = "AK5PF";
-  if (algo=="AK4PFchs") a3 = "AK5PFchs";
+  //const char *s3 = "20 fb^{-1} (8 TeV)";
+  //const char *s3s = "74X";
+  //const char *s3 = "80Xv8 E";// (13 TeV)";
+  //const char *s3s = "E";
+  const char *s3 = "80Xv6 BCD";// (13 TeV)";
+  const char *s3s = "V6";
+  //if (algo=="AK4PF") a3 = "AK5PF";
+  //if (algo=="AK4PFchs") a3 = "AK5PFchs";
 
   // 2011 JEC
   //string sid1 = "GR_R_42_V23";
@@ -301,7 +313,7 @@ void compareJECversions(string algo="AK5PFchs",
     JetCorrectorParameters *JetCorPar3 = (mc ? 0 : new JetCorrectorParameters(str));
     str=Form("CondFormats/JetMETObjects/data/%s_Uncertainty_%s.txt",cid3,a3);
     cout << str << endl << flush;
-    JetCorrectionUncertainty *jecUnc3 = new JetCorrectionUncertainty(str);
+    jecUnc3 = new JetCorrectionUncertainty(str);
 
     vector<JetCorrectorParameters> vParam3;
     if (l1)   vParam3.push_back(*JetCorPar3L1);
@@ -335,9 +347,9 @@ void compareJECversions(string algo="AK5PFchs",
     {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
      97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 362, 430,
      507, 592, 686, 790, 905, 1032, 1172, 1327, 1497, 1684,
-     _paper ? 1999. : 1890.,
-     2000, 2238, 2500};//, 2787, 3103, 3450};
-  const int ndiv_pt = sizeof(x_pt)/sizeof(x_pt[0])-1 - (_paper ? 3 : 0);
+     //_paper ? 1999. : 1890.,
+     2000, 2238, 2500, 2787, 3103, 3450};
+  const int ndiv_pt = sizeof(x_pt)/sizeof(x_pt[0])-1;// - (_paper ? 3 : 0);
   TH1D *hpt = new TH1D(Form("hpt_%s",a),
 		       Form(";p_{T,%s} (GeV);%s L2L3 residual",cgen,a),
 		       ndiv_pt, x_pt);
@@ -366,15 +378,20 @@ void compareJECversions(string algo="AK5PFchs",
     //
     if (l1 && !l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.5,1.4);
     if (!l1 && l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.85,1.6);
-    if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.85,1.45);
+    //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.85,1.45);
+    //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.80,1.20);
+    if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.06);
     //
     if (l1 && !l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
     if (!l1 && l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
-    if (!l1 && !l2l3 && res) hpt->GetXaxis()->SetRangeUser(10,1999);
+    //if (!l1 && !l2l3 && res) hpt->GetXaxis()->SetRangeUser(10,1999);
+    //if (!l1 && !l2l3 && res) hpt->GetXaxis()->SetRangeUser(10,3500);
+    if (!l1 && !l2l3 && res) hpt->GetXaxis()->SetRangeUser(50,3500);
   }
 
   //lumi_7TeV  = (dothree ? "36 pb^{-1} + 4.9 fb^{-1}" : "4.9 fb^{-1}");
-  lumi_13TeV  = "19.8 fb^{-1} (8 TeV) + 1.3--2.1 fb^{-1}";
+  //lumi_13TeV  = "19.8 fb^{-1} (8 TeV) + 1.3--2.1 fb^{-1}";
+  lumi_13TeV  = "27 fb^{-1} (13 TeV)";
 
   TH1D *h1a = (TH1D*)h->Clone(Form("h1a_%s",a));
   TCanvas *c1a = tdrCanvas(Form("c1a_%s",a),h1a,4,11,kSquare);

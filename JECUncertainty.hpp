@@ -46,7 +46,7 @@ public:
   JECUncertainty(const jec::JetAlgo& algo = jec::AK4PF,
 		 const jec::DataType& type = jec::DATA,
 		 const jec::ErrorTypes& errType = jec::kData,
-		 const double mu = 19.81);
+		 const double mu = 24.68);//19.81);
   ~JECUncertainty(){};
   
   double Uncert(const double pTprime, const double eta);
@@ -74,11 +74,11 @@ public:
   double _AbsoluteSPRH(const double pTprime) const;
   double _AbsoluteSPRE(const double pTprime) const;
   //
-  double _Relative(double pTprime, double eta) const;
+  double _Relative(double pTprime, double eta);
   double _RelativeJER(double pTprime, double eta) const;
   double _RelativeFSR(double pTprime, double eta) const;
   double _RelativeStat(double pTprime, double eta) const;
-  double _RelativePt(double pTprime, double eta) const;
+  double _RelativePt(double pTprime, double eta);
   //
   double _PileUp(double pTprime, double eta);
   double _PileUpDataMC(double pTprime, double eta);
@@ -93,9 +93,9 @@ public:
   double _FlavorFraction(double pTprime, double eta,
 			 int iflavor, int isample) const;
   //
-  double _Time(double pTprime, double eta) const;
-  double _TimeEta(const double eta) const;
-  double _TimePt(const double pt, int epoch=0) const;
+  double _Time(double pTprime, double eta);
+  //double _TimeEta(const double eta);
+  double _TimePtEta(const double pt, const double eta, int epoch=0);
   
   // pieces of L1Offset
   double _L1MCFlat(double pTraw, double eta);
@@ -132,6 +132,13 @@ private:
   FactorizedJetCorrector *_jec;
   FactorizedJetCorrector *_jecDefault;
   //
+  FactorizedJetCorrector *_jecTDI;
+  FactorizedJetCorrector *_jecBCD;
+  FactorizedJetCorrector *_jecE;
+  FactorizedJetCorrector *_jecF;
+  FactorizedJetCorrector *_jecGH;
+  FactorizedJetCorrector *_jecP2;
+  //
   //FactorizedJetCorrector *_jecWithL1RC;
   //FactorizedJetCorrector *_jecL1DTflat;
   //FactorizedJetCorrector *_jecL1DTpt;
@@ -143,8 +150,8 @@ private:
   //
   FactorizedJetCorrector *_jecL2ResFlat;
   FactorizedJetCorrector *_jecL2ResPt;
-  //FactorizedJetCorrector *_jecL2ResMPF;
-  //FactorizedJetCorrector *_jecL2ResBal;
+  FactorizedJetCorrector *_jecL2ResMPF; // 80XV8
+  FactorizedJetCorrector *_jecL2ResBal; // 80XV8
   FactorizedJetCorrector *_jecL2ResPY;
   FactorizedJetCorrector *_jecL2ResHW;
   //JetCorrectionUncertainty *_uncL2ResStat;

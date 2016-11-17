@@ -14,7 +14,8 @@
   //compareJECversions("AK4PFchs",false,false,true); // Fig.24topleft
 
   //compareJECversions("AK4PFchs",true,false,false,"MC"); // L1
-  compareJECversions("AK4PFchs",false,true,false,"DATA"); // L2
+  //compareJECversions("AK4PFchs",false,true,false,"DATA"); // L2L3
+  compareJECversions("AK4PFchs",false,false,true,"DATA"); // Res
 
   // Patch for pas-v6
   //compareJECversions("AK5PF",true,false,false); // Fig.9left(top)

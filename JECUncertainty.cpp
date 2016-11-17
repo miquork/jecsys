@@ -11,10 +11,15 @@
 
 using namespace std;
 
+// Future improvements:
+// 1) Add L2L3(+Res) to InitL1, so that JEC inversion really gets pTprime
+//    Currently the L1 uncertainty could be evaluated at slightly wrong point,
+//    but difference is small because nom and denom have the same
+
 // Turn debug mode on if the code fails with an exception from JEC packages
 // This is most likely a missing/misnamed file given to JetCorrectorParameters
 // The last file printed out before the crash in debug mode is usually the fault
-bool debug = false;
+bool debug = false;//true;//false;
 
 
 JECUncertainty::JECUncertainty(const jec::JetAlgo& algo, 
@@ -89,7 +94,7 @@ double JECUncertainty::Uncert(const double pTprime, const double eta) {
     errFlavor = _Flavor(pTprime, eta);
     err2 += errFlavor*errFlavor;
   }
-  if (_errType & (jec::kTime | jec::kTimePtMask)) {
+  if (_errType & (jec::kTime | jec::kTimePtEtaMask)) {
     if (debug) cout << "_Time" << endl << flush;
     errTime = _Time(pTprime, eta2);
     err2 += errTime * errTime;
@@ -117,12 +122,12 @@ double JECUncertainty::Uncert(const double pTprime, const double eta) {
   if (!(_errType & ~jec::kPileUpPtEta))  return errPileUp; // EXTRA
   if (!(_errType & ~jec::kPileUpMuZero)) return errPileUp; // OPT
   if (!(_errType & ~jec::kPileUpEnvelope)) return errPileUp; // OPT
-  if (!(_errType & ~jec::kTimePtRunA)) return errTime;
-  if (!(_errType & ~jec::kTimePtRunB)) return errTime;
-  if (!(_errType & ~jec::kTimePtRunC)) return errTime;
-  if (!(_errType & ~jec::kTimePtRunD)) return errTime;
-  if (!(_errType & ~jec::kTimePt))     return errTime; // EXTRA
-  if (!(_errType & ~jec::kTimeEta))     return errTime;
+  if (!(_errType & ~jec::kTimeRunBCD)) return errTime;
+  if (!(_errType & ~jec::kTimeRunE)) return errTime;
+  if (!(_errType & ~jec::kTimeRunF)) return errTime;
+  if (!(_errType & ~jec::kTimeRunGH)) return errTime;
+  if (!(_errType & ~jec::kTimePtEta))     return errTime;
+  //if (!(_errType & ~jec::kTimeEta))     return errTime;
   //
   if (!(_errType & ~jec::kFlavorMask))   return errFlavor;
 
@@ -173,7 +178,8 @@ void JECUncertainty::_InitL1() {
   */
   {
     //const char *s = Form("%sFall15_25nsV1_MC_L1RC_%s.txt",d,a); // 76X
-    const char *s = Form("%sSpring16_25nsV3_MC_L1RC_%s.txt",d,a); // 80X V3
+    //const char *s = Form("%sSpring16_25nsV3_MC_L1RC_%s.txt",d,a); // 80XV3
+    const char *s = Form("%sSpring16_25nsV8p2_MC_L1RC_%s.txt",d,a); // 80XV8
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -182,7 +188,8 @@ void JECUncertainty::_InitL1() {
   }
   {
     //const char *s = Form("%sFall15_25nsV1_MC_L1FastJet_%s.txt",d,a); // 76X
-    const char *s = Form("%sSpring16_25nsV3_MC_L1FastJet_%s.txt",d,a); // 80X V3
+    //const char *s = Form("%sSpring16_25nsV3_MC_L1FastJet_%s.txt",d,a); //80XV3
+    const char *s = Form("%sSpring16_25nsV8p2_MC_L1FastJet_%s.txt",d,a); //80XV8
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -206,7 +213,8 @@ void JECUncertainty::_InitL1() {
   {
     const char *a = "AK4PFchs"; // !! L3Res only for this
     //const char *s = Form("%sFall15_25nsV1_MC_L1RC_%s.txt",d,a); // 76X
-    const char *s = Form("%sSpring16_25nsV3_MC_L1RC_%s.txt",d,a); // 80X V3
+    //const char *s = Form("%sSpring16_25nsV3_MC_L1RC_%s.txt",d,a); // 80XV3
+    const char *s = Form("%sSpring16_25nsV8p2_MC_L1RC_%s.txt",d,a); // 80XV8
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -216,7 +224,8 @@ void JECUncertainty::_InitL1() {
   {
     const char *a = "AK4PFchs"; // !! L3Res only for this
     //const char *s = Form("%sFall15_25nsV1_MC_L1FastJet_%s.txt",d,a); // 76X
-    const char *s = Form("%sSpring16_25nsV3_MC_L1FastJet_%s.txt",d,a); // 80X V3
+    //const char *s = Form("%sSpring16_25nsV3_MC_L1FastJet_%s.txt",d,a); //80XV3
+    const char *s = Form("%sSpring16_25nsV8p2_MC_L1FastJet_%s.txt",d,a); // 80XV8
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -249,21 +258,25 @@ void JECUncertainty::_InitJEC() {
 
   const char *s;
   //s = Form("%sFall15_25nsV1_DATA_L1FastJet_%s.txt",d,a); // 76X
-  s = Form("%sSpring16_25nsV3_DATA_L1FastJet_%s.txt",d,a); // 80X V3
+  //s = Form("%sSpring16_25nsV3_DATA_L1FastJet_%s.txt",d,a); // 80XV3
+  s = Form("%sSpring16_25nsV8p2_DATA_L1FastJet_%s.txt",d,a); // 80XV8
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
   //s = Form("%sFall15_25nsV1_DATA_L2Relative_%s.txt",d,a); // 76X
-  s = Form("%sSpring16_25nsV3_DATA_L2Relative_%s.txt",d,a); // 80X V3
+  //s = Form("%sSpring16_25nsV3_DATA_L2Relative_%s.txt",d,a); // 80XV3
+  s = Form("%sSpring16_25nsV8p2_DATA_L2Relative_%s.txt",d,a); // 80XV8
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
   //s = Form("%sFall15_25nsV1_DATA_L3Absolute_%s.txt",d,a); // 76X
-  s = Form("%sSpring16_25nsV3_DATA_L3Absolute_%s.txt",d,a); // 80X V3
+  //s = Form("%sSpring16_25nsV3_DATA_L3Absolute_%s.txt",d,a); // 80XV3
+  s = Form("%sSpring16_25nsV8p2_DATA_L3Absolute_%s.txt",d,a); // 80XV8
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
   // Only one L3Residual derived for now for AK4PFchs
   // (although we clone this later on)
   //s = Form("%sFall15_25nsV1M2_DATA_L2L3Residual_%s.txt",d,a); // 76X
-  s = Form("%sSpring16_25nsV4M1_DATA_L2L3Residual_%s.txt",d,a); // 80X V4M1
+  //s = Form("%sSpring16_25nsV4M1_DATA_L2L3Residual_%s.txt",d,a); // 80X V4M1
+  s = Form("%sSpring16_25nsV8p2_DATA_L2L3Residual_%s.txt",d,a); // 80XV8
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
 
@@ -274,6 +287,79 @@ void JECUncertainty::_InitJEC() {
   v.push_back(*l2l3res);
   _jecDefault = new FactorizedJetCorrector(v);
   _jec = _jecDefault;
+
+  { // RunBCD with 3p fit, TDI set to zero afterwards
+    s = Form("%sSpring16_25nsV8TDI_DATA_L2L3Residual_%s.txt",d,a);
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
+    
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l1);
+    v.push_back(*l2);
+    v.push_back(*l3);
+    v.push_back(*l2l3res);
+    _jecTDI = new FactorizedJetCorrector(v);
+  }
+  { // RunBCD with 3p fit
+    s = Form("%sSpring16_25nsV8BCD_DATA_L2L3Residual_%s.txt",d,a);
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
+    
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l1);
+    v.push_back(*l2);
+    v.push_back(*l3);
+    v.push_back(*l2l3res);
+    _jecBCD = new FactorizedJetCorrector(v);
+  }
+  { // RunE with 3p fit
+    s = Form("%sSpring16_25nsV8E_DATA_L2L3Residual_%s.txt",d,a);
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
+    
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l1);
+    v.push_back(*l2);
+    v.push_back(*l3);
+    v.push_back(*l2l3res);
+    _jecE = new FactorizedJetCorrector(v);
+  }
+  { // RunF with 3p fit
+    s = Form("%sSpring16_25nsV8F_DATA_L2L3Residual_%s.txt",d,a);
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
+    
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l1);
+    v.push_back(*l2);
+    v.push_back(*l3);
+    v.push_back(*l2l3res);
+    _jecF = new FactorizedJetCorrector(v);
+  }
+  { // RunG with 3p fit
+    s = Form("%sSpring16_25nsV8_DATA_L2L3Residual_%s.txt",d,a);
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
+    
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l1);
+    v.push_back(*l2);
+    v.push_back(*l3);
+    v.push_back(*l2l3res);
+    _jecGH = new FactorizedJetCorrector(v);
+  }
+  { // RunG with 2p fit
+    s = Form("%sSpring16_25nsV8p2_DATA_L2L3Residual_%s.txt",d,a);
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
+    
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l1);
+    v.push_back(*l2);
+    v.push_back(*l3);
+    v.push_back(*l2l3res);
+    _jecP2 = new FactorizedJetCorrector(v);
+  }
 
   // Special JEC with RC correction
   /*
@@ -298,15 +384,19 @@ void JECUncertainty::_InitL2Res() {
 
   // Inputs:
   // - Pythia MPF loglin (=default)
-  // - Pythia MPF flat (vs default: RelativePt)
-  // - Herwig MPF loglin (vs default: RelativeFSR)
+  // - Pythia MPF flat (vs MPF loglin: RelativePt)
+  // + Pythia pT loglin (vs MPF loglin: RelativePt) => new for 80XV8
+  // - Herwig MPF loglin (vs Pythia MPF loglin: RelativeFSR)
   // - Pythia MPF loglin .STAT (RelativeStat)
+  // - Pythia MPF loglin .JERup vs .JERdw (RelativeJER) => missing for 80XV4 
   // These come in variants AK4PFchs, AK4PFpuppi, AK8PFchs, AK8puppi
   // Files are produced by Anastasia along with L2Res file:
   //
   // On 31 May 2016, at 20:16, Karavdina, Anastasia
   // Re: Update with May 27th json, and input for global fit
   // => https://indico.cern.ch/event/537433/ (zip file linked to L2 presentation)
+  //
+  // For Spring16_25nsV8: https://indico.cern.ch/event/576151/ (RunG folder)
   //
   // We also have pT variants to complement MPF, but at the moment
   // the decision is to use Pythia vs Herwig for RelativeFSR systematic
@@ -329,7 +419,8 @@ void JECUncertainty::_InitL2Res() {
   // For RelativePt (flat vs loglin)
   {
     //s = Form("%sFall15_25ns_COMB_FLAT_L2Residual_v2_AK4PFchs_nominal.txt",d,a); // 76X
-    s = Form("%sSpring16_25ns_MPF_FLAT_L2Residual_pythia8_v3_%s.txt",d,a); // 80X V3
+    //s = Form("%sSpring16_25ns_MPF_FLAT_L2Residual_pythia8_v3_%s.txt",d,a); // 80XV3
+    s = Form("%sSpring16_25ns_MPF_FLAT_L2Residual_pythia8_v4_%s.txt",d,a); // 80XV8
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -338,7 +429,8 @@ void JECUncertainty::_InitL2Res() {
   }
   {
     //s = Form("%sFall15_25ns_COMB_LOGLIN_L2Residual_v2_AK4PFchs_nominal.txt",d,a); // 76X
-    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v3_%s.txt",d,a); // 80X V3
+    //s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v3_%s.txt",d,a); // 80XV3
+    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v4_%s.txt",d,a); // 80XV4
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -346,9 +438,28 @@ void JECUncertainty::_InitL2Res() {
     _jecL2ResPt = new FactorizedJetCorrector(v);
   }
 
+  // For RelativePt 2nd part (MPF vs pTbal); new for 80XV8
+  {
+    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v4_%s.txt",d,a); // 80XV8
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l2l3res);
+    _jecL2ResMPF = new FactorizedJetCorrector(v);
+  }
+  {
+    s = Form("%sSpring16_25ns_pT_LOGLIN_L2Residual_pythia8_v4_%s.txt",d,a); // 80XV8
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l2l3res);
+    _jecL2ResBal = new FactorizedJetCorrector(v);
+  }
+
   // RelativeFSR (Pythia vs Herwig)
   {
-    s = Form("%sSpring16_25ns_MPF_FLAT_L2Residual_pythia8_v3_%s.txt",d,a); // 80X V3
+    //s = Form("%sSpring16_25ns_MPF_FLAT_L2Residual_pythia8_v3_%s.txt",d,a); // 80XV3
+    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v4_%s.txt",d,a); // 80XV8
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -356,7 +467,8 @@ void JECUncertainty::_InitL2Res() {
     _jecL2ResPY = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_herwigpp_v3_%s.txt",d,a); // 80X V3
+    //s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_herwigpp_v3_%s.txt",d,a); // 80XV3
+s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_herwigpp_v4_%s.txt",d,a); // 80XV8
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -394,7 +506,8 @@ void JECUncertainty::_InitL2Res() {
     //if (debug) cout << s << ":" << s2 << endl << flush;
     //JetCorrectorParameters *p = new JetCorrectorParameters(s,s2);
     //_uncL2ResStat = new JetCorrectionUncertainty(*p);
-    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v3_%s.txt.STAT",d,a);
+    //s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v3_%s.txt.STAT",d,a);
+    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v4_%s.txt.STAT",d,a); // 80XV8
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -501,13 +614,21 @@ void JECUncertainty::_InitL3Res() {
     {{1.368e-05,  5.975e-06},
      {5.975e-06,  0.0002182}};
   */
-
+  /*
   // 80X V4
   const int n = 1;
     const double pars[n] =
       { 0.9835 };
   const double emata[n][n] =
     {  1.378e-05 };
+  */
+  // 80XV8 (147.3/122, 41% p0-p1 correlation)
+  const int n = 2;
+  const double pars[n] =
+    { 0.9925,-0.0305};
+  const double emata[n][n] =
+    {{5.813e-06,  8.888e-06},
+     {8.888e-06,  7.907e-05}};
 
   // Sub-optimal to copy every time, but this is the most flexible interface
   if (!_emat) {
@@ -605,7 +726,7 @@ double JECUncertainty::_Absolute(const double pt) const {
 
 
 // pT dependent fit of L3Res
-//TF1 *fhb(0), *fl1(0);
+TF1 *fhb(0);//, *fl1(0);
 //Double_t JECUncertainty::_jesfit(Double_t *x, Double_t *p) {
 Double_t _jesfit(Double_t *x, Double_t *p) {
 
@@ -631,7 +752,14 @@ Double_t _jesfit(Double_t *x, Double_t *p) {
   */
 
   // 80X V4
-  double jes = p[0];
+  //double jes = p[0];
+
+  // 80XV8p2
+  if (!fhb) fhb = new TF1("fhb","max(0.,[0]+[1]*pow(x,[2]))",10,3500);
+  fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
+  // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
+  double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
+  double jes = (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref)));
 
   return jes;
 } // jesfit
@@ -722,7 +850,11 @@ double JECUncertainty::_AbsoluteScale() const {
   //double AbsScaleSys = 0.0064; // 25nsV7M1 (pTref=208 GeV, mu=gamma=1.0%, no e)
 
   //double AbsScaleSys = 0.0037; // 76X 25nsV1M2 (mu=e=0.5%, g=1.0%, EMfoot=0.5%)
-  double AbsScaleSys = 0.0037; // 80X V4 (mu=e=0.5%, g=1.0%, EMfoot=0.5%)
+  //double AbsScaleSys = 0.0037; // 80X V4 (mu=e=0.5%, g=1.0%, EMfoot=0.5%)
+
+  // Correlation now 41% between p0 and p1 so not ideal, but not yet updated
+  // pTref=208 GeV from Run I settings to Run II optimum
+  double AbsScaleSys = 0.0024; // 80XV8 (mu=0.2%, e=0.5%, g=2.0%, EMfoot=0.5%);
 
   return AbsScaleSys;
 }
@@ -887,8 +1019,17 @@ double JECUncertainty::_AbsoluteSPRH(const double pTprime) const {
   //difSPRH = sqrt(2.)*0.03/0.03 * (f->Eval(pTprime)-1) + 1; // 76X 25nsV1M2
   //refSPRH = sqrt(2.)*0.03/0.03 * (f->Eval(refpt)-1) + 1; // 76X 25nsV1M2
   // 80X V4M3: increase SPR uncertainty 100% over Run I
-  difSPRH = 2.0*sqrt(2.)*0.03/0.03 * (f->Eval(pTprime)-1) + 1; // 80X V4
-  refSPRH = 2.0*sqrt(2.)*0.03/0.03 * (f->Eval(refpt)-1) + 1; // 80X V4
+  //difSPRH = 2.0*sqrt(2.)*0.03/0.03 * (f->Eval(pTprime)-1) + 1; // 80X V4
+  //refSPRH = 2.0*sqrt(2.)*0.03/0.03 * (f->Eval(refpt)-1) + 1; // 80X V4
+  //
+  // 80XV8
+  // - SPRH is obtained from the global fit as -0.0305 +/- 0.0089,
+  //   thus uncertainty can be scaled from 3% down to 0.89%
+  // - 3.1% from fit is ok, since a-priori should have had sqrt(2)*3%=4.2%
+  // - Run I best was 1.35% uncertainty; more lever arm and stronger multijet
+  //   data now in Run II (although: to add JER uncertanty for multijet)
+  difSPRH = 0.0089/0.03 * (f->Eval(pTprime)-1) + 1; // 80XV8
+  refSPRH = 0.0089/0.03 * (f->Eval(refpt)-1) + 1; // 80XV8
   //
   errSPRH = (difSPRH-refSPRH);
 
@@ -911,8 +1052,11 @@ double JECUncertainty::_AbsoluteSPRE(const double pTprime) const {
   f->SetParameters(1.00567e+00, -3.04275e-02, -6.75493e-01);
   if (_calo) f->SetParameters(1.00166e+00, 1.57065e-02, -2.06585e-01);
   // 80X V4M3: increase pT dependence uncertainty 50% over Run I
-  difSPRE = 2.0*sqrt(2.)*(f->Eval(pTprime)-1) + 1;
-  refSPRE = 2.0*sqrt(2.)*(f->Eval(refpt)-1) + 1;
+  //difSPRE = 2.0*sqrt(2.)*(f->Eval(pTprime)-1) + 1;
+  //refSPRE = 2.0*sqrt(2.)*(f->Eval(refpt)-1) + 1;
+  // 80XV8: back to Run I a priori uncertainty
+  difSPRE = sqrt(2.)*(f->Eval(pTprime)-1) + 1;
+  refSPRE = sqrt(2.)*(f->Eval(refpt)-1) + 1;
   errSPRE = (difSPRE-refSPRE);
 
   // NB: returns signed systematic
@@ -921,7 +1065,7 @@ double JECUncertainty::_AbsoluteSPRE(const double pTprime) const {
 
 // Combine relative uncertainties
 double JECUncertainty::_Relative(const double pTprime,
-				 const double eta) const {
+				 const double eta) {
   
   double sjer = (_errType & jec::kRelativeJER ? _RelativeJER(pTprime, eta) : 0.);
   double sfsr = (_errType & jec::kRelativeFSR ? _RelativeFSR(pTprime, eta) : 0.);
@@ -1043,6 +1187,7 @@ double JECUncertainty::_RelativeFSR(const double pTprime, const double eta) cons
   */
 
   // 80X V3: use Pythia vs Herwig MPF loglin difference
+  // Same for 80XV8
   assert(_jecL2ResPY);
   _jecL2ResPY->setJetPt(pTprime);
   _jecL2ResPY->setJetEta(eta);
@@ -1134,7 +1279,7 @@ double JECUncertainty::_RelativeStat(const double pTprime,
 // Uncertainty in L2Res pT dependence: log-linear fit vs constant fit
 // To-do: solve pTprime with Brent's method to compare at same pTprime?
 double JECUncertainty::_RelativePt(const double pTprime,
-				   const double eta) const {
+				   const double eta) {
 
   // limit pt to accessible range
   const double ptmin = 10.;
@@ -1142,21 +1287,35 @@ double JECUncertainty::_RelativePt(const double pTprime,
   double pt = max(ptmin, min(pTprime, emax/cosh(eta)));
 
   assert(_jecL2ResFlat);
-  _jecL2ResFlat->setJetPt(pt);
-  _jecL2ResFlat->setJetEta(eta);
-  double corrflat = _jecL2ResFlat->getCorrection();
+  //_jecL2ResFlat->setJetPt(pt);
+  //_jecL2ResFlat->setJetEta(eta);
+  //double corrflat = _jecL2ResFlat->getCorrection();
+  double rflat = _Rjet(pTprime, eta, -1, -1, _jecL2ResFlat);
 
-  double ptraw =  pt / corrflat; // close enough in first approx
+  //double ptraw =  pt / corrflat; // close enough in first approx
   assert(_jecL2ResPt);
-  _jecL2ResPt->setJetPt(ptraw);
-  _jecL2ResPt->setJetEta(eta);
-  double corrpt = _jecL2ResPt->getCorrection();
+  //_jecL2ResPt->setJetPt(ptraw);
+  //_jecL2ResPt->setJetEta(eta);
+  //double corrpt = _jecL2ResPt->getCorrection();
+  double rpt = _Rjet(pTprime, eta, -1, -1, _jecL2ResPt);
 
   // Use 50% of the slope as uncertainty consistently everywhere
   // We do correct for it for a reason, so 100% seems too conservative
-  double kfactor = 0.5; // 76X
+  //double kfactor = 0.5; // 76X
   //double kfactor = 1.0; // 25nsV6
-  double err = kfactor * (corrflat / corrpt - 1); 
+  double kfactor = 0.5; // 80XV8
+  //double err = kfactor * (corrflat / corrpt - 1); 
+  double err = kfactor * (rflat / rpt - 1); // 80XV8
+
+  // For 80XV8, add full MPF vs pTbal difference
+  // These two should agree, but don't, for unknown reason
+  assert(_jecL2ResMPF);
+  double rmpf = _Rjet(pTprime, eta, -1, -1, _jecL2ResMPF);
+  assert(_jecL2ResBal);
+  double rbal = _Rjet(pTprime, eta, -1, -1, _jecL2ResBal);
+  
+  double diff = 1.0*(rbal / rmpf - 1);
+  err = sqrt(err*err + diff*diff);
 
   double x = fabs(eta);
   if ((x>=0.0 && x<1.3 && _errType & jec::kRelativePtBB) ||
@@ -1233,7 +1392,9 @@ double JECUncertainty::_PileUpDataMC(const double pTprime, const double eta) {
   //
   // For 80X, we have large difference in <rho_data>/<rho_MC> ~ 1.1, which may or may not be
   // properly accounted for in implementation of L1 SF. Therefore, take 10% as systematic. 
-  double errsf = 0.10; // 80X V3
+  //double errsf = 0.10; // 80X V3
+  // For 80XV8 the uncertainties should be better under control, so use 5%
+  double errsf = 0.05; // 80XV8
 
   double l1 = _Rjet(pTprime, eta, -1, -1, _jecL1MCpt);
   double sys = fabs(l1-1) * errsf;
@@ -1265,19 +1426,20 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
 
   if (!_fl3 && !_hl3 && !_hl3ref) {
 
-    /*
     // Shape used in L3Res fit (25nsV6)
     // 60, 300 is an effective reduced range (otherwise 30-800 GeV or so)
     //_fl3 = new TF1("fl3","[0]+[1]*max(0.,[2]+[3]*pow(x,[4]))",60,300);
-    _fl3 = new TF1("fl3","[0]+[1]*max(0.,[2]+[3]*pow(max(150.,min(340.,x)),[4]))",30,800); // 76X 25nsV1M2
+    //_fl3 = new TF1("fl3","[0]+[1]*max(0.,[2]+[3]*pow(max(150.,min(340.,x)),[4]))",30,800); // 76X 25nsV1M2
+    // 80XV8: Run I shape, range from 30 GeV (Z+jet) to 1.4 TeV (multijet)
+    //        This range is on symmetric around 208 GeV in log scale
+    _fl3 = new TF1("fl3","[0]+[1]*max(0.,[2]+[3]*pow(x,[4]))",30,1400); //80XV8
     _fl3->SetParameters(1,0, 0.03091e+00,-5.11540e-02,-1.54227e-01); // SPRH
     _fl3->FixParameter(2, 0.03091e+00); // shape fixed in global fit
     _fl3->FixParameter(3, -5.11540e-02); // shape fixed in global fit
     _fl3->FixParameter(4, -1.54227e-01); // shape fixed in global fit
-    */
 
     // For 80X V4, we use a constant fit
-    _fl3 = new TF1("fl3","[0]",60,300);
+    //_fl3 = new TF1("fl3","[0]",60,300);
 
     const double x_pt[] =
       {10, 12, 15, 18, 21, 24, 
@@ -1298,6 +1460,7 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
     // then fit with L3Res shape
     // Run II fit has no constraint on PU (-133 +/- 170% favored) so use 100%
     // Summer15_50nsV5
+    // 80XV8 constraint -61.8 +/- 33.7%, i.e. [-95.5%, -28.1%] => use 100%
     const double kfactor(1);
     for (int ipt = 0; ipt != ndiv_pt; ++ipt) {
       
@@ -1376,7 +1539,9 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
     
     // For L2Res, we currently use constant fit
     //TF1 *fl2 = new TF1("fl2", "[0]", 55., 3250./cosh(etax));
-    TF1 *fl2 = new TF1("fl2", "[0]+[1]*log(x)", 62, 3250/cosh(etax)); // 25nsV6
+    //TF1 *fl2 = new TF1("fl2", "[0]+[1]*log(x)", 62, 3250/cosh(etax)); // 25nsV6
+    // 80XV8 uses log-linear fit
+    TF1 *fl2 = new TF1("fl2", "[0]+[1]*log(x)", 62, 3250/cosh(etax)); // 80XV8
     _hl2ref->Fit(fl2,"QRN");
 
     // Residual offset uncertainty remaining after L2Res
@@ -1941,53 +2106,52 @@ double JECUncertainty::_FlavorFraction(double pt, double eta,
 } // _FlavorFraction
 
 // Time-dependence uncertainties from L2 and L3
-double JECUncertainty::_Time(const double pt, const double eta) const {
+double JECUncertainty::_Time(const double pt, const double eta) {
 
   // Run II 50 ns and Run2015D 25 ns
-  return 0;
+  //return 0;
 
-  /*
   // Optional epoch time uncertainties
   double spt(0);
-  if (_errType & jec::kTimePtRunA) {
-    assert( !(_errType & (jec::kTimePtMask & ~jec::kTimePtRunA)) ); 
-    spt = _TimePt(pt,1);
+  if (_errType & jec::kTimeRunBCD) {
+    assert( !(_errType & (jec::kTimePtEtaMask & ~jec::kTimeRunBCD)) ); 
+    spt = _TimePtEta(pt,eta,1);
   }
-  if (_errType & jec::kTimePtRunB) {
-    assert( !(_errType & (jec::kTimePtMask & ~jec::kTimePtRunB)) ); 
-    spt = _TimePt(pt,2);
+  if (_errType & jec::kTimeRunE) {
+    assert( !(_errType & (jec::kTimePtEtaMask & ~jec::kTimeRunE)) ); 
+    spt = _TimePtEta(pt,eta,2);
   }
-  if (_errType & jec::kTimePtRunC) {
-    assert( !(_errType & (jec::kTimePtMask & ~jec::kTimePtRunC)) ); 
-    spt = _TimePt(pt,3);
+  if (_errType & jec::kTimeRunF) {
+    assert( !(_errType & (jec::kTimePtEtaMask & ~jec::kTimeRunF)) ); 
+    spt = _TimePtEta(pt,eta,3);
   }
-  if (_errType & jec::kTimePtRunD) {
-    assert( !(_errType & (jec::kTimePtMask & ~jec::kTimePtRunD)) ); 
-    spt = _TimePt(pt,4);
+  if (_errType & jec::kTimeRunGH) {
+    assert( !(_errType & (jec::kTimePtEtaMask & ~jec::kTimeRunGH)) ); 
+    spt = _TimePtEta(pt,eta,4);
   }
   // Normal time uncertainties
-  if (_errType & jec::kTimePt) {
-    assert( !(_errType & (jec::kTimePtMask & ~jec::kTimePt)) ); 
-    spt  =   _TimePt(pt);
+  if (_errType & jec::kTimePtEta) {
+    assert( !(_errType & (jec::kTimePtEtaMask & ~jec::kTimePtEta)) ); 
+    spt  =   _TimePtEta(pt,eta,0);
   }
-  double seta =   (_errType & jec::kTimeEta ? _TimeEta(eta) : 0);
+  //double seta = (_errType & jec::kTimeEta ? _TimeEta(eta) : 0);
 
-  double err = sqrt(seta*seta + spt*spt);
+  double err = spt;//sqrt(seta*seta + spt*spt);
 
   // signed sources
-  if (!(_errType & ~jec::kTimeEta)) return seta;
-  if (!(_errType & ~jec::kTimePt))  return spt;
-  if (!(_errType & ~jec::kTimePtRunA))  return spt;
-  if (!(_errType & ~jec::kTimePtRunB))  return spt;
-  if (!(_errType & ~jec::kTimePtRunC))  return spt;
-  if (!(_errType & ~jec::kTimePtRunD))  return spt;
+  //if (!(_errType & ~jec::kTimeEta)) return seta;
+  if (!(_errType & ~jec::kTimePtEta))  return spt;
+  if (!(_errType & ~jec::kTimeRunBCD))  return spt;
+  if (!(_errType & ~jec::kTimeRunE))  return spt;
+  if (!(_errType & ~jec::kTimeRunF))  return spt;
+  if (!(_errType & ~jec::kTimeRunGH))  return spt;
 
   return err;
-  */
 }
 
+/*
 // Time-dependence uncertainty from L2
-double JECUncertainty::_TimeEta(const double eta) const {
+double JECUncertainty::_TimeEta(const double eta) {
 
   // Run2015D 25 ns
   return 0;
@@ -1998,7 +2162,6 @@ double JECUncertainty::_TimeEta(const double eta) const {
   // Arrays (rounded to 0.01%) produced from histogram
   // Output53Z2FullReRecoJECBin2012_11TimeDependence.root:/AbsMPFVsRunNumber10/ResolutionPlots_MPFResponseVsRunNumber_DeviationsOfRatioVsBinVar40_AbsMPFVsRunNumber40_DataDev
 
-  /*
   const int neta = 7;
   double etabins[neta+1] =
     {0, 0.783, 1.305, 1.93, 2.5, 2.964, 3.2, 5.5};//5.191};
@@ -2016,32 +2179,60 @@ double JECUncertainty::_TimeEta(const double eta) const {
   if (_calo||_jpt) err = sqrt(err*err + 0.03*0.03);
 
   return err;
-  */
 } // Time
+*/
 
 // Time-dependence uncertainty from L3
-// based on isolated charged hadron E/p in barrel from Matthieu
-// On 23 Jul 2014, at 14:59, Matthieu Marionneau
-// Re: HCAL raddam studies: where are we?
-double JECUncertainty::_TimePt(const double pt, int epoch) const {
+// For GH: difference between V8 (p3) and V8p2 fits estimates residual TDI
+// For others: difference to V8p2 with TDI=0, plus difference to BCD(TDI=0)
+double JECUncertainty::_TimePtEta(const double pt, const double eta,
+				  int epoch) {
 
   // Run2015D 25 ns
-  return 0;
-  
-  /*
-  // epochs: 0 (RMS all), 1 (runA/all), 2 (runB/all), 3 (runC/all), 4 (runD/all)
+  //return 0;
+
+  // epochs: 0 (RMS all), 1 (runBCD/all), 2 (runE/all), 3 (runF/all), 4 (runGH/all)
   assert(epoch>=0 && epoch<=4);
 
   const int nepoch = 4;
   // Values eye-balled from Eop_BH_3_10.pdf
-  double pt3[nepoch]  = {0.667, 0.661, 0.655, 0.651};
-  double pt10[nepoch] = {0.815, 0.797, 0.782, 0.778};
-  double lum[nepoch] = {851.3, 4411.7, 7031.7, 7185.7};
+  //double pt3[nepoch]  = {0.667, 0.661, 0.655, 0.651};
+  //double pt10[nepoch] = {0.815, 0.797, 0.782, 0.778};
+  //double lum[nepoch] = {851.3, 4411.7, 7031.7, 7185.7};
+  double lum[nepoch] = {13.0, 4.0, 3.1-0.4, 0.4+7.1};
 
   double sumlum(0);
   for (int i = 0; i != nepoch; ++i) sumlum += lum[i];
   if (debug) cout << "Total lumi: " <<  sumlum/1000. << " fb-1" <<  endl;
 
+  double w[nepoch];
+  for (int i = 0; i != nepoch; ++i) w[i] = lum[i] / sumlum;
+
+  assert(_jecTDI);
+  assert(_jecBCD);
+  assert(_jecE);
+  assert(_jecF);
+  assert(_jecGH);
+  assert(_jecTDI);
+  double jec0 = (epoch==0||epoch==1 ? _Rjet(pt, eta, -1, -1, _jecTDI) : 1);
+  double jecb = (epoch==0||epoch<=3 ? _Rjet(pt, eta, -1, -1, _jecBCD) : 1);
+  double jece = (epoch==0||epoch==2 ? _Rjet(pt, eta, -1, -1, _jecE)   : 1);
+  double jecf = (epoch==0||epoch==3 ? _Rjet(pt, eta, -1, -1, _jecF)   : 1);
+  double jecg = (epoch==0||epoch==4 ? _Rjet(pt, eta, -1, -1, _jecGH)  : 1);
+  double jec2 = (epoch==0||epoch==4 ? _Rjet(pt, eta, -1, -1, _jecP2)  : 1);
+  double diffs[nepoch] = {jec0/jecb-1, jece/jecb-1, jecf/jecb-1, jecg/jec2-1};
+  double err = 0;
+  if (epoch!=0) err = diffs[epoch-1];
+  else {
+    for (int i = 0; i != nepoch; ++i) {
+      err += w[i]*diffs[i]*diffs[i];
+    }
+    err = sqrt(err);
+  }
+
+  return err;
+
+  /*
   if (debug) cout << "Epoch relative weights:" << endl;
   double w[nepoch];
   double scale3(0), scale10(0);
@@ -2094,79 +2285,18 @@ double JECUncertainty::_TimePt(const double pt, int epoch) const {
   */
 }
 
-/*
-// Random Cone offset for data
-double JECUncertainty::_L1DataFlat(const double pT, const double eta) {
-
-  //L1Offset VO Data
-  assert(_jecL1DTflat);
-  _jecL1DTflat->setRho(_RhoFromMu(_mu));
-  _jecL1DTflat->setJetA(TMath::Pi()*0.5*0.5*_ajet);
-  _jecL1DTflat->setJetEta(eta);
-  _jecL1DTflat->setJetPt(pT);
-  return ( _jecL1DTflat->getCorrection() );
-}
-
-// Random Cone offset for MC
-double JECUncertainty::_L1MCFlat(const double pT, const double eta) {
-
-  //L1Offset VO MC
-  assert(_jecL1MCflat);
-  _jecL1MCflat->setRho(_RhoFromMu(_mu));
-  _jecL1MCflat->setJetA(TMath::Pi()*0.5*0.5*_ajet);
-  _jecL1MCflat->setJetEta(eta);
-  _jecL1MCflat->setJetPt(pT);
-  return ( _jecL1MCflat->getCorrection() );
-}
-*/
-
-/*
-// Scaled offset for data (MC truth * RandomConeData / RandomConeMC)
-double JECUncertainty::_L1Data(const double pT, const double eta) {
-
-  //L1Offset V5 Data
-  assert(_jecL1DTpt);
-  _jecL1DTpt->setRho(_RhoFromMu(_mu));
-  _jecL1DTpt->setJetA(TMath::Pi()*0.5*0.5*_ajet);
-  _jecL1DTpt->setJetEta(eta);
-  _jecL1DTpt->setJetPt(pT);
-  return ( _jecL1DTpt->getCorrection() );
-}
-
-// Scaled offset for MC (MC truth)
-double JECUncertainty::_L1MC(const double pT, const double eta) {
-
-  assert(_jecL1MCpt);
-  _jecL1MCpt->setRho(_RhoFromMu(_mu));
-  _jecL1MCpt->setJetA(TMath::Pi()*0.5*0.5*_ajet);
-  _jecL1MCpt->setJetEta(eta);
-  _jecL1MCpt->setJetPt(pT);
-  return ( _jecL1MCpt->getCorrection() );
-}
-*/
-
-// Data/MC scale factor as function of rho
-/*
-double JECUncertainty::_L1SF(const double pT, const double eta,
-			     const double rho) {
-
-  assert(_jecL1sf);
-  _jecL1sf->setRho(rho);
-  _jecL1sf->setJetA(TMath::Pi()*0.5*0.5*_ajet);
-  _jecL1sf->setJetEta(eta);
-  _jecL1sf->setJetPt(pT);
-  return ( _jecL1sf->getCorrection() );
-}
-*/
-
 // Move to mu-based mapping, which is better for comparing
 // different PU scenarios as it considers both IT and OOT PU,
 // plus we have a number directly comparable to ATLAS
 double JECUncertainty::_RhoFromMu(double mu) {
   // Eta_0.0-1.3, jt320
-  return (1.01272 + 0.551183*mu + 0.000362936*mu*mu);
+  //return (1.01272 + 0.551183*mu + 0.000362936*mu*mu); Run I?
+  // RunG data, Eta_0.0-1.3, jt320
+  return (1.7964 + 0.565301*mu + -2.22401e-04*mu*mu); // 80XV8
 }
 double JECUncertainty::_NpvFromMu(double mu) {
   // Eta_0.0-1.3, jt400
-  return (0.851334 + 0.722608*mu - 0.00184534*mu*mu);
+  //return (0.851334 + 0.722608*mu - 0.00184534*mu*mu);
+  // RunG data, Eta_0.0-1.3, jt320
+  return (1.92228 + 0.666238*mu + -5.35377e-04*mu*mu); // 80XV8
 }

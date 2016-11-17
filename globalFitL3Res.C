@@ -32,6 +32,7 @@ using namespace std;
 bool dofsr = true; // correct for FSR
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
 bool _paper = true;
+double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
 unsigned int _nsamples(0);
 unsigned int _nmethods(0);
@@ -52,11 +53,25 @@ TF1 *_fitError_func(0);
 TMatrixD *_fitError_emat(0);
 Double_t fitError(Double_t *xx, Double_t *p);
 
+// Future improvements:
+// 1) add more parameters, for SPRE, SPRH, offset, tracker, ECAL *but*
+//   also add a priori Gaussian constraints on these parameters based on
+//   these parameters (e.g. +/-sqrt(2)*3% for SPRE, SPRH, +/-1% for ECAL etc.)
+// => this should allow for more flexible shape, with easy factorization
+//    of sources without huge correlations between parameters
+// 2) add JER uncertainty for multijets
+
 //const int njesFit = 1; // scale only
-//const int njesFit = 2; // scale(ECAL)+HB
-const int njesFit = 3; // scale(ECAL)+HB+tracker
+const int njesFit = 2; // scale(ECAL)+HB
+//const int njesFit = 3; // scale(ECAL)+HB+offset
+//const int njesFit = 3; // scale(ECAL)+HB+tracker
+//const int njesFit = 3; // scale(ECAL)+HB+ECALgain
+//const int njesFit = 4; // scale(ECAL)+HB+tracker+ECALgain
+bool useOff = true; // pT-dependent offset
+bool useTDI = false; // tracker dynamic inefficiency for 3p fit
+bool useEG = false; // ECAL gain shift for 3p fit
 const double ptminJesFit = 30;
-TF1 *fhb(0), *ftr(0); double _etamin(0);
+TF1 *fhb(0), *fl1(0), *ftr(0), *feg(0); double _etamin(0);
 Double_t jesFit(Double_t *x, Double_t *p) {
 
   double pt = *x;
@@ -65,6 +80,10 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   if (!fhb) fhb = new TF1("fhb","max(0.,[0]+[1]*pow(x,[2]))",10,3500);
   fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
  
+  // Initialize L1FastJet-L1RC difference
+  if (!fl1) fl1 = new TF1("fl1","1-([0]+[1]*log(x))/x",10,3500);
+  fl1->SetParameters(0.553999, -8.10939e-03);
+
   // Initialize tracker inefficiency shape
   //if (!ftr) ftr = new TF1("ftr","0.85-[0] + (0.15+[0])*([3]-[1]*pow(x,[2]))"
   //		  " + [4]/x",10,3500);
@@ -76,6 +95,12 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   // is more consistent with multijet data (not used in the fit, yet)
   if (!ftr) ftr = new TF1("ftr","1-[0]-[1]*pow(x,[2]) + ([3]+[4]*log(x))/x",10,3500);
   ftr->SetParameters(-0.04432, 1.304, -0.4624, 0, 1.724);
+
+  //if (!feg) feg = new TF1("feg","[0]*TMath::Gaus(x,[1],[2]*sqrt(x))",
+  if (!feg) feg = new TF1("feg","[0]+[1]*log(x)+"
+			  "[2]*TMath::Gaus(x,[3],[4]*sqrt(x))",
+			  10,3500);
+  feg->SetParameters(-1.45, 0.17, -1.4, 366, 13.2);
 
   // As it is in L2L3Residuals:
   //[8]*((1+0.04432-1.304*pow(max(30,min(6500,x)),-0.4624)+(0+1.724*TMath::Log(max(30,min(6500,x))))/x)-(1+0.04432-1.304*pow(208.,-0.4624)+(0+1.724*TMath::Log(208.))/x))
@@ -94,14 +119,45 @@ Double_t jesFit(Double_t *x, Double_t *p) {
     return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref)));
   } // njesFit==2
 
-  if (njesFit==3) {
+  if (njesFit==3 && useOff) {
+
+    // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
+    // p[2]: L1FastJet-L1RC difference
+    double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
+    
+    return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
+	    + p[2]*(fl1->Eval(pt)-fl1->Eval(ptref)));
+  } // njesFit==3 && TDI
+
+  if (njesFit==3 && useTDI) {
 
     // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
     double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
     
     return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
 	    + p[2]*(ftr->Eval(pt)-ftr->Eval(ptref)));
-  } // njesFit==3
+  } // njesFit==3 && TDI
+
+  if (njesFit==3 && useEG) {
+
+    // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
+    // p[2]: tracker dynamic inefficiency, p[2]: ECAL gain shift
+    double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
+    
+    return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
+	    + 0.01*p[2]*feg->Eval(pt));
+  } // njesFit==3 && EG
+
+  if (njesFit==4) { // b
+
+    // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
+    // p[2]: tracker dynamic inefficiency, p[2]: ECAL gain shift
+    double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
+    
+    return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
+	    + p[2]*(ftr->Eval(pt)-ftr->Eval(ptref))
+	    + 0.01*p[3]*feg->Eval(pt));
+  } // njesFit==4
 
 }
 
@@ -930,8 +986,17 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if (njesFit==2) {
     jesfit->SetParameters(0.98, 0.0);
   }
-  if (njesFit==3) {
+  if (njesFit==3 && useOff) {
     jesfit->SetParameters(0.98, 0.0, 0.0);
+  }
+  if (njesFit==3 && useTDI) {
+    jesfit->SetParameters(0.98, 0.0, 0.0);
+  }
+  if (njesFit==3 && useEG) {
+    jesfit->SetParameters(0.98, 0.0, 1);
+  }
+  if (njesFit==4) {
+    jesfit->SetParameters(1.00, -0.01, 0.0, 1.0);
   }
   _jesFit = jesfit;
   
@@ -1108,6 +1173,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   // Fitted lepton/photon scales too much detailed for the paper
   tex->SetTextSize(0.030); tex->SetTextColor(kBlue-9); // 0.68,0.64,0.60
+  /*
   tex->DrawLatex(0.20,0.70,Form("#gamma #times (%1.3f#pm%1.3f)",
 				1+0.01*tmp_par[is_gj],
 				0.01*sqrt(emat[is_gj][is_gj])));
@@ -1123,6 +1189,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 				0.01*sqrt(emat[is_zmm][is_zmm])));
   //1+0.005*tmp_par[is+2],
   //0.005*sqrt(emat[is+2][is+2])));
+  */			
 
   tex->DrawLatex(0.20,0.61,Form("N_{par}=%d",_jesFit->GetNpar()));
   tex->DrawLatex(0.32,0.61,Form("p_{0}=%1.3f #pm %1.3f",
@@ -1139,7 +1206,6 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //tex->DrawLatex(0.32,0.55,Form("p_{2}=%1.3f #pm %1.3f",
   //			_jesFit->GetParameter(2),
   //			sqrt(emat[2][2])));
-				
   tex->SetTextSize(0.045); tex->SetTextColor(kBlack);
 
   hrun1->DrawClone("SAME E3");
@@ -1188,6 +1254,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     
     if (string(samples[i%nsamples])=="gamjet")
       g2->SetLineWidth(3);
+
+    // Clean out large uncertainties
+    if (_cleanUncert) {
+      for (int i = g2->GetN()-1; i != 0; --i) {
+	if (g2->GetEY()[i]>_cleanUncert) g2->RemovePoint(i);
+      }
+    }
 
     g2->DrawClone("SAMEPz");
   }
