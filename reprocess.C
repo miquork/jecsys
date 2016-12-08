@@ -77,7 +77,33 @@ void reprocess(string epoch="") {
   //
   // On 21 Oct 2016, at 15:43, Andrey A. Popov
   // https://indico.cern.ch/event/578914/
-  TFile *fmj = new TFile(Form("rootfiles/multijet_20161021_Run2016%s.root",cep),"READ");
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_20161021_Run2016%s.root",cep),"READ");
+  //
+  // Andrey Popov, Nov 23, 2016
+  //map<string,const char*> fm_files;
+  //fm_files["BCD"] = "BCD";
+  //fm_files["E"] = "E";
+  //fm_files["F"] = "Fearly";
+  //fm_files["G"] = "FlateG";
+  //fm_files["H"] = "H";
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_20161123_Run2016%s.root",
+  // wider bins
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_20161202_Run2016%s.root",
+  //
+  // https://indico.cern.ch/event/593501/
+  // Andrey Popov, Dec 6, 2015 (new L1+L2Res)
+  map<string,const char*> fm_files;
+  fm_files["BCD"] = "1206_Run2016BCD";
+  fm_files["E"] = "1206_Run2016E";
+  fm_files["F"] = "1206_Run2016Fearly";
+  fm_files["G"] = "1123_Run2016FlateG"; // old L2Res, Nov 23
+  fm_files["H"] = "1123_Run2016H";      // old L2Res, Nov 23
+  fm_files["GH"] = "1206_Run2016FlateGH";
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_20161206_Run2016%s.root",
+  TFile *fmj = new TFile(Form("rootfiles/multijet_2016%s.root",
+			      fm_files[epoch]),"READ");
+  //
+  assert(fmj && !fmj->IsZombie());
   
   // On 01 Jun 2016, at 12:03, Federico Preiato
   // Re: New File ~590pb
@@ -117,13 +143,25 @@ void reprocess(string epoch="") {
   //
   // On 28 Oct 2016, at 15:44, Federico Preiato 
   // 
+  //map<string,const char*> fp_files;
+  //fp_files["BCD"] = "GammaJet_Run2016BCD_chsMET.root";
+  //fp_files["E"] = "GammaJet_Run2016E_chsMET.root";
+  //fp_files["F"] = "GammaJet_Run2016F_chsMET.root";
+  //fp_files["G"] = "GammaJet_Run2016G_chsMET.root";
+  //TFile *fp = new TFile(Form("rootfiles/%s",fp_files[epoch]),"READ"); // RunBCD+E+F+G, 27.2 fb-1 (Spring16_25nsV7 L1 and L2Res)
+  //
+  // Federico Preiato, Nov 23, 2016
+  // https://indico.cern.ch/event/590291
   map<string,const char*> fp_files;
-  fp_files["BCD"] = "GammaJet_Run2016BCD_chsMET.root";
-  fp_files["E"] = "GammaJet_Run2016E_chsMET.root";
-  fp_files["F"] = "GammaJet_Run2016F_chsMET.root";
-  fp_files["G"] = "GammaJet_Run2016G_chsMET.root";
-  TFile *fp = new TFile(Form("rootfiles/%s",fp_files[epoch]),"READ"); // RunBCD+E+F+G, 27.2 fb-1 (Spring16_25nsV7 L1 and L2Res)
-
+  fp_files["BCD"] = "Spring16V8BCD_2016-11-23.root";
+  fp_files["E"] = "Spring16V8E_2016-11-23.root";
+  fp_files["F"] = "Spring16V8EarlyF_2016-11-23.root";
+  fp_files["G"] = "Spring16V8LateFG_2016-11-23.root"; // new (dec 5, really)
+  fp_files["H"] = "Spring16V8H_2016-11-23.root";      // new (dec 5, really)
+  fp_files["GH"] = "Spring16V8LateFGH_2016-11-23.root"; // old
+  TFile *fp = new TFile(Form("rootfiles/GammaJet_ReRecoData_OldMC_JEC_%s",
+			     fp_files[epoch]),"READ");
+  //
   assert(fp && !fp->IsZombie());
 
   // Patch of photon E/p (80X)
@@ -172,9 +210,26 @@ void reprocess(string epoch="") {
   //
   // On 21 Oct 2016, at 15:30, Thomas Berger 
   // https://indico.cern.ch/event/578914/
-  assert(epoch=="BCD" || epoch=="E" || epoch=="F" || epoch=="G");
-  TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm%s_2016-10-21.root",cep), "READ");
-  TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee%s_2016-10-21.root",cep),"READ");
+  //assert(epoch=="BCD" || epoch=="E" || epoch=="F" || epoch=="G");
+  //TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm%s_2016-10-21.root",cep), "READ");
+  //TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee%s_2016-10-21.root",cep),"READ");
+  //
+  // On 30 Nov 2016, at 16.00, Thomas Berger
+  // https://indico.cern.ch/event/590291
+  assert(epoch=="BCD" || epoch=="E" || epoch=="F" ||
+	 epoch=="G" || epoch=="H" || epoch=="GH");
+  map<string,const char*> fz_files;
+  fz_files["BCD"] = "rereco_BCD";
+  fz_files["E"] = "rereco_E";
+  fz_files["F"] = "rereco_F"; // early F
+  fz_files["G"] = "rereco_FG"; // late F and G
+  fz_files["H"] = "promptreco_H"; // new
+  fz_files["GH"] = "rereco_FG"; // duplicate (G only)
+  TFile *fzmm = new TFile(Form("rootfiles/jec_combination_CHS_Zmm_%s.root",
+			       fz_files[epoch]),"READ");
+  TFile *fzee = new TFile(Form("rootfiles/jec_combination_CHS_Zee_%s.root",
+			       fz_files[epoch]),"READ");
+  //
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
   
@@ -718,7 +773,8 @@ void reprocess(string epoch="") {
       //s = Form("%s/Spring16_25nsV4M1_DATA_L2L3Residual_AK4PFchs.txt",cd); // 80X V4
       //s = Form("%s/Spring16_25nsV4M1_DATA_L2L3Residual_AK4PFchs.txt",cd); // 80X V4
       //s = Form("%s/Spring16_25nsV7M1%s_DATA_L2L3Residual_AK4PFchs.txt",cd,ce); // 80X V7
-      s = Form("%s/Spring16_25nsV7M2%s_DATA_L2L3Residual_AK4PFchs.txt",cd,ce); // 80X V7G special
+      //s = Form("%s/Spring16_25nsV7M2%s_DATA_L2L3Residual_AK4PFchs.txt",cd,ce); // 80X V7G special
+      s = Form("%s/Spring16_25nsV8%s_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "p2" : ce); // 80XV8
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -746,7 +802,8 @@ void reprocess(string epoch="") {
       //s = Form("%s/Winter14_V6_DATA_L2L3Residual_AK5PFchs.txt",cd); // 74X V7
       //s = Form("%s/Fall15_25ns_COMB_LOGLIN_L2Residual_v2_AK4PFchs_nokFSR.txt",cd); // 76X V2
       //s = Form("%s/Spring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v3_AK4PFchs.txt",cd); // 80X V3M1
-      s = Form("%s/Spring16_25nsV7%s_DATA_L2Residual_AK4PFchs.txt",cd,ce); // 80X V7
+      //s = Form("%s/Spring16_25nsV7%s_DATA_L2Residual_AK4PFchs.txt",cd,ce); // 80X V7
+      s = Form("%s/Spring16_25nsV8%s_DATA_L2Residual_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "p2" : ce); // 80XV8
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -760,7 +817,8 @@ void reprocess(string epoch="") {
       //s = Form("%s/Fall15_25nsV1_DATA_L1RC_AK4PFchs.txt",cd); // 76X V2
       //s = Form("%s/Spring16_25nsV2_DATA_L1RC_AK4PFchs.txt",cd); // 80X V3M1
       //s = Form("%s/Spring16_25nsV3_DATA_L1RC_AK4PFchs.txt",cd); // 80X V3
-      s = Form("%s/Spring16_25nsV7%s_DATA_L1RC_AK4PFchs.txt",cd,ce); // 80X VV7
+      //s = Form("%s/Spring16_25nsV7%s_DATA_L1RC_AK4PFchs.txt",cd,ce); // 80X VV7
+      s = Form("%s/Spring16_25nsV8%s_DATA_L1RC_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "p2" : ce); // 80XV8
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -772,7 +830,8 @@ void reprocess(string epoch="") {
       //s = Form("%s/Fall15_25nsV1_DATA_L1FastJet_AK4PFchs.txt",cd); // 76X V2
       //s = Form("%s/Spring16_25nsV2_DATA_L1FastJet_AK4PFchs.txt",cd); // 80X V3M1
       //s = Form("%s/Spring16_25nsV3_DATA_L1FastJet_AK4PFchs.txt",cd); // 80X V3
-      s = Form("%s/Spring16_25nsV7%s_DATA_L1FastJet_AK4PFchs.txt",cd,ce); // 80X V7
+      //s = Form("%s/Spring16_25nsV7%s_DATA_L1FastJet_AK4PFchs.txt",cd,ce); // 80X V7
+      s = Form("%s/Spring16_25nsV8%s_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "p2" : ce); // 80XV8
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -780,9 +839,10 @@ void reprocess(string epoch="") {
       jecl1pt = new FactorizedJetCorrector(v);
     }
 
-    // Run I uncertainty
-    //s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // V8
-    s = Form("%s/Spring16_25nsV7G_DATA_UncertaintySources_AK4PFchs.txt",cd); // current
+    // Run I uncertainty => 80XV6 uncertainty
+    //s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // V8 Run I
+    s = Form("%s/Spring16_25nsV6_DATA_UncertaintySources_AK4PFchs.txt",cd); // 80X V6
+    //s = Form("%s/Spring16_25nsV8M1_DATA_UncertaintySources_AK4PFchs.txt",cd); // current (p2 bogged, use M1)
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_ref1 = new JetCorrectorParameters(s,s2);
@@ -791,7 +851,9 @@ void reprocess(string epoch="") {
     // Total uncertainty, excluding Flavor and Time
     //s = Form("%s/Fall15_25nsV1M2_DATA_UncertaintySources_AK4PFchs.txt",cd); // 76X V2
     //s = Form("%s/Spring16_25nsV4M3_DATA_UncertaintySources_AK4PFchs.txt",cd); // 80X V4
-    s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // 80X V7 special
+    //s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // 80X V7 special
+    //s = Form("%s/Spring16_25nsV8%s_DATA_UncertaintySources_AK4PFchs.txt",cd,epoch=="G" ? "M1" : ce); // current (p2 bogged, use M1)
+    s = Form("%s/Spring16_25nsV8M1_DATA_UncertaintySources_AK4PFchs.txt",cd); // current (M1=G, should add Time for others)
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
@@ -800,7 +862,9 @@ void reprocess(string epoch="") {
     // Partial uncertainties
     //s = Form("%s/Fall15_25nsV1M2_DATA_UncertaintySources_AK4PFchs.txt",cd); // 76X V2
     //s = Form("%s/Spring16_25nsV4M3_DATA_UncertaintySources_AK4PFchs.txt",cd); // 80X V3
-    s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // 80X V7 special
+    //s = Form("%s/Winter14_V10M_DATA_UncertaintySources_AK5PFchs.txt",cd); // 80X V7 special
+    //s = Form("%s/Spring16_25nsV8%s_DATA_UncertaintySources_AK4PFchs.txt",cd,epoch=="G" ? "M1" : ce); // current (p2 bogged, use M1)
+    s = Form("%s/Spring16_25nsV8M1_DATA_UncertaintySources_AK4PFchs.txt",cd); // current (M1=G, should add Time for others)
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_ref = new JetCorrectorParameters(s,s2);

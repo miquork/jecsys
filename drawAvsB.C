@@ -21,8 +21,8 @@ void drawAvsB() {
 
   setTDRStyle();
 
-  string epocha = "E";//"F";//"E";//"BCD";//"F";
-  string epochb = "G";//"E";//"E";//"F";//"G";
+  string epocha = "H";//"F";//"BCD";//"F";//"E";//"BCD";//"F";
+  string epochb = "G";//"BCD";//"G";//"E";//"E";//"F";//"G";
 
   string type = "data";
 
@@ -65,7 +65,8 @@ void drawAvsB() {
   if (epocha=="F" && epochb=="G")
     lumi_13TeV = "Run2016F+G, 3.1+7.1 fb^{-1}";
   if (epocha=="BCD" && epochb=="G")
-    lumi_13TeV = "Run2016BCD+G, 13+7.1 fb^{-1}";
+    //lumi_13TeV = "Run2016BCD+G, 13+7.1 fb^{-1}";
+    lumi_13TeV = "Run2016BCD+FearlyGH, 12.9+16.8 fb^{-1}";
   if (epocha=="BCD" && epochb=="F")
     lumi_13TeV = "Run2016BCD+F, 13+3.1 fb^{-1}";
   if (epocha=="BCD" && epochb=="E")
@@ -108,7 +109,11 @@ void drawAvsB() {
     //gf->Draw("SAMEP");
 
     TGraphErrors *g = (TGraphErrors*)gg->Clone(Form("ge_%s_%s",cm,cs));
-    assert(gf->GetN()==gg->GetN());
+    if (!(gf->GetN()==gg->GetN())) {
+      cout << "sample " << samples[is] << " method " << methods[im]
+	   << " gf->N: " << gf->GetN() << " gg->N: " << gg->GetN() << endl;
+      assert(gf->GetN()==gg->GetN());
+    }
     for (int i = 0; i != g->GetN(); ++i) {
       double yg = gg->GetY()[i];
       double yf = gf->GetY()[i];

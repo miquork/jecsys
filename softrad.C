@@ -289,6 +289,12 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	h->GetXaxis()->SetNoExponent();
 	h->SetMinimum(0.88);//0.83);//0.88);
 	h->SetMaximum(1.13);//1.13);
+
+	// better range for pT balance plots
+	if (string(cm)=="ptchs" && string(cd)!="ratio") {
+	  h->SetMinimum(0.83);
+	  h->SetMaximum(1.08);
+	}
 	
 	//lumi_13TeV = (_s_dcsonly ?
 	//	      "Run2015D-DCSOnly - 25 ns - 980 pb^{-1}" :
@@ -299,10 +305,16 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	//lumi_13TeV = "Run2016, 2.1 fb^{-1}";
 	//lumi_13TeV = "Run2016, 2.6 fb^{-1}";
 	map<string, const char*> lumimap;
-	lumimap["BCD"] = "Run2016BCD, 13 fb^{-1}";
-	lumimap["E"] = "Run2016E, 4.0 fb^{-1}";
-	lumimap["F"] = "Run2016F, 3.1 fb^{-1}";
-	lumimap["G"] = "Run2016G, 7.1 fb^{-1}";
+	//lumimap["BCD"] = "Run2016BCD, 13 fb^{-1}";
+	//lumimap["E"] = "Run2016E, 4.0 fb^{-1}";
+	//lumimap["F"] = "Run2016F, 3.1 fb^{-1}";
+	//lumimap["G"] = "Run2016G, 7.1 fb^{-1}";
+	lumimap["BCD"] = "Run2016BCD re-reco, 12.9 fb^{-1}";
+	lumimap["E"] = "Run2016E re-reco, 4.0 fb^{-1}";
+	lumimap["F"] = "Run2016F re-reco, 2.8 fb^{-1}";//3.1 fb^{-1}";
+	lumimap["G"] = "Run2016FG re-reco, 8.0 fb^{-1}";
+	lumimap["H"] = "Run2016H, 8.8 fb^{-1}";
+	lumimap["GH"] = "Run2016FGH re-reco, 16.8 fb^{-1}";
 	lumi_13TeV = lumimap[epoch];
 
 	TCanvas *c0 = tdrCanvas(Form("c0_%s_%s",cm,cd), h, 4, 11, true);

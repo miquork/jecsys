@@ -81,7 +81,14 @@ void multijet(bool usemjb = true, string epoch="") {
   //double ptbins[] = {200, 250, 300, 360, 400, 450, 500, 550, 600,
   //		     700, 800, 1000, 1200, 1500}; // 0.6/fb
   double ptbins[] = {200, 250, 300, 370, 450, 510, 550, 600,
-		     700, 800, 900, 1000, 1200, 1400, 1600, 2600}; // 2.1/fb
+  		     700, 800, 900, 1000, 1200, 1400, 1600, 2600}; // 2.1/fb,V8
+  //double ptbins[] = {200, 225, 250, 275, 300, 310, 320, 330, 340, 350,
+  //		     360, 370, 380, 390, 400, 410, 420, 430, 440, 450,
+  //		     460, 470, 480, 490, 500, 510, 520, 530, 540, 550,
+  //		     560, 570, 580, 590, 600, 610, 620, 630, 640, 650,
+  //		     660, 670, 680, 690, 700, 720, 740, 760, 780, 800,
+  //		     820, 840, 860, 880, 900, 920, 940, 960, 980, 1000,
+  //		     1050, 1100, 1200, 1400, 1600, 1800, 2000, 2200}; // 80X rr
   const int npt = sizeof(ptbins)/sizeof(ptbins[0])-1;
   
   // On 01 Jun 2016, at 21:26, Andrey A. Popov
@@ -103,9 +110,33 @@ void multijet(bool usemjb = true, string epoch="") {
   //
   // On 19 Oct 2016, at 15:29, Andrey A. Popov
   // https://indico.cern.ch/event/578914/
-  TFile *f = new TFile(Form("rootfiles/multijet_20161019_Run2016%s.root",cep),
-		       "READ");
-
+  //TFile *f = new TFile(Form("rootfiles/multijet_20161019_Run2016%s.root",cep),
+  //		       "READ");
+  //
+  // Andrey Popov, Nov 23, 2016
+  //map<string,const char*> fm_files;
+  //fm_files["BCD"] = "BCD";
+  //fm_files["E"] = "E";
+  //fm_files["F"] = "Fearly";
+  //fm_files["G"] = "FlateG";
+  //fm_files["H"] = "H";
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_20161123_Run2016%s.root",
+  // wider bins
+  //TFile *f = new TFile(Form("rootfiles/multijet_20161202_Run2016%s.root",
+  //			    fm_files[epoch]),"READ");
+  //
+    // https://indico.cern.ch/event/593501/
+  // Andrey Popov, Dec 6, 2015 (new L1+L2Res)
+  map<string,const char*> fm_files;
+  fm_files["BCD"] = "1206_Run2016BCD";
+  fm_files["E"] = "1206_Run2016E";
+  fm_files["F"] = "1206_Run2016Fearly";
+  fm_files["G"] = "1123_Run2016FlateG"; // old L2Res, Nov 23
+  fm_files["H"] = "1123_Run2016H";      // old L2Res, Nov 23
+  fm_files["GH"] = "1206_Run2016FlateGH";
+  TFile *f = new TFile(Form("rootfiles/multijet_2016%s.root",
+			    fm_files[epoch]),"READ");
+  //
   assert(f && !f->IsZombie());
 
   // Load MJB and MPF from pt30 file: reduces bias no pTrecoil binning

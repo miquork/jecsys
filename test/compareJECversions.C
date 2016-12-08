@@ -28,7 +28,7 @@ bool _useptgen = true; // iterate to produce JEC vs pTgen
 bool _dothree  = true; // compare three JECs instead of just two
 bool _paper    = true; // graphical settings for the paper (e.g. y-axis range)
 
-const double _mu = 12.8;//20;//19.83; // 20/fb at 8 TeV (htrpu)
+const double _mu = 24.68;//12.8;//20;//19.83; // 20/fb at 8 TeV (htrpu)
 //const double _lumi = 19800.;
 bool _pdf = true; // save .pdf
 bool _C   = false;//true; // save .C
@@ -201,15 +201,24 @@ void compareJECversions(string algo="AK4PFchs",
   // 2012 JEC
   //string sid3 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
   //string sid3 = (_mc ? "Spring16_25nsV8E_MC" : "Spring16_25nsV8E_DATA");
-  string sid3 = (_mc ? "Spring16_25nsV6_MC" : "Spring16_25nsV6_DATA");
+  //string sid3 = (_mc ? "Spring16_25nsV6_MC" : "Spring16_25nsV6_DATA");
+  //string sid3 = (_mc ? "Spring16_25nsV8F_MC" : "Spring16_25nsV8F_DATA");
+  //string sid3 = (_mc ? "Spring16_25nsV8E_MC" : "Spring16_25nsV8E_DATA");
+  string sid3 = (_mc ? "Summer15_50nsV4_MC" : "Summer15_50nsV4_DATA");
   const char *cid3 = sid3.c_str();
   const char *a3 = a;
   //const char *s3 = "20 fb^{-1} (8 TeV)";
   //const char *s3s = "74X";
   //const char *s3 = "80Xv8 E";// (13 TeV)";
   //const char *s3s = "E";
-  const char *s3 = "80Xv6 BCD";// (13 TeV)";
-  const char *s3s = "V6";
+  //const char *s3 = "80Xv6 BCD";// (13 TeV)";
+  //const char *s3s = "V6";
+  //const char *s3 = "80Xv8 F";// (13 TeV)";
+  //const char *s3s = "F";
+  const char *s3 = "50ns v4";
+  const char *s3s = "50ns";
+  //const char *s3 = "80Xv8 E";// (13 TeV)";
+  //const char *s3s = "E";
   //if (algo=="AK4PF") a3 = "AK5PF";
   //if (algo=="AK4PFchs") a3 = "AK5PFchs";
 
@@ -380,7 +389,8 @@ void compareJECversions(string algo="AK4PFchs",
     if (!l1 && l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.85,1.6);
     //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.85,1.45);
     //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.80,1.20);
-    if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.06);
+    //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.06);
+    if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.95,1.15);
     //
     if (l1 && !l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
     if (!l1 && l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
@@ -1206,7 +1216,8 @@ void compareJECversions(string algo="AK4PFchs",
     if (l1) tex->DrawLatex(0.19,0.68,Form("#LT#mu#GT = %1.1f",_mu));
 
     //TLegend *leg1d = tdrLeg(0.60, dothree ? 0.66 : 0.72, 0.90, 0.90);
-    TLegend *leg1d = tdrLeg(0.57, dothree ? 0.66 : 0.72, 0.87, 0.90);
+    //TLegend *leg1d = tdrLeg(0.57, dothree ? 0.66 : 0.72, 0.87, 0.90);
+    TLegend *leg1d = tdrLeg(0.57, dothree ? 0.71 : 0.77, 0.87, 0.95);
     leg1d->SetHeader(texmap[a]);
     leg1d->AddEntry(g2d,s2,"LPF");
     leg1d->AddEntry(g1d,s1,"LPF");

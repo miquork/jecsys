@@ -22,8 +22,8 @@
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "G";//"E";//"F";//"BCD";//"G";
-  /*
+  string epoch = "H";//"BCD";//"E";//"F";//"G";//"H";//"GH";
+
   reprocess(epoch);
 
 
@@ -39,6 +39,7 @@
   softrad(3.2,5.2,true,epoch);
   softrad(0.0,1.3,true,epoch); // redo for plots
   // Run multijet analysis to store information for later global fit
+  // => multijet central values now old, but FSR still needed
   multijet(false,epoch);
   multijet(true,epoch);
   /*

@@ -64,11 +64,11 @@ Double_t fitError(Double_t *xx, Double_t *p);
 //const int njesFit = 1; // scale only
 const int njesFit = 2; // scale(ECAL)+HB
 //const int njesFit = 3; // scale(ECAL)+HB+offset
-//const int njesFit = 3; // scale(ECAL)+HB+tracker
+//int njesFit = 3; // scale(ECAL)+HB+tracker (switchable)
 //const int njesFit = 3; // scale(ECAL)+HB+ECALgain
 //const int njesFit = 4; // scale(ECAL)+HB+tracker+ECALgain
-bool useOff = true; // pT-dependent offset
-bool useTDI = false; // tracker dynamic inefficiency for 3p fit
+bool useOff = false; // pT-dependent offset
+bool useTDI = true; // tracker dynamic inefficiency for 3p fit
 bool useEG = false; // ECAL gain shift for 3p fit
 const double ptminJesFit = 30;
 TF1 *fhb(0), *fl1(0), *ftr(0), *feg(0); double _etamin(0);
@@ -166,7 +166,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   
   _etamin = etamin;
   const char *cep = epoch.c_str();
-  
+  //njesFit = (njesFit==3 && useTDI && (epoch=="G"||epoch=="H") ? 2 : njesFit);
+
   TDirectory *curdir = gDirectory;
   setTDRStyle();
   writeExtraText = true; // for JEC paper CWR
@@ -721,10 +722,18 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //const int npt = 14; // 20161019
       //double vpt[npt+1] = {200, 250, 300, 370, 450, 510, 550, 600, 700, 800,
       //		   900, 1000, 1200, 1400, 1600};
-      const int npt = 23; // 20161021
+      const int npt = 23; // 20161021, 20161202
       double vpt[npt+1] = {200, 250, 300, 330, 370, 410, 450, 510, 530, 550,
 			   575, 600, 650, 700, 800, 900, 1000, 1100, 1200,
-			   1400, 1600, 1800, 2000, 2200};
+			   1400, 1600, 1800, 2000, 2200}; // V8
+      //const int npt = 67;//68; // 20161123, 80X rereco
+      //double vpt[npt+1] = {200, 225, 250, 275, 300, 310, 320, 330, 340, 350,
+      //		   360, 370, 380, 390, 400, 410, 420, 430, 440, 450,
+      //		   460, 470, 480, 490, 500, 510, 520, 530, 540, 550,
+      //		   560, 570, 580, 590, 600, 610, 620, 630, 640, 650,
+      //		   660, 670, 680, 690, 700, 720, 740, 760, 780, 800,
+      //		   820, 840, 860, 880, 900, 920, 940, 960, 980, 1000,
+      //		   1050, 1100, 1200, 1400, 1600, 1800, 2000, 2200};
       TH1D *h = new TH1D(Form("hmj_%s",cm),"",npt,vpt);
       
       // Pt10/Pt30 fits with drawMultijet.C
@@ -830,10 +839,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //lumi_13TeV = "Run2016BCD, 13 fb^{-1}";
   //lumi_13TeV = "Run2016, 2.6+1.5 fb^{-1}";
   map<string, const char*> lumimap;
-  lumimap["BCD"] = "Run2016BCD, 13 fb^{-1}";
-  lumimap["E"] = "Run2016E, 4.0 fb^{-1}";
-  lumimap["F"] = "Run2016F, 3.1 fb^{-1}";
-  lumimap["G"] = "Run2016G, 7.1 fb^{-1}";
+  lumimap["BCD"] = "Run2016BCD re-reco, 12.9 fb^{-1}";
+  lumimap["E"] = "Run2016E re-reco, 4.0 fb^{-1}";
+  lumimap["F"] = "Run2016F re-reco, 2.8 fb^{-1}";//3.1 fb^{-1}";
+  //lumimap["G"] = "Run2016G re-reco, 7.1 fb^{-1}";
+  lumimap["G"] = "Run2016FG re-reco, 8.0 fb^{-1}";
+  lumimap["H"] = "Run2016H, 8.8 fb^{-1}";
+  lumimap["GH"] = "Run2016FGH re-reco, 16.8 fb^{-1}";
   lumi_13TeV = lumimap[epoch];
 
   TCanvas *c0 = tdrCanvas("c0",h,4,11,true);
@@ -897,7 +909,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   legp->AddEntry(herr_ref," ","");
   //legm->AddEntry(herr_ref,"JES unc.","FL");
-  legm->AddEntry(herr_ref,"80X V7","FL");
+  //legm->AddEntry(herr_ref,"80X V7","FL");
+  legm->AddEntry(herr_ref,"80X V8","FL");
 
   hrun1->SetFillStyle(kNone);
   hrun1->DrawClone("SAME E3");
@@ -990,7 +1003,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     jesfit->SetParameters(0.98, 0.0, 0.0);
   }
   if (njesFit==3 && useTDI) {
-    jesfit->SetParameters(0.98, 0.0, 0.0);
+    //jesfit->SetParameters(0.98, 0.0, 0.0);
+    //jesfit->SetParameters(0.99, -0.03, 0.0);
+    jesfit->SetParameters(0.985, 0.001, 0.5);
   }
   if (njesFit==3 && useEG) {
     jesfit->SetParameters(0.98, 0.0, 1);
