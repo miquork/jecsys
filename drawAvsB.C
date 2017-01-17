@@ -21,16 +21,17 @@ void drawAvsB() {
 
   setTDRStyle();
 
-  string epocha = "H";//"F";//"BCD";//"F";//"E";//"BCD";//"F";
-  string epochb = "G";//"BCD";//"G";//"E";//"E";//"F";//"G";
+  string epocha = "H";//"H";//"F";//"BCD";//"F";//"E";//"BCD";//"F";
+  string epochb = "G";//"G";//"BCD";//"G";//"E";//"E";//"F";//"G";
 
   string type = "data";
 
   vector<string> methods;
   methods.push_back("mpfchs1");
   methods.push_back("ptchs");
-  bool nogjmpf = false;//true;
+  bool nogjmpf = false;
   bool nogjptb = false;//true;
+  bool mjvsjes = false;
   
   vector<string> samples;
   samples.push_back("zeejet");
@@ -75,6 +76,13 @@ void drawAvsB() {
     lumi_13TeV = "Run2016E+F, 4.0+3.1 fb^{-1}";
   if (epocha=="F" && epochb=="E")
     lumi_13TeV = "Run2016E+F, 4.0+3.1 fb^{-1}";
+
+  if (epocha=="BCDEF" && epochb=="GH")
+    lumi_13TeV = "Run2016BCDEF+GH, 19.7+16.8 fb^{-1}";
+  if (epocha=="EF" && epochb=="BCD")
+    lumi_13TeV = "Run2016BCD+EF, 12.9+6.8 fb^{-1}";
+  if (epocha=="H" && epochb=="G")
+    lumi_13TeV = "Run2016G+H, 8.0+8.8 fb^{-1}";
 
   TCanvas *c1 = tdrCanvas("c1",h,4,11,true);
   c1->SetLogx();
@@ -147,6 +155,14 @@ void drawAvsB() {
       mg->Add(g);
   } // for is
   } // for im
+  
+  if (nogjmpf) s += "_nogjmpf";
+  if (nogjptb) s += "_nogptb";
+  if (mjvsjes) {
+    s += "_mjvsjes";
+    tex->SetTextColor(kBlack);
+    tex->DrawLatex(0.20,0.58,"Multijet vs JES fit");
+  }
 
   TF1 *fjes = new TF1("fjes",jesFit,30,2200,2);
   fjes->SetParameters(0.99,0.05);
@@ -179,10 +195,18 @@ void drawAvsB() {
   gmpf2->SetMarkerColor(kBlack);//kGray+1);
   gmpf2->SetLineColor(kBlack);//kGray+1);
   for (int i = 0; i != gmpf->GetN(); ++i) {
-    gmpf2->SetPoint(i, 0.4*gmpf->GetX()[i],
-		    ft->Eval(gmpf->GetX()[i])/gmpf->GetY()[i]);
-    gmpf2->SetPointError(i, 0.4*gmpf->GetEX()[i],
-			 gmpf->GetEY()[i]);
+    if (mjvsjes) {
+      gmpf2->SetPoint(i, 0.4*gmpf->GetX()[i],
+		      fjes->Eval(gmpf->GetX()[i])/gmpf->GetY()[i]);
+      gmpf2->SetPointError(i, 0.4*gmpf->GetEX()[i],
+			   gmpf->GetEY()[i]);
+    }
+    else {
+      gmpf2->SetPoint(i, 0.4*gmpf->GetX()[i],
+		      ft->Eval(gmpf->GetX()[i])/gmpf->GetY()[i]);
+      gmpf2->SetPointError(i, 0.4*gmpf->GetEX()[i],
+			   gmpf->GetEY()[i]);
+    }
   }
   gmpf2->Draw("SAMEPz");
 

@@ -315,6 +315,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	lumimap["G"] = "Run2016FG re-reco, 8.0 fb^{-1}";
 	lumimap["H"] = "Run2016H, 8.8 fb^{-1}";
 	lumimap["GH"] = "Run2016FGH re-reco, 16.8 fb^{-1}";
+	lumimap["BCDEF"] = "Run2016BCDEF re-reco, 19.7 fb^{-1}";
+	lumimap["EF"] = "Run2016EF re-reco, 6.8 fb^{-1}";
 	lumi_13TeV = lumimap[epoch];
 
 	TCanvas *c0 = tdrCanvas(Form("c0_%s_%s",cm,cd), h, 4, 11, true);

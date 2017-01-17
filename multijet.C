@@ -80,8 +80,11 @@ void multijet(bool usemjb = true, string epoch="") {
 
   //double ptbins[] = {200, 250, 300, 360, 400, 450, 500, 550, 600,
   //		     700, 800, 1000, 1200, 1500}; // 0.6/fb
-  double ptbins[] = {200, 250, 300, 370, 450, 510, 550, 600,
-  		     700, 800, 900, 1000, 1200, 1400, 1600, 2600}; // 2.1/fb,V8
+  //double ptbins[] = {200, 250, 300, 370, 450, 510, 550, 600,
+  //	     700, 800, 900, 1000, 1200, 1400, 1600, 2600}; // 2.1/fb,V8
+  double ptbins[] = {200, 250, 300, 330, 370, 410, 450, 510, 530, 550, 575,
+		     600, 650, 700, 800, 900, 1000, 1100, 1200, 1400, 1600,
+		     1800, 2000, 2200};// 2016Early (hass 3000 also?)
   //double ptbins[] = {200, 225, 250, 275, 300, 310, 320, 330, 340, 350,
   //		     360, 370, 380, 390, 400, 410, 420, 430, 440, 450,
   //		     460, 470, 480, 490, 500, 510, 520, 530, 540, 550,
@@ -128,13 +131,35 @@ void multijet(bool usemjb = true, string epoch="") {
     // https://indico.cern.ch/event/593501/
   // Andrey Popov, Dec 6, 2015 (new L1+L2Res)
   map<string,const char*> fm_files;
+  /*
   fm_files["BCD"] = "1206_Run2016BCD";
   fm_files["E"] = "1206_Run2016E";
   fm_files["F"] = "1206_Run2016Fearly";
   fm_files["G"] = "1123_Run2016FlateG"; // old L2Res, Nov 23
   fm_files["H"] = "1123_Run2016H";      // old L2Res, Nov 23
-  fm_files["GH"] = "1206_Run2016FlateGH";
+  fm_files["GH"] = "1222_Run2016Late"; // new Jan 1
+  fm_files["BCDEF"] = "1222_Run2016Early"; // new Jan 1
+  fm_files["BCDEF"] = "1222_Run2016EFearly"; // new Jan 4
+  */
+  /*
+  fm_files["BCD"] = "1222_Run2016BCD";
+  fm_files["E"] = "1206_Run2016E"; // old
+  fm_files["F"] = "1206_Run2016Fearly"; // old
+  fm_files["EF"] = "1222_Run2016EFearly";
+  fm_files["BCDEF"] = "1222_Run2016Early";
+  fm_files["G"] = "1222_Run2016FlateG";
+  fm_files["H"] = "1222_Run2016H";     
+  fm_files["GH"] = "1222_Run2016Late";
   TFile *f = new TFile(Form("rootfiles/multijet_2016%s.root",
+  */
+  fm_files["BCD"] = "0113_Run2016BCD";
+  fm_files["EF"] = "0113_Run2016EFearly";
+  fm_files["G"] = "0113_Run2016FlateG";
+  fm_files["H"] = "0113_Run2016H";     
+  fm_files["GH"] = "0113_Run2016Late";
+  fm_files["BCDEF"] = "0113_Run2016Early";
+  fm_files["BCDEFGH"] = "0113_Run2016All";
+  TFile *f = new TFile(Form("rootfiles/multijet_2017%s.root",
 			    fm_files[epoch]),"READ");
   //
   assert(f && !f->IsZombie());
@@ -226,6 +251,7 @@ void multijet(bool usemjb = true, string epoch="") {
   assert(ge1);
 
   TGraphErrors *ge2 = (TGraphErrors*)f->Get("Data/Pt10/CRecoil");
+  if (!ge2) ge2 = (TGraphErrors*)f->Get("Data/Pt15/CRecoil");
   assert(ge2);
 
   TGraphErrors *ge = (usemjb ? ge1 : ge2);
@@ -831,9 +857,10 @@ void multijet(bool usemjb = true, string epoch="") {
       }
 
       // Eigenvector histograms evaluated at bin mean pT
-      double ptbins[] = {200, 250, 300, 360, 400, 450, 500, 550, 600,
-			 700, 800, 1000, 1200, 1500};
-      const int npt = sizeof(ptbins)/sizeof(ptbins[0])-1;
+      //double ptbins[] = {200, 250, 300, 360, 400, 450, 500, 550, 600,
+      //		 700, 800, 1000, 1200, 1500};
+      //const int npt = sizeof(ptbins)/sizeof(ptbins[0])-1;
+      // above are defined already earlier, don't redefine
       TH1D *hme = new TH1D(Form("ptchs_multijet_eig%d",ieig),
 			   ";p_{T}^{recoil};MJB #times JESref",npt,ptbins);
       

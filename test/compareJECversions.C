@@ -166,7 +166,11 @@ void compareJECversions(string algo="AK4PFchs",
   // 2015 JEC, 76X
   //string sid2 = (_mc ? "Summer15_25nsV6_MC" : "Summer15_25nsV6_DATA");
   //string sid2 = (_mc ? "Fall15_25nsV1_MC" : "Fall15_25nsV1_DATA");
-  string sid2 = (_mc ? "Spring16_25nsV8p2_MC" : "Spring16_25nsV8p2_DATA");
+  //string sid2 = (_mc ? "Spring16_25nsV8p2_MC" : "Spring16_25nsV8p2_DATA");
+  //string sid2 = (_mc ? "Spring16_23Sep2016GHV1_MC" : "Spring16_23Sep2016GHV1_DATA");
+  //string sid2 = (_mc ? "Spring16_23Sep2016BCDV1_MC" : "Spring16_23Sep2016BCDV1_DATA");
+  //string sid2 = (_mc ? "Summer16_23Sep2016BCDV1_MC" : "Summer16_23Sep2016BCDV1_DATA");
+  string sid2 = (_mc ? "Summer16_23Sep2016BCDV1_MC" : "Summer16_23Sep2016BCDV1_DATA");
   const char *cid2 = sid2.c_str();
   const char *a2 = a;
   //const char *s2 = "1.3 fb^{-1} (13 TeV)";
@@ -174,8 +178,15 @@ void compareJECversions(string algo="AK4PFchs",
   //const char *s2 = "2.1 fb^{-1} (13 TeV)";
   //const char *s2 = "76Xv1 (13 TeV)";
   //const char *s2s = "76X";
-  const char *s2 = "80Xv8 G";// (13 TeV)";
-  const char *s2s = "G";
+  //const char *s2 = "80Xv8 G";// (13 TeV)";
+  //const char *s2 = "80XreV1 GH";// (13 TeV)";
+  //const char *s2s = "reGH";
+  //const char *s2 = "80XreV1 BCD";
+  //const char *s2s = "reV1 BCD";
+  //const char *s2 = "80Xre Sum16";
+  //const char *s2s = "Sum16";
+  const char *s2 = "80X Sum16 BCD";
+  const char *s2s = "BCD";
   // PATCH 2012 with clones
   //if (algo=="AK4PF") a2 = "AK5PF";
   //if (algo=="AK4PFchs") a2 = "AK5PFchs";
@@ -184,7 +195,9 @@ void compareJECversions(string algo="AK4PFchs",
   //string sid1 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
   // 74X JEC
   //string sid1 = (_mc ? "Summer15_25nsV7_MC" : "Summer15_25nsV7_DATA");
-  string sid1 = (_mc ? "Spring16_25nsV8BCD_MC" : "Spring16_25nsV8BCD_DATA");
+  //string sid1 = (_mc ? "Spring16_25nsV8BCD_MC" : "Spring16_25nsV8BCD_DATA");
+  //string sid1 = (_mc ? "Spring16_23Sep2016BCDV1_MC" : "Spring16_23Sep2016BCDV1_DATA");
+  string sid1 = (_mc ? "Summer16_23Sep2016EFV1_MC" : "Summer16_23Sep2016EFV1_DATA");
   const char *cid1 = sid1.c_str();
   const char *a1 = a;
   //const char *s1 = "20 fb^{-1} (8 TeV)";
@@ -192,8 +205,13 @@ void compareJECversions(string algo="AK4PFchs",
   //const char *s1 = "1.3 fb^{-1} (13 TeV)";
   //const char *s1 = "74Xv7 (13 TeV)";
   //const char *s1s = "74X";
-  const char *s1 = "80Xv8 BCD";// (13 TeV)";
-  const char *s1s = "BCD";
+  //const char *s1 = "80XprV8 BCD";// (13 TeV)";
+  //const char *s1 = "80Xre Spr16";// (13 TeV)";
+  //const char *s1 = "80XreV1 BCD";// (13 TeV)";
+  //const char *s1s = "prV8 BCD";
+  //const char *s1s = "Spr16";
+  const char *s1 = "80X Sum16 EFearly";
+  const char *s1s = "EF";
   // PATCH 2012 with clones
   //if (algo=="AK4PF") a1 = "AK5PF";
   //if (algo=="AK4PFchs") a1 = "AK5PFchs";
@@ -204,21 +222,29 @@ void compareJECversions(string algo="AK4PFchs",
   //string sid3 = (_mc ? "Spring16_25nsV6_MC" : "Spring16_25nsV6_DATA");
   //string sid3 = (_mc ? "Spring16_25nsV8F_MC" : "Spring16_25nsV8F_DATA");
   //string sid3 = (_mc ? "Spring16_25nsV8E_MC" : "Spring16_25nsV8E_DATA");
-  string sid3 = (_mc ? "Summer15_50nsV4_MC" : "Summer15_50nsV4_DATA");
+  //string sid3 = (_mc ? "Summer15_50nsV4_MC" : "Summer15_50nsV4_DATA");
+  //string sid3 = (_mc ? "Spring16_23Sep2016EV1_MC" : "Spring16_23Sep2016EV1_DATA");
+  string sid3 = (_mc ? "Summer16_23Sep2016GV1_MC" : "Summer16_23Sep2016GV1_DATA");
   const char *cid3 = sid3.c_str();
   const char *a3 = a;
-  //const char *s3 = "20 fb^{-1} (8 TeV)";
+  //const char *a3 = "AK5PFchs"; // for Winter14
+  //const char *s3 = "20 fb^{-1} (8 TeV)"; // for Winter14
   //const char *s3s = "74X";
+  //const char *s3s = "Run I"; // for Winter14
   //const char *s3 = "80Xv8 E";// (13 TeV)";
   //const char *s3s = "E";
   //const char *s3 = "80Xv6 BCD";// (13 TeV)";
   //const char *s3s = "V6";
   //const char *s3 = "80Xv8 F";// (13 TeV)";
   //const char *s3s = "F";
-  const char *s3 = "50ns v4";
-  const char *s3s = "50ns";
+  //const char *s3 = "50ns v4";
+  //const char *s3s = "50ns";
+  //const char *s3 = "80XreV1 E";
+  //const char *s3s = "reE";
   //const char *s3 = "80Xv8 E";// (13 TeV)";
   //const char *s3s = "E";
+  const char *s3 = "80X Sum16 FlateG";
+  const char *s3s = "G";
   //if (algo=="AK4PF") a3 = "AK5PF";
   //if (algo=="AK4PFchs") a3 = "AK5PFchs";
 
@@ -390,7 +416,8 @@ void compareJECversions(string algo="AK4PFchs",
     //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.85,1.45);
     //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.80,1.20);
     //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.06);
-    if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.95,1.15);
+    //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.95,1.15);
+    if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.95,1.06);
     //
     if (l1 && !l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
     if (!l1 && l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
@@ -401,7 +428,8 @@ void compareJECversions(string algo="AK4PFchs",
 
   //lumi_7TeV  = (dothree ? "36 pb^{-1} + 4.9 fb^{-1}" : "4.9 fb^{-1}");
   //lumi_13TeV  = "19.8 fb^{-1} (8 TeV) + 1.3--2.1 fb^{-1}";
-  lumi_13TeV  = "27 fb^{-1} (13 TeV)";
+  //lumi_13TeV  = "27 fb^{-1} (13 TeV)";
+  lumi_13TeV  = "2016 re-reco 36.5 fb^{-1}";
 
   TH1D *h1a = (TH1D*)h->Clone(Form("h1a_%s",a));
   TCanvas *c1a = tdrCanvas(Form("c1a_%s",a),h1a,4,11,kSquare);
@@ -653,8 +681,10 @@ void compareJECversions(string algo="AK4PFchs",
     }
 
     // ***** Pt = 1000
+    // ***** Pt = 600 (extends better up to interesting |eta|~3)
     {
-      double pt = 1000.;
+      //double pt = 1000.;
+      double pt = 600.;
       double energy = pt*cosh(eta);
       
       if (energy < 6500.) {
@@ -931,7 +961,8 @@ void compareJECversions(string algo="AK4PFchs",
     if (l1) tex->DrawLatex(0.19,0.68,Form("#LT#mu#GT = %1.1f",_mu));
 
     //TLegend *leg1a = tdrLeg(0.60, dothree ? 0.66 : 0.72, 0.90, 0.90);
-    TLegend *leg1a = tdrLeg(0.57, dothree ? 0.66 : 0.72, 0.87, 0.90);
+    //TLegend *leg1a = tdrLeg(0.57, dothree ? 0.66 : 0.72, 0.87, 0.90);
+    TLegend *leg1a = tdrLeg(0.47, dothree ? 0.66 : 0.72, 0.87, 0.90);
     leg1a->SetHeader(texmap[a]);
     leg1a->AddEntry(g2a,s2,"LPF");
     leg1a->AddEntry(g1a,s1,"LPF");
@@ -1006,7 +1037,8 @@ void compareJECversions(string algo="AK4PFchs",
     if (l1) tex->DrawLatex(0.19,0.68,Form("#LT#mu#GT = %1.1f",_mu));
 
     //TLegend *leg1b = tdrLeg(0.60, dothree ? 0.66 : 0.73, 0.90, 0.90);
-    TLegend *leg1b = tdrLeg(0.57, dothree ? 0.66 : 0.73, 0.87, 0.90);
+    //TLegend *leg1b = tdrLeg(0.57, dothree ? 0.66 : 0.73, 0.87, 0.90);
+    TLegend *leg1b = tdrLeg(0.47, dothree ? 0.66 : 0.73, 0.87, 0.90);
     leg1b->SetHeader(texmap[a]);
     leg1b->AddEntry(g2b,s2,"LPF");
     leg1b->AddEntry(g1b,s1,"LPF");
@@ -1070,11 +1102,13 @@ void compareJECversions(string algo="AK4PFchs",
     g2c->SetLineColor(kRed);
     g2c->Draw("SAMEPL");
     
-    tex->DrawLatex(0.19,0.75,Form("p_{T,%s} = 1000 GeV",cgen));
+    //tex->DrawLatex(0.19,0.75,Form("p_{T,%s} = 1000 GeV",cgen));
+    tex->DrawLatex(0.19,0.75,Form("p_{T,%s} = 600 GeV",cgen));
     if (l1) tex->DrawLatex(0.19,0.68,Form("#LT#mu#GT = %1.1f",_mu));
 
     //TLegend *leg1c = tdrLeg(0.60, dothree ? 0.66 : 0.73, 0.90, 0.90);
-    TLegend *leg1c = tdrLeg(0.57, dothree ? 0.66 : 0.73, 0.87, 0.90);
+    //TLegend *leg1c = tdrLeg(0.57, dothree ? 0.66 : 0.73, 0.87, 0.90);
+    TLegend *leg1c = tdrLeg(0.47, dothree ? 0.66 : 0.73, 0.87, 0.90);
     leg1c->SetHeader(texmap[a]);
     leg1c->AddEntry(g2c,s2,"LPF");
     leg1c->AddEntry(g1c,s1,"LPF");
@@ -1147,7 +1181,8 @@ void compareJECversions(string algo="AK4PFchs",
     if (l1) tex->DrawLatex(0.19,0.68,Form("#LT#mu#GT = %1.1f",_mu));
 
     //TLegend *leg1e = tdrLeg(0.60, dothree ? 0.66 : 0.73, 0.90, 0.90);
-    TLegend *leg1e = tdrLeg(0.57, dothree ? 0.66 : 0.73, 0.87, 0.90);
+    //TLegend *leg1e = tdrLeg(0.57, dothree ? 0.66 : 0.73, 0.87, 0.90);
+    TLegend *leg1e = tdrLeg(0.47, dothree ? 0.66 : 0.73, 0.87, 0.90);
     leg1e->SetHeader(texmap[a]);
     leg1e->AddEntry(g2e,s2,"LPF");
     leg1e->AddEntry(g1e,s1,"LPF");
@@ -1217,7 +1252,8 @@ void compareJECversions(string algo="AK4PFchs",
 
     //TLegend *leg1d = tdrLeg(0.60, dothree ? 0.66 : 0.72, 0.90, 0.90);
     //TLegend *leg1d = tdrLeg(0.57, dothree ? 0.66 : 0.72, 0.87, 0.90);
-    TLegend *leg1d = tdrLeg(0.57, dothree ? 0.71 : 0.77, 0.87, 0.95);
+    //TLegend *leg1d = tdrLeg(0.57, dothree ? 0.71 : 0.77, 0.87, 0.95);
+    TLegend *leg1d = tdrLeg(0.47, dothree ? 0.71 : 0.77, 0.87, 0.95);
     leg1d->SetHeader(texmap[a]);
     leg1d->AddEntry(g2d,s2,"LPF");
     leg1d->AddEntry(g1d,s1,"LPF");
@@ -1231,14 +1267,16 @@ void compareJECversions(string algo="AK4PFchs",
   if (_pdf) {
     c1a->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Pt030.pdf",a,cm,cs));
     c1b->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Pt100.pdf",a,cm,cs));
-    c1c->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Pt1000.pdf",a,cm,cs));
+    //c1c->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Pt1000.pdf",a,cm,cs));
+    c1c->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Pt600.pdf",a,cm,cs));
     c1d->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Eta00.pdf",a,cm,cs));
     c1e->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Q1000.pdf",a,cm,cs));
   }
   if (_C) {
     c1a->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Pt030.C",a,cm,cs));
     c1b->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Pt100.C",a,cm,cs));
-    c1c->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Pt1000.C",a,cm,cs));
+    //c1c->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Pt1000.C",a,cm,cs));
+    c1c->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Pt600.C",a,cm,cs));
     c1d->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Eta00.C",a,cm,cs));
     c1e->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Q1000.C",a,cm,cs));
   }
@@ -1333,7 +1371,8 @@ void compareJECversions(string algo="AK4PFchs",
     leg->SetFillStyle(kNone);
     leg->AddEntry(g21a,Form("%s / %s (p_{T,%s}=30 GeV)",s2s,s1s,cgen),"LP");
     leg->AddEntry(g21b,Form("%s / %s (p_{T,%s}=100 GeV)",s2s,s1s,cgen),"LP");
-    leg->AddEntry(g21c,Form("%s / %s (p_{T,%s}=1000 GeV)",s2s,s1s,cgen),"LP");
+    leg->AddEntry(g21c,Form("%s / %s (p_{T,%s}=600 GeV)",s2s,s1s,cgen),"LP");
+    //leg->AddEntry(g21c,Form("%s / %s (p_{T,%s}=1000 GeV)",s2s,s1s,cgen),"LP");
     //leg->AddEntry(g21c,Form("%s / %s (E_{%s}=1000 GeV)",s2s,s1s,cgen),"LP");
     leg->Draw();
 

@@ -32,6 +32,7 @@ using namespace std;
 bool dofsr = true; // correct for FSR
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
 bool _paper = true;
+//double _cleanUncert = 0.05; // for eta>2
 double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
 unsigned int _nsamples(0);
@@ -61,15 +62,18 @@ Double_t fitError(Double_t *xx, Double_t *p);
 //    of sources without huge correlations between parameters
 // 2) add JER uncertainty for multijets
 
+// Alternative parameterizations
+bool useOff = true; // pT-dependent offset
+bool useTDI = false; // tracker dynamic inefficiency for 3p fit
+bool useEG = false; // ECAL gain shift for 3p fit
+
 //const int njesFit = 1; // scale only
 const int njesFit = 2; // scale(ECAL)+HB
-//const int njesFit = 3; // scale(ECAL)+HB+offset
-//int njesFit = 3; // scale(ECAL)+HB+tracker (switchable)
-//const int njesFit = 3; // scale(ECAL)+HB+ECALgain
-//const int njesFit = 4; // scale(ECAL)+HB+tracker+ECALgain
-bool useOff = false; // pT-dependent offset
-bool useTDI = true; // tracker dynamic inefficiency for 3p fit
-bool useEG = false; // ECAL gain shift for 3p fit
+//const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
+//const int njesFit = 3; //useTDI=true; // scale(ECAL)+HB+tracker (switchable)
+//const int njesFit = 3; //useEG=true; // scale(ECAL)+HB+ECALgain
+//const int njesFit = 4; // scale(ECAL)+HB+offset+ECALgain
+
 const double ptminJesFit = 30;
 TF1 *fhb(0), *fl1(0), *ftr(0), *feg(0); double _etamin(0);
 Double_t jesFit(Double_t *x, Double_t *p) {
@@ -82,7 +86,10 @@ Double_t jesFit(Double_t *x, Double_t *p) {
  
   // Initialize L1FastJet-L1RC difference
   if (!fl1) fl1 = new TF1("fl1","1-([0]+[1]*log(x))/x",10,3500);
-  fl1->SetParameters(0.553999, -8.10939e-03);
+  //fl1->SetParameters(0.553999, -8.10939e-03);
+  fl1->SetParameters(1.79089e-01, 1.89377e-01); // 80XV1re+Sum16 hl1bias
+  //fl1->SetParameters(0., 1.89377e-01); // 80XV1re+Sum16 hl1bias (log(pT) only)
+  //fl1->SetParameters(0.5, 0.); // Z+jet UE
 
   // Initialize tracker inefficiency shape
   //if (!ftr) ftr = new TF1("ftr","0.85-[0] + (0.15+[0])*([3]-[1]*pow(x,[2]))"
@@ -100,7 +107,9 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   if (!feg) feg = new TF1("feg","[0]+[1]*log(x)+"
 			  "[2]*TMath::Gaus(x,[3],[4]*sqrt(x))",
 			  10,3500);
-  feg->SetParameters(-1.45, 0.17, -1.4, 366, 13.2);
+  //feg->SetParameters(-1.45, 0.17, -1.4, 366, 13.2);
+  //feg->SetParameters(1.86, -0.17, -1.75, 410, 14.0); // Sep23V1 RunG SMP-J
+  feg->SetParameters(0,0, -1.75, 410, 14.0); // Sep23V1 RunG SMP-J, bump only
 
   // As it is in L2L3Residuals:
   //[8]*((1+0.04432-1.304*pow(max(30,min(6500,x)),-0.4624)+(0+1.724*TMath::Log(max(30,min(6500,x))))/x)-(1+0.04432-1.304*pow(208.,-0.4624)+(0+1.724*TMath::Log(208.))/x))
@@ -145,17 +154,20 @@ Double_t jesFit(Double_t *x, Double_t *p) {
     double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
     
     return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
+	    //+ 0.01*p[2]*(feg->Eval(pt)-feg->Eval(ptref)));
+	    //+ 0.01*p[2]*feg->Eval(pt));
 	    + 0.01*p[2]*feg->Eval(pt));
   } // njesFit==3 && EG
 
-  if (njesFit==4) { // b
+  if (njesFit==4 && useOff && useEG) {
 
     // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
     // p[2]: tracker dynamic inefficiency, p[2]: ECAL gain shift
     double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
     
     return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
-	    + p[2]*(ftr->Eval(pt)-ftr->Eval(ptref))
+	    //+ p[2]*(ftr->Eval(pt)-ftr->Eval(ptref))
+	    + p[2]*(fl1->Eval(pt)-fl1->Eval(ptref))
 	    + 0.01*p[3]*feg->Eval(pt));
   } // njesFit==4
 
@@ -197,6 +209,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   _nmethods = nmethods; // for multijets in global fit
 
   // Global fit with multijets, gamma+jet, Z+jet
+
   const int nsamples = 4;
   const int nsample0 = 1; // first Z/gamma+jet sample
   const char* samples[4] = {(etamin==0 ? "multijet" : "dijet"),
@@ -204,6 +217,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int igj = 0;
   const int izee = 1;
   const int izmm = 2;
+
 
   /*
   // Global fit without multijets
@@ -341,7 +355,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     
     // Fractions for MPF (pT>10 GeV)
     //s = "ptf10_multijet_a30";
-    s = "crecoil_multijet_a10";
+    //s = "crecoil_multijet_a10"; // 80XV1rereco
+    s = "crecoil_multijet_a15"; // 80XV1rereco+Sum16
     g = (TGraphErrors*)d->Get(s.c_str());
     if (!g) cout << "Graph "<<s<<" not found!" << endl << flush;
     assert(g);
@@ -514,7 +529,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //escale = 0.005; // photon (ECAL) scale without regression
       //escale = 0.002; // photon (ECAL) scale with regression (Run I)
       //escale = 0.010; // Run II guess
-      escale = 0.020; // 80X_V7 until photon scale explicitly fixed
+      //escale = 0.020; // 80X_V7 until photon scale explicitly fixed
+      //escale = 0.03;//0.005; // 80XV1re+Sum16
+      escale = 0.005; // 80XV1re+Sum16
+      //escale = 0.010; // Sep23V1
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_%d",(1<<(n0+igj) | (1<<(n1+igj))), i));
       is = hs.size();
@@ -540,7 +558,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //escale = 0.002; // with Zee mass scale fix
       //escale = 0.010; // Run II guess
       //escale = 0.005; // 76X guess
-      escale = 0.005; // 80X-BCD,E,F,G guess
+      //escale = 0.005; // 80X-BCD,E,F,G guess
+      escale = 0.002; // 80X BCDEF+GH: flat -0.15% shift on pol0/pol1 pT<400
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_%d",(1<<(n0+izee) | (1<<(n1+izee))), i));
       is_zee = hs.size();
@@ -550,7 +569,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //escale = 0.002; // muon (tracker) scale (Run I)
       //escale = 0.010; // Run II guess
       //escale = 0.005; // 76X guess
-      escale = 0.002; // 80X-BCD,E,F,G guess
+      //escale = 0.002; // 80X-BCD,E,F,G guess
+      //escale = 0.005; // 80XV1re+Sum16
+      escale = 0.002; // 80X BCDEF+GH: flat -0.15% shift on pol0/pol1 pT<400
+      //escale = 0.005; // Sep23V1-BCD,E,F,G guess
       h2->SetName(Form("bm%d_scale_%d",(1<<(n0+izmm) | (1<<(n1+izmm))), i));
       is_zmm = hs.size();
     }
@@ -693,7 +715,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	  h2->SetBinError(j, fabs(1-hl1->GetBinContent(j)));
 	  // PileUpPt source applies to all samples and both MPF and pT balance
 	  //h2->SetName(Form("bm%d_l1bias_%d",(1<<(n0+0)|1<<(n0+1)|1<<(n0+2)|
-	  //				     1<<(n1+0)|1<<(n1+1)|1<<(n1+2)),i));
+	  //			     1<<(n1+0)|1<<(n1+1)|1<<(n1+2)),i));
+	  h2->SetName(Form("bm%d_l1bias_%d",(1<<(n0+izee)|1<<(n0+izmm)|
+					     1<<(n1+izee)|1<<(n1+izmm)),i));
 	  // TEMP TEMP TEMP
 	  // Only switch PileUpPt source for MPF (due to L1L2L3-L1 method)
 	  //h2->SetName(Form("bm%d_l1bias_%d",(1<<(n1+0)|1<<(n1+1)|1<<(n1+2)),i));
@@ -711,7 +735,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
 
   // New uncertainty sources for multijets
-  if (true && string (samples[0])=="multijet") {
+  if (false && string (samples[0])=="multijet") {
 
     const int isample = 0;
     for (int imethod = 0; imethod != nmethods; ++imethod) {
@@ -722,10 +746,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //const int npt = 14; // 20161019
       //double vpt[npt+1] = {200, 250, 300, 370, 450, 510, 550, 600, 700, 800,
       //		   900, 1000, 1200, 1400, 1600};
-      const int npt = 23; // 20161021, 20161202
-      double vpt[npt+1] = {200, 250, 300, 330, 370, 410, 450, 510, 530, 550,
-			   575, 600, 650, 700, 800, 900, 1000, 1100, 1200,
-			   1400, 1600, 1800, 2000, 2200}; // V8
+      //const int npt = 23; // 20161021, 20161202
+      //double vpt[npt+1] = {200, 250, 300, 330, 370, 410, 450, 510, 530, 550,
+      //		   575, 600, 650, 700, 800, 900, 1000, 1100, 1200,
+      //		   1400, 1600, 1800, 2000, 2200}; // V8
+      const int npt = 24; // 20161222, 80XV1re+Sum16
+      double vpt[npt+1]= {200, 250, 300, 330, 370, 410, 450, 510, 530, 550, 575,
+			  600, 650, 700, 800, 900, 1000, 1100, 1200, 1400, 1600,
+			  1800, 2000, 2200};// 2016Early (has 3000 also?)
       //const int npt = 67;//68; // 20161123, 80X rereco
       //double vpt[npt+1] = {200, 225, 250, 275, 300, 310, 320, 330, 340, 350,
       //		   360, 370, 380, 390, 400, 410, 420, 430, 440, 450,
@@ -758,7 +786,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   } // for ieig
   
   // Uncertainty sources for multijets
-  if (false && string(samples[0])=="multijet") {
+  if (true && string(samples[0])=="multijet") {
 
     const int isample = 0;
     const int nsrcmj = 3;
@@ -846,6 +874,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   lumimap["G"] = "Run2016FG re-reco, 8.0 fb^{-1}";
   lumimap["H"] = "Run2016H, 8.8 fb^{-1}";
   lumimap["GH"] = "Run2016FGH re-reco, 16.8 fb^{-1}";
+  lumimap["BCDEF"] = "Run2016BCDEF re-reco, 19.7 fb^{-1}";
+  lumimap["EF"] = "Run2016EF re-reco, 6.8 fb^{-1}";
   lumi_13TeV = lumimap[epoch];
 
   TCanvas *c0 = tdrCanvas("c0",h,4,11,true);
@@ -905,12 +935,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   legp->AddEntry(hrun1," ","");
   //legm->AddEntry(hrun1,"Run 1","FL");
-  legm->AddEntry(hrun1,"80X V6","FL");
+  //legm->AddEntry(hrun1,"80X V6","FL");
+  legm->AddEntry(hrun1,"Run I","FL");
 
   legp->AddEntry(herr_ref," ","");
   //legm->AddEntry(herr_ref,"JES unc.","FL");
   //legm->AddEntry(herr_ref,"80X V7","FL");
-  legm->AddEntry(herr_ref,"80X V8","FL");
+  //legm->AddEntry(herr_ref,"80X V8","FL");
+  legm->AddEntry(herr_ref,"80XreV1","FL");
 
   hrun1->SetFillStyle(kNone);
   hrun1->DrawClone("SAME E3");
@@ -1008,10 +1040,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     jesfit->SetParameters(0.985, 0.001, 0.5);
   }
   if (njesFit==3 && useEG) {
-    jesfit->SetParameters(0.98, 0.0, 1);
+    //jesfit->SetParameters(0.98, 0.0, 1);
+    jesfit->SetParameters(0.995, -0.025, 1.0);
   }
-  if (njesFit==4) {
-    jesfit->SetParameters(1.00, -0.01, 0.0, 1.0);
+  if (njesFit==4 && useOff && useEG) {
+    //jesfit->SetParameters(1.00, -0.01, 0.0, 1.0);
+    jesfit->SetParameters(0.995, -0.025, 1.0, 1.0);
   }
   _jesFit = jesfit;
   
@@ -1218,6 +1252,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     tex->DrawLatex(0.32,0.55,Form("p_{2}=%1.3f #pm %1.3f",
 				  _jesFit->GetParameter(2),
 				  sqrt(emat[2][2])));
+  if (njesFit>=4)
+    tex->DrawLatex(0.32,0.52,Form("p_{3}=%1.3f #pm %1.3f",
+				  _jesFit->GetParameter(3),
+				  sqrt(emat[3][3])));
   //tex->DrawLatex(0.32,0.55,Form("p_{2}=%1.3f #pm %1.3f",
   //			_jesFit->GetParameter(2),
   //			sqrt(emat[2][2])));

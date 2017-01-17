@@ -22,7 +22,7 @@
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "H";//"BCD";//"E";//"F";//"G";//"H";//"GH";
+  string epoch = "H";//"BCD";//"E";//"F";//"EF";//"G";//"H";//"GH";//"BCDEF";
 
   reprocess(epoch);
 
@@ -57,5 +57,8 @@
   // (above eta bins may overwrite some plots)
   */
   globalFitL3Res(0.0,1.3,epoch);
+
+  //globalFitL3Res(1.9,2.5,epoch);
+  //globalFitL3Res(2.5,3.0,epoch);
 
 }
