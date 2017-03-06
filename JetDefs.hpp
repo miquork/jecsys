@@ -39,6 +39,7 @@ namespace jec {
   const ErrorTypes kRelativePtEC1           = ErrorTypes(0L, 1L << 14);
   const ErrorTypes kRelativePtEC2           = ErrorTypes(0L, 1L << 15);
   const ErrorTypes kRelativePtHF            = ErrorTypes(0L, 1L << 16);
+  const ErrorTypes kRelativeBal             = ErrorTypes(0L, 1L << 26); //Sum16 
   // Absolute scale (pT dependence) systematics, bits 17-27
   const ErrorTypes kAbsoluteScale           = ErrorTypes(0L, 1L << 17);
   const ErrorTypes kAbsoluteSPRE            = ErrorTypes(0L, 1L << 18);
@@ -65,12 +66,17 @@ namespace jec {
   const ErrorTypes kTimePtEta           = ErrorTypes(0L, 1L << 47);
   // optional time bits for individual epochs (not included in total), 48-51
   const ErrorTypes kTimeRunBCD          = ErrorTypes(0L, 1L << 48); //opt
-  const ErrorTypes kTimeRunE            = ErrorTypes(0L, 1L << 49); //opt
-  const ErrorTypes kTimeRunF            = ErrorTypes(0L, 1L << 50); //opt
-  const ErrorTypes kTimeRunGH           = ErrorTypes(0L, 1L << 51); //opt
+  //const ErrorTypes kTimeRunE            = ErrorTypes(0L, 1L << 49); //opt
+  //const ErrorTypes kTimeRunF            = ErrorTypes(0L, 1L << 50); //opt
+  const ErrorTypes kTimeRunEF           = ErrorTypes(0L, 1L << 49); //opt
+  //const ErrorTypes kTimeRunGH           = ErrorTypes(0L, 1L << 51); //opt
+  const ErrorTypes kTimeRunG            = ErrorTypes(0L, 1L << 50); //opt
+  const ErrorTypes kTimeRunH            = ErrorTypes(0L, 1L << 51); //opt
   // optional PU term for <mu>=0 sample (bias from fitting L2Res with <mu>=20)
   const ErrorTypes kPileUpMuZero        = ErrorTypes(0L, 1L << 52); //opt
   const ErrorTypes kPileUpEnvelope      = ErrorTypes(0L, 1L << 53); //xtra
+
+  const ErrorTypes kRunI = ErrorTypes(0L, 1L << 54); // reference
 
   // Add this to single sources (e.g. kPileUpDataMC) to get unsigned uncertainty
   //const ErrorTypes kDoUnsigned          = ErrorTypes(0L, 1L << 54);
@@ -95,7 +101,7 @@ namespace jec {
 
   // SubTotalPileUp, SubTotalRelative, [SubTotalAbsolute], SubTotalPt
   const ErrorTypes kPileUp              = kPileUpDataMC | kPileUpPt;
-  const ErrorTypes kRelative            = kRelativeJER | kRelativeFSR | kRelativeStat | kRelativePt;
+  const ErrorTypes kRelative            = kRelativeJER | kRelativeFSR | kRelativeStat | kRelativePt | kRelativeBal;
   const ErrorTypes kAbsolutePt          = kAbsoluteFrag | kAbsoluteSPR;
   const ErrorTypes kAbsoluteFlat        = kAbsoluteStat | kAbsoluteMPFBias | kAbsoluteFlavorMapping | kAbsoluteScale;
   const ErrorTypes kAbsolute            = kAbsoluteFlat | kAbsolutePt;
@@ -103,7 +109,8 @@ namespace jec {
   // Test mask: only one of these should be on at a time
   const ErrorTypes kFlavorMask          = kFlavorQCD | kFlavorZJet | kFlavorPhotonJet | kFlavorPureQuark | kFlavorPureGluon | kFlavorPureCharm | kFlavorPureBottom;
   //const ErrorTypes kTimePtMask          = kTimePt | kTimePtRunBCD | kTimePtRunE | kTimePtRunF | kTimePtRunGH;
-  const ErrorTypes kTimePtEtaMask          = kTimePtEta | kTimeRunBCD | kTimeRunE | kTimeRunF | kTimeRunGH;
+  //const ErrorTypes kTimePtEtaMask          = kTimePtEta | kTimeRunBCD | kTimeRunE | kTimeRunF | kTimeRunGH;
+  const ErrorTypes kTimePtEtaMask          = kTimePtEta | kTimeRunBCD | kTimeRunEF | kTimeRunG | kTimeRunH;
 
   // Total uncertainty bits
   const ErrorTypes kMC = kPileUpDataMC | kRelative | kAbsolute | kFlavorQCD | kTime; // for Data/MC comparisons (excludes kPileUpPt)

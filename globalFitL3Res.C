@@ -210,9 +210,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   // Global fit with multijets, gamma+jet, Z+jet
 
+  bool isl3 = (etamin==0 && ((epoch!="L4" && fabs(etamax-1.3)<0.1) ||
+			     (epoch=="L4" && fabs(etamax-2.4)<0.1)));
   const int nsamples = 4;
   const int nsample0 = 1; // first Z/gamma+jet sample
-  const char* samples[4] = {(etamin==0 ? "multijet" : "dijet"),
+  const char* samples[4] = {(isl3 ? "multijet" : "dijet"),
 			    "gamjet", "zeejet", "zmmjet"};
   const int igj = 0;
   const int izee = 1;
@@ -371,9 +373,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   _vpt2 = &gfs2;
 
   // Load reference barrel JES for dijets
-  TH1D *hjes0 = (TH1D*)f->Get("ratio/eta00-13/hjes"); assert(hjes0);
+  TH1D *hjes0 = (TH1D*)f->Get(epoch=="L4" ? "ratio/eta00-24/hjes" :
+			      "ratio/eta00-13/hjes"); assert(hjes0);
   hjes0->SetName("hjes0");
-  TH1D *herr0 = (TH1D*)f->Get("ratio/eta00-13/herr"); assert(herr0);
+  TH1D *herr0 = (TH1D*)f->Get(epoch=="L4" ? "ratio/eta00-24/herr" :
+			      "ratio/eta00-13/herr"); assert(herr0);
   herr0->SetName("herr0");
 
   // Load JEC uncertainty band
@@ -875,7 +879,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   lumimap["H"] = "Run2016H, 8.8 fb^{-1}";
   lumimap["GH"] = "Run2016FGH re-reco, 16.8 fb^{-1}";
   lumimap["BCDEF"] = "Run2016BCDEF re-reco, 19.7 fb^{-1}";
+  lumimap["BCDEFGH"] = "Run2016BCDEFGH re-reco, 36.5 fb^{-1}";
   lumimap["EF"] = "Run2016EF re-reco, 6.8 fb^{-1}";
+  lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
   lumi_13TeV = lumimap[epoch];
 
   TCanvas *c0 = tdrCanvas("c0",h,4,11,true);
@@ -910,9 +916,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   TLatex *tex = new TLatex();
   tex->SetNDC(); tex->SetTextSize(0.045);
-  if (etamin==0) {
-    if (dofsr) tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3#rightarrow0");
-    else       tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3");
+  if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1)) {
+    if (epoch=="L4") {
+      if (dofsr) tex->DrawLatex(0.20,0.73,"|#eta|<2.4, #alpha<0.3#rightarrow0");
+      else       tex->DrawLatex(0.20,0.73,"|#eta|<2.4, #alpha<0.3");
+    } else {
+      if (dofsr) tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3#rightarrow0");
+      else       tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3");
+    }
   }
   else {
     assert(dofsr);
@@ -942,7 +953,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //legm->AddEntry(herr_ref,"JES unc.","FL");
   //legm->AddEntry(herr_ref,"80X V7","FL");
   //legm->AddEntry(herr_ref,"80X V8","FL");
-  legm->AddEntry(herr_ref,"80XreV1","FL");
+  //legm->AddEntry(herr_ref,"80XreV1","FL");
+  legm->AddEntry(herr_ref,"Sum16V3","FL");
 
   hrun1->SetFillStyle(kNone);
   hrun1->DrawClone("SAME E3");
@@ -988,7 +1000,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   legp->Draw();
   legm->Draw();
 
-  if (etamin==0) tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3");
+  if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1)) {
+    if (epoch!="L4") tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3");
+    if (epoch=="L4") tex->DrawLatex(0.20,0.73,"|#eta|<2.4, #alpha<0.3");
+  }
   else tex->DrawLatex(0.20,0.73,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
 
   tex->DrawLatex(0.20, 0.22, "Before FSR correction");
@@ -1208,7 +1223,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	      h->GetMinimum()+0.5*(h->GetMaximum()-h->GetMinimum()),
 	      6500./cosh(etamin));
 
-  if (etamin==0) tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3#rightarrow0");
+  if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1)) {
+    if (epoch!="L4") tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3#rightarrow0");
+    if (epoch=="L4") tex->DrawLatex(0.20,0.73,"|#eta|<2.4, #alpha<0.3#rightarrow0");
+  }
   else tex->DrawLatex(0.20,0.73,Form("%1.1f#leq|#eta|<%1.1f",etamin,etamax));
 
   //tex->DrawLatex(0.20,0.18,Form("(data %1.1f / %d, sources %1.1f / %d)",
@@ -1411,7 +1429,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     dir->cd();
   }
 
-  if (etamin==0) {
+  if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1)) {
     if (dofsr) {
       c0b->SaveAs(Form("pdf/%s/globalFitL3res_raw.pdf",cep));
       //c0b->SaveAs("pdfC/globalFitL3res_raw.C");
@@ -1437,7 +1455,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   hsrc->Draw();
   gStyle->SetOptStat(111111);
 
-  if (etamin==0) c2->SaveAs(Form("pdf/%s/globalFitL3res_hsrc.pdf",cep));
+  if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1))
+    c2->SaveAs(Form("pdf/%s/globalFitL3res_hsrc.pdf",cep));
   else {
     c2->SaveAs(Form("pdf/%s/globalFitL3res_hsrc_eta%1.0f-%1.0f.pdf",
 		    cep,10*etamin, 10*etamax));
@@ -1552,7 +1571,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       leg2->AddEntry(hke, texlabel[samples[isample]], "FL");
     } // for isample
 
-    if (etamin==0) {
+    if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1)) {
       c3->SaveAs(Form("pdf/%s/globalFitL3res_%s_kfsr.pdf",
 		      cep,methods[imethod]));
       //c3->SaveAs(Form("pdfC/globalFitL3res_%s_kfsr.C", methods[imethod]));

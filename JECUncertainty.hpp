@@ -75,10 +75,11 @@ public:
   double _AbsoluteSPRE(const double pTprime) const;
   //
   double _Relative(double pTprime, double eta);
-  double _RelativeJER(double pTprime, double eta) const;
-  double _RelativeFSR(double pTprime, double eta) const;
+  double _RelativeJER(double pTprime, double eta);
+  double _RelativeFSR(double pTprime, double eta);
   double _RelativeStat(double pTprime, double eta) const;
   double _RelativePt(double pTprime, double eta);
+  double _RelativeBal(double pTprime, double eta);
   //
   double _PileUp(double pTprime, double eta);
   double _PileUpDataMC(double pTprime, double eta);
@@ -132,12 +133,11 @@ private:
   FactorizedJetCorrector *_jec;
   FactorizedJetCorrector *_jecDefault;
   //
-  FactorizedJetCorrector *_jecTDI;
   FactorizedJetCorrector *_jecBCD;
-  FactorizedJetCorrector *_jecE;
-  FactorizedJetCorrector *_jecF;
-  FactorizedJetCorrector *_jecGH;
-  FactorizedJetCorrector *_jecP2;
+  FactorizedJetCorrector *_jecEF;
+  FactorizedJetCorrector *_jecG;
+  FactorizedJetCorrector *_jecH;
+  FactorizedJetCorrector *_jecBCDEFGH;
   //
   //FactorizedJetCorrector *_jecWithL1RC;
   //FactorizedJetCorrector *_jecL1DTflat;
@@ -160,6 +160,8 @@ private:
   FactorizedJetCorrector *_jecL2jerup;
   FactorizedJetCorrector *_jecL2jerdw;
   //FactorizedJetCorrector *_jecL2stat;
+
+  JetCorrectionUncertainty *_uncRunI;
 
   double _mu;
 

@@ -71,7 +71,8 @@ void setEtaPtE(FactorizedJetCorrector *jec, double eta, double pt, double e,
   jec->setNPV(npv);
   // L1FastJet
   bool is5 = (_alg=="AK5PF"||_alg=="AK5PFchs"||_alg=="AK5CALO");
-  double jeta = TMath::Pi()*(is5 ? 0.5*0.5 : 0.7*0.7);
+  bool is4 = (_alg=="AK4PF"||_alg=="AK4PFchs"||_alg=="AK4CALO");
+  double jeta = TMath::Pi()*(is5 ? 0.5*0.5 : (is4 ? 0.4*0.4 : 0.7*0.7));
   jec->setJetA(jeta);
   jec->setRho(rho);
 
@@ -170,7 +171,9 @@ void compareJECversions(string algo="AK4PFchs",
   //string sid2 = (_mc ? "Spring16_23Sep2016GHV1_MC" : "Spring16_23Sep2016GHV1_DATA");
   //string sid2 = (_mc ? "Spring16_23Sep2016BCDV1_MC" : "Spring16_23Sep2016BCDV1_DATA");
   //string sid2 = (_mc ? "Summer16_23Sep2016BCDV1_MC" : "Summer16_23Sep2016BCDV1_DATA");
-  string sid2 = (_mc ? "Summer16_23Sep2016BCDV1_MC" : "Summer16_23Sep2016BCDV1_DATA");
+  //string sid2 = (_mc ? "Summer16_23Sep2016BCDV1_MC" : "Summer16_23Sep2016BCDV1_DATA");
+  //string sid2 = (_mc ? "Summer16_23Sep2016GV2_MC" : "Summer16_23Sep2016GV2_DATA");
+  string sid2 = (_mc ? "Summer16_23Sep2016V2_MC" : "Summer16_23Sep2016GV3_DATA");
   const char *cid2 = sid2.c_str();
   const char *a2 = a;
   //const char *s2 = "1.3 fb^{-1} (13 TeV)";
@@ -185,23 +188,29 @@ void compareJECversions(string algo="AK4PFchs",
   //const char *s2s = "reV1 BCD";
   //const char *s2 = "80Xre Sum16";
   //const char *s2s = "Sum16";
-  const char *s2 = "80X Sum16 BCD";
-  const char *s2s = "BCD";
+  //const char *s2 = "80X Sum16 BCD";
+  //const char *s2s = "BCD";
+  //const char *s2 = "80X Sum16 G";
+  const char *s2 = "Summer16GV3";
+  const char *s2s = "Sum16V3";
   // PATCH 2012 with clones
   //if (algo=="AK4PF") a2 = "AK5PF";
   //if (algo=="AK4PFchs") a2 = "AK5PFchs";
 
   // 2012 JEC
-  //string sid1 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
+  string sid1 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
   // 74X JEC
   //string sid1 = (_mc ? "Summer15_25nsV7_MC" : "Summer15_25nsV7_DATA");
   //string sid1 = (_mc ? "Spring16_25nsV8BCD_MC" : "Spring16_25nsV8BCD_DATA");
   //string sid1 = (_mc ? "Spring16_23Sep2016BCDV1_MC" : "Spring16_23Sep2016BCDV1_DATA");
-  string sid1 = (_mc ? "Summer16_23Sep2016EFV1_MC" : "Summer16_23Sep2016EFV1_DATA");
+  //string sid1 = (_mc ? "Summer16_23Sep2016EFV1_MC" : "Summer16_23Sep2016EFV1_DATA");
+  //string sid1 = (_mc ? "Summer16_23Sep2016EFV2_MC" : "Summer16_23Sep2016EFV2_DATA");
+  //string sid1 = (_mc ? "Spring16_23Sep2016V1_MC" : "Spring16_23Sep2016GHV1_DATA");
+  //string sid1 = (_mc ? "Spring16_23Sep2016V1_MC" : "Spring16_23Sep2016GV2_DATA");
   const char *cid1 = sid1.c_str();
-  const char *a1 = a;
-  //const char *s1 = "20 fb^{-1} (8 TeV)";
-  //const char *s1s = "2012";
+  const char *a1 = "AK5PFchs";//a;
+  const char *s1 = "20 fb^{-1} (8 TeV)";
+  const char *s1s = "2012";
   //const char *s1 = "1.3 fb^{-1} (13 TeV)";
   //const char *s1 = "74Xv7 (13 TeV)";
   //const char *s1s = "74X";
@@ -210,8 +219,10 @@ void compareJECversions(string algo="AK4PFchs",
   //const char *s1 = "80XreV1 BCD";// (13 TeV)";
   //const char *s1s = "prV8 BCD";
   //const char *s1s = "Spr16";
-  const char *s1 = "80X Sum16 EFearly";
-  const char *s1s = "EF";
+  //const char *s1 = "80X Sum16 EFearly";
+  //const char *s1s = "EF";
+  //const char *s1 = "80X Spr16 GH";
+  //const char *s1s = "Spr16";
   // PATCH 2012 with clones
   //if (algo=="AK4PF") a1 = "AK5PF";
   //if (algo=="AK4PFchs") a1 = "AK5PFchs";
@@ -224,9 +235,11 @@ void compareJECversions(string algo="AK4PFchs",
   //string sid3 = (_mc ? "Spring16_25nsV8E_MC" : "Spring16_25nsV8E_DATA");
   //string sid3 = (_mc ? "Summer15_50nsV4_MC" : "Summer15_50nsV4_DATA");
   //string sid3 = (_mc ? "Spring16_23Sep2016EV1_MC" : "Spring16_23Sep2016EV1_DATA");
-  string sid3 = (_mc ? "Summer16_23Sep2016GV1_MC" : "Summer16_23Sep2016GV1_DATA");
-  const char *cid3 = sid3.c_str();
-  const char *a3 = a;
+  //string sid3 = (_mc ? "Summer16_23Sep2016GV1_MC" : "Summer16_23Sep2016GV1_DATA");
+  //string sid3 = (_mc ? "Summer16_23Sep2016GV2_MC" : "Summer16_23Sep2016GV2_DATA");
+  //string sid3 = (_mc ? "Summer16_23Sep2016V2_MC" : "Summer16_23Sep2016BCDV3_DATA");
+  //const char *cid3 = sid3.c_str();
+  //const char *a3 = a;
   //const char *a3 = "AK5PFchs"; // for Winter14
   //const char *s3 = "20 fb^{-1} (8 TeV)"; // for Winter14
   //const char *s3s = "74X";
@@ -243,17 +256,19 @@ void compareJECversions(string algo="AK4PFchs",
   //const char *s3s = "reE";
   //const char *s3 = "80Xv8 E";// (13 TeV)";
   //const char *s3s = "E";
-  const char *s3 = "80X Sum16 FlateG";
-  const char *s3s = "G";
+  //const char *s3 = "80X Sum16 FlateG";
+  //const char *s3s = "G";
+  //const char *s3 = "80X Sum16 BCD";
+  //const char *s3s = "BCD";
   //if (algo=="AK4PF") a3 = "AK5PF";
   //if (algo=="AK4PFchs") a3 = "AK5PFchs";
 
   // 2011 JEC
-  //string sid1 = "GR_R_42_V23";
-  //const char *cid1 = sid1.c_str();
-  //const char *a1 = a;
-  //const char *s1 = "5 fb^{-1} (7 TeV)";
-  //const char *s1s = "2011";
+  string sid3 = "GR_R_42_V23";
+  const char *cid3 = sid3.c_str();
+  const char *a3 = "AK5PFchs";//a;
+  const char *s3 = "5 fb^{-1} (7 TeV)";
+  const char *s3s = "2011";
 
   // 2010 JEC
   //string sid3 = "START38_V13";
@@ -417,7 +432,8 @@ void compareJECversions(string algo="AK4PFchs",
     //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.80,1.20);
     //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.06);
     //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.95,1.15);
-    if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.95,1.06);
+    //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.95,1.06);
+if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
     //
     if (l1 && !l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
     if (!l1 && l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
@@ -789,10 +805,17 @@ void compareJECversions(string algo="AK4PFchs",
 
   for (int i = 1; i != hpt->GetNbinsX()+1; ++i) {
 
-    // ***** Eta = 0 
-    {
-      double eta = 0.;
-      double pt = hpt->GetBinCenter(i);
+    // ***** Eta = 0  => |eta|<1.3
+    const double etas[] = {0, 0.261, 0.522, 0.783, 1.044, 1.305};
+    const int neta = sizeof(etas)/sizeof(etas[0])-1;
+    double sumy1(0), sumy2(0), sumy3(0), sume1(0), sume2(0), sume3(0);
+    int nsum(0);
+
+    double pt = hpt->GetBinCenter(i);
+    for (int j = 0; j != neta; ++j) {
+      
+      //double eta = 0.;
+      double eta = 0.5*(etas[j]+etas[j+1]);
       double energy = pt*cosh(eta);
       
       if (pt>10 && energy < 6500.) {
@@ -820,26 +843,36 @@ void compareJECversions(string algo="AK4PFchs",
 	double e2 = getEtaPtUncert(jecUnc2, JEC2, eta, pt);
 	double e3 = (dothree ? getEtaPtUncert(jecUnc3, JEC3, eta, pt) : 0);
 	
-	g1d->SetPoint(g1d->GetN(), pt, y1);
-	g2d->SetPoint(g2d->GetN(), pt, y2);
-	g3d->SetPoint(g3d->GetN(), pt, y3);
-	//
-	g1d_pl->SetPoint(g1d_pl->GetN(), pt, y1*(1+e1));
-	g1d_mn->SetPoint(g1d_mn->GetN(), pt, y1*(1-e1));
-	g1d_e->SetPoint(i-1, pt, y1);
-	g1d_e->SetPointError(i-1, 0., y1*e1);
-	//
-	g2d_pl->SetPoint(g2d_pl->GetN(), pt, y2*(1+e2));
-	g2d_mn->SetPoint(g2d_mn->GetN(), pt, y2*(1-e2));
-	g2d_e->SetPoint(i-1, pt, y2);
-	g2d_e->SetPointError(i-1, 0., y2*e2);
-	//
-	g3d_pl->SetPoint(g3d_pl->GetN(), pt, y3*(1+e3));
-	g3d_mn->SetPoint(g3d_mn->GetN(), pt, y3*(1-e3));
-	g3d_e->SetPoint(i-1, pt, y3);
-	g3d_e->SetPointError(i-1, 0., y3*e3);
-      }
-    } // *** Eta = 0
+	sumy1 = (sumy1*nsum + y1) / (1.+nsum);
+	sumy2 = (sumy2*nsum + y2) / (1.+nsum);
+	sumy3 = (sumy3*nsum + y3) / (1.+nsum);
+	sume1 = sqrt(sume1*sume1*nsum + e1*e1) / sqrt(1.+nsum);
+	sume2 = sqrt(sume2*sume2*nsum + e2*e2) / sqrt(1.+nsum);
+	sume3 = sqrt(sume3*sume3*nsum + e3*e3) / sqrt(1.+nsum);
+	++nsum;
+      } // pt>ptmin && e<emax
+    } // for j
+
+    g1d->SetPoint(g1d->GetN(), pt, sumy1);
+    g2d->SetPoint(g2d->GetN(), pt, sumy2);
+    g3d->SetPoint(g3d->GetN(), pt, sumy3);
+    //
+    g1d_pl->SetPoint(g1d_pl->GetN(), pt, sumy1*(1+sume1));
+    g1d_mn->SetPoint(g1d_mn->GetN(), pt, sumy1*(1-sume1));
+    g1d_e->SetPoint(i-1, pt, sumy1);
+    g1d_e->SetPointError(i-1, 0., sumy1*sume1);
+    //
+    g2d_pl->SetPoint(g2d_pl->GetN(), pt, sumy2*(1+sume2));
+    g2d_mn->SetPoint(g2d_mn->GetN(), pt, sumy2*(1-sume2));
+    g2d_e->SetPoint(i-1, pt, sumy2);
+    g2d_e->SetPointError(i-1, 0., sumy2*sume2);
+    //
+    g3d_pl->SetPoint(g3d_pl->GetN(), pt, sumy3*(1+sume3));
+    g3d_mn->SetPoint(g3d_mn->GetN(), pt, sumy3*(1-sume3));
+    g3d_e->SetPoint(i-1, pt, sumy3);
+    g3d_e->SetPointError(i-1, 0., sumy3*sume3);
+    //}
+    //} // *** Eta = 0 => |eta|<1.3
   } // for i
 
   // Generic legend
@@ -1247,7 +1280,8 @@ void compareJECversions(string algo="AK4PFchs",
     g2d->SetLineColor(kRed);
     g2d->Draw("SAMEPL");
 
-    tex->DrawLatex(0.19,0.75,"|#eta| = 0");
+    //tex->DrawLatex(0.19,0.75,"|#eta| = 0");
+    tex->DrawLatex(0.19,0.75,"|#eta| < 1.3");
     if (l1) tex->DrawLatex(0.19,0.68,Form("#LT#mu#GT = %1.1f",_mu));
 
     //TLegend *leg1d = tdrLeg(0.60, dothree ? 0.66 : 0.72, 0.90, 0.90);

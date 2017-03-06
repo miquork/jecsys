@@ -70,12 +70,14 @@ void drawCMSresponse() {
 
     const char *sd = "CondFormats/JetMETObjects/data";
     //const char *st = "Winter14_V5_MC";
+    //const char *st = "Winter14_V8_MC"; // 2012
     //const char *st = "Winter14_V8_DATA";
     //const char *st = "Summer15_25nsV3_DATA";
     //const char *st = "Summer15_25nsV6_DATA";
     //const char *st = "Summer15_25nsV7_DATA";
     //const char *st = "Fall15_25nsV1_DATA";
-    const char *st = "Spring16_25nsV3_MC";
+    //const char *st = "Spring16_25nsV3_MC";
+    const char *st = "Summer16_23Sep2016GV3_DATA"; // 2017
     const char *s;
 
     //s = Form("%s/%s_L1FastJet_AK5PFchs.txt",sd,st); cout << s << endl;
@@ -86,8 +88,8 @@ void drawCMSresponse() {
     //s = Form("%s/%s_L3Absolute_AK5PFchs.txt",sd,st); cout << s << endl;
     s = Form("%s/%s_L3Absolute_AK4PFchs.txt",sd,st); cout << s << endl;
     JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
-    s = Form("%s/%s_L2L3Residual_AK4PFchs.txt",sd,st); cout << s << endl;
-    JetCorrectorParameters *l2l3 = new JetCorrectorParameters(s);
+    //s = Form("%s/%s_L2L3Residual_AK4PFchs.txt",sd,st); cout << s << endl;
+    //JetCorrectorParameters *l2l3 = new JetCorrectorParameters(s);
 
     vector<JetCorrectorParameters> v;
     //v.push_back(l1);
@@ -121,7 +123,7 @@ void drawCMSresponse() {
       double eta = (ieta+0.5)*0.1;
       //double pt = energy / cosh(eta);
       double energy = pt * cosh(eta);
-      if (pt >= 10. && energy < 6500.) {
+      if (pt >= 10. && energy < 6500.) { // 13 TeV
 
 	double jes = getResp(pt, eta, jeta, mu);
 	int n = g->GetN();
@@ -132,8 +134,8 @@ void drawCMSresponse() {
 
 
   // Draw results
-  //TH1D *h = new TH1D("h",";Jet |#eta|;Simulated jet response",40,0,4.8);
-  TH1D *h = new TH1D("h",";Jet |#eta|;Data jet response",40,0,4.8);
+  TH1D *h = new TH1D("h",";Jet |#eta|;Simulated jet response",40,0,4.8);
+  //TH1D *h = new TH1D("h",";Jet |#eta|;Data jet response",40,0,4.8);
   h->SetMaximum(1.25);
   h->SetMinimum(0.5);
   extraText = "Simulation";
@@ -183,11 +185,12 @@ void drawCMSresponse() {
   l->SetLineStyle(kDashed);
   l->DrawLine(3.2,0.7,3.2,1.1);
 
-  //tex->DrawLatex(0.30,0.86,"2012 JES: Anti-k_{t} R = 0.4, PF+CHS");
+  //tex->DrawLatex(0.23,0.86,"2012 JES: Anti-k_{t} R = 0.5, PF+CHS");
   //tex->DrawLatex(0.30,0.86,"53X JES: Anti-k_{t} R = 0.5, PF+CHS");
   //tex->DrawLatex(0.30,0.86,"74X JES: Anti-k_{t} R = 0.4, PF+CHS");
   //tex->DrawLatex(0.30,0.86,"76X JES: Anti-k_{t} R = 0.4, PF+CHS");
-  tex->DrawLatex(0.23,0.86,"2016 JES: Anti-k_{T} R=0.4, PF+CHS");
+  //tex->DrawLatex(0.23,0.86,"2016 JES: Anti-k_{T} R=0.4, PF+CHS");
+  tex->DrawLatex(0.23,0.86,"2017 JES: Anti-k_{t} R = 0.4, PF+CHS");
 
   tex->DrawLatex(0.19,0.78,"Barrel");
   tex->DrawLatex(0.47,0.78,"Endcap"); //0.42

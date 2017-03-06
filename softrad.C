@@ -255,7 +255,13 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
       h1->SetYTitle(Form("Response (%s)",cd));
       h1->DrawClone("AXIS");
       tex->DrawLatex(0.20,0.85,texlabel[cm]);
-      tex->DrawLatex(0.20,0.80,"|#eta| < 1.3, #alpha=0.1--0.3");
+      //if (epoch!="L4") tex->DrawLatex(0.20,0.80,"|#eta| < 1.3, #alpha=0.1--0.3");
+      //if (epoch=="L4") tex->DrawLatex(0.20,0.80,"|#eta| < 2.4, #alpha=0.1--0.3");
+      if (etamin==0)
+	tex->DrawLatex(0.20,0.80,Form("|#eta| < %1.1f, #alpha=0.1--0.3",etamax));
+      else
+	tex->DrawLatex(0.20,0.80,Form("%1.1f < |#eta| < %1.1f, #alpha=0.1--0.3",
+				      etamin, etamax));
       TLegend *leg = tdrLeg(0.60,0.75,0.90,0.90);
 
       for (int  isample = 0; isample != nsamples; ++isample) {
@@ -316,7 +322,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	lumimap["H"] = "Run2016H, 8.8 fb^{-1}";
 	lumimap["GH"] = "Run2016FGH re-reco, 16.8 fb^{-1}";
 	lumimap["BCDEF"] = "Run2016BCDEF re-reco, 19.7 fb^{-1}";
+	lumimap["BCDEFGH"] = "Run2016BCDEFGH re-reco, 36.5 fb^{-1}";
 	lumimap["EF"] = "Run2016EF re-reco, 6.8 fb^{-1}";
+	lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
 	lumi_13TeV = lumimap[epoch];
 
 	TCanvas *c0 = tdrCanvas(Form("c0_%s_%s",cm,cd), h, 4, 11, true);
@@ -325,7 +333,13 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 	TLegend *leg = tdrLeg(0.55,0.68,0.85,0.83);
 	tex->DrawLatex(0.55,0.85,texlabel[cm]);
-	tex->DrawLatex(0.55,0.18,"|#eta| < 1.3, #alpha < 0.3");
+	//if (epoch!="L4") tex->DrawLatex(0.55,0.18,"|#eta| < 1.3, #alpha < 0.3");
+	//if (epoch=="L4") tex->DrawLatex(0.55,0.18,"|#eta| < 2.4, #alpha < 0.3");
+	if (etamin==0)
+	  tex->DrawLatex(0.55,0.18,Form("|#eta| < %1.1f, #alpha < 0.3",etamax));
+	else
+	  tex->DrawLatex(0.55,0.18,Form("%1.1f < |#eta| < %1.1f, #alpha < 0.3",
+					etamin, etamax));
 	//tex->DrawLatex(0.55,0.18,"Anti-k_{T} R=0.5");
 
 	// Loop over Z+jet and gamma+jet (only, no dijet/multijet)
@@ -339,7 +353,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  leg->AddEntry(g,texlabel[cs],"P");
 	} // for isample
 
-	if (etamin==0) {
+	if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1)) {
 	  c0->SaveAs(Form("pdf/%s/paper_softrad_%s_%s_vspt.pdf",cep,cd,cm));
 	  //c0->SaveAs(Form("pdfC/paper_softrad_%s_%s_vspt.C",cd,cm));
 	}
@@ -381,7 +395,12 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	h2->SetYTitle(Form("Response (%s)",cd));
 	h2->DrawClone("AXIS");
 	tex->DrawLatex(0.20,0.85,texlabel[cm]);
-	tex->DrawLatex(0.20,0.80,"|#eta| < 1.3");
+	//tex->DrawLatex(0.20,0.80,epoch=="L4" ? "|#eta| < 2.4" : "|#eta| < 1.3");
+	if (etamin==0)
+	  tex->DrawLatex(0.20,0.80,Form("|#eta| < %1.1f",etamax));
+	else
+	  tex->DrawLatex(0.20,0.80,Form("%1.1f < |#eta| < %1.1f",
+					etamin,etamax));
 	tex->DrawLatex(0.20,0.75,Form("%1.0f < p_{T} < %1.0f GeV",
 				      hpt1->GetBinLowEdge(ipad+1),
 				      hpt1->GetBinLowEdge(ipad+2)));
@@ -580,7 +599,13 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
       h3->SetYTitle(Form("k_{FSR} = dR/d#alpha (%s)",cd));
       h3->DrawClone("AXIS");
       tex->DrawLatex(0.20,0.85,texlabel[cm]);
-      tex->DrawLatex(0.20,0.80,"|#eta| < 1.3");
+      //if (epoch!="L4") tex->DrawLatex(0.20,0.80,"|#eta| < 1.3");
+      //if (epoch=="L4") tex->DrawLatex(0.20,0.80,"|#eta| < 2.4");
+      if (etamin==0)
+	tex->DrawLatex(0.20,0.80,Form("|#eta| < %1.1f",etamax));
+      else
+	tex->DrawLatex(0.20,0.80,Form("%1.1f < |#eta| < %1.1f",
+				      etamin,etamax));
       TLegend *leg = tdrLeg(0.60,0.75,0.90,0.90);
 
       for (int  isample = 0; isample != nsamples; ++isample) {

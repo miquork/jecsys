@@ -159,6 +159,8 @@ void multijet(bool usemjb = true, string epoch="") {
   fm_files["GH"] = "0113_Run2016Late";
   fm_files["BCDEF"] = "0113_Run2016Early";
   fm_files["BCDEFGH"] = "0113_Run2016All";
+  fm_files["L4"] = "0124_Run2016All_L4Res";
+  fm_files["L3"] = "0124_Run2016All_L3Res";
   TFile *f = new TFile(Form("rootfiles/multijet_2017%s.root",
 			    fm_files[epoch]),"READ");
   //
@@ -233,8 +235,10 @@ void multijet(bool usemjb = true, string epoch="") {
   TFile *fjes = new TFile(Form("rootfiles/jecdata%s.root",cep),"READ");
   assert(fjes && !fjes->IsZombie());
 
-  TH1D *herr = (TH1D*)fjes->Get("ratio/eta00-13/herr"); assert(herr);
-  TH1D *herr_ref = (TH1D*)fjes->Get("ratio/eta00-13/herr_ref");
+  TH1D *herr = (TH1D*)fjes->Get(epoch=="L4" ? "ratio/eta00-24/herr"
+				: "ratio/eta00-13/herr"); assert(herr);
+  TH1D *herr_ref = (TH1D*)fjes->Get(epoch=="L4" ? "ratio/eta00-24/herr_ref" :
+				    "ratio/eta00-13/herr_ref");
   assert(herr_ref);
   _herr = herr_ref;
 
@@ -887,8 +891,9 @@ void multijet(bool usemjb = true, string epoch="") {
       
       assert(fout->cd("ratio"));
       TDirectory *dout1 = fout->GetDirectory("ratio"); assert(dout1);
-      assert(dout1->cd("eta00-13"));
-      TDirectory *dout2 = dout1->GetDirectory("eta00-13"); assert(dout2);
+      assert(dout1->cd(epoch=="L4" ? "eta00-24" : "eta00-13"));
+      TDirectory *dout2 = dout1->GetDirectory(epoch=="L4" ? "eta00-24" :
+					      "eta00-13"); assert(dout2);
       dout2->cd();
       
       if (gm1) {
