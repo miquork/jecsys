@@ -73,12 +73,13 @@ The FSR+ISR corrections are further constrained in the global fit under the assu
 %Some notes about the results \verb|Summer16_23Sep2016V6[BCD,EF,G,H]|:
 Some notes about the results \verb|Summer16_03Feb2016H_V2|:
 \begin{itemize}
-\item Z+jet and $\gamma$+jet agree well on MC MPF, but...
-\item {\bf they do not agree on data} (at $p_T<300$~GeV)
-\item {\bf they do not agree on MC $p_T$ balance} (Z+jet has odd bump at $p_T\approx 105$~GeV
-\item and therefore result in high $\chi^2$ with large nuisance parameters shifts
-\item As a result, I'm not sure if the global fit result is reliable at $p_T<300$~GeV
-\but Good: Zee+jet and Z$\mu\mu$+jet agree (even on the MC $p_T$ balance humps?)
+\item Z+jet and $\gamma$+jet agree well on MC MPF, but differ 2\% on data; Why?
+\item Z+jet  and $\gamma$+jet difference on MC $p_T$ balance is due to comparing NLO+PS / multileg (Z+jet) to LO+PS ($\gamma$+jet); Plain Pythia8 overestimates FSR (while Pythia6 in Run I underestimated it)
+%\item {\bf they do not agree on data} (at $p_T<300$~GeV)
+%\item {\bf they do not agree on MC $p_T$ balance} (Z+jet has odd bump at $p_T\approx 105$~GeV
+%\item and therefore result in high $\chi^2$ with large nuisance parameters shifts
+%\item As a result, I'm not sure if the global fit result is reliable at $p_T<300$~GeV
+%\but Good: Zee+jet and Z$\mu\mu$+jet agree (even on the MC $p_T$ balance humps?)
 %\item BCDEF and GH differ significantly due to tracker dynamic inefficiency (TDI)
 %; their difference is also confirmed by direct data/data ratio
 %\item There is some evidence of EF scale being slightly lower (at most 0.4\%) than BCD; consistent with slightly higher TDI in later higher PU data?
@@ -329,6 +330,13 @@ Some notes about the results \verb|Summer16_03Feb2016H_V2|:
 \includegraphics[width=0.33\textwidth]{drawHvsG_mpfchs1_ptchs_nogjmpf.pdf}
 \end{figure}
 } % commentout
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=1.00\textwidth]{BCD/softrad_2x6_vspt.pdf}
+\end{figure}
 
 \newpage
 

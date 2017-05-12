@@ -26,7 +26,7 @@
   //"BCD";//"E";//"F";//"EF";//"G";//"H";//"GH";//"BCDEF";//BCDEFGH
   //"L4"; // for BCDEFGH closure test including |eta|<2.4
 
-  reprocess(epoch);
+  //reprocess(epoch); // Switched off for JetMET100
 
 
   // Calculate soft radiation (ISR+FSR) corrections

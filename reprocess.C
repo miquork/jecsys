@@ -444,7 +444,7 @@ void reprocess(string epoch="") {
 //   TFile *fzee = new TFile(Form("rootfiles/L3res_ee_Run2016%s.root",
 //   			       fz_files[epoch]),"READ");
 //
-  // Thomas Berger, May 7, 2017 (03Feb_L2ResV2 + some fixes?)
+  // Thomas Berger, May 12, 2017 (03Feb_L2ResV2 + fixes on May 7 files)
   // https://indico.cern.ch/event/636628/
     map<string,const char*> fz_files;
   fz_files["BCD"] = "BCD";
@@ -452,10 +452,10 @@ void reprocess(string epoch="") {
   fz_files["G"] = "G";
   fz_files["H"] = "H";
   TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s"
-			       "_JEC_03Feb2017_V2_2017-05-07.root",
+			       "_JEC_03Feb2017_V2_2017-05-11.root",
    			       fz_files[epoch]),"READ");
   TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s"
-			       "_JEC_03Feb2017_V2_2017-05-07.root",
+			       "_JEC_03Feb2017_V2_2017-05-11.root",
   			       fz_files[epoch]),"READ");
   //
   assert(fzmm && !fzmm->IsZombie());
@@ -717,9 +717,9 @@ void reprocess(string epoch="") {
 	    //if ((s=="zmmjet") &&
 	    //	fabs(eta1-0.0)<0.1 && fabs(eta2-1.3)<0.1) { eta2=0.8; }
 
-	    // Patch missing Z+jet a15 and a20
-	    if ((s=="zmmjet" || s=="zeejet") && (alpha==0.15 || alpha==0.20))
-	      alpha = 0.10;
+	    // Patch missing Z+jet a15 and a20 in May5 files
+	    //if ((s=="zmmjet" || s=="zeejet") && (alpha==0.15 || alpha==0.20))
+	    //alpha = 0.10;
 
 	    // If some subsets of data missing, patch (skip) here
 	    // gamjet missing non-CHS graphs
