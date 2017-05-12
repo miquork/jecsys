@@ -37,10 +37,13 @@ const bool _dcsonly = false;
 // Minimum pTcut for gamma+jet (raise to 60 GeV for MadGraph samples?)
 //double fpptmin(40.);   // photon+jet
 //double fpptmin(80.);   // photon+jet (pTbal issue in 80X-Sum16)
-double fpmpfptmin(30.);   // photon+jet (pTbal issue in 80X-Sum16)
-double fpbalptmin(30.);//80.);   // photon+jet (pTbal issue in 80X-Sum16)
+double fpmpfptmin(60.);   // photon+jet (pTbal issue in 80X-Sum16)
+double fpbalptmin(60);//30.);//80.);   // photon+jet (pTbal issue in 80X-Sum16)
 double fzeeptmin(30.); // Zee+jet
 double fzmmptmin(30.); // Zmm+jet
+// Additional cuts to Z+jet MPF / balance methods
+double fzmpfptmin(30.); // Z+jet MPF
+double fzbalptmin(60.); // Z+jet pT
 
 // Maximum pTcut for samples (to avoid bins with too large uncertainty)
 //double fpptmax(600.); // for eta>2
@@ -130,18 +133,43 @@ void reprocess(string epoch="") {
   //
   // Andrey Popov, Jan 13, 2017 (Summer16 MC)
   // https://cernbox.cern.ch/index.php/s/O4EfXPXx5kHTbO3
+  // map<string,const char*> fm_files;
+  // fm_files["BCD"] = "0113_Run2016BCD";
+  // fm_files["EF"] = "0113_Run2016EFearly";
+  // fm_files["G"] = "0113_Run2016FlateG";
+  // fm_files["H"] = "0113_Run2016H";
+  // fm_files["GH"] = "0113_Run2016Late";
+  // fm_files["BCDEF"] = "0113_Run2016Early";
+  // fm_files["BCDEFGH"] = "0113_Run2016All";
+  // fm_files["L4"] = "0124_Run2016All_L4Res"; // new Jan 24
+  // fm_files["L3"] = "0124_Run2016All_L3Res"; // new Jan 24
+  // TFile *fmj = new TFile(Form("rootfiles/multijet_2017%s.root",
+  // 			      fm_files[epoch]),"READ");
+  //
+  // Andrey Popov, March 29, 2017 (Summer16_L2ResV5)
+  // https://indico.cern.ch/event/627203/
+  // map<string,const char*> fm_files;
+  // fm_files["BCD"] = "0329_Run2016BCD";
+  // fm_files["EF"] = "0329_Run2016EFearly";
+  // fm_files["G"] = "0329_Run2016FlateG";
+  // fm_files["H"] = "0329_Run2016H";
+  // TFile *fmj = new TFile(Form("rootfiles/multijet_2017%s.root",
+  // 			      fm_files[epoch]),"READ");
+  //
+  // Andrey Popov, Apri 28, 2017 (Feb03_L2ResV2)
+  // https://indico.cern.ch/event/634367/
   map<string,const char*> fm_files;
-  fm_files["BCD"] = "0113_Run2016BCD";
-  fm_files["EF"] = "0113_Run2016EFearly";
-  fm_files["G"] = "0113_Run2016FlateG";
-  fm_files["H"] = "0113_Run2016H";
-  fm_files["GH"] = "0113_Run2016Late";
-  fm_files["BCDEF"] = "0113_Run2016Early";
-  fm_files["BCDEFGH"] = "0113_Run2016All";
-  fm_files["L4"] = "0124_Run2016All_L4Res"; // new Jan 24
-  fm_files["L3"] = "0124_Run2016All_L3Res"; // new Jan 24
+  fm_files["BCD"] = "0428_Run2016BCD"; // also update multijet.C
+  fm_files["EF"] = "0428_Run2016EFearly"; // also update multijet.C
+  fm_files["G"] = "0428_Run2016FlateG"; // also update multijet.C
+  fm_files["H"] = "0428_Run2016H"; // also update multijet.C
   TFile *fmj = new TFile(Form("rootfiles/multijet_2017%s.root",
-			      fm_files[epoch]),"READ");
+  			      fm_files[epoch]),"READ");
+  //
+  // Andrey Popov, April
+  // https://indico.cern.ch/event/634367/
+
+  //
   assert(fmj && !fmj->IsZombie());
   
   // On 01 Jun 2016, at 12:03, Federico Preiato
@@ -206,22 +234,62 @@ void reprocess(string epoch="") {
   // 
   // Federico Preiato, Jan 12, 2017 (Summer16 BCDEF, GH, no EGM corr)
   // https://indico.cern.ch/event/600723/
+  // map<string,const char*> fp_files;
+  // fp_files["BCD"] = "BCD";
+  // fp_files["EF"] = "EearlyF";
+  // fp_files["G"] = "LateFG";
+  // fp_files["H"] = "H";
+  // fp_files["GH"] = "LateFGH"; // new Dec 23, Jan 12
+  // fp_files["BCDEF"] = "BCDEearlyF"; // new Dec 23, Jan 12
+  // fp_files["BCDEFGH"] = "BCDEFGH"; // new Jan 16
+  // fp_files["L4"] = "BCDEFGH_L4ResV2"; // new Jan 19
+  // //TFile *fp = new TFile(Form("rootfiles/GammaJet_ReRecoRun2016%s_MCSummer16_"
+  // //		     "JECSummer16V1_NewEGammaCorrection.root",
+  // //		     fp_files[epoch]),"READ"); // heop off
+  // TFile *fp = new TFile(Form("rootfiles/GammaJet_ReRecoRun2016%s_MCSummer16_"
+  // 			     "JECSummer16V1.root",
+  // 			     fp_files[epoch]),"READ"); // heop on
+  //
+  // Hugues Lattaud, March 29, 2017 (Summer16_L2ResV5)
+  // https://indico.cern.ch/event/627203/
+  //map<string,const char*> fp_files;
+  //fp_files["BCD"] = "BCD";
+  //fp_files["EF"] = "EF";
+  //fp_files["G"] = "FG";
+  //fp_files["H"] = "H";
+  //TFile *fp = new TFile(Form("rootfiles/Gjet_run%s_JEC_summer16%sV5.root",
+  //			     fp_files[epoch],fp_files[epoch]),"READ"); // heop?
+  //
+  // Hugues Lattaud, April 4, 2017 (Summer16_L2ResV6 + EGM corr.)
+  // https://indico.cern.ch/event/627203/
+  // map<string,const char*> fp_files;
+  // fp_files["BCD"] = "BCD";
+  // fp_files["EF"] = "EF";
+  // fp_files["G"] = "FG";
+  // fp_files["H"] = "H";
+  // fp_files["BCDEFGH"] = "BCDEFGH";
+  // TFile *fp = new TFile(Form("rootfiles/Gjet_run%s_JEC_summer16%sV6.root",
+  // 			     fp_files[epoch],fp_files[epoch]),"READ");
+  //
+  // Hugues Lattaud, May 2, 2017 (03Feb_L3ResV2 + OLD regression)
+  // https://indico.cern.ch/event/634367/
+  // map<string,const char*> fp_files;
+  // fp_files["H"] = "H";
+  // //TFile *fp = new TFile(Form("rootfiles/Gjet_run%s_03feb2017_V2"
+  // //			     "_OLDRegression.root", fp_files[epoch]),"READ");
+  // TFile *fp = new TFile(Form("rootfiles/Gjet_run%s_03feb2017_V2.root",
+  // 			     fp_files[epoch]),"READ");
+  //
+  // Hugues Lattaud, May 6, 2017 (03Feb_L2ResV2 + TESTB)
+  // https://indico.cern.ch/event/636628/
   map<string,const char*> fp_files;
   fp_files["BCD"] = "BCD";
-  fp_files["EF"] = "EearlyF";
-  fp_files["G"] = "LateFG";
+  fp_files["EF"] = "EFearly";
+  fp_files["G"] = "FlateG";
   fp_files["H"] = "H";
-  fp_files["GH"] = "LateFGH"; // new Dec 23, Jan 12
-  fp_files["BCDEF"] = "BCDEearlyF"; // new Dec 23, Jan 12
-  fp_files["BCDEFGH"] = "BCDEFGH"; // new Jan 16
-  fp_files["L4"] = "BCDEFGH_L4ResV2"; // new Jan 19
-  //TFile *fp = new TFile(Form("rootfiles/GammaJet_ReRecoRun2016%s_MCSummer16_"
-  //		     "JECSummer16V1_NewEGammaCorrection.root",
-  //		     fp_files[epoch]),"READ"); // heop off
-  TFile *fp = new TFile(Form("rootfiles/GammaJet_ReRecoRun2016%s_MCSummer16_"
-			     "JECSummer16V1.root",
-			     fp_files[epoch]),"READ"); // heop on
-  //
+  TFile *fp = new TFile(Form("rootfiles/Gjet_run%s_TESTB_03feb2017_V2.root",
+  			     fp_files[epoch]),"READ");
+
   assert(fp && !fp->IsZombie());
 
   // Patch of photon E/p (80XV8prompt, 80XV1rereco)
@@ -293,29 +361,106 @@ void reprocess(string epoch="") {
   //
   // Thomas Berger, Dec 20, 2017 (Summer16 MC)
   // https://indico.cern.ch/event/595771/contributions/2408234/attachments/1390841/2119684/jec_combination_CHS_Zll_rereco_20-12-2016.tar.gz
-  assert(epoch=="BCD" || epoch=="EF" || epoch=="G" || epoch=="H" 
-	 || epoch=="GH" || epoch=="BCDEF" || epoch=="BCDEFGH" || epoch=="L4");
-  map<string,const char*> fz_files;
-  fz_files["BCD"] = "rereco_BCD_20161222";
-  fz_files["EF"] = "rereco_EF_20161222";
-  fz_files["G"] = "rereco_G_20161222";
-  fz_files["H"] = "rereco_H_20161222";
-  //fz_files["GH"] = "rereco_G_20161222"; // clone G
-  //fz_files["BCDEF"] = "rereco_BCD_20161222"; // clone BCD
-  fz_files["GH"] = "rereco_GH_20170109"; // new
-  fz_files["BCDEF"] = "rereco_BCDEF_20170109"; // new
-  fz_files["BCDEFGH"] = "rereco_BCDEFGH_20170115"; // new Jan 17
-  //fz_files["L4"] = "rereco_BCDEFGH_20170124_L4Res"; // new Jan 24
-  fz_files["L4"] = "rereco_BCDEFGH_20170201mad_L4Res"; // new Feb 1
-  //fz_files["L4"] = "rereco_BCDEFGH_20170130_L4Res"; // new Jan 30, aMCNLO
-  TFile *fzmm = new TFile(Form("rootfiles/jec_combination_CHS_Zmm_%s.root",
-			       fz_files[epoch]),"READ");
-  TFile *fzee = new TFile(Form("rootfiles/jec_combination_CHS_Zee_%s.root",
-			       fz_files[epoch]),"READ");
+  // assert(epoch=="BCD" || epoch=="EF" || epoch=="G" || epoch=="H" 
+  // 	 || epoch=="GH" || epoch=="BCDEF" || epoch=="BCDEFGH" || epoch=="L4");
+  // map<string,const char*> fz_files;
+  // fz_files["BCD"] = "rereco_BCD_20161222";
+  // fz_files["EF"] = "rereco_EF_20161222";
+  // fz_files["G"] = "rereco_G_20161222";
+  // fz_files["H"] = "rereco_H_20161222";
+  // //fz_files["GH"] = "rereco_G_20161222"; // clone G
+  // //fz_files["BCDEF"] = "rereco_BCD_20161222"; // clone BCD
+  // fz_files["GH"] = "rereco_GH_20170109"; // new
+  // fz_files["BCDEF"] = "rereco_BCDEF_20170109"; // new
+  // fz_files["BCDEFGH"] = "rereco_BCDEFGH_20170115"; // new Jan 17
+  // //fz_files["L4"] = "rereco_BCDEFGH_20170124_L4Res"; // new Jan 24
+  // fz_files["L4"] = "rereco_BCDEFGH_20170201mad_L4Res"; // new Feb 1
+  // //fz_files["L4"] = "rereco_BCDEFGH_20170130_L4Res"; // new Jan 30, aMCNLO
+  // TFile *fzmm = new TFile(Form("rootfiles/jec_combination_CHS_Zmm_%s.root",
+  // 			       fz_files[epoch]),"READ");
+  // TFile *fzee = new TFile(Form("rootfiles/jec_combination_CHS_Zee_%s.root",
+  // 			       fz_files[epoch]),"READ");
+  //
+  // From Thomas Berger, March 30, 2017 (Summer16 L2ResV5)
+  // https://indico.cern.ch/event/627203/
+  // assert(epoch=="BCD" || epoch=="EF" || epoch=="G" || epoch=="H");
+  // map<string,const char*> fz_files;
+  // fz_files["BCD"] = "BCD";
+  // fz_files["EF"] = "EF";
+  // fz_files["G"] = "G";
+  // fz_files["H"] = "H";
+  // TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s"
+  // 			       "_JECv5_2017-03-30.root",
+  // 			       fz_files[epoch]),"READ");
+  // TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s"
+  // 			       "_JECv5_2017-03-30.root",
+  // 			       fz_files[epoch]),"READ");
+  //
+  // On 5 Apr 2017, at 20.06, Thomas Berger (TB)
+  // Re: Electron / muon corrections
+  // map<string,const char*> fz_files;
+  // fz_files["BCD"] = "BCD";
+  // fz_files["EF"] = "EF";
+  // fz_files["G"] = "G";
+  // fz_files["H"] = "H";
+  // TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s"
+  //  			       "_JECv5_2017-04-05.root",
+  //  			       fz_files[epoch]),"READ");
+  // TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s"
+  // 			       "_JECv5_2017-04-05.root",
+  //  			       fz_files[epoch]),"READ");
+  //
+  // Thomas Berger, April 27 (03Feb_L2ResV1)
+  // https://indico.cern.ch/event/634367/
+  // map<string,const char*> fz_files;
+  // fz_files["H"] = "H";
+  // TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s"
+  //  			       "_JEC_03Feb2017_V1_2017-04-27.root",
+  //  			       fz_files[epoch]),"READ");
+  // TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s"
+  // 			       "_JEC_03Feb2017_V1_2017-04-27.root",
+  // 			       fz_files[epoch]),"READ");
+  //
+  // Thomas Berger, May 2 (03Feb_L2ResV2)
+  // https://indico.cern.ch/event/634367/
+  // map<string,const char*> fz_files;
+  // fz_files["H"] = "H";
+  // TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s"
+  // 			       "_JEC_03Feb2017_V2_2017-05-02.root",
+  //  			       fz_files[epoch]),"READ");
+  // TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s"
+  // 			       "_JEC_03Feb2017_V2_2017-05-02.root",
+  // 			       fz_files[epoch]),"READ");
+  //
+  // On 11 Apr 2017, at 8.26, Robert Schoefbeck (RS)
+  //
+//   map<string,const char*> fz_files;
+//   fz_files["BCD"] = "BCD";
+//   fz_files["EF"] = "EFearly";
+//   fz_files["G"] = "FlateG";
+//   fz_files["H"] = "H";
+//   TFile *fzmm = new TFile(Form("rootfiles/L3res_mumu_Run2016%s.root",
+//   			       fz_files[epoch]),"READ");
+//   TFile *fzee = new TFile(Form("rootfiles/L3res_ee_Run2016%s.root",
+//   			       fz_files[epoch]),"READ");
+//
+  // Thomas Berger, May 7, 2017 (03Feb_L2ResV2 + some fixes?)
+  // https://indico.cern.ch/event/636628/
+    map<string,const char*> fz_files;
+  fz_files["BCD"] = "BCD";
+  fz_files["EF"] = "EF";
+  fz_files["G"] = "G";
+  fz_files["H"] = "H";
+  TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s"
+			       "_JEC_03Feb2017_V2_2017-05-07.root",
+   			       fz_files[epoch]),"READ");
+  TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s"
+			       "_JEC_03Feb2017_V2_2017-05-07.root",
+  			       fz_files[epoch]),"READ");
   //
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
-  
+
 
   // On 28 Feb 2014, at 14:00, from Dominik Haitz
   // Re: pT~200 GeV
@@ -331,18 +476,25 @@ void reprocess(string epoch="") {
   assert(fmzmm && !fmzmm->IsZombie());
 
   // This is used for scaling Z mass back to 1 for Zee and Zmm
-  string sr = (epoch=="L4" ? "eta_00_24" : "eta_00_13");
-  const char *cr = sr.c_str();
+  string sr = (epoch=="L4" ? "eta_00_24" : "eta_00_13"); // Sum16V4,V6
+  //string sr = "eta_00_24"; // Summer16 L2ResV5
+  const char *cr = sr.c_str(); // TB:
   TH1D *hmzee = (TH1D*)fmzee->Get(Form("Ratio_ZMass_CHS_a30_%s_L1L2L3",cr));
   TH1D *hmzmm = (TH1D*)fmzmm->Get(Form("Ratio_ZMass_CHS_a30_%s_L1L2L3",cr));
+  //TH1D *hmzee = (TH1D*)fmzee->Get("Ratio_ZMass_L1L2L3"); // RS
+  //TH1D *hmzmm = (TH1D*)fmzmm->Get("Ratio_ZMass_L1L2L3"); // RS
   assert(hmzee);
-  assert(hmzmm);
+  assert(hmzmm); // TB:
   TH1D *hmzee_dt = (TH1D*)fmzee->Get(Form("Data_ZMass_CHS_a30_%s_L1L2L3",cr));
   TH1D *hmzmm_dt = (TH1D*)fmzmm->Get(Form("Data_ZMass_CHS_a30_%s_L1L2L3",cr));
+  //TH1D *hmzee_dt = (TH1D*)fmzee->Get("Data_ZMass_L1L2L3"); // RS
+  //TH1D *hmzmm_dt = (TH1D*)fmzmm->Get("Data_ZMass_L1L2L3"); // RS
   assert(hmzee_dt);
-  assert(hmzmm_dt);
+  assert(hmzmm_dt); // TB:
   TH1D *hmzee_mc = (TH1D*)fmzee->Get(Form("MC_ZMass_CHS_a30_%s_L1L2L3",cr));
   TH1D *hmzmm_mc = (TH1D*)fmzmm->Get(Form("MC_ZMass_CHS_a30_%s_L1L2L3",cr));
+  //TH1D *hmzee_mc = (TH1D*)fmzee->Get("MC_ZMass_L1L2L3"); // RS
+  //TH1D *hmzmm_mc = (TH1D*)fmzmm->Get("MC_ZMass_L1L2L3"); // RS
   assert(hmzee_mc);
   assert(hmzmm_mc);
 
@@ -557,6 +709,18 @@ void reprocess(string epoch="") {
 	    //if ((s=="zmmjet" || s=="zeejet") && epoch=="L4" &&
 	    //fabs(eta1-0.0)<0.1 && fabs(eta2-2.4)<0.1) { eta2=1.3; }
 
+	    // Patch missing 0-1.3 with 0-2.4 for Z+jet with Summer16 L2ResV5
+	    //if ((s=="zmmjet" || s=="zeejet") &&
+	    //	fabs(eta1-0.0)<0.1 && fabs(eta2-1.3)<0.1) { eta2=0.8; }//2.4; }
+
+	    // Patch missing 0-1.3 with 0-0.8 for Z+jet with Summer16 L2ResV6
+	    //if ((s=="zmmjet") &&
+	    //	fabs(eta1-0.0)<0.1 && fabs(eta2-1.3)<0.1) { eta2=0.8; }
+
+	    // Patch missing Z+jet a15 and a20
+	    if ((s=="zmmjet" || s=="zeejet") && (alpha==0.15 || alpha==0.20))
+	      alpha = 0.10;
+
 	    // If some subsets of data missing, patch (skip) here
 	    // gamjet missing non-CHS graphs
 	    //if (s=="gamjet" && (t=="mpf" || t=="mpf1" || t=="pt"))
@@ -579,10 +743,15 @@ void reprocess(string epoch="") {
 	    } // gamjet
 	    if (s=="zmmjet" || s=="zeejet") {
 	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2L3",
-		       rename[s][d], rename[s][t], 100.*alpha,
-		       10.*eta1, 10.*eta2);
+	    	       rename[s][d], rename[s][t], 100.*alpha,
+	    	       10.*eta1, 10.*eta2); // TB
+	    } // Z+jet (TB)
+// 	    if (s=="zmmjet" || s=="zeejet") {
+// 	      c = Form("%s_%s_a%1.0f_eta_%02.0f00_%02.0f00_L1L2L3",
+// 	    	       rename[s][d], rename[s][t], 100.*alpha,
+// 	    	       10.*eta1, 10.*eta2); // RS
 		       
-	    } // zmmjet
+// 	    } // Z+jet (RS)
 	    assert(c);
 
 	    TObject *obj = f->Get(c);
@@ -623,6 +792,12 @@ void reprocess(string epoch="") {
 	      else if (s=="zmmjet" && 
 		       (g->GetX()[i]<fzmmptmin || g->GetX()[i]>fzmmptmax))
 		g->RemovePoint(i);
+	      else if ((s=="zmmjet" || s=="zeejet") && t=="mpfchs1" &&
+		       (g->GetX()[i]<fzmpfptmin))
+		g->RemovePoint(i);
+	      else if ((s=="zmmjet" || s=="zeejet") && t=="ptchs" &&
+		       (g->GetX()[i]<fzbalptmin))
+		g->RemovePoint(i);
 	      // Remove bad point from zmmjet MPF and pT balance at 600
 	      //else if (s=="zmmjet" && t=="mpfchs1" && d=="ratio" &&
 	      //else if (s=="zmmjet" && d=="ratio" &&
@@ -634,7 +809,8 @@ void reprocess(string epoch="") {
 	    } // for i
 
 	    // patch Z+jet pT ratio uncertainty (80X-590/pb)
-	    if ((s=="zeejet" || s=="zmmjet") && d=="ratio") {
+	    if ((s=="zeejet" || s=="zmmjet") && d=="ratio") { // TB
+	      //if (false && (s=="zeejet" || s=="zmmjet") && d=="ratio") { // RS
 
 	      TGraphErrors *gfixd = grs["data"][t][s][ieta][ialpha];
 	      TGraphErrors *gfixm = grs["mc"][t][s][ieta][ialpha];
@@ -725,13 +901,13 @@ void reprocess(string epoch="") {
 	      }
 
 	      for (int i = g->GetN()-1; i != -1; --i) {
-		// Clean out spurious empty pooints
+		// Clean out spurious empty points
 		if (g->GetY()[i]==0 && g->GetEY()[i]==0) g->RemovePoint(i);
 	      }
 	    } // patch missing multijet ratio
 
 	    // Patch photon E/p from Marco Cipriani (80X)
-	    if (s=="gamjet" && (d=="data" || d=="ratio")) {
+	    if (false && s=="gamjet" && (d=="data" || d=="ratio")) {
 
 	      for (int i = 0; i != g->GetN(); ++i) {
 
@@ -741,8 +917,8 @@ void reprocess(string epoch="") {
 		double ey = g->GetEY()[i];
 		// scale off for pTbal in 80XV1re+Sum16
 		//double scale = (t=="ptchs" ? 1 : heop->Interpolate(pt));//tmp
-		//double scale = 1;
-		double scale = heop->Interpolate(pt);
+		double scale = 1; // no scaling, but keep uncertainty, Sum16V5
+		//double scale = heop->Interpolate(pt); // Sum16V4
 		double escale = heope->Interpolate(pt);
 		g->SetPoint(i, pt, scale*y);
 		g->SetPointError(i, ex, sqrt(pow(ey*scale,2)+pow(escale*y,2)));
@@ -889,7 +1065,8 @@ void reprocess(string epoch="") {
       //s = Form("%s/Spring16_23Sep2016%sV1_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "GH" : ce); // 80XreV1
       //s = Form("%s/Spring16_23Sep2016%sV1_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH"||epoch=="BCDEFGH" ? "GH" : (epoch=="EF" ? "E" : (epoch=="BCDEF" ? "BCD" : ce))); // 80XreV1+Sum16 pre
       //s = Form("%s/Summer16_23Sep2016%sV1_DATA_L2Residual_AK4PFchs.txt",cd,epoch=="GH" ? "G" : ce); // 80XreV1+Sum16
-      s = Form("%s/Summer16_23Sep2016%sV2_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ? "BCD" : ce))); // Sum16
+      //s = Form("%s/Summer16_23Sep2016%sV2_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ? "BCD" : ce))); // Sum16
+      s = Form("%s/Summer16_23Sep2016%sV3_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ? "BCD" : ce))); // Sum16
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -920,7 +1097,8 @@ void reprocess(string epoch="") {
       //s = Form("%s/Spring16_25nsV7%s_DATA_L2Residual_AK4PFchs.txt",cd,ce); // 80X V7
       //s = Form("%s/Spring16_25nsV8%s_DATA_L2Residual_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "p2" : ce); // 80XV8
       //s = Form("%s/Spring16_23Sep2016%sV1_DATA_L2Residual_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "GH" : ce); // 80XreV1
-      s = Form("%s/Summer16_23Sep2016%sV1_DATA_L2Residual_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); // 80XreV1+Sum16
+      //s = Form("%s/Summer16_23Sep2016%sV1_DATA_L2Residual_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); // 80XreV1+Sum16
+      s = Form("%s/Summer16_03Feb2017%s_V2_DATA_L2Residual_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce));
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -937,7 +1115,8 @@ void reprocess(string epoch="") {
       //s = Form("%s/Spring16_25nsV7%s_DATA_L1RC_AK4PFchs.txt",cd,ce); // 80X VV7
       //s = Form("%s/Spring16_25nsV8%s_DATA_L1RC_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "p2" : ce); // 80XV8
       //s = Form("%s/Spring16_23Sep2016%sV1_DATA_L1RC_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "GH" : ce); // 80XreV1
-      s = Form("%s/Summer16_23Sep2016%sV1_DATA_L1RC_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); // 80XreV1+Sum16
+      //s = Form("%s/Summer16_23Sep2016%sV1_DATA_L1RC_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); // 80XreV1+Sum16
+      s = Form("%s/Summer16_03Feb2017%s_V2_DATA_L1RC_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce));
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -952,7 +1131,8 @@ void reprocess(string epoch="") {
       //s = Form("%s/Spring16_25nsV7%s_DATA_L1FastJet_AK4PFchs.txt",cd,ce); // 80X V7
       //s = Form("%s/Spring16_25nsV8%s_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "p2" : ce); // 80XV8
       //s = Form("%s/Spring16_23Sep2016%sV1_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "GH" : ce); // 80XreV1
-      s = Form("%s/Summer16_23Sep2016%sV1_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); // 80XreV1+Sum16
+      //s = Form("%s/Summer16_23Sep2016%sV1_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); // 80XreV1+Sum16
+      s = Form("%s/Summer16_03Feb2017%s_V2_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); 
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;

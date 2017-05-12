@@ -253,8 +253,8 @@ void deriveL2ResNarrow() {
   // Effective prescales for RunFLateG_rereco from Engin root tuple
   //152728, 152655, 152261, 151443, 149893, 146976, 141570, 129504, 20007, 19543.2, 18588.5, 16868.2, 1986.39, 1902.99, 1758.02, 564.405, 511.402, 66.7384, 61.396, 22.0983, 20.2887, 7.31431, 6.60524,
   //double trigpre[ntrg] = {152728, 129504, 20007, 1986, 564.4, 66.74, 22.10, 7.314, 1};
-  //double trigpre[ntrg] = {152728, 50000, 20007, 1986, 564.4, 66.74, 22.10, 7.314, 1};
-  double trigpre[ntrg] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+  double trigpre[ntrg] = {152728, 50000, 20007, 1986, 564.4, 66.74, 22.10, 7.314, 1};
+  //double trigpre[ntrg] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
   _htrg = new TH1D("htrg",";p_{T};prescale;",ntrg,trigpt);
   for (int i = 1; i != _htrg->GetNbinsX()+1; ++i) {
     _htrg->SetBinContent(i, trigpre[i-1]);
@@ -379,7 +379,8 @@ void deriveL2ResNarrow() {
 l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
 
   TDirectory *curdir = gDirectory;
-  TFile *fd = new TFile("rootfiles/output_RunGV6x/output-DATA-2b.root","READ");
+  TFile *fd = new TFile("rootfiles/output_RunFlateG_Feb03V0/nol2l3res/output-DATA-2b.root","READ");
+  //TFile *fd = new TFile("rootfiles/output_RunGV6x/output-DATA-2b.root","READ");
   //TFile *fd = new TFile("rootfiles/output_RunGV6/output-DATA-2b.root","READ");
   //TFile *fd = new TFile("rootfiles/output_RunGV6/output-DATA-2b-noL2Res.root",
   //		"READ");
@@ -388,7 +389,8 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   //TFile *fd = new TFile("rootfiles/output_RunGV3/output-DATA-2b.root","READ");
   //TFile *fd = new TFile("rootfiles/output_RunG_old/output-DATA-2b.root","READ");
   assert(fd && !fd->IsZombie());
-  TFile *fm = new TFile("rootfiles/output_RunGV6x/output-MC-2b.root","READ");
+  TFile *fm = new TFile("rootfiles/output_RunFlateG_Feb03V0/output-MC-2b.root","READ");
+  //TFile *fm = new TFile("rootfiles/output_RunGV6x/output-MC-2b.root","READ");
   //TFile *fm = new TFile("rootfiles/output_RunGV6/output-MC-2b.root","READ");
   //TFile *fm = new TFile("rootfiles/output_RunGV5/output-MC-2b.root","READ");
   //TFile *fm = new TFile("rootfiles/output_RunGV3/output-MC-2b.root","READ");
@@ -409,7 +411,8 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
 
   //const char *cd = "Standard";
   //const char *ce0 = "Eta_0.0-1.3"; // Does this make a difference? Event counts?
-  const char *cd = "FullEta";
+  //const char *cd = "FullEta";
+  const char *cd = "FullEta_Reco";
   const char *ce0 = "";
   //string se = Form("Eta_%1.1f-%1.1f",y1,y2);
   string se = Form("Eta_%1.3f-%1.3f",y1,y2);
@@ -552,7 +555,8 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   if (stp=="tp") hdw->SetXTitle("p_{T,tag}");
 
 
-  lumi_13TeV = "RunG";
+  //lumi_13TeV = "RunG";
+  lumi_13TeV = "RunG 03FebV0";
   TCanvas *c2 = tdrDiCanvas("c2",hup,hdw,4,11);
 
   c2->cd(1);
@@ -591,18 +595,18 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   f1mb->Draw("SAME");
 
   // Check estimated resolution bias
-  TF1 *fddpt = new TF1("fddpt",deltaPt,fitxmin,xmax,3);
-  fddpt->SetParameters(0.65,0.5*(y1+y2), 1);//0.0, 2.5, 1);
-  fddpt->SetLineStyle(kDotted);
-  fddpt->SetLineColor(kGreen+2);
-  fddpt->SetLineWidth(2);
-  fddpt->Draw("SAME");
-  TF1 *fmdpt = new TF1("fmdpt",deltaPt,fitxmin,xmax,3);
-  fmdpt->SetParameters(0.65, 0.5*(y1+y2), 0);//0.0, 2.5, 0);
-  fmdpt->SetLineStyle(kDotted);
-  fmdpt->SetLineColor(kMagenta+1);
-  fmdpt->SetLineWidth(2);
-  fmdpt->Draw("SAME");
+  //TF1 *fddpt = new TF1("fddpt",deltaPt,fitxmin,xmax,3);
+  //fddpt->SetParameters(0.65,0.5*(y1+y2), 1);//0.0, 2.5, 1);
+  //fddpt->SetLineStyle(kDotted);
+  //fddpt->SetLineColor(kGreen+2);
+  //fddpt->SetLineWidth(2);
+  //fddpt->Draw("SAME");
+  //TF1 *fmdpt = new TF1("fmdpt",deltaPt,fitxmin,xmax,3);
+  //fmdpt->SetParameters(0.65, 0.5*(y1+y2), 0);//0.0, 2.5, 0);
+  //fmdpt->SetLineStyle(kDotted);
+  //fmdpt->SetLineColor(kMagenta+1);
+  //fmdpt->SetLineWidth(2);
+  //fmdpt->Draw("SAME");
   
   TLatex *tex = new TLatex();
   tex->SetTextSize(0.045);
@@ -688,7 +692,7 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   f2bz->SetLineColor(kRed);
   f2bz->Draw("SAME");
 
-  tdrDraw(gz,"Pz",kOpenSquare,kGreen+2);
+  //tdrDraw(gz,"Pz",kOpenSquare,kGreen+2);
 
 
   c2->SaveAs(Form("pdf/deriveL2ResNarrow_%s_amax%1.0f%s.pdf",
@@ -696,11 +700,11 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
 
 
   TH1D *hup3 = new TH1D("hup3",";p_{T,ave} (GeV);#sigma(asymmetry)",
-			1940,60,2000);
+			1970,30,2000);
   hup3->SetMaximum(0.3);//0.5);
   hup3->SetMinimum(0.+1e-4);
   TH1D *hdw3 = new TH1D("hdw3",";p_{T,ave} (GeV);Data/MC",
-		       1940,60,2000);
+		       1970,30,2000);
   hdw3->SetMaximum(1+0.5-1e-4);
   hdw3->SetMinimum(1-0.3+1e-4);
   hdw3->GetXaxis()->SetMoreLogLabels();
@@ -762,28 +766,28 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
 
   fjer->SetLineStyle(kDotted);
   fjer->SetLineColor(kBlack);
-  fjer->SetLineWidth(2);
+  fjer->SetLineWidth(3);//2);
   fjer->Draw("SAME");
 
   fspli->SetLineStyle(kDashed);
   fspli->SetLineColor(kCyan+2);
-  fspli->Draw("SAME");
+  //fspli->Draw("SAME");
   fsjer->SetLineStyle(kDotted);
   fsjer->SetLineColor(kGreen+2);
   fsjer->SetLineWidth(2);
-  fsjer->Draw("SAME");
+  //fsjer->Draw("SAME");
   fspu->SetLineStyle(kDashDotted);
   fspu->SetLineColor(kOrange+2);
-  fspu->Draw("SAME");
+  //fspu->Draw("SAME");
 
-  if (stp=="tp") 
-    tex->DrawLatex(0.50,0.50,Form("PLI: %1.2f #times p_{T,tag}^{%1.3f}",
-				  fspli->GetParameter(0),
-				  fspli->GetParameter(1)));
-  else
-    tex->DrawLatex(0.50,0.50,Form("PLI: %1.2f #times p_{T,ave}^{%1.3f}",
-				  fspli->GetParameter(0),
-				  fspli->GetParameter(1)));
+  //if (stp=="tp") 
+  //tex->DrawLatex(0.50,0.50,Form("PLI: %1.2f #times p_{T,tag}^{%1.3f}",
+  //			  fspli->GetParameter(0),
+  //			  fspli->GetParameter(1)));
+  //else
+  //tex->DrawLatex(0.50,0.50,Form("PLI: %1.2f #times p_{T,ave}^{%1.3f}",
+  //			  fspli->GetParameter(0),
+  //			  fspli->GetParameter(1)));
 
   fsda->SetLineColor(kBlue);
   fsda->Draw("SAME");
@@ -804,11 +808,12 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   tex->DrawLatex(0.40,0.75,Form("#alpha < %1.2f",alphamax));
   if (stp=="tp") tex->DrawLatex(0.60,0.75,"(tp)");
 
-  TLegend *leg3up = tdrLeg(0.7,0.66,0.9,0.88);
+  TLegend *leg3up = tdrLeg(0.7,0.60,0.9,0.88);
   leg3up->AddEntry(h1db,"#LTB#GT_{data}","PL");
   leg3up->AddEntry(h1mb,"#LTB#GT_{MC}","PL");
   leg3up->AddEntry(h1da,"#LTA#GT_{data}","PL");
   leg3up->AddEntry(h1ma,"#LTA#GT_{MC}","PL");
+  leg3up->AddEntry(fjer,"JER/#sqrt{2}","L");
 
 
   c3->cd(2);
@@ -877,13 +882,14 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
 
   //hnda->Scale(1./(2*36e6));
   hnma->Scale(ntot/20e6); // pThat bins require /20e6
+  hnma->Scale(1e-9);
 
   TH1D *hnda2 = (TH1D*)hnda->Clone("hnda2");
   for (int i = 1; i != hnda->GetNbinsX()+1; ++i) {
     int j = _htrg->FindBin(hnda->GetBinCenter(i));
     double pre = _htrg->GetBinContent(j);
-    hnda2->SetBinContent(i, hnda->GetBinContent(i)*pre);
-    hnda2->SetBinError(i, hnda->GetBinError(i)*pre);
+    hnda2->SetBinContent(i, hnda->GetBinContent(i)/pre);
+    hnda2->SetBinError(i, hnda->GetBinError(i)/pre);
   }
   hnda2->Fit(fpt,"QRN");
 
@@ -998,6 +1004,8 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   c5->SaveAs(Form("pdf/deriveL2ResNarrow_Xsec_%s_amax%1.0f%s.pdf",
 		  ce2,alphamax*100,ctp));
 
-  return l2fit(f2b->GetChisquare(), f2b->GetNDF(), f2b, emat);
+  //return l2fit(f2b->GetChisquare(), f2b->GetNDF(), f2b, emat); // MPF
+  // Use pT balance until MET fixed in SMP-J tuples
+  return l2fit(f2a->GetChisquare(), f2a->GetNDF(), f2a, emat); // pTbal
 
 } // deriveL2ResNarrow_x

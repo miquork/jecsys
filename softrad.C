@@ -72,9 +72,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   const int nalphas = 4;
   const int alphas[nalphas] = {30, 20, 15, 10};
   // TEMP TEMP TEMP
-  // For Run 2 gamma+jet sample compatibility
-  //const int nalphas = 3;
-  //const int alphas[nalphas] = {30, 20, 10};
+  // Temporary Z+jet patch
+  //const int nalphas = 2;
+  //const int alphas[nalphas] = {30, 10};
   //
 
   // new^2: 30 40 *50* 60 85 *105* 130 175 *230* 300 400 500 700 1000 1500
@@ -123,8 +123,10 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
   map<string,const char*> texlabel;
   texlabel["gamjet"] = "#gamma+jet";
-  texlabel["zeejet"] = "Z(#rightarrowee)+jet";
-  texlabel["zmmjet"] = "Z(#rightarrow#mu#mu)+jet";
+  texlabel["zeejet"] = "Z(#rightarrowee)+jet";// TB";
+  //texlabel["zeejet"] = "Z(#rightarrowee)+jet RS";
+  texlabel["zmmjet"] = "Z(#rightarrow#mu#mu)+jet";// TB";
+  //texlabel["zmmjet"] = "Z(#rightarrow#mu#mu)+jet RS";
   texlabel["dijet"] = "Dijet";
   texlabel["ptchs"] = "p_{T} balance (CHS)";
   texlabel["mpfchs"] = "MPF raw (CHS)";
@@ -315,15 +317,15 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	//lumimap["E"] = "Run2016E, 4.0 fb^{-1}";
 	//lumimap["F"] = "Run2016F, 3.1 fb^{-1}";
 	//lumimap["G"] = "Run2016G, 7.1 fb^{-1}";
-	lumimap["BCD"] = "Run2016BCD re-reco, 12.9 fb^{-1}";
-	lumimap["E"] = "Run2016E re-reco, 4.0 fb^{-1}";
-	lumimap["F"] = "Run2016F re-reco, 2.8 fb^{-1}";//3.1 fb^{-1}";
-	lumimap["G"] = "Run2016FG re-reco, 8.0 fb^{-1}";
-	lumimap["H"] = "Run2016H, 8.8 fb^{-1}";
-	lumimap["GH"] = "Run2016FGH re-reco, 16.8 fb^{-1}";
-	lumimap["BCDEF"] = "Run2016BCDEF re-reco, 19.7 fb^{-1}";
-	lumimap["BCDEFGH"] = "Run2016BCDEFGH re-reco, 36.5 fb^{-1}";
-	lumimap["EF"] = "Run2016EF re-reco, 6.8 fb^{-1}";
+	lumimap["BCD"] = "Run2016BCD re-mAOD, 12.9 fb^{-1}";
+	lumimap["E"] = "Run2016E re-mAOD, 4.0 fb^{-1}";
+	lumimap["F"] = "Run2016F re-mAOD, 2.8 fb^{-1}";//3.1 fb^{-1}";
+	lumimap["G"] = "Run2016FG re-mAOD, 8.0 fb^{-1}";
+	lumimap["H"] = "Run2016H re-mAOD, 8.8 fb^{-1}";
+	lumimap["GH"] = "Run2016FGH re-mAOD, 16.8 fb^{-1}";
+	lumimap["BCDEF"] = "Run2016BCDEF re-mAOD, 19.7 fb^{-1}";
+	lumimap["BCDEFGH"] = "Run2016BCDEFGH re-mAOD, 36.5 fb^{-1}";
+	lumimap["EF"] = "Run2016EF re-mAOD, 6.8 fb^{-1}";
 	lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
 	lumi_13TeV = lumimap[epoch];
 

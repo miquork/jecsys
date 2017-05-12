@@ -30,6 +30,7 @@
 using namespace std;
 
 bool dofsr = true; // correct for FSR
+double ptreco = 15.; // min jet pT when evaluating alphamax
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
 bool _paper = true;
 //double _cleanUncert = 0.05; // for eta>2
@@ -87,9 +88,10 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   // Initialize L1FastJet-L1RC difference
   if (!fl1) fl1 = new TF1("fl1","1-([0]+[1]*log(x))/x",10,3500);
   //fl1->SetParameters(0.553999, -8.10939e-03);
-  fl1->SetParameters(1.79089e-01, 1.89377e-01); // 80XV1re+Sum16 hl1bias
   //fl1->SetParameters(0., 1.89377e-01); // 80XV1re+Sum16 hl1bias (log(pT) only)
   //fl1->SetParameters(0.5, 0.); // Z+jet UE
+  //fl1->SetParameters(1.79089e-01, 1.89377e-01); // 80XV1re+Sum16 hl1bias
+  fl1->SetParameters(2.60382e-01, 1.96664e-01); // Sum16V6G hl1bias
 
   // Initialize tracker inefficiency shape
   //if (!ftr) ftr = new TF1("ftr","0.85-[0] + (0.15+[0])*([3]-[1]*pow(x,[2]))"
@@ -420,11 +422,24 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	
 	double pt = g->GetX()[i];
 	double r = g->GetY()[i];
-	double kfsr = (dofsr ? 1./(1+alpha*h->GetBinContent(h->FindBin(pt))):1);
+	double aeff = max(alpha, ptreco/pt);
+	double kfsr = (dofsr ? 1./(1+aeff*h->GetBinContent(h->FindBin(pt))):1);
 	double l1 = (dol1bias && string(cm)=="mpfchs1" && string(cs)=="gamjet" ?
 		     1./hl1->GetBinContent(hl1->FindBin(pt)) : 1);
+
 	// 0.98 was on until Aug 12, 10:12am :(
 	double scale = 1.00;//0.98; // correct out previous L3Res
+	//double scale = (string(cs)=="gamjet" ? 1.000 : 1);
+	// Scales determined by hand:
+	// BCD (+0.00-274.6)
+	// EF (+0.50-214.9)
+	// G (+1.00-224.0)
+	// H (weird chi2, keep 0.00-291.4)
+	// BCD: +0.00-274.6, -0.50-275.8, +0.50-275.0, -0.25-275.0, +0.25-274.6
+	// EF: +1.50-218.0, +1.00-215.7, +0.50-214.9, +0.00-215.7, +0.25-215.1
+	// G: +1.00-224.0, +0.50-224.5, +1.50-225.1, +0.75-224.1, +1.25-224.4
+	// H: +0.00-291.4, -0.50-294.8, +0.50-289.6, +1.0-289.4
+
 	double escale = 0; // E/p moved to reprocess.C
 	// Add photon E/p correction (and it's uncertianty) on the fly
 	//double scale = (string(cs)=="gamjet" ?
@@ -490,7 +505,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	assert(h);
 
 	int ibm = isample + nsamples*imethod;	
-	h->Scale(alpha); // set which nominal points this applies to
+	//h->Scale(alpha); // set which nominal points this applies to
+	// Sum16V6: take into account pTmin threshold effect on alphamax
+	for (int i = 1; i != h->GetNbinsX()+1; ++i) {
+	  double pt = h->GetBinCenter(i);
+	  double aeff = max(alpha, ptreco/pt);
+	  h->SetBinContent(i, aeff*h->GetBinContent(i));
+	}
 	h->SetName(Form("bm%d_%s",(1<<ibm),h->GetName()));
 
 	// TEMP TEMP TEMP
@@ -512,22 +533,25 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   int is_gj(0), is_zee(0), is_zmm(0);
   for (unsigned int i = 0; i != _vdt->size(); ++i) {
       
-    TH1D *h = hs[i]; assert(h);
-    TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_scale_%d",1<<i,i));
-
-    string s = samples[i%nsamples];
+    string s = samples[i%nsamples]; const char *cs = s.c_str();
     unsigned int imethod = i/nsamples;
+    string m = methods[imethod];    const char *cm = m.c_str();
+
+    TH1D *h = hs[i]; assert(h);
+    //TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_%s_%s_scale_%d",1<<i,cm,cs,i));
+    TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_inactive_%s_%s_%d",1<<i,cm,cs,i));
 
     double escale(0);
     const int n0 = nsample0;
     const int n1 = nsamples+nsample0;
     if (s=="multijet" && imethod==0) {
       escale = 1.0; // no constraint on absolute scale
-      h2->SetName(Form("bm%d_scale_%d",(1<<(n0-1) | (1<<(n1-1))), i));
+      h2->SetName(Form("bm%d_scale_multijet_%d",(1<<(n0-1) | (1<<(n1-1))), i));
     }
     if (s=="dijet" && imethod==0) {
       escale = 0.005; // for JER bias and whatnot
-      h2->SetName(Form("bm%d_scale_%d",(1<<(n0-1) | (1<<(n1-1))), i));
+      h2->SetName(Form("bm%d_scale_dijet_%02.0f_%d",
+		       (1<<(n0-1) | (1<<(n1-1))), escale*1000., i));
     }
     if (s=="gamjet" && imethod==0) {
       //escale = 0.005; // photon (ECAL) scale without regression
@@ -535,10 +559,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //escale = 0.010; // Run II guess
       //escale = 0.020; // 80X_V7 until photon scale explicitly fixed
       //escale = 0.03;//0.005; // 80XV1re+Sum16
-      escale = 0.005; // 80XV1re+Sum16
+      //escale = 0.005; // 80XV1re+Sum16
+      escale = 0.020; // 03Feb2016V2 TESTB
       //escale = 0.010; // Sep23V1
       // Use same source for both MPF and pT balance
-      h2->SetName(Form("bm%d_scale_%d",(1<<(n0+igj) | (1<<(n1+igj))), i));
+      h2->SetName(Form("bm%d_scale_gamjet_%02.0f_%d",
+		       (1<<(n0+igj) | (1<<(n1+igj))), escale*1000., i));
       is = hs.size();
       is_gj = hs.size();
     }
@@ -565,7 +591,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //escale = 0.005; // 80X-BCD,E,F,G guess
       escale = 0.002; // 80X BCDEF+GH: flat -0.15% shift on pol0/pol1 pT<400
       // Use same source for both MPF and pT balance
-      h2->SetName(Form("bm%d_scale_%d",(1<<(n0+izee) | (1<<(n1+izee))), i));
+      h2->SetName(Form("bm%d_scale_zeejet_%02.0f_%d",
+		       (1<<(n0+izee) | (1<<(n1+izee))), escale*1000, i));
       is_zee = hs.size();
     }
     if (s=="zmmjet" && imethod==0) {
@@ -577,7 +604,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //escale = 0.005; // 80XV1re+Sum16
       escale = 0.002; // 80X BCDEF+GH: flat -0.15% shift on pol0/pol1 pT<400
       //escale = 0.005; // Sep23V1-BCD,E,F,G guess
-      h2->SetName(Form("bm%d_scale_%d",(1<<(n0+izmm) | (1<<(n1+izmm))), i));
+      h2->SetName(Form("bm%d_scale_zmmjet_%02.0f_%d",
+		       (1<<(n0+izmm) | (1<<(n1+izmm))), escale*1000, i));
       is_zmm = hs.size();
     }
 
@@ -590,70 +618,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     hs.push_back(h2);
   } // for i
 
-  // pT dependent extra scale uncertainty sources for gamma+jet
-  // Use same source for both MPF and pT balance
-  if (false) { // from inclusive jet ratio
-    for (unsigned int i = 0; i != _vdt->size(); ++i) {
-
-      string s = samples[i%nsamples];
-      unsigned int imethod = i/nsamples;
-      const int n0 = nsample0;
-      const int n1 = nsamples+nsample0;
-
-      // Gaussian bump at pT=444 GeV
-      if (s=="gamjet" && imethod==0) {
-      
-	TH1D *h = hs[i]; assert(h);
-	TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_scale_%d",1<<i,i));
-
-	h2->SetName(Form("bm%d_ptscale1_%d",(1<<(n0+igj) | (1<<(n1+igj))), i));
-	TF1 *fg = new TF1("fg","[0]+[1]*exp(-0.5*pow((log(x)-log([2]))/[3],2))",
-			  60,2500);
-	//fg->SetParameters(0*0.51, -1*-1.71, 444, 0.450);
-	fg->SetParameters(0.51, -1.71, 444, 0.450);
-	
-	for (int j = 1; j != h2->GetNbinsX()+1; ++j) {
-	  double x = h2->GetBinCenter(j);
-	  h2->SetBinContent(j, fg->Eval(x));
-	  h2->SetBinError(j, fg->Eval(x));
-	} // for j
-	delete fg;
-
-	hs.push_back(h2);
-      }
-
-      // Deviation from Gaussian bump at pT>444 GeV
-      if (s=="gamjet" && imethod==1) {
-      
-	TH1D *h = hs[i]; assert(h);
-	TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_scale_%d",1<<i,i));
-
-	h2->SetName(Form("bm%d_ptscale2_%d",(1<<(n0+igj) | (1<<(n1+igj))), i));
-	TF1 *fg = new TF1("fg","[0]+[1]*exp(-0.5*pow((log(x)-log([2]))/[3],2))",
-			  60,2500);
-	fg->SetParameters(0.51, -1.71, 444, 0.450);
-	
-	for (int j = 1; j != h2->GetNbinsX()+1; ++j) {
-	  double x = h2->GetBinCenter(j);
-	  double x0 = 444.;
-	  h2->SetBinContent(j, x>x0 ? fg->Eval(x)-fg->Eval(x0) : 0);
-	  h2->SetBinError(j, x>x0 ? fg->Eval(x)-fg->Eval(x0) : 0);
-	} // for j
-
-	hs.push_back(h2);
-      }
-    }
-  } // gamma vs pt
-
   // Create additional sources for MPF uncertainties with e/gamma
   // (one for each sample x method, but all except two are empty)
   for (unsigned int i = 0; i != _vdt->size(); ++i) {
 
-    TH1D *h = hs[i]; assert(h);
-    TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_mpfscale_%d",1<<i,i));
-
-    string s = samples[i%nsamples];
-    string m = methods[i/nsamples];
+    string s = samples[i%nsamples]; const char *cs = s.c_str();
+    string m = methods[i/nsamples]; const char *cm = m.c_str();
 
     double escale(0);
     //int n1 = nsamples+nsample0;
@@ -668,6 +638,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     //if (s=="zeejet" && m=="mpfchs1") { escale = 0.010; } // 2015-12-10
     if (s=="zeejet" && m=="mpfchs1") { escale = 0.005; } // 76X
 
+    TH1D *h = hs[i]; assert(h);
+    TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_%s_%02.0f_%s_%s_%d",
+				    1<<i,
+				    escale!=0 ? "mpfscale" : "inactive",
+				    escale*1000.,cm,cs,i));
+    
     for (int j = 1; j != h2->GetNbinsX()+1; ++j) {
       h2->SetBinContent(j, escale);
       h2->SetBinError(j, escale);
@@ -871,16 +847,16 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //lumi_13TeV = "Run2016BCD, 13 fb^{-1}";
   //lumi_13TeV = "Run2016, 2.6+1.5 fb^{-1}";
   map<string, const char*> lumimap;
-  lumimap["BCD"] = "Run2016BCD re-reco, 12.9 fb^{-1}";
-  lumimap["E"] = "Run2016E re-reco, 4.0 fb^{-1}";
-  lumimap["F"] = "Run2016F re-reco, 2.8 fb^{-1}";//3.1 fb^{-1}";
-  //lumimap["G"] = "Run2016G re-reco, 7.1 fb^{-1}";
-  lumimap["G"] = "Run2016FG re-reco, 8.0 fb^{-1}";
-  lumimap["H"] = "Run2016H, 8.8 fb^{-1}";
-  lumimap["GH"] = "Run2016FGH re-reco, 16.8 fb^{-1}";
-  lumimap["BCDEF"] = "Run2016BCDEF re-reco, 19.7 fb^{-1}";
-  lumimap["BCDEFGH"] = "Run2016BCDEFGH re-reco, 36.5 fb^{-1}";
-  lumimap["EF"] = "Run2016EF re-reco, 6.8 fb^{-1}";
+  lumimap["BCD"] = "Run2016BCD re-mAOD, 12.9 fb^{-1}";
+  lumimap["E"] = "Run2016E re-mAOD, 4.0 fb^{-1}";
+  lumimap["F"] = "Run2016F re-mAOD, 2.8 fb^{-1}";//3.1 fb^{-1}";
+  //lumimap["G"] = "Run2016G re-mAOD, 7.1 fb^{-1}";
+  lumimap["G"] = "Run2016FG re-mAOD, 8.0 fb^{-1}";
+  lumimap["H"] = "Run2016H re-mAOD, 8.8 fb^{-1}";
+  lumimap["GH"] = "Run2016FGH re-mAOD, 16.8 fb^{-1}";
+  lumimap["BCDEF"] = "Run2016BCDEF re-mAOD, 19.7 fb^{-1}";
+  lumimap["BCDEFGH"] = "Run2016BCDEFGH re-mAOD, 36.5 fb^{-1}";
+  lumimap["EF"] = "Run2016EF re-mAOD, 6.8 fb^{-1}";
   lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
   lumi_13TeV = lumimap[epoch];
 
@@ -907,8 +883,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   texlabel["multijet"] = "Multijet";
   texlabel["dijet"] = "Dijet";
   texlabel["gamjet"] = "#gamma+jet";
-  texlabel["zeejet"] = "Zee+jet";
-  texlabel["zmmjet"] = "Z#mu#mu+jet";
+  texlabel["zeejet"] = "Zee+jet";// TB";
+  //texlabel["zeejet"] = "Zee+jet RS";
+  texlabel["zmmjet"] = "Z#mu#mu+jet";// TB";
+  //texlabel["zmmjet"] = "Z#mu#mu+jet RS";
   TLegend *legm = tdrLeg(0.66,0.55,0.96,0.90);
   legm->SetHeader("MPF");
   for (int i = 0; i != nsamples; ++i)
@@ -1188,6 +1166,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   } // for i
   cout << endl;
 
+  /*
   cout << "Uncertainty sources:" << endl;
   for (int i = np; i != Npar; ++i) {
     if ((i-np)%(2*nsamples)==0) cout << (*_vsrc)[i-np]->GetName() << endl;
@@ -1196,6 +1175,20 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     else
       cout << Form("%2d: %5.2f+/-%4.2f,   ",i-np+1,tmp_par[i],tmp_err[i]);
     if ((i-np)%nsamples==nsamples-1) cout << endl;
+  }
+  cout << endl;
+  */
+  cout << "Uncertainty sources:" << endl;
+  for (int i = np; i != Npar; ++i) {
+    //if ((i-np)%(2*nsamples)==0) cout << (*_vsrc)[i-np]->GetName() << endl;
+    if (tmp_par[i]==0&&fabs(tmp_err[i]-1)<1e-2)
+      cout << Form("%2d - %35s:  ----------\n",
+		   (i-np+1), (*_vsrc)[i-np]->GetName());
+    else
+      cout << Form("%2d - %35s:  %5.2f+/-%4.2f\n",
+		   i-np+1, (*_vsrc)[i-np]->GetName(),
+		   tmp_par[i],tmp_err[i]);
+  //if ((i-np)%nsamples==nsamples-1) cout << endl;
   }
   cout << endl;
 

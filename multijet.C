@@ -152,6 +152,7 @@ void multijet(bool usemjb = true, string epoch="") {
   fm_files["GH"] = "1222_Run2016Late";
   TFile *f = new TFile(Form("rootfiles/multijet_2016%s.root",
   */
+  /*
   fm_files["BCD"] = "0113_Run2016BCD";
   fm_files["EF"] = "0113_Run2016EFearly";
   fm_files["G"] = "0113_Run2016FlateG";
@@ -163,6 +164,22 @@ void multijet(bool usemjb = true, string epoch="") {
   fm_files["L3"] = "0124_Run2016All_L3Res";
   TFile *f = new TFile(Form("rootfiles/multijet_2017%s.root",
 			    fm_files[epoch]),"READ");
+  */
+  /*
+  fm_files["BCD"] = "BCD";
+  fm_files["EF"] = "EFearly";
+  fm_files["G"] = "FlateG";
+  fm_files["H"] = "H";
+  TFile *f = new TFile(Form("rootfiles/multijet_20170329_Run2016%s.root",
+			    fm_files[epoch]),"READ");
+  */
+  fm_files["BCD"] = "BCD";
+  fm_files["EF"] = "EFearly";
+  fm_files["G"] = "FlateG";
+  fm_files["H"] = "H";
+  TFile *f = new TFile(Form("rootfiles/multijet_20170428_Run2016%s.root",
+			    fm_files[epoch]),"READ");
+
   //
   assert(f && !f->IsZombie());
 
