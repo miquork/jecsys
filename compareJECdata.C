@@ -16,14 +16,18 @@ void compareJECdata(string dir = "mc",
 		    //string file1 = "rootfiles/jecdataG.root",
 		    //string file1 = "rootfiles/jecdataG_GammaJetV6.root",
 		    //string file1 = "rootfiles/jecdataG_80XSum16V6.root",
-		    string file1 = "rootfiles/jecdataG_RSv6.root",
+		    //string file1 = "rootfiles/jecdataG_RSv6.root",
+		    string file1 = "rootfiles/jecdataH-JetMET100-fix.root",
 		    //string label1 = "Gv6",
-		    string label1 = "GRSv6",
-		    string file2 = "rootfiles/jecdataG_TBv6.root",
+		    //string label1 = "GRSv6",
+		    string label1 = "JME100",
+		    //string file2 = "rootfiles/jecdataG_TBv6.root",
 		    //string file2 = "rootfiles/jecdataG_80XSum16V4.root",
 		    //string file2 = "rootfiles/jecdataG_GammaJetV4.root",
+		    string file2 = "rootfiles/jecdataH-Summer16_23Sep2016V4.root",
 		    //string label2 = "Gv4"
-		    string label2 = "GTBv6"
+		    //string label2 = "GTBv6"
+		    string label2 = "Sum16V4"
 		    ) {
   //string file2 = "rootfiles/jecdataG.root",
   //		    string label2 = "Gv5_08") {
@@ -45,9 +49,11 @@ void compareJECdata(string dir = "mc",
   TGraphErrors *g2 = (TGraphErrors*)fin2->Get(s.c_str());
   assert(g2);
 
-  TGraphErrors *gr = (TGraphErrors*)g1->Clone("gr");
   //assert(g1->GetN()==g2->GetN());
+  // Check if numbers of points match
   if (!(g1->GetN()==g2->GetN())) {
+
+    // Print out numbers of points and their ranges
     cout << label1 << ": " << g1->GetN()
 	 << "  (" << g1->GetX()[0]
 	 << " - " << g1->GetX()[g1->GetN()-1] << ")" << endl;
@@ -55,9 +61,49 @@ void compareJECdata(string dir = "mc",
 	 << "  (" << g2->GetX()[0]
 	 << " - " << g2->GetX()[g2->GetN()-1] << ")" << endl;
     cout << flush;
-    g1->RemovePoint(g1->GetN()-1);
+
+    //g1->RemovePoint(g1->GetN()-1);
+    // Remove points of g1 not in g2
+    for (int i = g1->GetN()-1; i != -1; --i) {
+      double x = g1->GetX()[i];
+      double dxmin(fabs(g1->GetX()[0]-g1->GetX()[g1->GetN()-1]));
+      double dx(dxmin);
+      for (int j = 0; j != g2->GetN(); ++j) {
+	double dx = fabs(x-g2->GetX()[j]);
+	if (dx < dxmin) dxmin = dx;
+      } // for j
+      
+      if (dxmin > 0.5*fabs(g1->GetX()[max(0,i+1)]-x)  &&
+	  dxmin > 0.5*fabs(g1->GetX()[min(g1->GetN()-1,i-1)]-x))
+	g1->RemovePoint(i);
+    } // for i
+    // Remove points of g2 not in g1
+    for (int i = g2->GetN()-1; i != -1; --i) {
+      double x = g2->GetX()[i];
+      double dxmin(fabs(g2->GetX()[0]-g2->GetX()[g2->GetN()-1]));
+      double dx(dxmin);
+      for (int j = 0; j != g1->GetN(); ++j) {
+	double dx = fabs(x-g1->GetX()[j]);
+	if (dx < dxmin) dxmin = dx;
+      } // for j
+      
+      if (dxmin > 0.5*fabs(g2->GetX()[max(0,i+1)]-x)  &&
+	  dxmin > 0.5*fabs(g2->GetX()[min(g2->GetN()-1,i-1)]-x))
+	g2->RemovePoint(i);
+    } // for i
+
+    // Print out cleaned points
+    cout << label1 << ": " << g1->GetN()
+	 << "  (" << g1->GetX()[0]
+	 << " - " << g1->GetX()[g1->GetN()-1] << ")" << endl;
+    cout << label2 << ": " << g2->GetN()
+	 << "  (" << g2->GetX()[0]
+	 << " - " << g2->GetX()[g2->GetN()-1] << ")" << endl;
+    cout << flush;
+
     assert(g1->GetN()==g2->GetN());
   }
+  TGraphErrors *gr = (TGraphErrors*)g1->Clone("gr");
 
   for (int i = 0; i != gr->GetN(); ++i) {
     gr->SetPoint(i, 0.5*(g1->GetX()[i]+g2->GetX()[i]),
@@ -84,7 +130,8 @@ void compareJECdata(string dir = "mc",
   hdw->SetMinimum(ch=="multijet" ? 0.99-1e-4 : 0.95);
   hdw->SetMaximum(ch=="multijet" ? 1.01+1e-4 : 1.05);
   
-  lumi_13TeV = "Run2016FG re-reco, 8.0 fb^{-1}";
+  //lumi_13TeV = "Run2016FG re-reco, 8.0 fb^{-1}";
+  lumi_13TeV = "Run2016H re-mAOD, 8.8 fb^{-1}";
   TCanvas *c1 = tdrDiCanvas("c1",hup,hdw,4,11);
 
   c1->cd(1);

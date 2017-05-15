@@ -26,18 +26,18 @@
   //compareJECdata("data", "zmmjet", "ptchs");
   // => Maybe bit less effect for pTbal, but less similar for data and MC
 
-  // compareJECdata("mc", "gamjet", "mpfchs1"); // => stable
-  // compareJECdata("data", "gamjet", "mpfchs1"); // => different slopes
-  // compareJECdata("ratio", "gamjet", "mpfchs1"); // => different slopes
-  // compareJECdata("mc", "gamjet", "ptchs"); // => stable, except pT<60 GeV
-  // compareJECdata("data", "gamjet", "ptchs"); // => different slopes
-  // compareJECdata("ratio", "gamjet", "ptchs");
+  //compareJECdata("mc", "gamjet", "mpfchs1"); // => stable
+  //compareJECdata("data", "gamjet", "mpfchs1"); // => different slopes
+  //compareJECdata("ratio", "gamjet", "mpfchs1"); // => different slopes
+  //compareJECdata("mc", "gamjet", "ptchs"); // => stable, except pT<60 GeV
+  //compareJECdata("data", "gamjet", "ptchs"); // => different slopes
+  compareJECdata("ratio", "gamjet", "ptchs");
   // // => G+jet MC is stable (except pT<70 GeV for ptchs), but data changes slope
   // // => Need to fix the a10,a15,a20 being same as a30 issue, though
 
   // compareJECdata("mc", "zmmjet", "mpfchs1"); // => stable
   // compareJECdata("data", "zmmjet", "mpfchs1"); // => different slopes
-  compareJECdata("ratio", "zmmjet", "mpfchs1"); // => different slopes
+  //compareJECdata("ratio", "zmmjet", "mpfchs1"); // => different slopes
   // compareJECdata("mc", "zmmjet", "ptchs"); // => stable, except pT<60 GeV
   // compareJECdata("data", "zmmjet", "ptchs"); // => different slopes
   // compareJECdata("ratio", "zmmjet", "ptchs");
