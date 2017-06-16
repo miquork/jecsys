@@ -14,14 +14,15 @@ void dataquality() {
 
   //TFile *f = new TFile("rootfiles/output_RunFlateG_Feb03V0/nol2l3res/output-DATA-1.root","READ");
   //TFile *fd = new TFile("rootfiles/output_RunFlateG_Feb03V0/output-DATA-1.root","READ");
-  TFile *fd = new TFile("rootfiles/exclusiontests/normalH/output-DATA-1.root","READ");
+  //TFile *fd = new TFile("rootfiles/exclusiontests/normalH/output-DATA-1.root","READ");
+  TFile *fd = new TFile("rootfiles/exclusiontests/normalfG/output-DATA-1.root","READ");
   assert(fd && !fd->IsZombie());
 
   TFile *fm = new TFile("rootfiles/exclusiontests/normalMC_fG/output-MC-1.root","READ"); 
   //TFile *fm = new TFile("rootfiles/output_RunFlateG_Feb03V0/output-MC-1.root","READ"); 
   assert(fm && !fm->IsZombie());
 
-  TFile *fh = new TFile("rootfiles/hotjets-RunH.root","READ");
+  TFile *fh = new TFile("rootfiles/hotjets-RunG.root","READ");
   TH2D *h2jet(0);
   double minsumsig(0);
   if (fh && !fh->IsZombie()) {
@@ -320,7 +321,7 @@ void dataquality() {
     } // for j
   } // for i
 
-  TFile *fout = new TFile("rootfiles/hotjets-runH.root","RECREATE");
+  TFile *fout = new TFile("rootfiles/hotjets-runG.root","RECREATE");
   h2hot->Write("h2hot");
   h2hot2->Write("h2jet");
   h2hotr->Write("h2hotr");
