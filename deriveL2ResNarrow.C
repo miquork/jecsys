@@ -17,17 +17,22 @@
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 
+// Ugly global variables...
+//const char *ct = "G";
+//const char *ct = "BCDEFGH";
+const char *ct = "H";
+
 struct l2fit {
 
-  double chi2, chi2b;
-  int ndf, ndfb;
-  TF1 *f1;
-  TMatrixD *emat;
+  double chi2a, chi2b;
+  int ndfa, ndfb;
+  TF1 *f1a, *f1b;
+  TMatrixD *emata, *ematb;
   
-  l2fit(double chi2_ = 0, int ndf_ = 0, TF1 *f1_ = 0, TMatrixD *emat_ = 0,
-	double chi2b_ = 0, int ndfb_ = 0) :
-    chi2(chi2_), ndf(ndf_), f1(f1_), emat(emat_),
-    chi2b(chi2b_), ndfb(ndfb_) { };
+  l2fit(double chi2a_ = 0, int ndfa_ = 0, TF1 *f1a_ = 0, TMatrixD *emata_ = 0, 
+	double chi2b_ = 0, int ndfb_ = 0, TF1 *f1b_ = 0, TMatrixD *ematb_ = 0) :
+    chi2a(chi2a_), ndfa(ndfa_), f1a(f1a_), emata(emata_),
+    chi2b(chi2b_), ndfb(ndfb_), f1b(f1b_), ematb(ematb_) { };
 };
 
 const double _xmin(30.), _xmax(3500.);
@@ -337,11 +342,14 @@ void deriveL2ResNarrow() {
   int colorpt[] = {kBlack, kRed, kGreen+2, kBlue};
   int markerpt[] = {0, kFullSquare, 0, 0};
   const int npt = sizeof(pts)/sizeof(pts[0]);
-  vector<TH1D*> hpts(npt);
+  vector<TH1D*> hptas(npt), hptbs(npt);
   for (int ipt = 0; ipt != npt; ++ipt) {
-    hpts[ipt] = new TH1D(Form("hpt_%1.0f",pts[ipt]),
-			 ";|#eta|;Relative correction",
-			 neta, &etas[0]);
+    hptas[ipt] = new TH1D(Form("hpt_%1.0f",pts[ipt]),
+			  ";|#eta|;Relative correction (DB)",
+			  neta, &etas[0]);
+    hptbs[ipt] = new TH1D(Form("hpt_%1.0f",pts[ipt]),
+			  ";|#eta|;Relative correction (MPF)",
+			  neta, &etas[0]);
   }
 
   for (int ialpha = 0; ialpha != nalpha; ++ialpha) {
@@ -349,7 +357,8 @@ void deriveL2ResNarrow() {
     const double alphamax = alphas[ialpha];
 
     vector<l2fit> l2s(neta);
-    TGraphErrors *gchi2 = new TGraphErrors(neta);
+    double maxchi2 = 5;
+    TGraphErrors *gchi2a = new TGraphErrors(neta);
     TGraphErrors *gchi2b = new TGraphErrors(neta);
     for (int ieta = 0; ieta != neta; ++ieta) {
       
@@ -358,22 +367,33 @@ void deriveL2ResNarrow() {
       l2s[ieta] = deriveL2ResNarrow_x(etas[ieta], etas[ieta+1],
 				      alphamax, xmax[ieta]);
       
-      gchi2->SetPoint(ieta, eta, l2s[ieta].chi2 / l2s[ieta].ndf);
-      gchi2->SetPointError(ieta, deta, 1. / sqrt(l2s[ieta].ndf));
+      gchi2a->SetPoint(ieta, eta, min(l2s[ieta].chi2a/l2s[ieta].ndfa, maxchi2));
+      gchi2a->SetPointError(ieta, deta, 1. / sqrt(l2s[ieta].ndfa));
 
-      gchi2b->SetPoint(ieta, eta, l2s[ieta].chi2b / l2s[ieta].ndfb);
+      gchi2b->SetPoint(ieta, eta, min(l2s[ieta].chi2b/l2s[ieta].ndfb, maxchi2));
       gchi2b->SetPointError(ieta, deta, 1. / sqrt(l2s[ieta].ndfb));
       
       for (int ipt = 0; ipt != npt; ++ipt) {
 	double pt = pts[ipt];
-	double B = l2s[ieta].f1->Eval(pt);
-	double Rrel = (1 + B) / (1 - B);
+
+	double A = l2s[ieta].f1a->Eval(pt);
+	double Rrel_A = (1 + A) / (1 - A);
+	double B = l2s[ieta].f1b->Eval(pt);
+	double Rrel_B = (1 + B) / (1 - B);
 	if (pt*cosh(eta) < 6500.) {
-	  hpts[ipt]->SetBinContent(ieta+1, 1./Rrel);
+
+	  hptas[ipt]->SetBinContent(ieta+1, 1./Rrel_A);
 	  if (markerpt[ipt]!=0) {
-	    double err = getErr(pt, l2s[ieta].f1, l2s[ieta].emat);
-	    hpts[ipt]->SetBinError(ieta+1, err);
+	    double err = getErr(pt, l2s[ieta].f1a, l2s[ieta].emata);
+	    hptas[ipt]->SetBinError(ieta+1, err);
 	  }
+
+	  hptbs[ipt]->SetBinContent(ieta+1, 1./Rrel_B);
+	  if (markerpt[ipt]!=0) {
+	    double err = getErr(pt, l2s[ieta].f1b, l2s[ieta].ematb);
+	    hptbs[ipt]->SetBinError(ieta+1, err);
+	  }
+
 	}
       }
     } // for ieta
@@ -381,7 +401,7 @@ void deriveL2ResNarrow() {
     TH1D *h1 = new TH1D("h1",";#eta;#chi^{2} / NDF",neta,&etas[0]);
     h1->SetMinimum(0.);
     //h1->SetMaximum(3);
-    h1->SetMaximum(5);
+    h1->SetMaximum(maxchi2+1e-4);//5);
     
     TCanvas *c1 = tdrCanvas("c1",h1,4,11,kSquare);
     
@@ -389,46 +409,76 @@ void deriveL2ResNarrow() {
     l1->SetLineStyle(kDashed);
     l1->DrawLine(etas[0],1,etas[neta],1);
     
-    tdrDraw(gchi2,"Pz",kFullCircle);
-    tdrDraw(gchi2b,"Pz",kOpenCircle);
+    tdrDraw(gchi2a,"Pz",kFullCircle);//kFullCircle);
+    tdrDraw(gchi2b,"Pz",kOpenSquare);//kOpenCircle);
 
-    TLegend *leg = tdrLeg(0.70,0.78,0.90,0.90);
-    leg->AddEntry(gchi2,"Log-lin","PL");
-    leg->AddEntry(gchi2b,"Quad-log","PL");
+    TLegend *leg = tdrLeg(0.60,0.78,0.80,0.90);
+    //leg->AddEntry(gchi2,"Log-lin","PL");
+    //leg->AddEntry(gchi2b,"Quad-log","PL");
+    leg->AddEntry(gchi2a,"DB quad-log","PL");
+    leg->AddEntry(gchi2b,"MPF quad-log","PL");
     
-    c1->SaveAs(Form("pdf/deriveL2ResNarrow_chi2_amax%1.0f%s.pdf",
-		    alphamax*100,ctp));
+    c1->SaveAs(Form("pdf/l2res/%s/deriveL2ResNarrow_chi2_amax%1.0f%s.pdf",
+		    ct,alphamax*100,ctp));
     
     
     
-    TH1D *h2 = new TH1D("h2",";#eta;Relative correction",neta,&etas[0]);
-    h2->SetMinimum(0.8);//0.98 - 0.03 - 0.05);
-    h2->SetMaximum(1.3);//1.19-1e-4 - 0.03 + 0.05);
+    TH1D *h2a = new TH1D("h2",";#eta;Relative correction (DB)",neta,&etas[0]);
+    h2a->SetMinimum(0.8);//0.98 - 0.03 - 0.05);
+    h2a->SetMaximum(1.3);//1.19-1e-4 - 0.03 + 0.05);
     
-    TCanvas *c2 = tdrCanvas("c2",h2,4,11,kSquare);
+    TCanvas *c2a = tdrCanvas("c2a",h2a,4,11,kSquare);
     
-    TLine *l2 = new TLine();
-    l2->SetLineStyle(kDashed);
-    l2->DrawLine(etas[0],1,etas[neta],1);
+    TLine *l2a = new TLine();
+    l2a->SetLineStyle(kDashed);
+    l2a->DrawLine(etas[0],1,etas[neta],1);
     
-    TLegend *leg2 = tdrLeg(0.17,0.48,0.47,0.78);
-    leg2->SetHeader("p_{T}(jet)");
+    TLegend *leg2a = tdrLeg(0.17,0.48,0.47,0.78);
+    leg2a->SetHeader("p_{T}(jet)");
     
     for (int ipt = 0; ipt != npt; ++ipt) {
-      tdrDraw(hpts[ipt], markerpt[ipt]!=0 ? "HP][" : "H][", markerpt[ipt],
+      tdrDraw(hptas[ipt], markerpt[ipt]!=0 ? "HP][" : "H][", markerpt[ipt],
 	      colorpt[ipt],kSolid,colorpt[ipt],kNone,0);
-      hpts[ipt]->SetLineWidth(2);
-      leg2->AddEntry(hpts[ipt],Form("%1.0f GeV",pts[ipt]),
-		     markerpt[ipt]!=0 ? "LP" : "L");
+      hptas[ipt]->SetLineWidth(2);
+      leg2a->AddEntry(hptas[ipt],Form("%1.0f GeV",pts[ipt]),
+		      markerpt[ipt]!=0 ? "LP" : "L");
     }
     
     gPad->RedrawAxis();
-    c2->SaveAs(Form("pdf/deriveL2ResNarrow_Fig15_amax%1.0f%s.pdf",
-		    alphamax*100,ctp));
+    c2a->SaveAs(Form("pdf/l2res/%s/deriveL2ResNarrow_Fig15a_amax%1.0f%s.pdf",
+		     ct,alphamax*100,ctp));
+
+    TH1D *h2b = new TH1D("h2",";#eta;Relative correction (MPF)",neta,&etas[0]);
+    h2b->SetMinimum(0.8);//0.98 - 0.03 - 0.05);
+    h2b->SetMaximum(1.3);//1.19-1e-4 - 0.03 + 0.05);
+    
+    TCanvas *c2b = tdrCanvas("c2b",h2b,4,11,kSquare);
+    
+    TLine *l2b = new TLine();
+    l2b->SetLineStyle(kDashed);
+    l2b->DrawLine(etas[0],1,etas[neta],1);
+    
+    TLegend *leg2b = tdrLeg(0.17,0.48,0.47,0.78);
+    leg2b->SetHeader("p_{T}(jet)");
+    
+    for (int ipt = 0; ipt != npt; ++ipt) {
+      tdrDraw(hptbs[ipt], markerpt[ipt]!=0 ? "HP][" : "H][", markerpt[ipt],
+	      colorpt[ipt],kSolid,colorpt[ipt],kNone,0);
+      hptbs[ipt]->SetLineWidth(2);
+      leg2b->AddEntry(hptbs[ipt],Form("%1.0f GeV",pts[ipt]),
+		      markerpt[ipt]!=0 ? "LP" : "L");
+    }
+    
+    gPad->RedrawAxis();
+    c2b->SaveAs(Form("pdf/l2res/%s/deriveL2ResNarrow_Fig15b_amax%1.0f%s.pdf",
+		     ct,alphamax*100,ctp));
+
+
 
     if (ialpha!=nalpha-1) { // leave last ones open
       delete h1;
-      delete h2;
+      delete h2a;
+      delete h2b;
     }
   } // for ialpha
 }
@@ -437,7 +487,10 @@ void deriveL2ResNarrow() {
 l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
 
   TDirectory *curdir = gDirectory;
-  TFile *fd = new TFile("rootfiles/exclusion_cmsweek/mikko/G/output-DATA-2b.root","READ");
+  //TFile *fd = new TFile(Form("rootfiles/exclusion_cmsweek/mikko/%s/output-DATA-2b.root",ct),"READ");
+  TFile *fd = new TFile(Form("rootfiles/output_Run%se/mikko/output-DATA-2b.root",ct),"READ");
+  //TFile *fd = new TFile("rootfiles/exclusion_cmsweek/mikko/GH/output-DATA-2b.root","READ");
+  //TFile *fd = new TFile("rootfiles/exclusion_cmsweek/mikko/G/output-DATA-2b.root","READ");
   //TFile *fd = new TFile("rootfiles/exclusiontests/mikkofG/output-DATA-2b.root","READ");
   //TFile *fd = new TFile("rootfiles/exclusiontests/normalfG/output-DATA-2b.root","READ");
   //TFile *fd = new TFile("rootfiles/exclusiontests/normalH/output-DATA-2b.root","READ");
@@ -451,7 +504,9 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   //TFile *fd = new TFile("rootfiles/output_RunGV3/output-DATA-2b.root","READ");
   //TFile *fd = new TFile("rootfiles/output_RunG_old/output-DATA-2b.root","READ");
   assert(fd && !fd->IsZombie());
-  TFile *fm = new TFile("rootfiles/exclusion_cmsweek/mc/G/output-MC-2b.root","READ");
+  TFile *fm = new TFile(Form("rootfiles/exclusion_cmsweek/mc/%s/output-MC-2b.root",ct),"READ");
+  //TFile *fm = new TFile("rootfiles/exclusion_cmsweek/mc/GH/output-MC-2b.root","READ");
+  //TFile *fm = new TFile("rootfiles/exclusion_cmsweek/mc/G/output-MC-2b.root","READ");
   //TFile *fm = new TFile("rootfiles/exclusiontests/normalMC_fG/output-MC-2b.root","READ");
   //TFile *fm = new TFile("rootfiles/output_RunFlateG_Feb03V0/output-MC-2b.root","READ");
   //TFile *fm = new TFile("rootfiles/output_RunGV6x/output-MC-2b.root","READ");
@@ -461,7 +516,9 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   //TFile *fm = new TFile("rootfiles/output_RunG_old/output-MC-2b.root","READ");
   assert(fm && !fm->IsZombie());
 
-  TFile *fz = new TFile("rootfiles/L3res_mumu_Run2016FlateG.root","READ");
+  //TFile *fz = new TFile("rootfiles/L3res_mumu_Run2016FlateG.root","READ");
+  //TFile *fz = new TFile("rootfiles/L3res_mumu_inclusive.root","READ");
+  TFile *fz = new TFile(Form("rootfiles/L3res_mumu_Run2016%s.root",ct),"READ");
   assert(fz && !fz->IsZombie());
   curdir->cd();
 
@@ -747,7 +804,7 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
 
 
   //lumi_13TeV = "RunG";
-  lumi_13TeV = "RunG 03FebV0, 7.5 fb^{-1}";
+  lumi_13TeV = Form("Run%s 03FebV3, 7.5 fb^{-1}",ct); // string() if autoclean
   //lumi_13TeV = "RunH 03FebV0, 8.8 fb^{-1}";
   TCanvas *c2 = tdrDiCanvas("c2",hup,hdw,4,11);
 
@@ -819,6 +876,60 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   tdrDraw(h1da,"P",kFullCircle,kBlue);
   tdrDraw(h1ma,"P",kOpenCircle,kBlue);
 
+  // Add Z+jet
+  vector<string> zs;
+  zs.push_back("Data_MPF");
+  zs.push_back("MC_MPF");
+  zs.push_back("Ratio_MPF");
+  zs.push_back("Data_PtBal");
+  zs.push_back("MC_PtBal");
+  zs.push_back("Ratio_PtBal");
+  map<string, TGraphErrors*> gzs;
+
+  for (int iz = 0; iz != zs.size(); ++iz) {
+
+    string sz0 = Form("%s_CHS_a%d_eta_%04.0f_%04.0f_L1L2L3",
+		      zs[iz].c_str(), int(alphamax*100+0.5), 1000.*0,1000.*1.3);
+    cout << sz0 << endl << flush;
+    TGraphErrors *gz0 = (TGraphErrors*)fz->Get(sz0.c_str());
+    assert(gz0);
+
+    string sz = Form("%s_CHS_a%d_eta_%04.0f_%04.0f_L1L2L3",
+		     zs[iz].c_str(), int(alphamax*100+0.5), 1000.*y1,1000.*y2);
+    cout << sz << endl << flush;
+    TGraphErrors *gz = (TGraphErrors*)fz->Get(sz.c_str());
+    assert(gz);
+
+    for (int i = 0; i != gz->GetN(); ++i) {
+
+      double x = gz->GetX()[i];
+      double y = gz->GetY()[i];
+
+      int k(-1);
+      for (int j = 0; j != gz->GetN(); ++j) {
+	if (fabs(gz->GetX()[j] - x) < 0.03*x) {
+	  assert(k==-1);
+	  k = j;
+	}
+      } // for j
+      assert(k!=-1);
+      double y0 = gz0->GetY()[i];
+
+      gz->SetPoint(i, x, y / y0 - 1);
+    } // for i
+
+    gzs[zs[iz]] = gz;
+  } // for iz
+
+  // Z+jet
+  tdrDraw(gzs["Data_MPF"],"Pz",kFullSquare,kGreen+3);
+  gzs["Data_MPF"]->SetMarkerSize(0.7);
+  tdrDraw(gzs["MC_MPF"],"Pz",kOpenSquare,kGreen+3);
+  gzs["MC_MPF"]->SetMarkerSize(0.7);
+  tdrDraw(gzs["Data_PtBal"],"Pz",kFullCircle,kGreen+2);
+  gzs["Data_PtBal"]->SetMarkerSize(0.7);
+  tdrDraw(gzs["MC_PtBal"],"Pz",kOpenCircle,kGreen+2);
+  gzs["MC_PtBal"]->SetMarkerSize(0.7);
   
   TF1 *f1da = new TF1("f1da","[0]+[1]*log(x)+[2]*log(x)*log(x)",fitxmin,xmax);
   f1da->SetParameters(0,0.01,0.0001);
@@ -925,6 +1036,11 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   tdrDraw(h1rb,"P",kFullSquare,kRed);
   tdrDraw(h1ra,"P",kFullCircle,kBlue);
 
+  // Z+jet
+  tdrDraw(gzs["Ratio_PtBal"],"Pz",kFullCircle,kGreen+2);
+  gzs["Ratio_PtBal"]->SetMarkerSize(0.7);
+  tdrDraw(gzs["Ratio_MPF"],"Pz",kOpenSquare,kGreen+3);
+  gzs["Ratio_MPF"]->SetMarkerSize(0.7);
   
   TF1 *f1a = new TF1("f1a","[0]+[1]*log(x)",fitxmin,xmax);
   f1a->SetParameters(0,0.01);
@@ -933,8 +1049,8 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   f1a->Draw("SAME");
 
   // Get error matrix for DB (until MPF fixed in SMP-J tuples)
-  TMatrixD *emat = new TMatrixD(f1a->GetNpar(), f1a->GetNpar());
-  gMinuit->mnemat(emat->GetMatrixArray(), f1a->GetNpar());
+  TMatrixD *emat1a = new TMatrixD(f1a->GetNpar(), f1a->GetNpar());
+  gMinuit->mnemat(emat1a->GetMatrixArray(), f1a->GetNpar());
 
   TF1 *f1b = new TF1("f1b","[0]+[1]*log(x)",fitxmin,xmax);
   f1b->SetParameters(0,0.01);
@@ -943,8 +1059,8 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   f1b->Draw("SAME");
 
   // Get matrix for MPF
-  //TMatrixD *emat = new TMatrixD(f1b->GetNpar(), f1b->GetNpar());
-  //gMinuit->mnemat(emat->GetMatrixArray(), f1b->GetNpar());
+  TMatrixD *emat1b = new TMatrixD(f1b->GetNpar(), f1b->GetNpar());
+  gMinuit->mnemat(emat1b->GetMatrixArray(), f1b->GetNpar());
 
   TF1 *f2a = new TF1("f2a","[0]+[1]*log(x)+[2]*log(x)*log(x)",fitxmin,xmax);
   f2a->SetParameters(0,0.01,0.0001);
@@ -952,12 +1068,21 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   f2a->SetLineColor(kBlue);
   f2a->SetLineStyle(kDashed);
   f2a->Draw("SAME");
+
+  // Get error matrix for DB (until MPF fixed in SMP-J tuples)
+  TMatrixD *emat2a = new TMatrixD(f2a->GetNpar(), f2a->GetNpar());
+  gMinuit->mnemat(emat2a->GetMatrixArray(), f2a->GetNpar());
+
   TF1 *f2b = new TF1("f2b","[0]+[1]*log(x)+[2]*log(x)*log(x)",fitxmin,xmax);
   f2b->SetParameters(0,0.01,0.0001);
   h1rb->Fit(f2b,"QRN");
   f2b->SetLineColor(kRed);
   f2b->SetLineStyle(kDashed);
   f2b->Draw("SAME");
+
+  // Get matrix for MPF
+  TMatrixD *emat2b = new TMatrixD(f2b->GetNpar(), f2b->GetNpar());
+  gMinuit->mnemat(emat2b->GetMatrixArray(), f2b->GetNpar());
 
   //TMatrixD *emat = new TMatrixD(f2b->GetNpar(), f2b->GetNpar());
   //gMinuit->mnemat(emat->GetMatrixArray(), f2b->GetNpar());
@@ -968,36 +1093,6 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   leg2dw->AddEntry(h1rb,"#LTB#GT","PL");
   leg2dw->AddEntry(h1ra,"#LTA#GT","PL");
   
-  // Add Z+jet
-  string sz0 = Form("Ratio_MPF_CHS_a30_eta_%04.0f_%04.0f_L1L2L3",
-		   1000.*0,1000.*1.3);
-  cout << sz0 << endl << flush;
-  TGraphErrors *gz0 = (TGraphErrors*)fz->Get(sz0.c_str());
-  assert(gz0);
-  string sz = Form("Ratio_MPF_CHS_a30_eta_%04.0f_%04.0f_L1L2L3",
-		   1000.*y1,1000.*y2);
-  cout << sz << endl << flush;
-  TGraphErrors *gz = (TGraphErrors*)fz->Get(sz.c_str());
-  assert(gz);
-
-  for (int i = 0; i != gz->GetN(); ++i) {
-
-    double x = gz->GetX()[i];
-    double y = gz->GetY()[i];
-
-    int k(-1);
-    for (int j = 0; j != gz->GetN(); ++j) {
-      if (fabs(gz->GetX()[j] - x) < 0.03*x) {
-	assert(k==-1);
-	k = j;
-      }
-    } // for j
-    assert(k!=-1);
-    double y0 = gz0->GetY()[i];
-
-    gz->SetPoint(i, x, y / y0 - 1);
-  } // for i
-
   TF1 *f1az = new TF1("f1az","[0]+[1]*log(x)",fitxmin,xmax);
   f1az->SetParameters(f1a->GetParameter(0),f1a->GetParameter(1));
   f1az->SetLineStyle(kDotted);
@@ -1032,8 +1127,8 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
 
   gPad->RedrawAxis();
 
-  c2->SaveAs(Form("pdf/deriveL2ResNarrow_%s_amax%1.0f%s.pdf",
-		  ce2,alphamax*100,ctp));
+  c2->SaveAs(Form("pdf/l2res/%s/deriveL2ResNarrow_%s_amax%1.0f%s.pdf",
+		  ct,ce2,alphamax*100,ctp));
 
 
   TH1D *hup3 = new TH1D("hup3",";p_{T,ave} (GeV);#sigma(asymmetry)",
@@ -1187,8 +1282,8 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   leg3dw->AddEntry(hsrb,"#sigma(B)","PL");
   leg3dw->AddEntry(hsra,"#sigma(A)","PL");
 
-  c3->SaveAs(Form("pdf/deriveL2ResNarrow_RMS_%s_amax%1.0f%s.pdf",
-		  ce2,alphamax*100,ctp));
+  c3->SaveAs(Form("pdf/l2res/%s/deriveL2ResNarrow_RMS_%s_amax%1.0f%s.pdf",
+		  ct,ce2,alphamax*100,ctp));
 
 
   TH1D *hup4 = new TH1D("hup4",";p_{T,ave} (GeV);N_{entries}",// / pb^{-1}",
@@ -1258,8 +1353,8 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   tdrDraw(hnra2,"P",kFullCircle,kRed);
   tdrDraw(hnra,"P",kFullCircle);
 
-  c4->SaveAs(Form("pdf/deriveL2ResNarrow_Nev_%s_amax%1.0f%s.pdf",
-		  ce2,alphamax*100,ctp));
+  c4->SaveAs(Form("pdf/l2res/%s/deriveL2ResNarrow_Nev_%s_amax%1.0f%s.pdf",
+		  ct,ce2,alphamax*100,ctp));
 
 
 
@@ -1339,13 +1434,13 @@ l2fit deriveL2ResNarrow_x(double y1, double y2, double alphamax, double xmax) {
   leg5dw->AddEntry(hxra,"Data/MC","PL");
   leg5dw->AddEntry(hxra2,"Data/Fit","PL");
 
-  c5->SaveAs(Form("pdf/deriveL2ResNarrow_Xsec_%s_amax%1.0f%s.pdf",
-		  ce2,alphamax*100,ctp));
+  c5->SaveAs(Form("pdf/l2res/%s/deriveL2ResNarrow_Xsec_%s_amax%1.0f%s.pdf",
+		  ct,ce2,alphamax*100,ctp));
 
   //return l2fit(f2b->GetChisquare(), f2b->GetNDF(), f2b, emat); // MPF
   // Use pT balance until MET fixed in SMP-J tuples
   //return l2fit(f2a->GetChisquare(), f2a->GetNDF(), f2a, emat); // pTbal
-  return l2fit(f1a->GetChisquare(), f1a->GetNDF(), f1a, emat,
-	       f2a->GetChisquare(), f2a->GetNDF()); // DB log-lin
+  return l2fit(f2a->GetChisquare(), f1a->GetNDF(), f2a, emat2a,
+	       f2b->GetChisquare(), f2b->GetNDF(), f2b, emat2b);
 
 } // deriveL2ResNarrow_x
