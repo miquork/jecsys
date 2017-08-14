@@ -7,13 +7,17 @@
   gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+");
   gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+");
 
-  gROOT->ProcessLine(".L compareJECversions.C+");
+  gROOT->ProcessLine(".L test/compareJECversions.C+");
   gROOT->ProcessLine(".exception");
   
   // Test Run2015D V3M2 L2L3Res
-  compareJECversions("AK4PFchs",false,false,true,"DATA"); // Fig.24topleft
+  //  compareJECversions("AK4PFchs",false,false,true,"DATA"); // Fig.24topleft (L2L3Res)
+  //compareJECversions("AK4PFchs",true,true,true,"DATA"); // L1L2L3+Res
+  //  compareJECversions("AK4PFchs",true,true,false,"DATA"); // L1L2L3
+  //  compareJECversions("AK4PFchs",false,true,false,"DATA"); // L2L3
+  compareJECversions("AK4PFchs",true,false,false,"DATA"); // L1
   /*
-  compareJECversions("AK4PFchs",true,false,false,"MC"); // L1 MC
+
 
   compareJECversions("AK4PFchs",true,false,false,"DATA"); // L1
   compareJECversions("AK4PFchs",false,true,false,"DATA"); // L2L3
