@@ -171,43 +171,71 @@ void compareJECversions(string algo="AK4PFchs",
   string sgen = (_useptgen ? "corr" : "raw");
   const char *cgen = sgen.c_str();
 
-  // 2016 JEC, 80X
-  string sid2 = (_mc ? "Summer16_03Feb2017_V0_MC" : "Summer16_03Feb2017H_V7_DATA");
-  const char *cid2 = sid2.c_str();
-  const char *a2 = a;
-  //const char *s2 = "1.3 fb^{-1} (13 TeV)";
-  //const char *s2s = "2012";
-  //const char *s2 = "2.1 fb^{-1} (13 TeV)";
-  //const char *s2 = "76Xv1 (13 TeV)";
-  //const char *s2s = "76X";
-  const char *s2 = "Summer16_03Feb2017H_V7";// (13 TeV)";
-  // const char *s2 = "MC";// (13 TeV)";
-  // const char *s2s = "MC";
-  const char *s2s = "03FebHV7";
-  // PATCH 2012 with clones
-  //if (algo=="AK4PF") a2 = "AK5PF";
-  //if (algo=="AK4PFchs") a2 = "AK5PFchs";
+//  // 2016 JEC, 80X
+//  string sid2 = (_mc ? "Summer16_03Feb2017_V0_MC" : "Summer16_03Feb2017H_V7_DATA");
+//  const char *cid2 = sid2.c_str();
+//  const char *a2 = a;
+//  //const char *s2 = "1.3 fb^{-1} (13 TeV)";
+//  //const char *s2s = "2012";
+//  //const char *s2 = "2.1 fb^{-1} (13 TeV)";
+//  //const char *s2 = "76Xv1 (13 TeV)";
+//  //const char *s2s = "76X";
+//  const char *s2 = "Summer16_03Feb2017H_V7";// (13 TeV)";
+//  // const char *s2 = "MC";// (13 TeV)";
+//  // const char *s2s = "MC";
+//  const char *s2s = "03FebHV7";
+//  // PATCH 2012 with clones
+//  //if (algo=="AK4PF") a2 = "AK5PF";
+//  //if (algo=="AK4PFchs") a2 = "AK5PFchs";
 
   // 2012 JEC
   //string sid1 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
   // 74X JEC
   //string sid1 = (_mc ? "Summer15_25nsV7_MC" : "Summer15_25nsV7_DATA");
   // 2016 80X JEC, Moriond
-  string sid1 = (_mc ? "Summer16_23Sep2016V4_MC" : "Summer16_23Sep2016HV4_DATA");
+  //  string sid1 = (_mc ? "Summer16_23Sep2016V4_MC" : "Summer16_23Sep2016HV4_DATA");
   //  string sid1 = (_mc ? "Summer16_03Feb2017_V0_MC" : "Summer16_03Feb2017BCD_V4_DATA");
 
-  const char *cid1 = sid1.c_str();
-  const char *a1 = a;
   //const char *s1 = "20 fb^{-1} (8 TeV)";
   //const char *s1s = "2012";
   //const char *s1 = "1.3 fb^{-1} (13 TeV)";
   //const char *s1 = "74Xv7 (13 TeV)";
   //const char *s1s = "74X";
 
-  const char *s1 = "Summer16_23Sep2016H_V4";// (13 TeV)";
-  const char *s1s = "23SepHV4";
+  //  const char *s1 = "Summer16_23Sep2016H_V4";// (13 TeV)";
+  //  const char *s1s = "23SepHV4";
   // const char *s1 = "Summer16_03Feb2017BCD_V4";// (13 TeV)";
   // const char *s1s = "03FebBCDV4";
+
+
+
+
+  //50ns 2015 JEC
+  string sid1 = (_mc ? "Summer15_50nsV5_MC" : "Summer15_50nsV5_DATA");
+  const char *s1 = "Summer15_50nsV5";// (13 TeV)";
+  const char *s1s = "50ns";
+
+    
+  const char *cid1 = sid1.c_str();
+  const char *a1 = a;
+
+  //Summer16_03Feb2017_V7_MC
+  string sid2 = (_mc ? "Summer16_03Feb2017_V7_MC" : "Summer16_03Feb2017H_V7_DATA");
+  const char *s2 = "Summer16_03Feb2017H_V7_FJ";// (13 TeV)";
+  const char *s2s = "03FebV7FJ";
+
+    
+  const char *cid2 = sid2.c_str();
+  const char *a2 = a;
+
+  //Summer16_03Feb2017_V7_MC
+  string sid3 = (_mc ? "Summer16_03Feb2017_V7_MC" : "Summer16_03Feb2017H_V7_DATA");
+  const char *s3 = "Summer16_03Feb2017H_V7_RC";// (13 TeV)";
+  const char *s3s = "03FebV7RC";
+
+    
+  const char *cid3 = sid3.c_str();
+  const char *a3 = a;
 
 
   // PATCH 2012 with clones
@@ -222,21 +250,21 @@ void compareJECversions(string algo="AK4PFchs",
   //string sid3 = (_mc ? "Spring16_25nsV8E_MC" : "Spring16_25nsV8E_DATA");
   //  string sid3 = (_mc ? "Summer15_50nsV4_MC" : "Summer15_50nsV4_DATA");
 
-  string sid3 = (_mc ? "Summer16_03Feb2017_V0_MC" : "Summer16_03Feb2017H_V5_DATA");
-  //  string sid3 = (_mc ? "Summer16_03Feb2017_V0_MC" : "Summer16_03Feb2017BCD_V5_DATA");
-  const char *cid3 = sid3.c_str();
-  const char *a3 = a;
-  //const char *s3 = "20 fb^{-1} (8 TeV)";
-  //const char *s3s = "74X";
-  //const char *s3 = "80Xv8 E";// (13 TeV)";
-  //const char *s3s = "E";
-  //const char *s3 = "80Xv6 G";// (13 TeV)";
-  //const char *s3s = "V6";
-  //const char *s3 = "80Xv8 F";// (13 TeV)";
-  //const char *s3s = "F";
-  const char *s3 = "Summer16_03Feb2017H_V5";
-  const char *s3s = "03FebHV5";
-  // const char *s3 = "Summer16_03Feb2017BCD_V5";
+//  string sid3 = (_mc ? "Summer16_03Feb2017_V0_MC" : "Summer16_03Feb2017H_V5_DATA");
+//  //  string sid3 = (_mc ? "Summer16_03Feb2017_V0_MC" : "Summer16_03Feb2017BCD_V5_DATA");
+//  const char *cid3 = sid3.c_str();
+//  const char *a3 = a;
+//  //const char *s3 = "20 fb^{-1} (8 TeV)";
+//  //const char *s3s = "74X";
+//  //const char *s3 = "80Xv8 E";// (13 TeV)";
+//  //const char *s3s = "E";
+//  //const char *s3 = "80Xv6 G";// (13 TeV)";
+//  //const char *s3s = "V6";
+//  //const char *s3 = "80Xv8 F";// (13 TeV)";
+//  //const char *s3s = "F";
+//  const char *s3 = "Summer16_03Feb2017H_V5";
+//  const char *s3s = "03FebHV5";
+//  // const char *s3 = "Summer16_03Feb2017BCD_V5";
   // const char *s3s = "03FebBCDV5";
 
   //const char *s3 = "80Xv8 E";// (13 TeV)";
@@ -331,7 +359,9 @@ void compareJECversions(string algo="AK4PFchs",
     jecUnc3 = new JetCorrectionUncertainty(str);
     */
 
-    str=Form("CondFormats/JetMETObjects/data/%s_L1FastJet_%s.txt",cid3,a3);
+    //    str=Form("CondFormats/JetMETObjects/data/%s_L1FastJet_%s.txt",cid3,a3);
+    //    cout << str << endl << flush;
+    str=Form("CondFormats/JetMETObjects/data/%s_L1RC_%s.txt",cid3,a3);
     cout << str << endl << flush;
     JetCorrectorParameters *JetCorPar3L1 = new JetCorrectorParameters(str);
     str=Form("CondFormats/JetMETObjects/data/%s_L2Relative_%s.txt",cid3,a3);

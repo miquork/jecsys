@@ -16,6 +16,7 @@
   //  compareJECversions("AK4PFchs",true,true,false,"DATA"); // L1L2L3
   //  compareJECversions("AK4PFchs",false,true,false,"DATA"); // L2L3
   compareJECversions("AK4PFchs",true,false,false,"DATA"); // L1
+  compareJECversions("AK4PFchs",true,false,false,"MC"); // L1
   /*
 
 
