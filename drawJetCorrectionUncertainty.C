@@ -177,9 +177,9 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 		      kBlack, kSolid, 1, // line
 		      kBlack, kNone, // marker
 		      kDarkGray, 1001, "LF")); // fill
-  //sy.push_back(uncert("notime", "Excl. flavor, time", jec::kDataNoFlavorNoTime,
-  sy.push_back(uncert("notime", "Excl. flavor, bugs",
-		      jec::kDataNoFlavor & ~jec::kRelativeBal,
+  sy.push_back(uncert("notime", "Excl. flavor, time", jec::kDataNoFlavorNoTime,
+  //sy.push_back(uncert("notime", "Excl. flavor, bugs",
+  //jec::kDataNoFlavor & ~jec::kRelativeBal,
 		      "default", "default", -1, // defaults
 		      kOrange+2, kSolid, 1, // line
 		      kBlack, kNone, // marker
@@ -194,7 +194,8 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   		      kRed, kSolid, 1, // line
  		      kRed, kOpenCircle, // marker
   		      kNone, kNone, "LP")); // fill
-  sy.push_back(uncert("relativebugs", "Relative+bugs",jec::kRelative,
+  //sy.push_back(uncert("relativebugs", "Relative+bugs",jec::kRelative,
+  sy.push_back(uncert("relativebugs", "MPF vs DB",jec::kRelativeBal,
 		      "default", "default", -1, // defaults
 		      kBlack, kSolid, 1, // line
 		      kBlack, kOpenTriangleDown, // marker
@@ -216,11 +217,11 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 		      kGreen+2, kSolid, 1, // line
 		      kGreen+2, kOpenSquare, // marker
 		      kNone, kNone, "LP")); // fill
-  //sy.push_back(uncert("time", "Time stability", jec::kTime,
-  //		      "default", "default", -1, // defaults
-  //		      kMagenta+2, kNone, 1, // line
-  //		      kMagenta+2, kOpenTriangleDown, // marker
-  //		      kNone, kNone, "LP")); // fill
+  sy.push_back(uncert("time", "Time stability", jec::kTime,
+  		      "default", "default", -1, // defaults
+  		      kMagenta+2, kNone, 1, // line
+  		      kMagenta+2, kOpenTriangleDown, // marker
+  		      kNone, kNone, "LP")); // fill
 
   vector<uncert> sym;
   sym.push_back(uncert("tot", "Total uncertainty", jec::kMC,
@@ -1467,7 +1468,11 @@ void plotUncertainty(vector<uncert> const& sys,
       h->SetLineStyle(kNone);
       h->SetFillStyle(u.fstyle);
       h->SetFillColor(u.fcolor);
-      h->DrawClone("SAME E3");
+      TH1D *hc = (TH1D*)h->DrawClone("SAME E3");
+      // Make Run I transparent
+      if (u.title=="Run I") {
+	hc->SetFillColorAlpha(u.fcolor, 0.70); // 70% transparent (def 35%)
+      }
       if (c2) { c2->cd(); h->DrawClone("SAME E3"); c1->cd(); }
       opt2->ReplaceAll("F","");
     }
@@ -1557,7 +1562,8 @@ void plotUncertainty(vector<uncert> const& sys,
     //ofstream fouts(Form("txt/Fall15_25nsV1M2_DATA_Uncertainty_%s.txt",
     //ofstream fouts(Form("txt/Spring16_25nsV4M3_DATA_Uncertainty_%s.txt",
     //ofstream fouts(Form("txt/Spring16_25nsV8M1_DATA_Uncertainty_%s.txt",
-    ofstream fouts(Form("txt/Summer16_23Sep2016V3_DATA_Uncertainty_%s.txt",
+    //ofstream fouts(Form("txt/Summer16_23Sep2016V3_DATA_Uncertainty_%s.txt",
+    ofstream fouts(Form("txt/Summer16_03Feb2017_V3_DATA_Uncertainty_%s.txt",
 			(*_algnames)[d_algo]), ios::out);
     fouts << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
     //ofstream fout5s("txt/Summer15_25nsV6M3_DATA_Uncertainty_AK4PFchs.txt",ios::out);
@@ -1703,16 +1709,19 @@ void plotUncertainty(vector<uncert> const& sys,
     //ofstream fout(Form("txt/Fall15_25nsV1M2_DATA_UncertaintySources_%s.txt",
     //ofstream fout(Form("txt/Spring16_25nsV4M3_DATA_UncertaintySources_%s.txt",
     //ofstream fout(Form("txt/Spring16_25nsV8M1_DATA_UncertaintySources_%s.txt",
-    ofstream fout(Form("txt/Summer16_23Sep2016V3_DATA_UncertaintySources_%s.txt",
+    //ofstream fout(Form("txt/Summer16_23Sep2016V3_DATA_UncertaintySources_%s.txt",
+    ofstream fout(Form("txt/Summer16_03Feb2017_V3_DATA_UncertaintySources_%s.txt",
 		       (*_algnames)[d_algo]), ios::out);
     //fout << Form("#Uncertainty sources for Spring16_25nsV4M3_DATA_%s",
     //fout << Form("#Uncertainty sources for Spring16_25nsV8M1_DATA_%s",
-    fout << Form("#Uncertainty sources for Summer16_23Sep2016V3_DATA_%s",
+    //fout << Form("#Uncertainty sources for Summer16_23Sep2016V3_DATA_%s",
+    fout << Form("#Uncertainty sources for Summer16_03Feb2017_V3_DATA_%s",
 		 (*_algnames)[d_algo]) << endl;
     cout << "Storing uncertainties to: "
       //<< Form("txt/Spring16_25nsV4M3_DATA_UncertaintySources_%s.txt",
       //<< Form("txt/Spring16_25nsV8M1_DATA_UncertaintySources_%s.txt",
-	 << Form("txt/Summer16_23Sep2016V3_DATA_UncertaintySources_%s.txt",
+      //<< Form("txt/Summer16_23Sep2016V3_DATA_UncertaintySources_%s.txt",
+	 << Form("txt/Summer16_03Feb2017_V3_DATA_UncertaintySources_%s.txt",
 		 (*_algnames)[d_algo]) << endl;
     //ofstream fout5("txt/Summer15_25nsV6M3_DATA_UncertaintySources_AK4PFchs.txt",ios::out);
     //fout5 << "#Uncertainty sources for Summer15_25nsV6M3_DATA_AK4PFchs" << endl;

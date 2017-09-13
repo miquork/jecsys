@@ -30,7 +30,8 @@
 using namespace std;
 
 bool dofsr = true; // correct for FSR
-double ptreco = 15.; // min jet pT when evaluating alphamax
+double ptreco_gjet = 15.; // min jet pT when evaluating alphamax for gamma+jet
+double ptreco_zjet = 5.; // same for Z+jet
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
 bool _paper = true;
 //double _cleanUncert = 0.05; // for eta>2
@@ -126,6 +127,8 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 
     // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
     double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
+    //double ptref = 265; // For Run II, 208.*sqrt(13/8)
+    // 208: 0.10, 338: 0.19, 265: 0.15
 
     return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref)));
   } // njesFit==2
@@ -214,6 +217,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   bool isl3 = (etamin==0 && ((epoch!="L4" && fabs(etamax-1.3)<0.1) ||
 			     (epoch=="L4" && fabs(etamax-2.4)<0.1)));
+
+  // Normal global fit with all four samples (multijet/dijet, gamma+jet, Z+jets)
   const int nsamples = 4;
   const int nsample0 = 1; // first Z/gamma+jet sample
   const char* samples[4] = {(isl3 ? "multijet" : "dijet"),
@@ -251,7 +256,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izee = 0;
   const int izmm = 1;
   */
-
+  
 
   // old default
   /*
@@ -377,10 +382,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   // Load reference barrel JES for dijets
   TH1D *hjes0 = (TH1D*)f->Get(epoch=="L4" ? "ratio/eta00-24/hjes" :
 			      "ratio/eta00-13/hjes"); assert(hjes0);
-  hjes0->SetName("hjes0");
+  hjes0->SetName("hjes0"); // L2Res only (usually)
   TH1D *herr0 = (TH1D*)f->Get(epoch=="L4" ? "ratio/eta00-24/herr" :
 			      "ratio/eta00-13/herr"); assert(herr0);
-  herr0->SetName("herr0");
+  herr0->SetName("herr0"); // L2L3Res (usually)
 
   // Load JEC uncertainty band
   TH1D *herr = (TH1D*)d->Get("herr"); assert(herr);
@@ -422,6 +427,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	
 	double pt = g->GetX()[i];
 	double r = g->GetY()[i];
+	double ptreco = (string(cs)=="zeejet"||string(cs)=="zmmjet" ?
+			 ptreco_zjet : ptreco_gjet);
 	double aeff = max(alpha, ptreco/pt);
 	double kfsr = (dofsr ? 1./(1+aeff*h->GetBinContent(h->FindBin(pt))):1);
 	double l1 = (dol1bias && string(cm)=="mpfchs1" && string(cs)=="gamjet" ?
@@ -446,9 +453,16 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	//		heop->Interpolate(pt) : 1);
 	//double escale = (string(cs)=="gamjet" ?
 	//		heope->Interpolate(pt) : 0.);
-	if (etamin!=0) { // put L2res back in for gamma/Z+jet for vs eta studies
-	  int ijes = min(max(1,hjes->FindBin(pt)),hjes->GetNbinsX());
-	  scale = hjes->GetBinContent(ijes);
+
+	// put L2res back in for gamma/Z+jet for vs eta studies
+	if (!(etamin==0 && fabs(etamax-1.3)<0.1) &&
+	    string(cs)!="dijet" && string(cs)!="multijet") {
+	  //int ijes = min(max(1,hjes->FindBin(pt)),hjes->GetNbinsX());
+	  //scale = hjes->GetBinContent(ijes);
+	  double jes = hjes->GetBinContent(hjes->FindBin(pt)); // L2Res only
+	  double jesref = hjes0->GetBinContent(hjes0->FindBin(pt)); // barrel
+	  // divide by jesref(=1) in case hjes had L2L3Res instead of L2Res
+	  scale = jes / jesref;
 	}
 	g->SetPoint(i, pt, scale*l1*r*kfsr);
 	g2->SetPoint(i, pt, scale*l1*r*kfsr);
@@ -509,6 +523,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	// Sum16V6: take into account pTmin threshold effect on alphamax
 	for (int i = 1; i != h->GetNbinsX()+1; ++i) {
 	  double pt = h->GetBinCenter(i);
+	  double ptreco = (string(cs)=="zeejet"||string(cs)=="zmmjet" ?
+			 ptreco_zjet : ptreco_gjet);
 	  double aeff = max(alpha, ptreco/pt);
 	  h->SetBinContent(i, aeff*h->GetBinContent(i));
 	}
@@ -932,7 +948,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //legm->AddEntry(herr_ref,"80X V7","FL");
   //legm->AddEntry(herr_ref,"80X V8","FL");
   //legm->AddEntry(herr_ref,"80XreV1","FL");
-  legm->AddEntry(herr_ref,"Sum16V3","FL");
+  //legm->AddEntry(herr_ref,"Sum16V3","FL");
+  legm->AddEntry(herr_ref,"03FebV3","FL");
 
   hrun1->SetFillStyle(kNone);
   hrun1->DrawClone("SAME E3");
@@ -1516,7 +1533,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       gk->Draw("SAMEL");
 
       leg1->AddEntry(hk, " ", "FL");
-
+    
       // Sum over eigenvectors
       TH1D *hke = (TH1D*)hk->Clone(); hke->Reset();
       for (int ipt = 1; ipt != hke->GetNbinsX()+1; ++ipt) {
@@ -1543,7 +1560,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
 	// Double-check the minus sign for yeig
 	// This is probably because kfsr = 1/(1+alpha*hk) so ~ 1 - alpha*hk
-	hke->SetBinContent(ipt, (alpha*hk->GetBinContent(ipt) - yeig)/alpha);
+	double pt = hke->GetBinCenter(ipt);
+	const char *cs = samples[isample];
+	double ptreco = (string(cs)=="zeejet"||string(cs)=="zmmjet" ?
+			 ptreco_zjet : ptreco_gjet);
+	double aeff = max(alpha, ptreco/pt);
+	hke->SetBinContent(ipt, (aeff*hk->GetBinContent(ipt) - yeig)/aeff);
 	hke->SetBinError(ipt, sqrt(err2));
       } // for ipt
       
