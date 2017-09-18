@@ -22,10 +22,14 @@
   
   setTDRStyle();
 
+  // NB: remember to delete old plots before pdflatex pdf/sysplots.tex
+  // NB2: JECUncert vs JECSource with 'bool _useAbsUncert'
+
   // Single source test
   drawJetCorrectionUncertainty("AK4PFchs",false); //no source files, minimal
   // Print out source files (only setup for AK4PFchs + true pair)
   //drawJetCorrectionUncertainty("AK4PFchs",true); // also source files
+  //drawJetCorrectionUncertainty("AK8PFchs",true); // also source files
 
   // Whole shebang
 

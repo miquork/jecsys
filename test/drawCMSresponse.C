@@ -77,25 +77,29 @@ void drawCMSresponse() {
     //const char *st = "Summer15_25nsV7_DATA";
     //const char *st = "Fall15_25nsV1_DATA";
     //const char *st = "Spring16_25nsV3_MC";
-    const char *st = "Summer16_23Sep2016GV3_DATA"; // 2017
+    //const char *st = "Summer16_23Sep2016GV3_DATA"; // 2017
+    //const char *st = "Summer16_03Feb2017G_V3_DATA"; // 2017 03FebV3
+    const char *st = "Summer16_03Feb2017BCD_V7_DATA"; // 2017 03FebV7
     const char *s;
 
     //s = Form("%s/%s_L1FastJet_AK5PFchs.txt",sd,st); cout << s << endl;
     //JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
+    s = Form("%s/%s_L1FastJet_AK4PFchs.txt",sd,st); cout << s << endl;
+    JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     //s = Form("%s/%s_L2Relative_AK5PFchs.txt",sd,st); cout << s << endl;
     s = Form("%s/%s_L2Relative_AK4PFchs.txt",sd,st); cout << s << endl;
     JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
     //s = Form("%s/%s_L3Absolute_AK5PFchs.txt",sd,st); cout << s << endl;
     s = Form("%s/%s_L3Absolute_AK4PFchs.txt",sd,st); cout << s << endl;
     JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
-    //s = Form("%s/%s_L2L3Residual_AK4PFchs.txt",sd,st); cout << s << endl;
-    //JetCorrectorParameters *l2l3 = new JetCorrectorParameters(s);
+    s = Form("%s/%s_L2L3Residual_AK4PFchs.txt",sd,st); cout << s << endl;
+    JetCorrectorParameters *l2l3 = new JetCorrectorParameters(s);
 
     vector<JetCorrectorParameters> v;
-    //v.push_back(l1);
+    v.push_back(l1);
     v.push_back(*l2);
     v.push_back(*l3);
-    //v.push_back(*l2l3);
+    v.push_back(*l2l3);
     _jec = new FactorizedJetCorrector(v);
   }
   if (!_jecpt) {
@@ -134,8 +138,9 @@ void drawCMSresponse() {
 
 
   // Draw results
-  TH1D *h = new TH1D("h",";Jet |#eta|;Simulated jet response",40,0,4.8);
+  //TH1D *h = new TH1D("h",";Jet |#eta|;Simulated jet response",40,0,4.8);
   //TH1D *h = new TH1D("h",";Jet |#eta|;Data jet response",40,0,4.8);
+  TH1D *h = new TH1D("h",";Jet |#eta|;Data response+offset",40,0,4.8);
   h->SetMaximum(1.25);
   h->SetMinimum(0.5);
   extraText = "Simulation";
@@ -191,7 +196,8 @@ void drawCMSresponse() {
   //tex->DrawLatex(0.30,0.86,"76X JES: Anti-k_{t} R = 0.4, PF+CHS");
   //tex->DrawLatex(0.23,0.86,"2016 JES: Anti-k_{T} R=0.4, PF+CHS");
   tex->DrawLatex(0.23,0.86,"2017 JES: Anti-k_{t} R = 0.4, PF+CHS");
-
+  //tex->DrawLatex(0.23,0.86,"2017 03FebV3: Anti-k_{t} R = 0.4, PF+CHS");
+ 
   tex->DrawLatex(0.19,0.78,"Barrel");
   tex->DrawLatex(0.47,0.78,"Endcap"); //0.42
   tex->DrawLatex(0.73,0.78,"Forward");

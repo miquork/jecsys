@@ -26,6 +26,8 @@
 #include <map>
 
 const double _lumi = 2065.;//19800.;
+const double ptrec_zjet = 5.;
+const double ptrec_gjet = 15.;
 
 bool dodijet = true;//false;
 bool _s_dcsonly = false;
@@ -424,6 +426,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 	  int ipt = itpt->first;
 	  int jpt = hpt1->FindBin(ipt);
+	  //double ptmin = hpt1->GetBinLowEdge(jpt); // 2017-06-13
 	  //if (jpt>npads) continue;
 	  //assert(jpt<=npads);
 	  //c2->cd(jpt);
@@ -440,7 +443,11 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  f1->SetLineColor(ga->GetLineColor());
 	  f1->SetParameters(1,0);
 	  //const double minalpha = (isample==0 ? 10./ipt : 5./ipt);
-	  const double minalpha = (isample==0 ? 10./ipt : 5./ipt); // 2015-10-20
+	  //const double minalpha = (isample==0 ? 10./ipt : 5./ipt); // 2015-10-20
+	  //const double minalpha = (isample==0 ? ptrec_gjet/ptmin :
+	  //			   ptrec_zjet/ptmin); // 2017-06-13 // 331.0/126
+	  const double minalpha = (isample==0 ? ptrec_gjet/ipt :
+	  			   ptrec_zjet/ipt); // 2017-06-13 // 331.0/126
 	  // Constrain slope to within reasonable values
 	  // in the absence of sufficient data using priors
 	  // TEMP TEMP TEMP
@@ -613,7 +620,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
       for (int  isample = 0; isample != nsamples; ++isample) {
 
 	const char *cs = samples[isample];
-	TGraphErrors *gk = gkmap[cd][cm][cs]; assert(gk);
+	TGraphErrors *gk = gkmap[cd][cm][cs];
+	if (!gk) cout << cd << " " << cm << " " << cs << endl << flush;
+	assert(gk);
 	
 	leg->AddEntry(gk,texlabel[cs],"P");
 

@@ -177,6 +177,7 @@ void multijet(bool usemjb = true, string epoch="") {
   fm_files["EF"] = "EFearly";
   fm_files["G"] = "FlateG";
   fm_files["H"] = "H";
+  fm_files["BCDEFGH"] = "All";
   TFile *f = new TFile(Form("rootfiles/multijet_20170428_Run2016%s.root",
 			    fm_files[epoch]),"READ");
 

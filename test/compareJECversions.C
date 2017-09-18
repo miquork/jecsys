@@ -171,6 +171,7 @@ void compareJECversions(string algo="AK4PFchs",
   string sgen = (_useptgen ? "corr" : "raw");
   const char *cgen = sgen.c_str();
 
+<<<<<<< HEAD
 //  // 2016 JEC, 80X
 //  string sid2 = (_mc ? "Summer16_03Feb2017_V0_MC" : "Summer16_03Feb2017H_V7_DATA");
 //  const char *cid2 = sid2.c_str();
@@ -187,6 +188,43 @@ void compareJECversions(string algo="AK4PFchs",
 //  // PATCH 2012 with clones
 //  //if (algo=="AK4PF") a2 = "AK5PF";
 //  //if (algo=="AK4PFchs") a2 = "AK5PFchs";
+=======
+  // 2015 JEC, 76X
+  //string sid2 = (_mc ? "Summer15_25nsV6_MC" : "Summer15_25nsV6_DATA");
+  //string sid2 = (_mc ? "Fall15_25nsV1_MC" : "Fall15_25nsV1_DATA");
+  //string sid2 = (_mc ? "Spring16_25nsV8p2_MC" : "Spring16_25nsV8p2_DATA");
+  //string sid2 = (_mc ? "Spring16_23Sep2016GHV1_MC" : "Spring16_23Sep2016GHV1_DATA");
+  //string sid2 = (_mc ? "Spring16_23Sep2016BCDV1_MC" : "Spring16_23Sep2016BCDV1_DATA");
+  //string sid2 = (_mc ? "Summer16_23Sep2016BCDV1_MC" : "Summer16_23Sep2016BCDV1_DATA");
+  //string sid2 = (_mc ? "Summer16_23Sep2016BCDV1_MC" : "Summer16_23Sep2016BCDV1_DATA");
+  //string sid2 = (_mc ? "Summer16_23Sep2016GV2_MC" : "Summer16_23Sep2016GV2_DATA");
+  //string sid2 = (_mc ? "Summer16_23Sep2016V2_MC" : "Summer16_23Sep2016GV3_DATA");
+  //string sid2 = (_mc ? "Summer16_23Sep2016V3_MC" : "Summer16_23Sep2016HV3_DATA");
+  string sid2 = (_mc ? "Summer16_03Feb2017_V1_MC" : "Summer16_03Feb2017H_V3_DATA");
+  const char *cid2 = sid2.c_str();
+  const char *a2 = a;
+  //const char *s2 = "1.3 fb^{-1} (13 TeV)";
+  //const char *s2s = "2012";
+  //const char *s2 = "2.1 fb^{-1} (13 TeV)";
+  //const char *s2 = "76Xv1 (13 TeV)";
+  //const char *s2s = "76X";
+  //const char *s2 = "80Xv8 G";// (13 TeV)";
+  //const char *s2 = "80XreV1 GH";// (13 TeV)";
+  //const char *s2s = "reGH";
+  //const char *s2 = "80XreV1 BCD";
+  //const char *s2s = "reV1 BCD";
+  //const char *s2 = "80Xre Sum16";
+  //const char *s2s = "Sum16";
+  //const char *s2 = "80X Sum16 BCD";
+  //const char *s2s = "BCD";
+  //const char *s2 = "80X Sum16 G";
+  //const char *s2 = "Summer16GV3";
+  //const char *s2s = "Sum16V3";
+  const char *s2 = "03Feb2017H_V3";
+  const char *s2s = "03Feb17HV3";
+  // PATCH 2012 with clones
+  //if (algo=="AK4PF") a2 = "AK5PF";
+  //if (algo=="AK4PFchs") a2 = "AK5PFchs";
 
   // 2012 JEC
   //string sid1 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
@@ -196,6 +234,24 @@ void compareJECversions(string algo="AK4PFchs",
   //  string sid1 = (_mc ? "Summer16_23Sep2016V4_MC" : "Summer16_23Sep2016HV4_DATA");
   //  string sid1 = (_mc ? "Summer16_03Feb2017_V0_MC" : "Summer16_03Feb2017BCD_V4_DATA");
 
+  //string sid1 = (_mc ? "Spring16_25nsV8BCD_MC" : "Spring16_25nsV8BCD_DATA");
+  //string sid1 = (_mc ? "Spring16_23Sep2016BCDV1_MC" : "Spring16_23Sep2016BCDV1_DATA");
+  //string sid1 = (_mc ? "Summer16_23Sep2016EFV1_MC" : "Summer16_23Sep2016EFV1_DATA");
+  //string sid1 = (_mc ? "Summer16_23Sep2016EFV2_MC" : "Summer16_23Sep2016EFV2_DATA");
+  //string sid1 = (_mc ? "Spring16_23Sep2016V1_MC" : "Spring16_23Sep2016GHV1_DATA");
+  //string sid1 = (_mc ? "Spring16_23Sep2016V1_MC" : "Spring16_23Sep2016GV2_DATA");
+  //string sid1 = (_mc ? "Summer16_23Sep2016V3_MC" : "Summer16_23Sep2016HV3_DATA");
+  //string sid1 = (_mc ? "Summer16_03Feb2017_V3_MC" : "Summer16_03Feb2017G_V3_DATA");
+  string sid1 = (_mc ? "Summer16_23Sep2016_V3_MC" : "Summer16_23Sep2016HV3_DATA");
+  const char *cid1 = sid1.c_str();
+  //const char *a1 = "AK5PFchs";//a;
+  const char *a1 = "AK4PFchs";//a;
+  //const char *s1 = "23Sep2016HV3";
+  //const char *s1s = "23Sep16HV3";
+  //const char *s1 = "03Feb2017G_V3";
+  //const char *s1s = "03Feb17G_V3";
+  const char *s1 = "23Sep2016H_V3";
+  const char *s1s = "23Sep16H_V3";
   //const char *s1 = "20 fb^{-1} (8 TeV)";
   //const char *s1s = "2012";
   //const char *s1 = "1.3 fb^{-1} (13 TeV)";
@@ -244,10 +300,12 @@ void compareJECversions(string algo="AK4PFchs",
 
   // 2012 JEC
   //string sid3 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
+  string sid3 = (_mc ? "Summer16_03Feb2017_V1_MC" : "Summer16_03Feb2017H_V3_DATA");
   //string sid3 = (_mc ? "Spring16_25nsV8E_MC" : "Spring16_25nsV8E_DATA");
   //string sid3 = (_mc ? "Spring16_25nsV6_MC" : "Spring16_25nsV6_DATA");
   //string sid3 = (_mc ? "Spring16_25nsV8F_MC" : "Spring16_25nsV8F_DATA");
   //string sid3 = (_mc ? "Spring16_25nsV8E_MC" : "Spring16_25nsV8E_DATA");
+<<<<<<< HEAD
   //  string sid3 = (_mc ? "Summer15_50nsV4_MC" : "Summer15_50nsV4_DATA");
 
 //  string sid3 = (_mc ? "Summer16_03Feb2017_V0_MC" : "Summer16_03Feb2017H_V5_DATA");
@@ -267,17 +325,43 @@ void compareJECversions(string algo="AK4PFchs",
 //  // const char *s3 = "Summer16_03Feb2017BCD_V5";
   // const char *s3s = "03FebBCDV5";
 
+=======
+  //string sid3 = (_mc ? "Summer15_50nsV4_MC" : "Summer15_50nsV4_DATA");
+  //string sid3 = (_mc ? "Spring16_23Sep2016EV1_MC" : "Spring16_23Sep2016EV1_DATA");
+  //string sid3 = (_mc ? "Summer16_23Sep2016GV1_MC" : "Summer16_23Sep2016GV1_DATA");
+  //string sid3 = (_mc ? "Summer16_23Sep2016GV2_MC" : "Summer16_23Sep2016GV2_DATA");
+  //string sid3 = (_mc ? "Summer16_23Sep2016V2_MC" : "Summer16_23Sep2016BCDV3_DATA");
+  const char *cid3 = sid3.c_str();
+  const char *a3 = a;
+  //const char *a3 = "AK5PFchs"; // for Winter14
+  //const char *s3 = "20 fb^{-1} (8 TeV)"; // for Winter14
+  //const char *s3 = "R=0.5, 20 fb^{-1} (8 TeV)"; // for Winter14
+  //const char *s3 = "R=0.5, Winter14_V8"; // for Winter14
+  const char *s3 = "03Feb2017H_V3";
+  const char *s3s = "03Feb17H_V3";
+  //const char *s3s = "2012";
+  //const char *s3s = "74X";
+  //const char *s3s = "Run I"; // for Winter14
+  //const char *s3 = "80Xv8 E";// (13 TeV)";
+  //const char *s3s = "E";
+  //const char *s3 = "80Xv6 BCD";// (13 TeV)";
+  //const char *s3s = "V6";
+  //const char *s3 = "80Xv8 F";// (13 TeV)";
+  //const char *s3s = "F";
+  //const char *s3 = "50ns v4";
+  //const char *s3s = "50ns";
+  //const char *s3 = "80XreV1 E";
+  //const char *s3s = "reE";
   //const char *s3 = "80Xv8 E";// (13 TeV)";
   //const char *s3s = "E";
   //if (algo=="AK4PF") a3 = "AK5PF";
   //if (algo=="AK4PFchs") a3 = "AK5PFchs";
 
-  // 2011 JEC
-  //string sid1 = "GR_R_42_V23";
-  //const char *cid1 = sid1.c_str();
-  //const char *a1 = a;
-  //const char *s1 = "5 fb^{-1} (7 TeV)";
-  //const char *s1s = "2011";
+  //string sid3 = "GR_R_42_V23";
+  //const char *cid3 = sid3.c_str();
+  //const char *a3 = "AK5PFchs";//a;
+  //const char *s3 = "5 fb^{-1} (7 TeV)";
+  //const char *s3s = "2011";
 
   // 2010 JEC
   //string sid3 = "START38_V13";
@@ -291,6 +375,7 @@ void compareJECversions(string algo="AK4PFchs",
 
 
   str=Form("CondFormats/JetMETObjects/data/%s_L1FastJet_%s.txt",cid1,a1);
+  //str=Form("CondFormats/JetMETObjects/data/%s_L1RC_%s.txt",cid1,a1);
   cout << str << endl << flush;
   JetCorrectorParameters *JetCorPar1L1 = new JetCorrectorParameters(str);
   str=Form("CondFormats/JetMETObjects/data/%s_L2Relative_%s.txt",cid1,a1);
@@ -307,6 +392,7 @@ void compareJECversions(string algo="AK4PFchs",
   JetCorrectionUncertainty *jecUnc1 = new JetCorrectionUncertainty(str);
 
   str=Form("CondFormats/JetMETObjects/data/%s_L1FastJet_%s.txt",cid2,a2);
+  //str=Form("CondFormats/JetMETObjects/data/%s_L1RC_%s.txt",cid2,a2);
   cout << str << endl << flush;
   JetCorrectorParameters *JetCorPar2L1 = new JetCorrectorParameters(str);
   str=Form("CondFormats/JetMETObjects/data/%s_L2Relative_%s.txt",cid2,a2);
@@ -359,9 +445,8 @@ void compareJECversions(string algo="AK4PFchs",
     jecUnc3 = new JetCorrectionUncertainty(str);
     */
 
-    //    str=Form("CondFormats/JetMETObjects/data/%s_L1FastJet_%s.txt",cid3,a3);
-    //    cout << str << endl << flush;
-    str=Form("CondFormats/JetMETObjects/data/%s_L1RC_%s.txt",cid3,a3);
+    str=Form("CondFormats/JetMETObjects/data/%s_L1FastJet_%s.txt",cid3,a3);
+    //str=Form("CondFormats/JetMETObjects/data/%s_RC_%s.txt",cid3,a3); // L1RC
     cout << str << endl << flush;
     JetCorrectorParameters *JetCorPar3L1 = new JetCorrectorParameters(str);
     str=Form("CondFormats/JetMETObjects/data/%s_L2Relative_%s.txt",cid3,a3);
@@ -423,10 +508,12 @@ void compareJECversions(string algo="AK4PFchs",
   h->GetYaxis()->SetTitle(Form("%s%s%s%s",cl1,cl2l3,cpl,cres));
   if (_paper) {
     if (l1 && !l2l3 && !res) h->SetYTitle("Pileup offset correction");
+    //if (l1 && !l2l3 && !res) h->SetYTitle("Random cone offset correction"); // L1RC
     if (!l1 && l2l3 && !res) h->SetYTitle("Simulated response correction");
     if (!l1 && !l2l3 && res) h->SetYTitle("Residual response correction");
     //
     if (l1 && !l2l3 && !res) hpt->SetYTitle("Pileup offset correction");
+    //if (l1 && !l2l3 && !res) hpt->SetYTitle("Random cone offset correction"); // L1RC
     if (!l1 && l2l3 && !res) hpt->SetYTitle("Simulated response correction");
     if (!l1 && !l2l3 && res) hpt->SetYTitle("Residual response correction");
   }
@@ -460,6 +547,7 @@ void compareJECversions(string algo="AK4PFchs",
   //  lumi_13TeV  = "27 fb^{-1} (13 TeV)";
   lumi_13TeV  = (_mc ? "MC" : "36 fb^{-1} (13 TeV)");
   //  lumi_13TeV  = "MC";
+  //  lumi_13TeV  = "2016 re-mAOD 36.5 fb^{-1}";
 
   TH1D *h1a = (TH1D*)h->Clone(Form("h1a_%s",a));
   TCanvas *c1a = tdrCanvas(Form("c1a_%s",a),h1a,4,11,kSquare);
@@ -1287,8 +1375,9 @@ void compareJECversions(string algo="AK4PFchs",
     //tex->DrawLatex(0.65,0.80,a);
     //leg->Draw();
 
-    tex->DrawLatex(0.19,0.75,Form("p_{T,%s} = 30 GeV",cgen));
-    if (l1) tex->DrawLatex(0.19,0.68,Form("#LT#mu#GT = %1.1f",_mu));
+    tex->DrawLatex(0.19,0.81,Form("p_{T,%s} = 30 GeV",cgen));
+    if (l1) tex->DrawLatex(0.19,0.74,Form("#LT#mu#GT = %1.1f",_mu));
+    if (l1) tex->DrawLatex(0.19,0.68,Form("R = %1.1f, PF+chs",0.4));
 
     //TLegend *leg1a = tdrLeg(0.60, dothree ? 0.66 : 0.72, 0.90, 0.90);
     //    TLegend *leg1a = tdrLeg(0.57, dothree ? 0.66 : 0.72, 0.87, 0.90);

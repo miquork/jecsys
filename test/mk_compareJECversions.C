@@ -20,6 +20,12 @@
   /*
 
 
+  compareJECversions("AK4PFchs",false,false,true,"DATA"); // Fig.24topleft
+  //compareJECversions("AK4PFchs",false,true,false,"MC"); // L2L3
+  //compareJECversions("AK4PFchs",true,false,false,"MC"); // L1 MC
+
+  /*
+  compareJECversions("AK4PFchs",true,false,false,"MC"); // L1 MC
   compareJECversions("AK4PFchs",true,false,false,"DATA"); // L1
   compareJECversions("AK4PFchs",false,true,false,"DATA"); // L2L3
   compareJECversions("AK4PFchs",false,false,true,"DATA"); // Res
