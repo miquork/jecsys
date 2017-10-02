@@ -64,8 +64,10 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   const char* dirs[ndirs] = {"data", "mc", "ratio"};
   const int nmethods = 2;
   const char* methods[nmethods] = {"mpfchs1", "ptchs"};
-  const int nsamples = (dodijet ? 4 : 3);
-  const char* samples[4] = {"gamjet", "zeejet", "zmmjet", "dijet"};
+  //  const int nsamples = (dodijet ? 4 : 3);
+  //  const char* samples[4] = {"gamjet", "zeejet", "zmmjet", "dijet"};
+  const int nsamples = (dodijet ? 3 : 2);
+  const char* samples[4] = {"zeejet", "zmmjet", "dijet"};
   //const int nsamples = (dodijet ? 3 : 2);
   //const char* samples[3] = {"gamjet", "zmmjet", "dijet"};
   const int idj = (dodijet ? nsamples-1 : -1);
@@ -366,14 +368,13 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 			  cep,cd,cm,10*etamin,10*etamax));
 	}
       } // paper
-
     } // for imethod
   } // for idir
   
   c1->cd(0);
   //cmsPrel(_lumi, true);
   //CMS_lumi(c1, 2, 33);
-  c1->SaveAs(Form("pdf/%s/softrad_2x6_vspt.pdf",cep));
+  c1->SaveAs(Form("pdf/%s/softrad_2x6_vspt_eta%1.0f-%1.0f.pdf",cep,10*etamin,10*etamax));
 
 
   cout << "Drawing plots vs alpha for each pT" << endl << flush;
@@ -583,7 +584,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	
       } // for isample
       
-      c2->SaveAs(Form("pdf/%s/softrad_3x3_%s_%s_vsalpha.pdf",cep,cd,cm));
+      c2->SaveAs(Form("pdf/%s/softrad_3x3_%s_%s_vsalpha_eta%1.0f-%1.0f.pdf",cep,cd,cm,10*etamin,10*etamax));
       
     }
   }
@@ -746,7 +747,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   c3->cd(0);
   //cmsPrel(_lumi, true);
   CMS_lumi(c3, 2, 33);
-  c3->SaveAs(Form("pdf/%s/softrad_2x6_kfsr.pdf",cep));
+  c3->SaveAs(Form("pdf/%s/softrad_2x6_kfsr_eta%1.0f-%1.0f.pdf",cep,10*etamin,10*etamax));
 
   finout->Close();
   //fout->Close();

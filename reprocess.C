@@ -44,7 +44,13 @@ double fzeeptmin(30.); // Zee+jet
 double fzmmptmin(30.); // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
 double fzmpfptmin(30.); // Z+jet MPF
-double fzbalptmin(30);//60.); // Z+jet pT
+//double fzbalptmin(30);//60.); // Z+jet pT
+
+//for fine etabins deactivate ptbal
+double fdijetmpfptmin(30);
+double fdijetbalptmin(30.);
+double fdijetptmax(1500.);
+double fzbalptmin(30.);
 
 // Maximum pTcut for samples (to avoid bins with too large uncertainty)
 //double fpptmax(600.); // for eta>2
@@ -87,14 +93,22 @@ void reprocess(string epoch="") {
 
   // On 29 May 2017, at 18.50, Jens Multhaup
   // https://indico.cern.ch/event/641882/
+  //  TFile *fdj = new TFile(Form("rootfiles/Summer16_03Feb2017%s_V3_JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
+
+  // Fine eta-bins
+  // https://indico.cern.ch/event/651009/contributions/2658485/
+  // 03Feb2017_L2Res_InputGlobalFit_12July2017.tar
+
+
   map<string,const char*> fdj_files;
   fdj_files["BCD"] = "BCD";
   fdj_files["EF"] = "EFearly";
   fdj_files["G"] = "FlateG";
   fdj_files["H"] = "H";
   fdj_files["BCDEFGH"] = "BCDEFGH";
-  TFile *fdj = new TFile(Form("rootfiles/Summer16_03Feb2017%s_V3_JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
-  
+  //  TFile *fdj = new TFile(Form("rootfiles/03Feb2017_L2Res_InputGlobalFit_12July2017/Run%s/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
+  TFile *fdj = new TFile(Form("rootfiles/JEC_L2_Dijet_AK4PFchs_pythia8_eta_0_13_mergeFineWide_03Feb2017_L2Res_InputGlobalFit_12July2017_Run%s.root",fdj_files[epoch]),"READ");
+
   assert(fdj && !fdj->IsZombie());
 
   // On 19 Oct 2016, at 15:29, Andrey A. Popov
@@ -458,17 +472,27 @@ void reprocess(string epoch="") {
 //
   // Thomas Berger, May 12, 2017 (03Feb_L2ResV2 + fixes on May 7 files)
   // https://indico.cern.ch/event/636628/
+  //  TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s"
+  //			       "_JEC_03Feb2017_V2_2017-05-11.root",
+  //   			       fz_files[epoch]),"READ");
+  //  TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s"
+  //			       "_JEC_03Feb2017_V2_2017-05-11.root",
+  //  			       fz_files[epoch]),"READ");
+
+  // JEC_combinations_2017-09-04
+  // On 09/04/2017 02:00 PM, Thomas Berger wrote:
+  // Fine eta bins for global fit
     map<string,const char*> fz_files;
   fz_files["BCD"] = "BCD";
   fz_files["EF"] = "EF";
   fz_files["G"] = "G";
   fz_files["H"] = "H";
-  fz_files["BCDEFGH"] = "BCDEFGH"; // renamed JECv2 => JEC_03Feb2017_V2
+  fz_files["BCDEFGH"] = "BCDEFGH"; 
   TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s"
-			       "_JEC_03Feb2017_V2_2017-05-11.root",
+			       "_2017-09-01.root",
    			       fz_files[epoch]),"READ");
   TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s"
-			       "_JEC_03Feb2017_V2_2017-05-11.root",
+			       "_2017-09-01.root",
   			       fz_files[epoch]),"READ");
   //
   assert(fzmm && !fzmm->IsZombie());
@@ -606,8 +630,8 @@ void reprocess(string epoch="") {
 
   vector<string> sets;
   sets.push_back("dijet");
-  sets.push_back("multijet");
-  sets.push_back("gamjet");
+  //  sets.push_back("multijet");
+  //  sets.push_back("gamjet");
   sets.push_back("zeejet");
   sets.push_back("zmmjet");
 
@@ -615,14 +639,38 @@ void reprocess(string epoch="") {
   // reference region |eta|<1.3
   if (epoch!="L4") etas.push_back(make_pair<double,double>(0,1.305));
   if (epoch=="L4") etas.push_back(make_pair<double,double>(0,2.4));
-  // bins for coarse eta-dependent corrections
-  etas.push_back(make_pair<double,double>(0,0.783)); // do these exist?
-  etas.push_back(make_pair<double,double>(0.783,1.305)); // do these exist?
-  etas.push_back(make_pair<double,double>(1.305,1.93));
-  etas.push_back(make_pair<double,double>(1.93,2.5));
-  etas.push_back(make_pair<double,double>(2.5,2.964));
-  etas.push_back(make_pair<double,double>(2.964,3.2));
-  etas.push_back(make_pair<double,double>(3.2,5.191));
+  etas.push_back(make_pair<double,double>(0.000,0.261)); 
+  etas.push_back(make_pair<double,double>(0.261,0.522)); 
+  etas.push_back(make_pair<double,double>(0.522,0.783)); 
+  etas.push_back(make_pair<double,double>(0.783,1.044)); 
+  etas.push_back(make_pair<double,double>(1.044,1.305)); 
+  etas.push_back(make_pair<double,double>(1.305,1.479)); 
+  etas.push_back(make_pair<double,double>(1.479,1.653)); 
+  etas.push_back(make_pair<double,double>(1.653,1.930)); 
+  etas.push_back(make_pair<double,double>(1.930,2.172)); 
+  etas.push_back(make_pair<double,double>(2.172,2.322)); 
+  etas.push_back(make_pair<double,double>(2.322,2.500)); 
+  etas.push_back(make_pair<double,double>(2.500,2.650)); 
+  etas.push_back(make_pair<double,double>(2.650,2.853)); 
+  etas.push_back(make_pair<double,double>(2.853,2.964)); 
+  etas.push_back(make_pair<double,double>(2.964,3.139)); 
+  etas.push_back(make_pair<double,double>(3.139,3.489)); 
+  etas.push_back(make_pair<double,double>(3.489,3.839)); 
+  etas.push_back(make_pair<double,double>(3.839,5.191));
+
+  
+//  vector<pair<double,double> > etas;
+//  // reference region |eta|<1.3
+//  if (epoch!="L4") etas.push_back(make_pair<double,double>(0,1.305));
+//  if (epoch=="L4") etas.push_back(make_pair<double,double>(0,2.4));
+//  // bins for coarse eta-dependent corrections
+//  //  etas.push_back(make_pair<double,double>(0,0.783)); // do these exist?
+//  //  etas.push_back(make_pair<double,double>(0.783,1.305)); // do these exist?
+//  etas.push_back(make_pair<double,double>(1.305,1.93));
+//  etas.push_back(make_pair<double,double>(1.93,2.5));
+//  etas.push_back(make_pair<double,double>(2.5,2.964));
+//  etas.push_back(make_pair<double,double>(2.964,3.2));
+//  etas.push_back(make_pair<double,double>(3.2,5.191));
 
   vector<double> alphas;
   alphas.push_back(0.10);
@@ -653,6 +701,8 @@ void reprocess(string epoch="") {
       double eta1 = etas[ieta].first;
       double eta2 = etas[ieta].second;
       const char *dd0 = Form("eta%02.0f-%02.0f",eta1*10.,eta2*10.);
+      cout << dd0 << endl << flush;
+      
       dout0->mkdir(dd0);
       assert(dout0->cd(dd0));
       //TDirectory *dout = gDirectory; // broke in ROOT 6.04/08
@@ -702,8 +752,14 @@ void reprocess(string epoch="") {
 	    // If samples missing break-up into e.g. [3,3.2] and [3.2,5.2] bins
 	    // or merged [0,1.3] bin, patch here
 	    //if (s=="dijet"  && fabs(eta1-3.2)<0.1) { eta2=5.0; }
-	    if (s=="dijet"  && fabs(eta1-0.0)<0.1 &&
-		(fabs(eta2-1.3)<0.1 || fabs(eta2-2.4)<0.1)) { eta2=0.8; } // 80X
+//	    if (s=="dijet"  && fabs(eta1-0.0)<0.1 &&
+//		(fabs(eta2-1.3)<0.1 || fabs(eta2-2.4)<0.1)) { eta2=0.8; } // 80X
+//	    if (s=="dijet"  && fabs(eta1-0.8)<0.1 &&
+//		(fabs(eta2-1.3)<0.1 || fabs(eta2-2.4)<0.1)) { eta1=0.0; } // 80X
+//	    if (s=="dijet"  && fabs(eta1-0.0)<0.1 &&
+//		(fabs(eta2-0.8)<0.1 || fabs(eta2-2.4)<0.1)) { eta2=1.3; } // 80X
+//	    if (s=="dijet"  && fabs(eta1-0.0)<0.1 && // fine bin file doesn't have 0-1.3
+//		(fabs(eta2-1.3)<0.1 || fabs(eta2-2.4)<0.1)) { eta2=0.261; } // 80X
 	    //if (s=="multijet" && (!(fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1)
 	    //		  || fabs(alpha-0.15)<0.01))
 	    //continue; // only barrel for multijet balance, pT=10,20,30
@@ -743,8 +799,14 @@ void reprocess(string epoch="") {
 	    // If non-conventional naming schemes, patch here
 	    const char *c(0);
 	    if (s=="dijet") {
-	      c = Form("%s/eta%02.0f-%02.0f/%s_%s_a%1.0f", // 74X
-	             dd, 10.*eta1, 10.*eta2, rename[s][t], ss, 100.*alpha);
+	      //	      c = Form("%s/eta%02.0f-%02.0f/%s_%s_a%1.0f", // 74X
+	      //	             dd, 10.*eta1, 10.*eta2, rename[s][t], ss, 100.*alpha);
+	      c = Form("%s/eta%03.0f-%03.0f/%s_%s_a%1.0f", // July2017 eta fine bins
+		       dd, floor(100.*eta1), floor(100.*eta2), rename[s][t], ss, 100.*alpha); // seems to truncate instead of rounding bin edges
+	      if (eta1==0) c = Form("%s/eta00-%03.0f/%s_%s_a%1.0f", // July2017 eta fine bins
+	             dd, 100.*eta2, rename[s][t], ss, 100.*alpha);
+	      if (eta1==0 && (eta2==1.305||eta2==2.4)) c = Form("%s/eta00-13/%s_%s_a%1.0f", // July2017 eta fine bins merged version
+	             dd, rename[s][t], ss, 100.*alpha);
 	    } // dijet
 	    if (s=="multijet") {
 	      c = Form("%s/Pt%1.0f/%s", rename[s][d], 100.*alpha, rename[s][t]);
@@ -757,7 +819,8 @@ void reprocess(string epoch="") {
 	    if (s=="zmmjet" || s=="zeejet") {
 	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2L3",
 	    	       rename[s][d], rename[s][t], 100.*alpha,
-	    	       10.*eta1, 10.*eta2); // TB
+	    	       10.01*eta1, 10.01*eta2); // TB // changed to 10.01 to avoid strange rounding bug with eta 2.65 bin edge
+	      //	      cout << c << endl << flush;
 	    } // Z+jet (TB)
 // 	    if (s=="zmmjet" || s=="zeejet") {
 // 	      c = Form("%s_%s_a%1.0f_eta_%02.0f00_%02.0f00_L1L2L3",
@@ -798,6 +861,12 @@ void reprocess(string epoch="") {
 		g->RemovePoint(i);
 	      else if (s=="gamjet" && t=="ptchs" &&
 		       (g->GetX()[i]<fpbalptmin || g->GetX()[i]>fpptmax))
+		g->RemovePoint(i);
+	      else if (s=="dijet" && t=="mpfchs1" &&
+		       (g->GetX()[i]<fdijetmpfptmin || g->GetX()[i]>fdijetptmax))
+		g->RemovePoint(i);
+	      else if (s=="dijet" && t=="ptchs" &&
+		       (g->GetX()[i]<fdijetbalptmin || g->GetX()[i]>fdijetptmax))
 		g->RemovePoint(i);
 	      else if (s=="zeejet" && 
 		       (g->GetX()[i]<fzeeptmin || g->GetX()[i]>fzeeptmax))

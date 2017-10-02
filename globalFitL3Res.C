@@ -34,8 +34,8 @@ double ptreco_gjet = 15.; // min jet pT when evaluating alphamax for gamma+jet
 double ptreco_zjet = 5.; // same for Z+jet
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
 bool _paper = true;
-//double _cleanUncert = 0.05; // for eta>2
-double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
+double _cleanUncert = 0.05; // for eta>2
+//double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
 unsigned int _nsamples(0);
 unsigned int _nmethods(0);
@@ -211,6 +211,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //
   const int nmethods = 2;
   const char* methods[nmethods] = {"ptchs","mpfchs1"};
+  //  const int nmethods = 1;//MPFOnlyTest for FineEtaBins
+  //  const char* methods[nmethods] = {"mpfchs1"};
   _nmethods = nmethods; // for multijets in global fit
 
   // Global fit with multijets, gamma+jet, Z+jet
@@ -218,12 +220,22 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   bool isl3 = (etamin==0 && ((epoch!="L4" && fabs(etamax-1.3)<0.1) ||
 			     (epoch=="L4" && fabs(etamax-2.4)<0.1)));
 
-  // Normal global fit with all four samples (multijet/dijet, gamma+jet, Z+jets)
-  const int nsamples = 4;
+//  // Normal global fit with all four samples (multijet/dijet, gamma+jet, Z+jets)
+//  const int nsamples = 4;
+//  const int nsample0 = 1; // first Z/gamma+jet sample
+//  const char* samples[4] = {(isl3 ? "multijet" : "dijet"),
+//			    "gamjet", "zeejet", "zmmjet"};
+//  const int igj = 0;
+//  const int izee = 1;
+//  const int izmm = 2;
+
+
+  // Global fit with only dijet, Z+jets
+  const int nsamples = 3;
   const int nsample0 = 1; // first Z/gamma+jet sample
-  const char* samples[4] = {(isl3 ? "multijet" : "dijet"),
-			    "gamjet", "zeejet", "zmmjet"};
-  const int igj = 0;
+  const char* samples[4] = {"dijet",
+			    "zeejet", "zmmjet"};
+  const int igj = -1;
   const int izee = 1;
   const int izmm = 2;
 
@@ -462,7 +474,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	  double jes = hjes->GetBinContent(hjes->FindBin(pt)); // L2Res only
 	  double jesref = hjes0->GetBinContent(hjes0->FindBin(pt)); // barrel
 	  // divide by jesref(=1) in case hjes had L2L3Res instead of L2Res
-	  scale = jes / jesref;
+          //	  scale = jes / jesref;
+	  scale = 1.0; //hack for no residual input
 	}
 	g->SetPoint(i, pt, scale*l1*r*kfsr);
 	g2->SetPoint(i, pt, scale*l1*r*kfsr);
