@@ -37,6 +37,12 @@ bool _paper = true;
 double _cleanUncert = 0.05; // for eta>2
 //double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
+string scalingForL2OrL3Fit = "None"; //"None" - for inpunt combination files without any residual applied
+//"PutBackL2Res" - put L2res back in for gamma/Z+jet for vs eta studies
+//N.B.: Barrel JES from input text file is always applied to dijet results
+
+bool verboseGF = true;
+
 unsigned int _nsamples(0);
 unsigned int _nmethods(0);
 
@@ -180,7 +186,7 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 
 void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 		    string epoch="") {
-  
+  if(verboseGF)cout << Form("Running globalFitL3Res(etamin=%02.2f,etamax=%02.2f,epoch=%s",etamin,etamax,epoch.c_str()) << endl << flush;
   _etamin = etamin;
   const char *cep = epoch.c_str();
   //njesFit = (njesFit==3 && useTDI && (epoch=="G"||epoch=="H") ? 2 : njesFit);
@@ -229,7 +235,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 //  const int izee = 1;
 //  const int izmm = 2;
 
-
+  /*
   // Global fit with only dijet, Z+jets
   const int nsamples = 3;
   const int nsample0 = 1; // first Z/gamma+jet sample
@@ -238,7 +244,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int igj = -1;
   const int izee = 1;
   const int izmm = 2;
-
+  */
 
   /*
   // Global fit without multijets
@@ -249,16 +255,16 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izee = 1;
   const int izmm = 2;
   */
-  /*
+  
   // Global fit without photon+jet
   const int nsamples = 3;
   const int nsample0 = 1; // first Z/gamma+jet sample
-  const char* samples[3] = {(etamin==0 ? "multijet" : "dijet"),
+  const char* samples[3] = {(etamin==0 && (etamax==1.3||etamax==2.4)? "multijet" : "dijet"),
 			    "zeejet", "zmmjet"};
   const int igj = -1;
   const int izee = 1;
   const int izmm = 2;
-  */
+  
   /*
   // Global fit with Z+jet only
   const int nsamples = 2;
@@ -474,8 +480,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	  double jes = hjes->GetBinContent(hjes->FindBin(pt)); // L2Res only
 	  double jesref = hjes0->GetBinContent(hjes0->FindBin(pt)); // barrel
 	  // divide by jesref(=1) in case hjes had L2L3Res instead of L2Res
-          //	  scale = jes / jesref;
-	  scale = 1.0; //hack for no residual input
+          if(scalingForL2OrL3Fit=="None")scale= 1.0;//no residual input
+          else if(scalingForL2OrL3Fit=="PutBackL2Res")scale = jes / jesref;
+          else assert(false);
 	}
 	g->SetPoint(i, pt, scale*l1*r*kfsr);
 	g2->SetPoint(i, pt, scale*l1*r*kfsr);
@@ -946,9 +953,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   herr_ref->SetLineColor(kYellow+3);
   herr_ref->SetLineStyle(kDashed);
 
-  hrun1->DrawClone("SAME E3");
+  hrun1->DrawClone("SAME E5");
   (new TGraph(hrun1))->DrawClone("SAMEL");
-  herr_ref->DrawClone("SAME E3");
+  herr_ref->DrawClone("SAME E5");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
 
   legp->AddEntry(hrun1," ","");
@@ -965,12 +972,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   legm->AddEntry(herr_ref,"03FebV3","FL");
 
   hrun1->SetFillStyle(kNone);
-  hrun1->DrawClone("SAME E3");
+  hrun1->DrawClone("SAME E5");
   (new TGraph(hrun1))->DrawClone("SAMEL");
   hrun1->SetFillStyle(1001);
 
   herr_ref->SetFillStyle(kNone);
-  herr_ref->DrawClone("SAME E3");
+  herr_ref->DrawClone("SAME E5");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
   herr_ref->SetFillStyle(1001);
 
@@ -1016,19 +1023,19 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   tex->DrawLatex(0.20, 0.22, "Before FSR correction");
 
-  hrun1->DrawClone("SAME E3");
+  hrun1->DrawClone("SAME E5");
   (new TGraph(hrun1))->DrawClone("SAMEL");
 
-  herr_ref->DrawClone("SAME E3");
+  herr_ref->DrawClone("SAME E5");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
 
   hrun1->SetFillStyle(kNone);
-  hrun1->DrawClone("SAME E3");
+  hrun1->DrawClone("SAME E5");
   (new TGraph(hrun1))->DrawClone("SAMEL");
   hrun1->SetFillStyle(1001);
 
   herr_ref->SetFillStyle(kNone);
-  herr_ref->DrawClone("SAME E3");
+  herr_ref->DrawClone("SAME E5");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
   herr_ref->SetFillStyle(1001);
 
@@ -1302,10 +1309,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //			sqrt(emat[2][2])));
   tex->SetTextSize(0.045); tex->SetTextColor(kBlack);
 
-  hrun1->DrawClone("SAME E3");
+  hrun1->DrawClone("SAME E5");
   (new TGraph(hrun1))->DrawClone("SAMEL");
 
-  herr_ref->DrawClone("SAME E3");
+  herr_ref->DrawClone("SAME E5");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
 
   // Return SPR uncertainty to unnormalized
@@ -1320,12 +1327,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   herr_spr->SetFillStyle(1001);
 
   hrun1->SetFillStyle(kNone);
-  hrun1->DrawClone("SAME E3");
+  hrun1->DrawClone("SAME E5");
   (new TGraph(hrun1))->DrawClone("SAMEL");
   hrun1->SetFillStyle(1001);
 
   herr_ref->SetFillStyle(kNone);
-  herr_ref->DrawClone("SAME E3");
+  herr_ref->DrawClone("SAME E5");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
   herr_ref->SetFillStyle(1001);
 
@@ -1463,11 +1470,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     }
   }
   else {
-    c0b->SaveAs(Form("pdf/%s/globalFitL3res_raw_eta%1.0f-%1.0f.pdf",
+    c0b->SaveAs(Form("pdf/%s/globalFitL3res_raw_eta%02.0f-%02.0f.pdf",
 		     cep,10*etamin,10*etamax));
-    c0->SaveAs(Form("pdf/%s/globalFitL3res_orig_eta%1.0f-%1.0f.pdf",
+    c0->SaveAs(Form("pdf/%s/globalFitL3res_orig_eta%02.0f-%02.0f.pdf",
 		    cep,10*etamin,10*etamax));
-    c1->SaveAs(Form("pdf/%s/globalFitL3res_shifted_eta%1.0f-%1.0f.pdf",
+    c1->SaveAs(Form("pdf/%s/globalFitL3res_shifted_eta%02.0f-%02.0f.pdf",
 		    cep,10*etamin,10*etamax));
   }
 
@@ -1481,14 +1488,15 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1))
     c2->SaveAs(Form("pdf/%s/globalFitL3res_hsrc.pdf",cep));
   else {
-    c2->SaveAs(Form("pdf/%s/globalFitL3res_hsrc_eta%1.0f-%1.0f.pdf",
+    c2->SaveAs(Form("pdf/%s/globalFitL3res_hsrc_eta%02.0f-%02.0f.pdf",
 		    cep,10*etamin, 10*etamax));
   }
   gStyle->SetOptStat(0);
 
   // Draw FSR corrections redone
 
-  int colors[3] = {kBlue, kGreen+2,kRed};
+  int colorsdark[4]  = {kBlack,kBlue, kGreen+2,kRed};
+  int colorslight[4] = {kGray, kBlue-10, kGreen+2-10,kRed-10};
   //int colors[nsamples] = {kBlue, kGreen+2,kRed};
   //int colors[nsamples] = {kBlue, kRed};
   //int colors[nsamples] = {kBlue};
@@ -1511,7 +1519,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     tex->DrawLatex(0.55,0.20,
 		   imethod==0 ? "p_{T} balance method" : "MPF method");
 
-    for (int isample = nsample0; isample != nsamples; ++isample) {
+    //    for (int isample = nsample0; isample != nsamples; ++isample) {
+    int offsetsample=0;//nsample0; ==>patch to also show dijet fit
+    for (int isample = offsetsample; isample != nsamples; ++isample) {
 
       int ibm = isample + nsamples*imethod;
       TH1D *hk = hks[ibm]; assert(hk);
@@ -1528,20 +1538,22 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //hk->GetXaxis()->SetRangeUser(30,300);
       //}
 
-      hk->SetLineColor(colors[isample-nsample0]-10);
-      hk->SetFillColor(colors[isample-nsample0]-10);
+      hk->SetLineColor(colorslight[isample-offsetsample]);
+      hk->SetFillColor(colorslight[isample-offsetsample]);
       hk->SetFillStyle(kNone);
       hk->SetMarkerSize(0.);
-      hk->DrawClone("SAME E3");
+      hk->DrawClone("SAME E5");
       hk->SetFillStyle(3002);
-      hk->DrawClone("SAME E3");
+      hk->DrawClone("SAME E5");
 
       //(new TGraph(hk))->DrawClone("SAMEL");
       TGraph *gk = new TGraph(hk);
       for (int i = gk->GetN()-1; i != -1; --i) {
+        if(verboseGF)cout << Form("%s %s pt: %4.0f fsr: %09.6f", samples[isample], methods[imethod], gk->GetX()[i], gk->GetY()[i]) <<endl <<flush;
 	//if (gk->GetX()[i] < hk->GetXaxis()->GetXmin())
 	if (gk->GetX()[i] < minx || gk->GetX()[i] > maxx)
 	  gk->RemovePoint(i);
+        if (gk->GetY()[i]==0.)gk->RemovePoint(i);
       }
       gk->Draw("SAMEL");
 
@@ -1550,7 +1562,6 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       // Sum over eigenvectors
       TH1D *hke = (TH1D*)hk->Clone(); hke->Reset();
       for (int ipt = 1; ipt != hke->GetNbinsX()+1; ++ipt) {
-
 	double yeig(0);
 	vector<double> df(Npar,0);
 	//const int neig = 3;
@@ -1586,13 +1597,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //if (isample!=nsample0) hke->GetXaxis()->SetRangeUser(30,300);
       hke->GetXaxis()->SetRangeUser(minx,maxx);
       hke->SetFillStyle(1001);
-      hke->SetLineColor(hk->GetLineColor()+10);
-      hke->DrawClone("SAME E3");
+      hke->SetLineColor(colorsdark[isample-offsetsample]);// hk->GetLineColor()+10);
+      hke->DrawClone("SAME E5");
       //(new TGraph(hke))->DrawClone("SAMEL");
       TGraph *gke = new TGraph(hke);
       for (int i = gke->GetN()-1; i != -1; --i) {
         if (gke->GetX()[i] < minx || gke->GetX()[i] > maxx)
           gke->RemovePoint(i);
+        if (gke->GetY()[i]==0.)gke->RemovePoint(i);
       }
       gke->Draw("SAMEL");
 
@@ -1605,7 +1617,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //c3->SaveAs(Form("pdfC/globalFitL3res_%s_kfsr.C", methods[imethod]));
     }
     else {
-      c3->SaveAs(Form("pdf/%s/globalFitL3res_%s_kfsr_eta%1.0f-%1.0f.pdf",
+      c3->SaveAs(Form("pdf/%s/globalFitL3res_%s_kfsr_eta%02.0f-%02.0f.pdf",
 		      cep,methods[imethod],10*etamin,10*etamax));
     }
   } // for imethod

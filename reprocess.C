@@ -79,8 +79,7 @@ void reprocess(string epoch="") {
   fdj_files["G"] = "FlateG";
   fdj_files["H"] = "H";
   fdj_files["BCDEFGH"] = "BCDEFGH";
-  //  TFile *fdj = new TFile(Form("rootfiles/03Feb2017_L2Res_InputGlobalFit_12July2017/Run%s/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
-  TFile *fdj = new TFile(Form("rootfiles/JEC_L2_Dijet_AK4PFchs_pythia8_eta_0_13_mergeFineWide_03Feb2017_L2Res_InputGlobalFit_12July2017_Run%s.root",fdj_files[epoch]),"READ");
+  TFile *fdj = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/JEC_L2_Dijet_%s_2017-09-22_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
 
   assert(fdj && !fdj->IsZombie());
 
@@ -110,20 +109,23 @@ void reprocess(string epoch="") {
 
   assert(fp && !fp->IsZombie());
 
-  // JEC_combinations_2017-09-04
-  // On 09/04/2017 02:00 PM, Thomas Berger wrote:
+  // Subject: 	Re: [urgent] BCDEFGH combination of combination files for global fit with 03Feb_03
+  // Date: 	Mon, 25 Sep 2017 15:16:04 +0200
+  // JECv7 applied, no residual but MC-based corrections)
+  // https://indico.cern.ch/event/665707/
   // Fine eta bins for global fit
-    map<string,const char*> fz_files;
+
+  map<string,const char*> fz_files;
   fz_files["BCD"] = "BCD";
   fz_files["EF"] = "EF";
   fz_files["G"] = "G";
   fz_files["H"] = "H";
   fz_files["BCDEFGH"] = "BCDEFGH"; 
-  TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s"
-			       "_2017-09-01.root",
+  TFile *fzmm = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/combination_Zmm_%s"
+			       "_2017-09-25.root",
    			       fz_files[epoch]),"READ");
-  TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s"
-			       "_2017-09-01.root",
+  TFile *fzee = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/combination_Zee_%s"
+			       "_2017-09-25.root",
   			       fz_files[epoch]),"READ");
   //
   assert(fzmm && !fzmm->IsZombie());
@@ -254,7 +256,7 @@ void reprocess(string epoch="") {
 
   vector<string> sets;
   sets.push_back("dijet");
-  //  sets.push_back("multijet");
+  sets.push_back("multijet");
   //  sets.push_back("gamjet");
   sets.push_back("zeejet");
   sets.push_back("zmmjet");
@@ -289,10 +291,12 @@ void reprocess(string epoch="") {
 //  etas.push_back(make_pair<double,double>(2.964,3.2));
 //  etas.push_back(make_pair<double,double>(3.2,5.191));
 
+
+
   vector<double> alphas;
   alphas.push_back(0.10);
   alphas.push_back(0.15);
-  alphas.push_back(0.20);
+  alphas.push_back(0.20); //  => patch because of a20 missing for Z+jet
   alphas.push_back(0.30);
 
   ///////////////////////////////////////////
@@ -366,19 +370,6 @@ void reprocess(string epoch="") {
 	    eta1 = etas[ieta].first; // reset to avoid trouble with below
 	    eta2 = etas[ieta].second; // reset to avoid trouble with below
 
-	    // If samples missing break-up into e.g. [3,3.2] and [3.2,5.2] bins
-	    // or merged [0,1.3] bin, patch here
-	    //if (s=="dijet"  && fabs(eta1-3.2)<0.1) { eta2=5.0; }
-//	    if (s=="dijet"  && fabs(eta1-0.0)<0.1 &&
-//		(fabs(eta2-1.3)<0.1 || fabs(eta2-2.4)<0.1)) { eta2=0.8; } // 80X
-//	    if (s=="dijet"  && fabs(eta1-0.8)<0.1 &&
-//		(fabs(eta2-1.3)<0.1 || fabs(eta2-2.4)<0.1)) { eta1=0.0; } // 80X
-//	    if (s=="dijet"  && fabs(eta1-0.0)<0.1 &&
-//		(fabs(eta2-0.8)<0.1 || fabs(eta2-2.4)<0.1)) { eta2=1.3; } // 80X
-//	    if (s=="dijet"  && fabs(eta1-0.0)<0.1 && // fine bin file doesn't have 0-1.3
-//		(fabs(eta2-1.3)<0.1 || fabs(eta2-2.4)<0.1)) { eta2=0.261; } // 80X
-	    //if (s=="multijet" && (!(fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1)
-	    //		  || fabs(alpha-0.15)<0.01))
 	    //continue; // only barrel for multijet balance, pT=10,20,30
 	    if (s=="multijet" && (!((epoch!="L4" &&
 				     fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1) ||
@@ -389,41 +380,24 @@ void reprocess(string epoch="") {
 	    //if (s=="gamjet"  && fabs(eta1-0.0)<0.1) { eta2=1.3; } // ??
 	    if (s=="gamjet"  && fabs(eta1-3.2)<0.1) { eta1=3.0; eta2=3.2; }
 
-	    // Patch Z+jet extra bin boundary at 2.4 for L4 sample
-	    //if ((s=="zmmjet" || s=="zeejet") && epoch=="L4" &&
-	    //	fabs(eta1-1.9)<0.1 && fabs(eta2-2.5)<0.1) { eta2=2.4; }
-	    //if ((s=="zmmjet" || s=="zeejet") && epoch=="L4" &&
-	    //fabs(eta1-0.0)<0.1 && fabs(eta2-2.4)<0.1) { eta2=1.3; }
-
-	    // Patch missing 0-1.3 with 0-2.4 for Z+jet with Summer16 L2ResV5
-	    //if ((s=="zmmjet" || s=="zeejet") &&
-	    //	fabs(eta1-0.0)<0.1 && fabs(eta2-1.3)<0.1) { eta2=0.8; }//2.4; }
-
-	    // Patch missing 0-1.3 with 0-0.8 for Z+jet with Summer16 L2ResV6
-	    //if ((s=="zmmjet") &&
-	    //	fabs(eta1-0.0)<0.1 && fabs(eta2-1.3)<0.1) { eta2=0.8; }
-
-	    // Patch missing Z+jet a15 and a20 in May5 files
-	    //if ((s=="zmmjet" || s=="zeejet") && (alpha==0.15 || alpha==0.20))
-	    //alpha = 0.10;
-
-	    // If some subsets of data missing, patch (skip) here
-	    // gamjet missing non-CHS graphs
-	    //if (s=="gamjet" && (t=="mpf" || t=="mpf1" || t=="pt"))
-	    //continue;
+	    // Patch missing Z+jet a20 in Sep25_2017 files
+	    if ((s=="zmmjet" || s=="zeejet") && (alpha==0.20))// => patch because of a20 missing for Z+jet
+              alpha = 0.15;
 
 	    // Reconstruct naming scheme used in each of the files
 	    // If non-conventional naming schemes, patch here
 	    const char *c(0);
 	    if (s=="dijet") {
-	      //	      c = Form("%s/eta%02.0f-%02.0f/%s_%s_a%1.0f", // 74X
-	      //	             dd, 10.*eta1, 10.*eta2, rename[s][t], ss, 100.*alpha);
-	      c = Form("%s/eta%03.0f-%03.0f/%s_%s_a%1.0f", // July2017 eta fine bins
-		       dd, floor(100.*eta1), floor(100.*eta2), rename[s][t], ss, 100.*alpha); // seems to truncate instead of rounding bin edges
-	      if (eta1==0) c = Form("%s/eta00-%03.0f/%s_%s_a%1.0f", // July2017 eta fine bins
-	             dd, 100.*eta2, rename[s][t], ss, 100.*alpha);
-	      if (eta1==0 && (eta2==1.305||eta2==2.4)) c = Form("%s/eta00-13/%s_%s_a%1.0f", // July2017 eta fine bins merged version
-	             dd, rename[s][t], ss, 100.*alpha);
+	      c = Form("%s/eta_%02.0f_%02.0f/%s_%s_a%1.0f", // Sep2017 eta fine bins
+                       dd, 10.001*eta1, 10.001*eta2, rename[s][t], ss, 100.*alpha); 
+              if((eta1==0&&       eta2==1.305)|| //add extra_wide suffix for wide bins
+                 (eta1==0&&       eta2==2.4  )||
+                 (eta1==1.305&&   eta2==1.93 )||
+                 (eta1==1.93&&    eta2==2.5  )||
+                 (eta1==2.5&&     eta2==2.964)||
+                 (eta1==2.964&&   eta2==3.2  )||
+                 (eta1==3.2&&     eta2==5.191)) c = Form("%s_wide/eta_%02.0f_%02.0f/%s_%s_a%1.0f", 
+                                                       dd, 10.001*eta1, 10.001*eta2, rename[s][t], ss, 100.*alpha); 
 	    } // dijet
 	    if (s=="multijet") {
 	      c = Form("%s/Pt%1.0f/%s", rename[s][d], 100.*alpha, rename[s][t]);
@@ -811,7 +785,7 @@ void reprocess(string epoch="") {
       //s = Form("%s/Spring16_25nsV8%s_DATA_L1RC_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "p2" : ce); // 80XV8
       //s = Form("%s/Spring16_23Sep2016%sV1_DATA_L1RC_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "GH" : ce); // 80XreV1
       //s = Form("%s/Summer16_23Sep2016%sV1_DATA_L1RC_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); // 80XreV1+Sum16
-      s = Form("%s/Summer16_03Feb2017%s_V2_DATA_L1RC_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce));
+      s = Form("%s/Summer16_03Feb2017%s_V3_DATA_L1RC_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce));
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -827,7 +801,7 @@ void reprocess(string epoch="") {
       //s = Form("%s/Spring16_25nsV8%s_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "p2" : ce); // 80XV8
       //s = Form("%s/Spring16_23Sep2016%sV1_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="G"||epoch=="H"||epoch=="GH" ? "GH" : ce); // 80XreV1
       //s = Form("%s/Summer16_23Sep2016%sV1_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); // 80XreV1+Sum16
-      s = Form("%s/Summer16_03Feb2017%s_V2_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); 
+      s = Form("%s/Summer16_03Feb2017%s_V3_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); 
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1153,3 +1127,6 @@ void reprocess(string epoch="") {
   fout->Close();
 
 } // reprocess
+
+
+

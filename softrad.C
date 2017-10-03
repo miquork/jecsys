@@ -32,6 +32,8 @@ const double ptrec_gjet = 15.;
 bool dodijet = true;//false;
 bool _s_dcsonly = false;
 
+bool verbose = true;
+
 using namespace std;
 
 TF1 *_sr_fitError_func(0);
@@ -110,6 +112,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   //const double ptbins2[] = {40, 50, 60, 85, 105, 130, 175, 230, 300, 400,
   //		    500, 700}; // 80X-200/pb
   const int npt2 = sizeof(ptbins2)/sizeof(ptbins2[0])-1;
+  cout << Form("npt2: %i", npt2) << endl << flush;
   double ptmax2 = ptbins2[npt2];
   TH1D *hpt2 = new TH1D("hpt2","",npt2,&ptbins2[0]);
   TProfile *ppt2 = new TProfile("ppt2","",npt2,&ptbins2[0]);
@@ -204,6 +207,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  // as well as weird gamma+jet high pT point
 	  // as well as half-empty Z+jet high pT points
 	  for (int i = g->GetN()-1; i != -1; --i) {
+            //cout << g->GetX()[i] << " ";
 	    if (g->GetY()[i]==0 || g->GetEY()[i]==0 ||
 		(string(cs)=="dijet" && g->GetX()[i]<70.)  ||
 		(string(cs)=="gamjet" && g->GetX()[i]>ptmax2) ||
@@ -223,6 +227,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	    
 	    double pt = g->GetX()[i];
 	    ppt->Fill(pt, pt);
+            //if(verbose)cout << Form("Fill %s %s ppt bin %i with pt %6.2f", samples[isample], methods[imethod],i,pt) <<endl << flush; //this also limits the range of kfsr-plotting
 	    int ipt = int(hpt->GetBinLowEdge(hpt->FindBin(pt))+0.5);
 	    //int ipt = int(pt+0.5);
 	    TGraphErrors *ga = gamap[cd][cm][cs][ipt];
@@ -364,7 +369,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  //c0->SaveAs(Form("pdfC/paper_softrad_%s_%s_vspt.C",cd,cm));
 	}
 	else {
-	  c0->SaveAs(Form("pdf/%s/an_softrad_%s_%s_eta%1.0f-%1.0f_vspt.pdf",
+	  c0->SaveAs(Form("pdf/%s/an_softrad_%s_%s_eta%02.0f-%02.0f_vspt.pdf",
 			  cep,cd,cm,10*etamin,10*etamax));
 	}
       } // paper
@@ -374,7 +379,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   c1->cd(0);
   //cmsPrel(_lumi, true);
   //CMS_lumi(c1, 2, 33);
-  c1->SaveAs(Form("pdf/%s/softrad_2x6_vspt_eta%1.0f-%1.0f.pdf",cep,10*etamin,10*etamax));
+  c1->SaveAs(Form("pdf/%s/softrad_2x6_vspt_eta%02.0f-%02.0f.pdf",cep,10*etamin,10*etamax));
 
 
   cout << "Drawing plots vs alpha for each pT" << endl << flush;
@@ -584,7 +589,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	
       } // for isample
       
-      c2->SaveAs(Form("pdf/%s/softrad_3x3_%s_%s_vsalpha_eta%1.0f-%1.0f.pdf",cep,cd,cm,10*etamin,10*etamax));
+      c2->SaveAs(Form("pdf/%s/softrad_3x3_%s_%s_vsalpha_eta%02.0f-%02.0f.pdf",cep,cd,cm,10*etamin,10*etamax));
       
     }
   }
@@ -682,17 +687,24 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  dout3->cd();
 
 	  TH1D *hk = (TH1D*)(isample==0 ? hpt2->Clone() : hpt1->Clone());
-	  hk->SetName(Form("hkfsr_%s_%s",cm,cs));
 	  TProfile *ppt = (isample==0 ? ppt2 : ppt1);
 	  //if (isample==3) { ppt = ppt4; } // pas-v6
-	  if (isample==idj) { ppt = ppt4; } // pas-v6 (fix 2016-06-02)
+          //	  if (isample==idj) { ppt = ppt4; } // pas-v6 (fix 2016-06-02)
+          if (isample==idj) { hk = (TH1D*)hpt4->Clone(); ppt = ppt4; } 
+
+	  hk->SetName(Form("hkfsr_%s_%s",cm,cs));
+          
+          cout << "processing isample " << isample  << " " << samples[isample]<< endl << flush;
 	  for (int i = 1; i != hk->GetNbinsX()+1; ++i) {
 	    double pt = ppt->GetBinContent(i);
 	    if (pt>30 && pt<1500) {
 	      hk->SetBinContent(i, fk->Eval(pt));
+              if(verbose)cout << "pt " << pt << " fk->eval(pt) " << fk->Eval(pt) << endl << flush;
+
 	      hk->SetBinError(i, fabs(fke->Eval(pt)-fk->Eval(pt)));
 	    }
 	    else {
+              if(verbose)cout << "Out of range...: pt " << pt << " fk->eval(pt) " << fk->Eval(pt) << endl << flush;
 	      hk->SetBinContent(i, 0);
 	      hk->SetBinError(i, 0);
 	    }
@@ -747,7 +759,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   c3->cd(0);
   //cmsPrel(_lumi, true);
   CMS_lumi(c3, 2, 33);
-  c3->SaveAs(Form("pdf/%s/softrad_2x6_kfsr_eta%1.0f-%1.0f.pdf",cep,10*etamin,10*etamax));
+  c3->SaveAs(Form("pdf/%s/softrad_2x6_kfsr_eta%02.0f-%02.0f.pdf",cep,10*etamin,10*etamax));
 
   finout->Close();
   //fout->Close();
