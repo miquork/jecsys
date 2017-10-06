@@ -68,8 +68,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   const char* methods[nmethods] = {"mpfchs1", "ptchs"};
   //  const int nsamples = (dodijet ? 4 : 3);
   //  const char* samples[4] = {"gamjet", "zeejet", "zmmjet", "dijet"};
-  const int nsamples = (dodijet ? 3 : 2);
-  const char* samples[4] = {"zeejet", "zmmjet", "dijet"};
+  const int nsamples = (dodijet ? 4 : 3);
+  const char* samples[4] = {"gamjet","zeejet", "zmmjet", "dijet"};
   //const int nsamples = (dodijet ? 3 : 2);
   //const char* samples[3] = {"gamjet", "zmmjet", "dijet"};
   const int idj = (dodijet ? nsamples-1 : -1);
@@ -416,7 +416,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 				      hpt1->GetBinLowEdge(ipad+2)));
 	TLegend *leg = tdrLeg(0.65,0.75,0.90,0.90);
 	leg->AddEntry(gemap[cd][cm]["gamjet"][30], texlabel["gamjet"], "P");
-	//leg->AddEntry(gemap[cd][cm]["zeejet"][30], texlabel["zeejet"], "P");
+	leg->AddEntry(gemap[cd][cm]["zeejet"][30], texlabel["zeejet"], "P");
 	leg->AddEntry(gemap[cd][cm]["zmmjet"][30], texlabel["zmmjet"], "P");
 	leg->AddEntry(gemap[cd][cm]["dijet"][30], texlabel["dijet"], "P");
       }

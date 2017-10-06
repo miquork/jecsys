@@ -103,8 +103,12 @@ void reprocess(string epoch="") {
   fp_files["EF"] = "runEFearly_TESTB";
   fp_files["G"] = "runFlateG_TESTB";
   fp_files["H"] = "runH_TESTB";
-  fp_files["BCDEFGH"] = "BCDEFG"; // May 19 update (H included?)
-  TFile *fp = new TFile(Form("rootfiles/Gjet_%s_03feb2017_V2.root",
+  //  fp_files["BCDEFGH"] = "BCDEFG"; // May 19 update (H included?)
+  fp_files["BCDEFGH"] = "BCDEFGH"; ///afs/cern.ch/user/h/hlattaud/public/Combinationfile_for_Henning/GammaJet_combinationfile_finebinning_BCDEFGH_03Feb17_V3_noresidual.root
+  //  TFile *fp = new TFile(Form("rootfiles/Gjet_%s_03feb2017_V2.root",
+  //			     fp_files[epoch]),"READ");
+  // /afs/cern.ch/user/h/hlattaud/public/Combinationfile_for_Henning/GammaJet_combinationfile_finebinning_BCDEFGH_03Feb17_V3_noresidual.root
+  TFile *fp = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/GammaJet_combinationfile_finebinning_%s_03Feb17_V3_noresidual.root",
   			     fp_files[epoch]),"READ");
 
   assert(fp && !fp->IsZombie());
@@ -122,10 +126,12 @@ void reprocess(string epoch="") {
   fz_files["H"] = "H";
   fz_files["BCDEFGH"] = "BCDEFGH"; 
   TFile *fzmm = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/combination_Zmm_%s"
-			       "_2017-09-25.root",
+                               "_2017-09-25.root",
+			       //"_2017-10-04.root",
    			       fz_files[epoch]),"READ");
   TFile *fzee = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/combination_Zee_%s"
-			       "_2017-09-25.root",
+                               "_2017-09-25.root",
+			       //"_2017-10-04.root",
   			       fz_files[epoch]),"READ");
   //
   assert(fzmm && !fzmm->IsZombie());
@@ -257,7 +263,7 @@ void reprocess(string epoch="") {
   vector<string> sets;
   sets.push_back("dijet");
   sets.push_back("multijet");
-  //  sets.push_back("gamjet");
+  sets.push_back("gamjet");
   sets.push_back("zeejet");
   sets.push_back("zmmjet");
 
@@ -283,7 +289,7 @@ void reprocess(string epoch="") {
   etas.push_back(make_pair<double,double>(2.964,3.139)); 
   etas.push_back(make_pair<double,double>(3.139,3.489)); 
   etas.push_back(make_pair<double,double>(3.489,3.839)); 
-  etas.push_back(make_pair<double,double>(3.839,5.191));
+  //  etas.push_back(make_pair<double,double>(3.839,5.191));
   // Wide eta bins for L2L3Res closure
 //  etas.push_back(make_pair<double,double>(1.305,1.93));
 //  etas.push_back(make_pair<double,double>(1.93,2.5));
@@ -381,7 +387,7 @@ void reprocess(string epoch="") {
 	    if (s=="gamjet"  && fabs(eta1-3.2)<0.1) { eta1=3.0; eta2=3.2; }
 
 	    // Patch missing Z+jet a20 in Sep25_2017 files
-	    if ((s=="zmmjet" || s=="zeejet") && (alpha==0.20))// => patch because of a20 missing for Z+jet
+            if ((s=="zmmjet" || s=="zeejet") && (alpha==0.20))// => patch because of a20 missing for Z+jet
               alpha = 0.15;
 
 	    // Reconstruct naming scheme used in each of the files
@@ -405,7 +411,21 @@ void reprocess(string epoch="") {
 	    if (s=="gamjet") {
 	      c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f",
 		       rename[s][t], rename[s][d],
-		       100.*alpha, 10.*eta1, 10.*eta2);
+                       //		       100.*alpha, floor(10.*eta1), floor(10.*eta2));
+		       100.*alpha, 10.001*eta1, 10.001*eta2);
+              if(eta1==0.783 && eta2==1.044)c = Form("%s%s_a%1.0f_eta07_10", //finebinning_BCDEFGH_03Feb17_V3_noresidual.root patch
+                                                     rename[s][t], rename[s][d],
+                                                     100.*alpha);
+              if(eta1==1.930 && eta2==2.172)c = Form("%s%s_a%1.0f_eta19_21", //finebinning_BCDEFGH_03Feb17_V3_noresidual.root patch
+                                                     rename[s][t], rename[s][d],
+                                                     100.*alpha);
+              if(eta1==2.172 && eta2==2.322)c = Form("%s%s_a%1.0f_eta21_23", //finebinning_BCDEFGH_03Feb17_V3_noresidual.root patch
+                                                     rename[s][t], rename[s][d],
+                                                     100.*alpha);
+              if(eta1==2.172 && eta2==2.322)c = Form("%s%s_a%1.0f_eta21_23", //finebinning_BCDEFGH_03Feb17_V3_noresidual.root patch
+                                                     rename[s][t], rename[s][d],
+                                                     100.*alpha);
+              //              2.500,2.650
 	    } // gamjet
 	    if (s=="zmmjet" || s=="zeejet") {
 	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2L3",

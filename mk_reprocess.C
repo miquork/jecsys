@@ -59,7 +59,7 @@
   softrad(3.0,3.1,true,epoch);
   softrad(3.1,3.5,true,epoch);
   softrad(3.5,3.8,true,epoch);
-  softrad(3.8,5.2,true,epoch);
+  //  softrad(3.8,5.2,true,epoch);
 
   globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch);
   globalFitL3Res(0.0,0.3,epoch);
@@ -79,7 +79,7 @@
   globalFitL3Res(3.0,3.1,epoch);
   globalFitL3Res(3.1,3.5,epoch);
   globalFitL3Res(3.5,3.8,epoch);
-  globalFitL3Res(3.8,5.2,epoch);
+  //  globalFitL3Res(3.8,5.2,epoch);
 
   
 
