@@ -759,8 +759,9 @@ void reprocess(string epoch="") {
       //s = Form("%s/Summer16_23Sep2016%sV2_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ? "BCD" : ce))); // Sum16
       //s = Form("%s/Summer16_23Sep2016%sV3_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ? "BCD" : ce))); // Sum16
       //s = Form("%s/Summer16_03Feb2017%s_V3_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb
-      //      s = Form("%s/Summer16_03Feb2017_10Oct2017_MPF_Hybrid_%s_L2L3Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017 with L3 from V7
-      s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_pT_Hybrid_%s_L2L3Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017 with L3 from V7
+      //s = Form("%s/Summer16_03Feb2017_10Oct2017_MPF_Hybrid_%s_L2L3Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017 with L3 from V3
+      //s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_pT_Hybrid_%s_L2L3Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017 with L3 from V3
+      s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_MPF_LOGLIN_%s_L2L3Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017 with L3 from V3
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -794,7 +795,7 @@ void reprocess(string epoch="") {
       //s = Form("%s/Summer16_23Sep2016%sV1_DATA_L2Residual_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); // 80XreV1+Sum16
       //s = Form("%s/Summer16_03Feb2017%s_V2_DATA_L2Residual_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce));
       //s = Form("%s/Summer16_03Feb2017%s_V3_DATA_L2Residual_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); // 03Feb
-      s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_pT_Hybrid_%s_L2Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017
+      s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_MPF_LOGLIN_%s_L2Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
