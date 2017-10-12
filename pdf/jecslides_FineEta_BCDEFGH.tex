@@ -15,7 +15,7 @@
 \newcommand{\commentout}[1]{}
 
 \pagestyle{empty}
-\def\FineEtaBins{_eta00-03,_eta03-05,_eta05-08,_eta08-10,_eta10-13,_eta13-15,_eta15-17,_eta17-19,_eta19-22,_eta22-23,_eta23-25,_eta25-26,_eta26-29,_eta29-30,_eta30-31,_eta31-35,_eta35-38}%,_eta38-52}
+\def\FineEtaBins{_eta00-03,_eta03-05,_eta05-08,_eta08-10,_eta10-13,_eta13-15,_eta15-17,_eta17-19,_eta19-22,_eta22-23,_eta23-25,_eta25-26,_eta26-29,_eta29-30,_eta30-31,_eta31-35,_eta35-38,_eta38-52}
 
 \begin{document}
 
@@ -34,9 +34,23 @@ U. Helsinki and HIP\\
 \end{centering}
 \newpage
 
-The following slides use inputs from the L3Res team, posted on the (JEC agenda of Wednesday 26 Jul 2017 ( \url{https://indico.cern.ch/event/656050/contributions/2672547/attachments/1499094/2369817/JEC_combinations_2017-09-04.tar.gz} ) beginning of September.\\
-For dijets, the 10July and 12July input files are taken from JEC agenda 5 Jul 2017 \url{https://indico.cern.ch/event/651009/}. The wide bin results (10 July) and the fine bin results (12 July) are merged in order to get a eta 0-1.3 fir as well.\\
-The inputs have been processed on top of the \verb|Summer16_03Feb2017H_V3_[DATA/MC]| corrections in the JEC database (shown as reference).\\
+The following slides use inputs from the L2L3Res team, posted on 
+\begin{verbatim}
+Gamma+Jet
+Subject: 	Re: Combination files (no residual corrections applied) Summer16_03Feb2017H_V3; merged BCDEFGH
+Date: 	Mon, 9 Oct 2017 14:35:04 +0200
+\end{verbatim}
+
+\begin{verbatim}
+Dijet
+Subject: 	Re: BCDEFGH combination of combination files for global fit with 03Feb_03
+Date: 	Mon, 9 Oct 2017 15:13:18 +0200
+\end{verbatim}
+
+Z+Jet: 
+\url{https://indico.cern.ch/event/665707/contributions/2721943/attachments/1522751/2413149/JEC_combinations_2017_10_11.tar.gz}
+
+The inputs have been processed on top of the \verb|Summer16_03Feb2017H_V3_[DATA/MC]| corrections up to L1L2L3. For reference, a custom L2Res and L2L3Res is shown that is close to V4-V6. Currently, \verb|Summer16_03Feb2017_10Oct2017_Val_pT_Hybrid_BCDEFGH_L2L3Residual_pythia8_AK4PFchs.txt| is used, i.e. pt-balance using the binned kFSR-results (no MET/sumET cut), the L3part is the same as in the BCDEFGH-internal version of  \verb|Summer16_03Feb2017H_V3_DATA|. \\
 %.\\
 
 \newpage
