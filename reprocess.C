@@ -41,7 +41,7 @@ double fzeeptmin(30.); // Zee+jet
 double fzmmptmin(30.); // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
 double fzmpfptmin(30.); // Z+jet MPF
-double fzbalptmin(30.);
+double fzbalptmin(80.); // remove low pt balance points that show bias (most pronounced in barrel)
 
 //for fine etabins deactivate ptbal
 double fdijetmpfptmin(30);
