@@ -53,6 +53,9 @@ double fpptmax(1500.);
 double fzeeptmax(1000.);
 double fzmmptmax(1000.);
 
+//minimum event counts
+const double neventsmin = 20.;
+
 // put all the different methods in a single file for easy access for everybody
 void reprocess(string epoch="") {
 
@@ -220,6 +223,7 @@ void reprocess(string epoch="") {
   rename["zeejet"]["mpfchs"] = "MPF-notypeI_CHS";
   rename["zeejet"]["mpfchs1"] = "MPF_CHS"; 
   rename["zeejet"]["ptchs"] = "PtBal_CHS"; 
+  rename["zeejet"]["counts"] = "RawNEvents_CHS";
 
   rename["zmmjet"]["ratio"] = "Ratio";
   rename["zmmjet"]["data"] = "Data";
@@ -227,6 +231,7 @@ void reprocess(string epoch="") {
   rename["zmmjet"]["mpfchs"] = "MPF-notypeI_CHS";
   rename["zmmjet"]["mpfchs1"] = "MPF_CHS"; 
   rename["zmmjet"]["ptchs"] = "PtBal_CHS"; 
+  rename["zmmjet"]["counts"] = "RawNEvents_CHS";
   
 
   // color and style codes
@@ -266,6 +271,7 @@ void reprocess(string epoch="") {
   dirs.push_back("ratio");
 
   vector<string> types;
+  types.push_back("counts");
   types.push_back("crecoil");
   //types.push_back("mpfchs"); // raw MET
   types.push_back("mpfchs1"); // Type-I MET
@@ -321,6 +327,7 @@ void reprocess(string epoch="") {
   ///////////////////////////////////////////
 
   map<string, map<string, map<string, map<int, map<int, TGraphErrors*> > > > > grs;
+  map<string, map<string, map<int, map<int, TH1D*> > > > counts;
 
   // Loop over data, MC, ratio
   for (unsigned int idir = 0; idir != dirs.size(); ++idir) {
@@ -387,7 +394,10 @@ void reprocess(string epoch="") {
 	    eta1 = etas[ieta].first; // reset to avoid trouble with below
 	    eta2 = etas[ieta].second; // reset to avoid trouble with below
 
-	    //continue; // only barrel for multijet balance, pT=10,20,30
+
+            if (t=="counts" && s!="zmmjet" && s!="zeejet")
+              continue; // counts available only for z+jet, so far
+
 	    if (s=="multijet" && (!((epoch!="L4" &&
 				     fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1) ||
 				    (epoch=="L4" &&
@@ -454,6 +464,23 @@ void reprocess(string epoch="") {
 	    
 	    assert(obj);
 
+
+            if (t=="counts" && (s=="zmmjet" || s=="zeejet")){ // write out counts to jecData.root (as TH1D)
+              assert(obj->InheritsFrom("TH1D"));
+              TH1D *g = (TH1D*)obj;
+
+              g->SetName(Form("%s_%s_a%1.0f",tt,ss,100.*alphas[ialpha]));
+              g->UseCurrentStyle(); // Basic TDR style
+              g->SetMarkerStyle(style[s][t]);
+              g->SetMarkerColor(color[s]);
+              g->SetLineColor(color[s]);
+              g->SetMarkerSize(size[alpha]);
+              g->SetDrawOption("SAMEP");
+              g->Write();
+              counts[d][s][ieta][ialpha] = g;
+              continue; // counts available only for z+jet, so far
+            }
+
 	    // If data stored in TH1D instead of TGraphErrors, patch here
 	    // Patch for dijet file that has TH1D's instead of graphs
 	    if (obj->InheritsFrom("TH1")) {
@@ -465,6 +492,7 @@ void reprocess(string epoch="") {
 
 	    // Clean out empty points from TH1D->TGraphErrors conversion
 	    for (int i = g->GetN()-1; i != -1; --i) {
+              assert(i<=g->GetN()-1);
 	      // Clean out spurious empty pooints
 	      if (g->GetY()[i]==0 && g->GetEY()[i]==0) g->RemovePoint(i);
 	      // Clean out point outside good ranges
@@ -495,6 +523,36 @@ void reprocess(string epoch="") {
 	      else if ((s=="zmmjet" || s=="zeejet") && t=="ptchs" &&
 		       (g->GetX()[i]<fzbalptmin))
 		g->RemovePoint(i);
+              /*  //by hand
+	      else if ( s=="zeejet" && t=="ptchs" && (eta1-3.5)<0.05 && 
+                       fabs(g->GetX()[i]-145)<10)
+		g->RemovePoint(i);
+	      else if ( s=="zmmjet" && t=="ptchs" && (eta1-3.839)<0.05 &&  alpha==0.10 &&
+                       fabs(g->GetX()[i]-95)<5.)
+		g->RemovePoint(i);
+              */
+              else if (s=="zmmjet" || s=="zeejet"){ // patch: clean away points with low statistics based on event counts histograms, currently Z+jet
+                assert(counts[d][s][ieta][ialpha]);
+                double pt = g->GetX()[i];
+                double ipt = counts[d][s][ieta][ialpha]->FindBin(pt);
+		double nentries = counts[d][s][ieta][ialpha]->GetBinContent(ipt);
+                if (d=="ratio"){
+                  assert(counts["mc"][s][ieta][ialpha]);
+                  assert(counts["data"][s][ieta][ialpha]);
+                  if(counts["mc"][s][ieta][ialpha]->GetBinContent(ipt) < neventsmin || counts["data"][s][ieta][ialpha]->GetBinContent(ipt) < neventsmin){
+                    cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries MC "<< counts["mc"][s][ieta][ialpha]->GetBinContent(ipt) << " nentries data " <<  counts["data"][s][ieta][ialpha]->GetBinContent(ipt)<<  " y: " << g->GetY()[i] << endl;
+                    g->RemovePoint(i);
+                  }
+                }
+                else if (nentries < neventsmin){
+                  cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries "<< nentries <<  " y: " << g->GetY()[i] << endl;
+                  g->RemovePoint(i);
+                }
+              }
+
+
+
+              
 	      // Remove bad point from zmmjet MPF and pT balance at 600
 	      //else if (s=="zmmjet" && t=="mpfchs1" && d=="ratio" &&
 	      //else if (s=="zmmjet" && d=="ratio" &&
@@ -521,6 +579,7 @@ void reprocess(string epoch="") {
 	    // patch Z+jet pT ratio uncertainty (80X-590/pb)
 	    if ((s=="zeejet" || s=="zmmjet") && d=="ratio") { // TB
 	      //if (false && (s=="zeejet" || s=="zmmjet") && d=="ratio") { // RS
+              //cout << "patching z+jet ratio" << endl;
 
 	      TGraphErrors *gfixd = grs["data"][t][s][ieta][ialpha];
 	      TGraphErrors *gfixm = grs["mc"][t][s][ieta][ialpha];
@@ -700,6 +759,7 @@ void reprocess(string epoch="") {
 	    g->SetMarkerSize(size[alpha]);
 	    g->SetDrawOption("SAMEP");
 
+            //if (  s=="zmmjet" ||  s=="zeejet")cout << Form("Writing out %s_%s_a%1.0f_eta%02.0f-%02.0f",tt,ss,100.*alphas[ialpha] ,eta1*10.,eta2*10.) << endl;
 	    g->Write();
 
 	    grs[d][t][s][ieta][ialpha] = g;
