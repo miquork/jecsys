@@ -23,6 +23,7 @@
 #include "tdrstyle_mod14.C"
 
 #include <string>
+#include <fstream>
 #include <iostream>
 #include <vector>
 #include <map>
@@ -41,7 +42,7 @@ string scalingForL2OrL3Fit = "None"; //"None" - for inpunt combination files wit
 //"PutBackL2Res" - put L2res back in for gamma/Z+jet for vs eta studies
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
-bool verboseGF = true;
+bool verboseGF = false;
 
 unsigned int _nsamples(0);
 unsigned int _nmethods(0);
@@ -226,7 +227,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   bool isl3 = (etamin==0 && ((epoch!="L4" && fabs(etamax-1.3)<0.1) ||
 			     (epoch=="L4" && fabs(etamax-2.4)<0.1)));
 
-  /*  
+  
   // Normal global fit with all four samples (multijet/dijet, gamma+jet, Z+jets)
   const int nsamples = 4;
   const int nsample0 = 1; // first Z/gamma+jet sample
@@ -235,7 +236,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int igj = 0;
   const int izee = 1;
   const int izmm = 2;
-  */
+  
 
   /*
   // Global fit with only dijet, Z+jets
@@ -258,7 +259,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izmm = -1;
   */
 
-  
+  /*
   // Global fit without multijets/dijets
   const int nsamples = 3;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -266,7 +267,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int igj = 0;
   const int izee = 1;
   const int izmm = 2;
-  
+  */
 
   /*
   // Global fit without photon+jet
@@ -294,7 +295,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   /*
   const int nsamples = 3;
   const int nsample0 = 1; // first Z/gamma+jet sample
-  const char* samples[3] = {(etamin==0 ? "multijet" : "dijet"),
+  const char* samples[3] = {(etamin==0 ? "multijet" : "dijet",
 			    "gamjet", "zmmjet"};
   const int igj = 0;
   const int izee = 1; // TEMP
@@ -1174,6 +1175,41 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	 << "  ("<<gs2[i]->GetName()<<")"<< endl;
   }
 
+  ofstream txtL2L3("GlobalFitOutput_L2L3Residuals.txt",ios_base::app);
+  if(etamin==0.&&etamax==0.261)txtL2L3 << "{ 1 JetEta 1 JetPt 1./([0]+[1]*100./3.*(TMath::Max(0.,1.03091-0.051154*pow(x,-0.154227))-TMath::Max(0.,1.03091-0.051154*TMath::Power(208.,-0.154227)))+[2]*((-2.36997+0.413917*TMath::Log(x))/x-(-2.36997+0.413917*TMath::Log(208))/208)) Correction L2Relative}";
+  if(np==2&& !(etamin==0.&&etamax==1.3)){
+    txtL2L3 << Form("\n %7.4f  %7.4f  5 10 6500 %7.4f %7.4f 1.0 ", etamin, etamax, tmp_par[0], tmp_par[1]);
+    //    txtL2L3 << Form("%7.4f  %7.4f  5 10 6500 %7.4f %7.4f 1.0 \n ", -etamax, -etamin, tmp_par[0], tmp_par[1]);
+  }
+
+
+  for (int isample = 0; isample != nsamples; ++isample) {
+    for (int imethod = 0; imethod != nmethods; ++imethod) {
+      const char *cm = methods[imethod];
+      const char *cs = samples[isample];
+      string s = Form("fsr/hkfsr_%s_%s",cm,cs);
+      TH1D *h = (TH1D*)d->Get(s.c_str());
+      if (!h) cout << "Histo "<<s<<" not found!" << endl << flush;
+      assert(h);
+
+      ofstream txtFSRDiJet(Form("GlobalFitOutput_FSR_%s_%s.txt",cs,cm),ios_base::app);
+      if(etamin==0.&&etamax==0.261)txtFSRDiJet << "{ 2 JetEta  JetPt 1 JetPt [0] Correction L2Relative}";
+      for (int i = 1; i != h->GetNbinsX()+1; ++i) {
+        //        double pt = h->GetBinCenter(i);
+        double ptlow = h->GetBinLowEdge(i);
+        double ptup = h->GetBinLowEdge(i+1);
+        double FSR = h->GetBinContent(i);
+        //        ofstream txtFSRDiJetPtBin(Form("GlobalFitOutput_FSR_%s_%s_%04.0f.txt",cs,cm,ptlow),ios_base::app);
+        //        if(etamin==0.)txtFSRDiJetPtBin << "{ 2 JetEta  JetPt 1 JetPt [0] Correction L2Relative}";
+        if(np==2&& !(etamin==0.&&etamax==1.3)){
+          //          txtFSRDiJetPtBin << Form("\n %7.4f   %7.4f  %7.0f   %7.0f  3 10 6500 %7.4f ", etamin, etamax, ptlow, ptup, FSR*0.3); // dr/dalpha x dalpha with dalpha = 0.3 to be on same page as dijet standalone
+          txtFSRDiJet      << Form("\n %7.4f   %7.4f  %7.0f   %7.0f  3 10 6500 %7.4f ", etamin, etamax, ptlow, ptup, FSR*0.3);
+        }
+      }
+    }
+  }
+
+  
   cout << "Fit parameters:" << endl;
   for (int i = 0; i != np; ++i) {
     cout << Form("%2d: %9.4f +/- %6.4f,   ",
