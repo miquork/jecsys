@@ -495,6 +495,8 @@ void reprocess(string epoch="") {
               assert(i<=g->GetN()-1);
 	      // Clean out spurious empty pooints
 	      if (g->GetY()[i]==0 && g->GetEY()[i]==0) g->RemovePoint(i);
+              // remove points with large error (more than 0.2 right now)
+              else if (g->GetEY()[i]>0.2)  g->RemovePoint(i);
 	      // Clean out point outside good ranges
 	      //else if (s=="gamjet" && 
 	      //       (g->GetX()[i]<fpptmin || g->GetX()[i]>fpptmax))
@@ -550,8 +552,9 @@ void reprocess(string epoch="") {
                 }
               }
 
-
-
+              if (i==0)continue;
+              //remove points where difference of central value between points is larger than 5*sigma(higher pt point) to remove spurious high pt gamma+jet points with presumably low stats
+              else if (i>0 && i==g->GetN()-1 && fabs(g->GetY()[i]-g->GetY()[i-1])>g->GetEY()[i]*5.) g->RemovePoint(i);
               
 	      // Remove bad point from zmmjet MPF and pT balance at 600
 	      //else if (s=="zmmjet" && t=="mpfchs1" && d=="ratio" &&

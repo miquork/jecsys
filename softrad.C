@@ -258,9 +258,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
           
 	  // Clean out  points at low alpha that have lower uncertainty than next one
 	  for (int i = ga->GetN()-1; i != -1; --i) {
-            cout << ga->GetX()[i] << " " << ga->GetY()[i] << endl;
-	    if (i<(ga->GetN()-1) && ga->GetEY()[i]<0.5*ga->GetEY()[i+1]){
-              cout << "remove point because ga->GetEY()[i]<0.5*ga->GetEY()[i+1] " << ga->GetEY()[i] << " < 0.5* " << ga->GetEY()[i+1] << endl;
+            cout << ga->GetX()[i] << " " << ga->GetY()[i] << " i " << i <<"  ga->GetN() " << ga->GetN() << endl;
+            if (i>0 && ga->GetX()[i]!=ga->GetX()[i-1] && ga->GetEY()[i]<0.5*ga->GetEY()[i-1]){
+              cout << ga->GetX()[i] << " " << ga->GetY()[i]  << " remove point because ga->GetEY()[i]<0.5*ga->GetEY()[i-1] " << ga->GetEY()[i] << " < 0.5* " << ga->GetEY()[i-1] << endl;
               ga->RemovePoint(i);
             }
 	  }
