@@ -22,6 +22,7 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <map>
 
@@ -32,7 +33,7 @@ const double ptrec_gjet = 15.;
 bool dodijet = true;//false;
 bool _s_dcsonly = false;
 
-bool verbose = true;
+bool verbose = false;
 
 using namespace std;
 
@@ -173,18 +174,18 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
     for (int  imethod = 0; imethod != nmethods; ++imethod) {
       for (int  isample = 0; isample != nsamples; ++isample) {
 
+        finout->cd();
+        assert(finout->cd(dirs[idir]));
+        TDirectory *din1 = finout->GetDirectory(dirs[idir]); assert(din1);
+        assert(din1->cd(bin));
+        TDirectory *d = din1->GetDirectory(bin); assert(d);
+        d->cd();
+
+        const char *cd = dirs[idir];
+        const char *cm = methods[imethod];
+        const char *cs = samples[isample];
+
 	for (int  ialpha = 0; ialpha != nalphas; ++ialpha) {
-
-	  finout->cd();
-	  assert(finout->cd(dirs[idir]));
-	  TDirectory *din1 = finout->GetDirectory(dirs[idir]); assert(din1);
-	  assert(din1->cd(bin));
-	  TDirectory *d = din1->GetDirectory(bin); assert(d);
-	  d->cd();
-
-	  const char *cd = dirs[idir];
-	  const char *cm = methods[imethod];
-	  const char *cs = samples[isample];
 	  const int a = alphas[ialpha];
 	  // Get graph made vs pT
 	  string s = Form("%s/%s/%s_%s_a%d",dirs[idir],bin,cm,cs,a);
@@ -244,7 +245,31 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  } // for i 
 
 	} // for ialpha
+        
+        map<int, TGraphErrors*> &gam = gamap[cd][cm][cs];
+        map<int, TGraphErrors*>::iterator itpt;
+        for (itpt = gam.begin(); itpt != gam.end(); ++itpt) {
+	  int ipt = itpt->first;
+	  int jpt = hpt1->FindBin(ipt);
+	  
+	  TGraphErrors *ga = itpt->second; assert(ga);
 
+          //patch here
+          
+	  // Clean out  points at low alpha that have lower uncertainty than next one
+	  for (int i = ga->GetN()-1; i != -1; --i) {
+            cout << ga->GetX()[i] << " " << ga->GetY()[i] << endl;
+	    if (i<(ga->GetN()-1) && ga->GetEY()[i]<0.5*ga->GetEY()[i+1]){
+              cout << "remove point because ga->GetEY()[i]<0.5*ga->GetEY()[i+1] " << ga->GetEY()[i] << " < 0.5* " << ga->GetEY()[i+1] << endl;
+              ga->RemovePoint(i);
+            }
+	  }
+          //if (ga->GetN()<3){
+          //  ga->Set(0);
+          //  cout << "removing graph" <<endl;
+	  //}
+
+        }
       } // for isample
     } // for imethod
   } // for idir
@@ -672,6 +697,13 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 	  fk->DrawClone("SAME");
 	  gk->DrawClone("SAME Pz");
+
+
+          ofstream txtFSRDiJet(Form("GlobalFitOutput_FSRFit_%s_%s_%s.txt",cd, cs,cm),ios_base::app);
+          if(etamin==0.&&etamax==0.261)txtFSRDiJet << "{ 1 JetEta 1 JetPt [0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2) Correction L2Relative}";
+          if(!(etamin==0.&&etamax==1.3))txtFSRDiJet      << Form("\n%7.4f   %7.4f  5 10 6500 %7.4f  %7.4f  %7.4f ", etamin, etamax, fk->GetParameter(0), fk->GetParameter(1), fk->GetParameter(2) );
+
+          
 
 	  // Store soft radiation corrections in fsr subdirectory
 	  assert(finout->cd(cd));
