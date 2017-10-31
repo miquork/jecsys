@@ -9,6 +9,21 @@
 #include <cmath>
 #include <map>
 
+
+/*
+Files still to be used for Oct uncertainty update:
+Hybrid BCDEFGHV7 txt file from JERCentral: Summer16_03Feb2017V7BCDEFGH_MPF_HYBRID_L2Residual_pythia8_AK4PFchs.txt
+--> for V7 vs. global fit uncertainty (?)
+Summer16_03Feb2017V7BCDEFGH_GlobalFit_ZJet_GammaJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_AK4PFchs.txt
+Summer16_03Feb2017V7BCDEFGH_GlobalFit_DiJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_AK4PFchs.txt
+Summer16_03Feb2017V7BCDEFGH_GlobalFit_ZJet_GammaJet_DiJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_AK4PFchs.txt
+--> Global fit results and global fit dijet vs. ZJet/GammaJet uncertainty + V7 vs. global fit uncertainty (?)
+Summer16_03Feb2017_V7_MC_L1FastJet_AK4PFchs.txt
+Summer16_03Feb2017_V7_MC_L2Relative_AK4PFchs.txt
+Summer16_07Aug2017_V1_MC_L1FastJet_AK4PFchs.txt
+Summer16_07Aug2017_V1_MC_L2Relative_AK4PFchs.txt
+--> for old/new MCTruth non-closure uncertainty
+*/
 using namespace std;
 
 // Future improvements:
@@ -452,7 +467,8 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_23Sep2016BCDEFGHV1_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); // Sum16V2
     //s = Form("%sSummer16_25ns_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); // Sum16V3
     //s = Form("%sSummer16_03Feb2017HV3_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); // 03Feb
-    s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
+    //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
+    s = Form("%sSummer16_03Feb2017V7BCDEFGH_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -466,7 +482,8 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_23Sep2016BCDEFGHV1_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // Sum16V2
     //s = Form("%sSummer16_25ns_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // Sum16V3
     //s = Form("%sSummer16_03Feb2017HV3_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03Feb
-    s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
+    //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
+    s = Form("%sSummer16_03Feb2017V7BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -480,7 +497,8 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_23Sep2016BCDEFGHV1_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // Sum16V2
     //s = Form("%sSummer16_25ns_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // Sum16V3
     //s = Form("%sSummer16_03Feb2017HV3_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03Feb
-    s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
+    //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
+    s = Form("%sSummer16_03Feb2017V7BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -493,6 +511,7 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_25ns_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // Sum16V3
     //s = Form("%sSummer16_03Feb2017HV3_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03Feb
     s = Form("%sSummer16_03Feb2017BCDEFGH_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
+    s = Form("%sSummer16_03Feb2017V7BCDEFGH_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -503,7 +522,7 @@ void JECUncertainty::_InitL2Res() {
   // RelativeFSR (Pythia vs Herwig)
   {
     //s = Form("%sSpring16_25ns_MPF_FLAT_L2Residual_pythia8_v3_%s.txt",d,a); // 80XV3
-    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v4_%s.txt",d,a); // 80XV8 -- no update for Sum16V2, Sum16V3, 03FebV3
+    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v4_%s.txt",d,a); // 80XV8 -- no update for Sum16V2, Sum16V3, 03FebV3, 03FebV7
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -512,7 +531,7 @@ void JECUncertainty::_InitL2Res() {
   }
   {
     //s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_herwigpp_v3_%s.txt",d,a); // 80XV3
-    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_herwigpp_v4_%s.txt",d,a); // 80XV8 -- no update for Sum16V2, Sum16V3, 03FebV3
+    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_herwigpp_v4_%s.txt",d,a); // 80XV8 -- no update for Sum16V2, Sum16V3, 03FebV3, 03FebV7
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -555,7 +574,8 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_23Sep2016BCDEFGHV1_MPF_LOGLIN_L2Residual_pythia8_%s.txt.STAT",d,a); // Sum16V2
     //s = Form("%sSummer16_25ns_MPF_LOGLIN_L2Residual_pythia8_%s.txt.STAT",d,a); // Sum16V3
     //s = Form("%sSummer16_03Feb2017HV3_MPF_LOGLIN_L2Residual_pythia8_%s.txt.STAT",d,a); // 03Feb
-    s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt.STAT",d,a); // 03FebV3
+    //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt.STAT",d,a); // 03FebV3
+    s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_L2Residual_pythia8_%s.txt.STAT",d,a); // 03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -570,7 +590,8 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sWinter14_V6_DATA_L2L3Residual_%s.txt.JERup",d,a);
     //s = Form("%sWinter14_V7_DATA_L2L3Residual_%s.txt.JERup",d,a);
     //s = Form("%sSummer16_23Sep2016_MPF_LOGLIN_JERUp_L2Residual_pythia8_%s.txt",d,a); // Sum16V3, !!MISSING!! for 03FebV3
-    s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_JERup_L2Residual_pythia8_%s.txt",d,a); // 03Feb
+    //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_JERup_L2Residual_pythia8_%s.txt",d,a); // 03Feb
+    s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_JERup_L2Residual_pythia8_%s.txt",d,a); // 03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -584,6 +605,7 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sWinter14_V7_DATA_L2L3Residual_%s.txt.JERdown",d,a);
     //s = Form("%sSummer16_23Sep2016_MPF_LOGLIN_JERDown_L2Residual_pythia8_%s.txt",d,a); // Sum16V3, !!MISSING!! for 03FebV3
     s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_JERdown_L2Residual_pythia8_%s.txt",d,a); // 03Feb
+    s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_JERdown_L2Residual_pythia8_%s.txt",d,a); // 03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
