@@ -814,12 +814,16 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   // vs pT
   if (_paper && _absUncert) {
 
+  plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta00",srel),
+		  "JEC uncertainty", s,
+		  "|#eta_{jet}| = 0.0", ymaxrel/3,10,"fixEta",0.0);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta17",srel),
 		  "JEC uncertainty", s,
-		  "|#eta_{jet}| = 1.7", ymaxrel,10,"fixEta",1.7);
+		  "|#eta_{jet}| = 1.7", ymaxrel/3,10,"fixEta",1.7);
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Eta27",srel),
 		  "JEC uncertainty", s,
 		  "|#eta_{jet}| = 2.7", ymaxrel,10,"fixEta",2.7);
+
   plotUncertainty(syrel, 0, syrel.size(), jetAlg, Form("%s_Pt30",srel),
 		  "JEC uncertainty", s,
 		  "p_{T} = 30 GeV", ymaxrel,10,"fixPt",30.);
