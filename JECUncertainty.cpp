@@ -143,7 +143,8 @@ double JECUncertainty::Uncert(const double pTprime, const double eta) {
   if (!(_errType & ~jec::kRelativePtEC2)) return errRel;
   if (!(_errType & ~jec::kRelativePtHF))  return errRel;
   if (!(_errType & ~jec::kRelativePt))    return errRel; // EXTRA
-  if (!(_errType & ~jec::kRelativeBal))   return errRel; // Sum16
+  if (!(_errType & ~jec::kRelativeBal))    return errRel; // Sum16
+  if (!(_errType & ~jec::kRelativeSample)) return errRel; // 03FebV7
   if (!(_errType & ~jec::kPileUpDataMC)) return errPileUp;
   if (!(_errType & ~jec::kPileUpPtRef))  return errPileUp;
   if (!(_errType & ~jec::kPileUpPtBB))   return errPileUp;
@@ -423,6 +424,7 @@ void JECUncertainty::_InitL2Res() {
   // - Pythia MPF loglin (=default)
   // - Pythia MPF flat (vs MPF loglin: RelativePt)
   // + Pythia pT loglin (vs MPF loglin: RelativeBal) => new for Sum16
+  // + L2L3Res DiJet-only vs ZGamJet-only => new for Sum16_03FebV7
   // - Herwig MPF loglin (vs Pythia MPF loglin: RelativeFSR)
   // - Pythia MPF loglin .STAT (RelativeStat)
   // - Pythia MPF loglin .JERup vs .JERdw (RelativeJER) => updated Sum16
@@ -517,6 +519,32 @@ void JECUncertainty::_InitL2Res() {
     vector<JetCorrectorParameters> v;
     v.push_back(*l2l3res);
     _jecL2ResBal = new FactorizedJetCorrector(v);
+  }
+
+  // For RelativeSample (dijet vs Z/gam+jet); new source for Sum16_03FebV7
+  {
+    s = Form("%s/Summer16_03Feb2017V7BCDEFGH_GlobalFit_DiJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_%s.txt",d,a);
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l2l3res);
+    _jecL2L3ResDiJet = new FactorizedJetCorrector(v);
+  }
+  {
+    s = Form("%s/Summer16_03Feb2017V7BCDEFGH_GlobalFit_ZJet_GammaJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_%s.txt",d,a);
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l2l3res);
+    _jecL2L3ResZGamJet = new FactorizedJetCorrector(v);
+  }
+  {
+    s = Form("%s/Summer16_03Feb2017V7BCDEFGH_GlobalFit_ZJet_GammaJet_DiJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_%s.txt",d,a);
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l2l3res);
+    _jecL2L3ResZGamDiJet = new FactorizedJetCorrector(v);
   }
 
   // RelativeFSR (Pythia vs Herwig)
@@ -1110,6 +1138,7 @@ double JECUncertainty::_Relative(const double pTprime,
   double stat = (_errType & jec::kRelativeStat ? _RelativeStat(pTprime, eta) : 0.);
   double spt =  (_errType & jec::kRelativePt ? _RelativePt(pTprime, eta) : 0.);
   double sbal = (_errType & jec::kRelativeBal ? _RelativeBal(pTprime, eta) : 0.);
+  double ssam = (_errType & jec::kRelativeSample ? _RelativeSample(pTprime, eta) : 0.);
 
   // signed sources
   if (!(_errType & ~jec::kRelativeFSR)) return sfsr;
@@ -1119,8 +1148,10 @@ double JECUncertainty::_Relative(const double pTprime,
   if (!(_errType & ~jec::kRelativePtHF))  return spt;
   if (!(_errType & ~jec::kRelativePt))  return spt; // XTRA
   if (!(_errType & ~jec::kRelativeBal))  return sbal; // Sum16
+  if (!(_errType & ~jec::kRelativeSample))  return ssam; // 03FebV7
 
-  return sqrt(sjer*sjer + sfsr*sfsr + stat*stat + spt*spt + sbal*sbal);
+  return sqrt(sjer*sjer + sfsr*sfsr + stat*stat + spt*spt
+	      + sbal*sbal + ssam*ssam);
 }
 
 
@@ -1378,6 +1409,36 @@ double JECUncertainty::_RelativeBal(const double pTprime,
 
   return err;
 } // RelativeBal
+
+double JECUncertainty::_RelativeSample(const double pTprime,
+				       const double eta) {
+
+  // limit pt to accessible range
+  const double ptmin = 10.;
+  const double emax = 6500;
+  double pt = max(ptmin, min(pTprime, emax/cosh(eta)));
+
+  // For Sum16_03FebV7, take dijet-only vs Z/gam+jet-only fit as extra source
+  // These two should agree (small flavor effects barring), but don't, yet
+  assert(_jecL2L3ResDiJet);
+  double rdj = _Rjet(pTprime, eta, -1, -1, _jecL2L3ResDiJet);
+  assert(_jecL2L3ResZGamJet);
+  double rzg = _Rjet(pTprime, eta, -1, -1, _jecL2L3ResZGamJet);
+  //assert(_jecL2L3ResZGamDiJet);
+  //double rzgdj = _Rjet(pTprime, eta, -1, -1, _jecL2L3ResZGamDiJet);
+  
+  double kfactor = 1;
+  double err = kfactor*(rzg / rdj - 1);
+  //double erra = kfactor*(rzg / rdj - 1);
+  //double errb = kfactor*(rzg / rzgdj - 1);
+  //double errc = kfactor*(rzgdj / rdj - 1);
+  //double err(0);
+  //if (fabs(erra)>=fabs(errb) && fabs(erra)>=fabs(errc)) err = erra;
+  //if (fabs(errb)>fabs(erra)  && fabs(errb)>fabs(errc))  err = errb;
+  //if (fabs(errc)>fabs(erra)  && fabs(errc)>fabs(errb))  err = errc;
+
+  return err;
+} // RelativeSample
 
 // Combine pileup uncertainty sources
 double JECUncertainty::_PileUp(const double pTprime, const double eta) {

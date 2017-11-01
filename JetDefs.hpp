@@ -34,13 +34,14 @@ namespace jec {
   const ErrorTypes kRelativeStatEC          = ErrorTypes(0L, 1L << 10);
   const ErrorTypes kRelativeStatHF          = ErrorTypes(0L, 1L << 11);
   const ErrorTypes kRelativeStatFSR         = ErrorTypes(0L, 1L << 12);
-  //const ErrorTypes kRelativeSample          = ErrorTypes(0L, 1L << 12);
   const ErrorTypes kRelativePtBB            = ErrorTypes(0L, 1L << 13);
   const ErrorTypes kRelativePtEC1           = ErrorTypes(0L, 1L << 14);
   const ErrorTypes kRelativePtEC2           = ErrorTypes(0L, 1L << 15);
   const ErrorTypes kRelativePtHF            = ErrorTypes(0L, 1L << 16);
+  // Additional L2Res systematics, bits 26-27
   const ErrorTypes kRelativeBal             = ErrorTypes(0L, 1L << 26); //Sum16 
-  // Absolute scale (pT dependence) systematics, bits 17-27
+  const ErrorTypes kRelativeSample          = ErrorTypes(0L, 1L << 27);//03FebV7
+  // Absolute scale (pT dependence) systematics, bits 17-25
   const ErrorTypes kAbsoluteScale           = ErrorTypes(0L, 1L << 17);
   const ErrorTypes kAbsoluteSPRE            = ErrorTypes(0L, 1L << 18);
   const ErrorTypes kAbsoluteSPRH            = ErrorTypes(0L, 1L << 19);
@@ -51,7 +52,7 @@ namespace jec {
   const ErrorTypes kAbsoluteMPFBias         = ErrorTypes(0L, 1L << 24);	//splitting for correlation groups
   const ErrorTypes kAbsoluteFlavorMapping   = ErrorTypes(0L, 1L << 25); //splitting for correlation groups
 
-  // Flavor systematics for L5(residual), bits 26-35
+  // Flavor systematics for L5(residual)
   // => Obsoleted
   // optional Flavors systematics for pure flavors or mixtures, bits 36-45
   const ErrorTypes kFlavorQCD           = ErrorTypes(0L, 1L << 36); //default
@@ -101,7 +102,7 @@ namespace jec {
 
   // SubTotalPileUp, SubTotalRelative, [SubTotalAbsolute], SubTotalPt
   const ErrorTypes kPileUp              = kPileUpDataMC | kPileUpPt;
-  const ErrorTypes kRelative            = kRelativeJER | kRelativeFSR | kRelativeStat | kRelativePt | kRelativeBal;
+  const ErrorTypes kRelative            = kRelativeJER | kRelativeFSR | kRelativeStat | kRelativePt | kRelativeBal | kRelativeSample;
   const ErrorTypes kAbsolutePt          = kAbsoluteFrag | kAbsoluteSPR;
   const ErrorTypes kAbsoluteFlat        = kAbsoluteStat | kAbsoluteMPFBias | kAbsoluteFlavorMapping | kAbsoluteScale;
   const ErrorTypes kAbsolute            = kAbsoluteFlat | kAbsolutePt;
