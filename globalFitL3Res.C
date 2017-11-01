@@ -249,7 +249,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izmm = 2;
   */
 
-  /*
+  
   // Global fit with only dijet
   const int nsamples = 1;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -257,9 +257,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int igj = -1;
   const int izee = -1;
   const int izmm = -1;
-  */
-
   
+
+  /*
   // Global fit without multijets/dijets
   const int nsamples = 3;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -267,6 +267,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int igj = 0;
   const int izee = 1;
   const int izmm = 2;
+  */
   
 
   /*
@@ -1178,8 +1179,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   ofstream txtL2L3("GlobalFitOutput_L2L3Residuals.txt",ios_base::app);
   if(etamin==0.&&etamax==0.261)txtL2L3 << "{ 1 JetEta 1 JetPt 1./([0]+[1]*100./3.*(TMath::Max(0.,1.03091-0.051154*pow(x,-0.154227))-TMath::Max(0.,1.03091-0.051154*TMath::Power(208.,-0.154227)))+[2]*((-2.36997+0.413917*TMath::Log(x))/x-(-2.36997+0.413917*TMath::Log(208))/208)) Correction L2Relative}";
   if(np==2&& !(etamin==0.&&etamax==1.3)){
-    txtL2L3 << Form("\n %7.4f  %7.4f  5 10 6500 %7.4f %7.4f 1.0 ", etamin, etamax, tmp_par[0], tmp_par[1]);
-    //    txtL2L3 << Form("%7.4f  %7.4f  5 10 6500 %7.4f %7.4f 1.0 \n ", -etamax, -etamin, tmp_par[0], tmp_par[1]);
+    txtL2L3 << Form("\n %7.4f  %7.4f  5 10 6500 %7.4f %7.4f 0.0 ", etamin, etamax, tmp_par[0], tmp_par[1]);
+    //    txtL2L3 << Form("%7.4f  %7.4f  5 10 6500 %7.4f %7.4f 0.0 \n ", -etamax, -etamin, tmp_par[0], tmp_par[1]);
   }
 
 
