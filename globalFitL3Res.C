@@ -72,8 +72,9 @@ Double_t fitError(Double_t *xx, Double_t *p);
 // 2) add JER uncertainty for multijets
 
 // Alternative parameterizations
-bool useOff = true; // pT-dependent offset
+bool useOff = false; // pT-dependent offset
 bool useTDI = false; // tracker dynamic inefficiency for 3p fit
+double fixTDI = 1; // fix TDI for BCD+EF and G+H
 bool useEG = false; // ECAL gain shift for 3p fit
 
 //const int njesFit = 1; // scale only
@@ -94,24 +95,22 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
  
   // Initialize L1FastJet-L1RC difference
+  // Values from fitting ratio/eta00-13/hl1bias (JEC set in reprocess.C)
   if (!fl1) fl1 = new TF1("fl1","1-([0]+[1]*log(x))/x",10,3500);
-  //fl1->SetParameters(0.553999, -8.10939e-03);
-  //fl1->SetParameters(0., 1.89377e-01); // 80XV1re+Sum16 hl1bias (log(pT) only)
-  //fl1->SetParameters(0.5, 0.); // Z+jet UE
-  //fl1->SetParameters(1.79089e-01, 1.89377e-01); // 80XV1re+Sum16 hl1bias
-  fl1->SetParameters(2.60382e-01, 1.96664e-01); // Sum16V6G hl1bias
+  //fl1->SetParameters(2.60382e-01, 1.96664e-01); // Sum16V6G hl1bias
+  fl1->SetParameters(5.71298e-01, 1.59635e-01);
 
   // Initialize tracker inefficiency shape
-  //if (!ftr) ftr = new TF1("ftr","0.85-[0] + (0.15+[0])*([3]-[1]*pow(x,[2]))"
-  //		  " + [4]/x",10,3500);
-  //ftr->SetParameters(0.131,1.348,-0.241,1.261,2.649);
-  // Values from drawAvsB.C for FvsG
-  //ftr->SetParameters(0.3389, 1.313, -0.03876, 2.012, 1.747);
   // Values from drawAvsB.C for EvsG
   // The p3 is turned off for flatter low pT and steeper high pT, which
   // is more consistent with multijet data (not used in the fit, yet)
-  if (!ftr) ftr = new TF1("ftr","1-[0]-[1]*pow(x,[2]) + ([3]+[4]*log(x))/x",10,3500);
-  ftr->SetParameters(-0.04432, 1.304, -0.4624, 0, 1.724);
+  //if (!ftr) ftr = new TF1("ftr","1-[0]-[1]*pow(x,[2]) + ([3]+[4]*log(x))/x",10,3500);
+  //ftr->SetParameters(-0.04432, 1.304, -0.4624, 0, 1.724);
+
+  // Sigmoid from drawAvsB.C for (BCD+EF)vs(G+H) 2016 Legacy (add -1)
+  if (!ftr) ftr = new TF1("ftr","[0]+(1-[0])/(1. + exp(-(log(x)-[1])/[2]))",
+			  30,3500);
+  ftr->SetParameters(0.9763, 5.04, 0.3695);
 
   //if (!feg) feg = new TF1("feg","[0]*TMath::Gaus(x,[1],[2]*sqrt(x))",
   if (!feg) feg = new TF1("feg","[0]+[1]*log(x)+"
@@ -130,7 +129,7 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   }
 
   // Directly using fitted SPR HCAL shape (from JECUncertainty.cpp)
-  if (njesFit==2) {
+  if (njesFit==2 && !fixTDI) {
 
     // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
     double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
@@ -156,8 +155,16 @@ Double_t jesFit(Double_t *x, Double_t *p) {
     double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
     
     return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
-	    + p[2]*(ftr->Eval(pt)-ftr->Eval(ptref)));
+	    //+ p[2]*(ftr->Eval(pt)-ftr->Eval(ptref)));
+	    + p[2]*(ftr->Eval(pt)-1));
   } // njesFit==3 && TDI
+
+  if (njesFit==2 && fixTDI) {
+
+    double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
+    return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
+	    + fixTDI*(ftr->Eval(pt)-1));
+  } // njesFit==3 && TDI && fixTDI
 
   if (njesFit==3 && useEG) {
 
@@ -938,6 +945,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if (njesFit==3 && useTDI) {
     jesfit->SetParameters(0.985, 0.001, 0.5);
   }
+  if (njesFit==2 && fixTDI) {
+    double ftdi = 0.5;
+    if (epoch=="BCD" || epoch=="EF") fixTDI = 1;
+    if (epoch=="G" || epoch=="H") fixTDI = 0;
+    if (epoch=="BCDEFGH") fixTDI = 19.7/(19.7+16.8);
+    jesfit->SetParameters(0.985, 0.001);
+  }
+
   if (njesFit==3 && useEG) {
     jesfit->SetParameters(0.995, -0.025, 1.0);
   }
@@ -949,6 +964,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   // Get linear equations and solve them to get initial values for fitter
   const int np = _jesFit->GetNpar();
+  //const int np = _jesFit->GetNumberFreeParameters();
   const int nsrc = _vsrc->size();
   Int_t Npar = np+nsrc;
 
@@ -984,7 +1000,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   int nsrc_true(0);
   Double_t grad[Npar];
   Int_t flag = 1;
-  TH1D *hsrc = new TH1D("hsrc",";Nuisance parameter;",30,-3,3);
+  TH1D *hsrc = new TH1D("hsrc",";Nuisance parameter;",12,-3,3);//30,-3,3);
 
   for (int i = 0; i != Npar; ++i) {
     tmp_par[i] = fitter->GetParameter(i);
@@ -1156,6 +1172,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   tex->SetTextSize(0.030); tex->SetTextColor(kBlue-9);
 
   tex->DrawLatex(0.20,0.61,Form("N_{par}=%d",_jesFit->GetNpar()));
+  //tex->DrawLatex(0.20,0.61,Form("N_{par}=%d (%d)",_jesFit->GetNpar(),
+  //				_jesFit->GetNumberFreeParameters()));
   tex->DrawLatex(0.32,0.61,Form("p_{0}=%1.3f #pm %1.3f",
 				_jesFit->GetParameter(0),
 				sqrt(emat[0][0])));
@@ -1163,6 +1181,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     tex->DrawLatex(0.32,0.58,Form("p_{1}=%1.3f #pm %1.3f",
 				  _jesFit->GetParameter(1),
 				  sqrt(emat[1][1])));
+  if (njesFit==2 && fixTDI)
+    tex->DrawLatex(0.32,0.55,Form("p_{2}=%1.3f (TDI fix)",fixTDI));
   if (njesFit>=3)
     tex->DrawLatex(0.32,0.55,Form("p_{2}=%1.3f #pm %1.3f",
 				  _jesFit->GetParameter(2),
@@ -1433,10 +1453,12 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
   assert(_vdt);
   assert(_vsrc);
   assert(int(_vsrc->size())==npar-_jesFit->GetNpar()); // nuisance per source
+  //assert(int(_vsrc->size())==npar-_jesFit->GetNumberFreeParameters());
   assert(_vdt->size()<=sizeof(int)*8); // bitmap large enough
 
   Double_t *ps = &par[_jesFit->GetNpar()];
   int ns = npar - _jesFit->GetNpar();
+  //int ns = npar - _jesFit->GetNumberFreeParameters();
 
   if (flag) {
     
@@ -1461,6 +1483,7 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 
 	// Calculate fit value at this point
 	for (int ipar = 0; ipar != _jesFit->GetNpar(); ++ipar) {
+      //for (int ipar = 0; ipar != _jesFit->GetNumberFreeParameters(); ++ipar) {
 	  _jesFit->SetParameter(ipar, par[ipar]);
 	}
 	double fit = _jesFit->EvalPar(&pt,par);
@@ -1561,6 +1584,7 @@ Double_t fitError(Double_t *xx, Double_t *pp) {
   double k = pp[0];
   TF1 *f = _fitError_func;
   int n = f->GetNpar();
+  //int n = f->GetNumberFreeParameters();
   TMatrixD &emat = (*_fitError_emat);
   assert(emat.GetNrows()==n);
   assert(emat.GetNcols()==n);

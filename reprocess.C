@@ -512,18 +512,18 @@ void reprocess(string epoch="") {
               else if (i>0 && i==g->GetN()-1 && fabs(g->GetY()[i]-g->GetY()[i-1])>g->GetEY()[i]*5.) g->RemovePoint(i);
 	    } // for i
 
-	    // patch MC/data to data/MC for dijet samples
-	    if (s=="dijet" && d=="ratio") {
-	      for (int i = 0; i != g->GetN(); ++i) {
-		double x = g->GetX()[i];
-		double ex = g->GetEX()[i];
-		double y = g->GetY()[i];
-		double ey = g->GetEY()[i];
-		assert(y!=0);
-		g->SetPoint(i, x, y!=0 ? 1./y : 0);
-		g->SetPointError(i, ex, y!=0 ? ey/(y*y) : 0);
-	      }
-	    }
+	    // // patch MC/data to data/MC for dijet samples
+	    // if (s=="dijet" && d=="ratio") {
+	    //   for (int i = 0; i != g->GetN(); ++i) {
+	    // 	double x = g->GetX()[i];
+	    // 	double ex = g->GetEX()[i];
+	    // 	double y = g->GetY()[i];
+	    // 	double ey = g->GetEY()[i];
+	    // 	assert(y!=0);
+	    // 	g->SetPoint(i, x, y!=0 ? 1./y : 0);
+	    // 	g->SetPointError(i, ex, y!=0 ? ey/(y*y) : 0);
+	    //   }
+	    // }
 
 	    // patch Z+jet pT ratio uncertainty (80X-590/pb)
 	    if ((s=="zeejet" || s=="zmmjet") && d=="ratio") {

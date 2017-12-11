@@ -77,23 +77,23 @@
   // globalFitL3Res(3.489,3.839, epoch); 
   // globalFitL3Res(3.839,5.191, epoch);
 
-  // //wide eta bins
-  //  softrad(0.0,0.8,true,epoch); // missing dijet
-  //  softrad(0.8,1.3,true,epoch); // missing dijet
-  //  softrad(1.3,1.9,true,epoch);
-  //  softrad(1.9,2.5,true,epoch);
-  //  softrad(2.5,3.0,true,epoch);
-  //  softrad(3.0,3.2,true,epoch);
-  //  softrad(3.2,5.2,true,epoch);
-  //  softrad(0.0,1.3,true,epoch);
-  //  //These are just checks for now:
-  //  globalFitL3Res(0.0,0.8,epoch); // coarse L2Res, missing dijet
-  //  globalFitL3Res(0.8,1.3,epoch); // coarse L2Res, missing dijet
-  //  globalFitL3Res(1.3,1.9,epoch); // coarse L2Res
-  //  globalFitL3Res(1.9,2.5,epoch); // coarse L2Res
-  //  globalFitL3Res(2.5,3.0,epoch); // coarse L2Res
-  //  globalFitL3Res(3.0,3.2,epoch); // coarse L2Res
-  //  globalFitL3Res(3.2,5.2,epoch); // coarse L2Res
+  //wide eta bins
+   // softrad(0.0,0.8,true,epoch); // missing dijet
+   // softrad(0.8,1.3,true,epoch); // missing dijet
+   softrad(1.3,1.9,true,epoch);
+   softrad(1.9,2.5,true,epoch);
+   softrad(2.5,3.0,true,epoch);
+   softrad(3.0,3.2,true,epoch);
+   softrad(3.2,5.2,true,epoch);
+   softrad(0.0,1.3,true,epoch);
+   //These are just checks for now:
+   // globalFitL3Res(0.0,0.8,epoch); // coarse L2Res, missing dijet
+   // globalFitL3Res(0.8,1.3,epoch); // coarse L2Res, missing dijet
+   globalFitL3Res(1.3,1.9,epoch); // coarse L2Res
+   globalFitL3Res(1.9,2.5,epoch); // coarse L2Res
+   globalFitL3Res(2.5,3.0,epoch); // coarse L2Res
+   globalFitL3Res(3.0,3.2,epoch); // coarse L2Res
+   globalFitL3Res(3.2,5.2,epoch); // coarse L2Res
 
 
 

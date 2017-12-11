@@ -15,20 +15,56 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref)));
 }
 
+TGraphErrors* addGraph(TGraphErrors *g1, TGraphErrors *g2) {
+  
+  assert(g1->GetN()==g2->GetN());
+  TGraphErrors *g = (TGraphErrors*)g1->Clone();//new TGraphErrors(g1->GetN());
+  for (int i = 0; i != g1->GetN(); ++i) {
+
+    double x1 = g1->GetX()[i];
+    double x2 = g2->GetX()[i];
+    assert(fabs(x1/x2-1)<0.1);
+
+    double ex1 = g1->GetEX()[i];
+    double ex2 = g2->GetEX()[i];
+
+    double y1 = g1->GetY()[i];
+    double y2 = g2->GetY()[i];
+
+    double ey1 = g1->GetEY()[i];
+    double ey2 = g2->GetEY()[i];
+
+    double x = (ey2*ey2*x1 + ey1*ey1*x2) / (ey2*ey2+ey1*ey1);
+    double y = (ey2*ey2*y1 + ey1*ey1*y2) / (ey2*ey2+ey1*ey1);
+    double ex = (ey2*ey2*ex1 + ey1*ey1*ex2) / (ey2*ey2+ey1*ey1);
+    double ey = (ey2*ey2*ey1 + ey1*ey1*ey2) / (ey2*ey2+ey1*ey1);
+
+    g->SetPoint(i, x, y);
+    g->SetPointError(i, ex, ey);
+  }
+
+  return g;
+}
+
 // Determine sensitivity to tracker dynamic inefficiency
 // by studying ratio of jet responses in Runs G and F (and BCD / F, E / F)
 void drawAvsB() {
 
   setTDRStyle();
 
-  string epocha = "H";//"H";//"F";//"BCD";//"F";//"E";//"BCD";//"F";
-  string epochb = "G";//"G";//"BCD";//"G";//"E";//"E";//"F";//"G";
+  string epocha = "BCD";//"H";//"F";//"BCD";//"F";//"E";//"BCD";//"F";
+  string epochb = "H";//"G";//"BCD";//"G";//"E";//"E";//"F";//"G";
+
+  // Add the rest as well
+  string epocha2 = "EF";
+  string epochb2 = "G";
 
   string type = "data";
 
   vector<string> methods;
   methods.push_back("mpfchs1");
   methods.push_back("ptchs");
+  bool nozjptb = false;
   bool nogjmpf = false;
   bool nogjptb = false;//true;
   bool mjvsjes = false;
@@ -37,12 +73,15 @@ void drawAvsB() {
   samples.push_back("zeejet");
   samples.push_back("zmmjet");
   samples.push_back("gamjet");
-  samples.push_back("multijet");
+  //samples.push_back("multijet");
 
   cout << "draw"<<epocha<<"vs"<<epochb<<endl;
   const char *ct = type.c_str();
   const char *pa = epocha.c_str();
   const char *pb = epochb.c_str();
+
+  const char *pa2 = epocha2.c_str();
+  const char *pb2 = epochb2.c_str();
 
   TFile *fg = new TFile(Form("rootfiles/jecdata%s.root",pb),"READ");
   assert(fg && !fg->IsZombie());
@@ -50,23 +89,26 @@ void drawAvsB() {
   TFile *ff = new TFile(Form("rootfiles/jecdata%s.root",pa),"READ");
   assert(ff && !ff->IsZombie());
 
+  TFile *fg2(0), *ff2(0);
+  if (epochb2!="") fg2 = new TFile(Form("rootfiles/jecdata%s.root",pb2),"READ");
+  if (epocha2!="") ff2 = new TFile(Form("rootfiles/jecdata%s.root",pa2),"READ");
+
   TH1D *h = new TH1D("h",
 		     Form(";p_{T,ref} (GeV);%s ratio (%s / %s)",
 			  (type=="ratio" ? "Data/MC" :
 			   type=="data" ? "Data/data" : "MC/MC"),
 			  epocha.c_str(),epochb.c_str()),
-		     //870,30,900);
-		     //2170,30,2200);
 		     3470,30,3500);
-  h->SetMinimum(0.90);//epocha=="BCD" ? 0.95 : 0.92);
-  h->SetMaximum(1.15);//epocha=="BCD" ? 1.11 : 1.08);
+  h->SetMinimum(0.90);
+  h->SetMaximum(1.15);
   h->GetXaxis()->SetMoreLogLabels();
   h->GetXaxis()->SetNoExponent();
 
   if (epocha=="F" && epochb=="G")
     lumi_13TeV = "Run2016F+G, 3.1+7.1 fb^{-1}";
   if (epocha=="BCD" && epochb=="G")
-    //lumi_13TeV = "Run2016BCD+G, 13+7.1 fb^{-1}";
+    lumi_13TeV = "Run2016BCD+H, 12.9+8.8 fb^{-1}";
+  if (epocha=="BCD" && epochb=="G")
     lumi_13TeV = "Run2016BCD+FearlyGH, 12.9+16.8 fb^{-1}";
   if (epocha=="BCD" && epochb=="F")
     lumi_13TeV = "Run2016BCD+F, 13+3.1 fb^{-1}";
@@ -77,7 +119,8 @@ void drawAvsB() {
   if (epocha=="F" && epochb=="E")
     lumi_13TeV = "Run2016E+F, 4.0+3.1 fb^{-1}";
 
-  if (epocha=="BCDEF" && epochb=="GH")
+  if ((epocha=="BCDEF" && epochb=="GH") ||
+      (epocha=="BCD" && epocha2=="EF" && epochb=="H" && epochb2=="G")) 
     lumi_13TeV = "Run2016BCDEF+GH, 19.7+16.8 fb^{-1}";
   if (epocha=="EF" && epochb=="BCD")
     lumi_13TeV = "Run2016BCD+EF, 12.9+6.8 fb^{-1}";
@@ -103,19 +146,24 @@ void drawAvsB() {
 
   for (unsigned int is = 0; is != samples.size(); ++is) {
 
-    //if (samples[is]=="gamjet" && methods[im]=="mpfchs1" && nogjmpf) continue;
-    
     const char *cs = samples[is].c_str();
     TGraphErrors *gg = (TGraphErrors*)fg->Get(Form("%s/eta00-13/%s_%s_a30",ct,cm,cs));
     cout << cm << " " << cs << endl << flush;
     assert(gg);
+    if (fg2) {
+      TGraphErrors *gg2 = (TGraphErrors*)fg2->Get(Form("%s/eta00-13/%s_%s_a30",ct,cm,cs));
+      assert(gg2);
+      gg = addGraph(gg,gg2);
+    }
     
     TGraphErrors *gf = (TGraphErrors*)ff->Get(Form("%s/eta00-13/%s_%s_a30",ct,cm,cs));
     assert(gf);
+    if (ff2) {
+      TGraphErrors *gf2 = (TGraphErrors*)ff2->Get(Form("%s/eta00-13/%s_%s_a30",ct,cm,cs));
+      assert(gf2);
+      gf = addGraph(gf,gf2);
+    }
     
-    //gg->Draw("AP");
-    //gf->Draw("SAMEP");
-
     TGraphErrors *g = (TGraphErrors*)gg->Clone(Form("ge_%s_%s",cm,cs));
     if (!(gf->GetN()==gg->GetN())) {
       cout << "sample " << samples[is] << " method " << methods[im]
@@ -145,6 +193,12 @@ void drawAvsB() {
       tex->DrawLatex(0.20,0.63,"#gamma+jet p_{T}^{bal} excl. from fit");
       tex->SetTextColor(kBlack);
     }
+    else if ((samples[is]=="zmmjet" || samples[is]=="zeejet") &&
+	     methods[im]=="ptchs" && nozjptb) {
+      tex->SetTextColor(kRed);
+      tex->DrawLatex(0.20,0.63,"Z+jet p_{T}^{bal} excl. from fit");
+      tex->SetTextColor(kBlack);
+    }
     else if (samples[is]=="multijet") {
       g->SetMarkerColor(kGray+1);
       g->SetLineColor(kGray+1);
@@ -158,6 +212,7 @@ void drawAvsB() {
   
   if (nogjmpf) s += "_nogjmpf";
   if (nogjptb) s += "_nogptb";
+  if (nozjptb) s += "_nozptb";
   if (mjvsjes) {
     s += "_mjvsjes";
     tex->SetTextColor(kBlack);
@@ -173,17 +228,27 @@ void drawAvsB() {
   fjes->SetRange(10.,3500.);
   fjes->Draw("SAME");
   
-  //TF1 *ft = new TF1("ft","0.85-[0] + "
-  //		    "(0.15+[0])*([3]-[1]*pow(x,[2])) + [4]/x",30,1300);
-  //ft->SetParameters(0.05,1,0.8-1,1,0.5);
-  // Standard fit 58.7/60
-  TF1 *ft = new TF1("ft","1-[0]-[1]*pow(x,[2]) + ([3]+[4]*log(x))/x",30,2200);
-  ft->SetParameters(0,0.05,-0.5,1,0.1); // 58.8/60
-  //ft->FixParameter(0,0); // 59.4/61
-  //ft->FixParameter(4,0); // 59.5/62
-  ft->FixParameter(3,0);
+  //TF1 *ft = new TF1("ft","1-[0]-[1]*pow(x,[2]) + ([3]+[4]*log(x))/x",30,2200);
+  //ft->SetParameters(0,0.05,-0.5,1,0.1);
+  //ft->FixParameter(3,0);
 
-  //ft->FixParameter(3,1);
+  // Logarithmic sigmoid
+  //TF1 *ft = new TF1("ft","[0]+(1-[0])/(1. + exp(-(log(x)-log(abs([1])))"
+  //	       "/(log(abs([2])+abs([1]))-log(abs([1])))))", 30,2200);
+  //ft->SetParameters(0.98, 150, 50);
+  TF1 *ft = new TF1("ft","[0]+(1-[0])/(1. + exp(-(log(x)-[1])/[2]))",30,2200);
+  //ft->SetParameters(0.98,log(145),log(190)-log(145));
+  //ft->SetParameters(0.982,4.967,0.271);
+  ft->SetParameters(0.976,5.040,0.370);
+  // Log-sigmoid + powerlaw
+  //TF1 *ft = new TF1("ft","[0]+(1-[0])/(1. + exp(-(log(x)-[1])/[2]))"
+  //	       "*(1-[3]*pow(x,[4]))",30,2200);
+  //ft->SetParameters(0.982,4.967,0.271,0.1,-0.2);
+  // Double powerlaw
+  //TF1 *ft = new TF1("ft","[4]-[0]*pow(x,[1])-[2]*pow(x,[3])",30,2200);
+  //ft->SetParameters(0.05,-0.15,0.01,-0.3,1);
+  
+
   mg->Fit(ft,"RN");
   ft->SetLineColor(kBlue);
   ft->SetLineWidth(2);
@@ -191,24 +256,26 @@ void drawAvsB() {
   ft->Draw("SAME");
 
   // Map multijet with response ratio
-  TGraphErrors *gmpf2 = (TGraphErrors*)gmpf->Clone("gmpf2");
-  gmpf2->SetMarkerColor(kBlack);//kGray+1);
-  gmpf2->SetLineColor(kBlack);//kGray+1);
-  for (int i = 0; i != gmpf->GetN(); ++i) {
-    if (mjvsjes) {
-      gmpf2->SetPoint(i, 0.4*gmpf->GetX()[i],
-		      fjes->Eval(gmpf->GetX()[i])/gmpf->GetY()[i]);
-      gmpf2->SetPointError(i, 0.4*gmpf->GetEX()[i],
-			   gmpf->GetEY()[i]);
+  if (gmpf) { // we have multijet available
+    TGraphErrors *gmpf2 = (TGraphErrors*)gmpf->Clone("gmpf2");
+    gmpf2->SetMarkerColor(kBlack);//kGray+1);
+    gmpf2->SetLineColor(kBlack);//kGray+1);
+    for (int i = 0; i != gmpf->GetN(); ++i) {
+      if (mjvsjes) {
+	gmpf2->SetPoint(i, 0.4*gmpf->GetX()[i],
+			fjes->Eval(gmpf->GetX()[i])/gmpf->GetY()[i]);
+	gmpf2->SetPointError(i, 0.4*gmpf->GetEX()[i],
+			     gmpf->GetEY()[i]);
+      }
+      else {
+	gmpf2->SetPoint(i, 0.4*gmpf->GetX()[i],
+			ft->Eval(gmpf->GetX()[i])/gmpf->GetY()[i]);
+	gmpf2->SetPointError(i, 0.4*gmpf->GetEX()[i],
+			     gmpf->GetEY()[i]);
+      }
     }
-    else {
-      gmpf2->SetPoint(i, 0.4*gmpf->GetX()[i],
-		      ft->Eval(gmpf->GetX()[i])/gmpf->GetY()[i]);
-      gmpf2->SetPointError(i, 0.4*gmpf->GetEX()[i],
-			   gmpf->GetEY()[i]);
-    }
-  }
-  gmpf2->Draw("SAMEPz");
+    gmpf2->Draw("SAMEPz");
+  } // multijet
 
   tex->SetTextColor(kBlue);
   tex->DrawLatex(0.50,0.85,Form("#chi^{2} / NDF = %1.1f / %d",
