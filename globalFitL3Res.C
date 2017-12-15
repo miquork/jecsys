@@ -110,7 +110,8 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   // Sigmoid from drawAvsB.C for (BCD+EF)vs(G+H) 2016 Legacy (add -1)
   if (!ftr) ftr = new TF1("ftr","[0]+(1-[0])/(1. + exp(-(log(x)-[1])/[2]))",
 			  30,3500);
-  ftr->SetParameters(0.9763, 5.04, 0.3695);
+  //ftr->SetParameters(0.9763, 5.04, 0.3695); // ENDCAP
+  ftr->SetParameters(0.979, 5.030, 0.395); // BCD/G+H
 
   //if (!feg) feg = new TF1("feg","[0]*TMath::Gaus(x,[1],[2]*sqrt(x))",
   if (!feg) feg = new TF1("feg","[0]+[1]*log(x)+"
@@ -947,9 +948,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
   if (njesFit==2 && fixTDI) {
     double ftdi = 0.5;
-    if (epoch=="BCD" || epoch=="EF") fixTDI = 1;
+    //if (epoch=="BCD" || epoch=="EF") fixTDI = 1;
+    if (epoch=="BCD") fixTDI = 1;
+    if (epoch=="EF") fixTDI = 1.524;//=(1-0.968)/(1-0.979);
     if (epoch=="G" || epoch=="H") fixTDI = 0;
-    if (epoch=="BCDEFGH") fixTDI = 19.7/(19.7+16.8);
+    //if (epoch=="BCDEFGH") fixTDI = 19.7/(19.7+16.8);
+    if (epoch=="BCDEFGH") fixTDI = (12.9*1+6.8*1.524)/(19.7+16.8);
     jesfit->SetParameters(0.985, 0.001);
   }
 

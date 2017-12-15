@@ -52,12 +52,12 @@ void drawAvsB() {
 
   setTDRStyle();
 
-  string epocha = "BCD";//"H";//"F";//"BCD";//"F";//"E";//"BCD";//"F";
-  string epochb = "H";//"G";//"BCD";//"G";//"E";//"E";//"F";//"G";
+  string epocha = "EF";//"BCD";//"H";//"F";//"BCD";//"F";//"E";//"BCD";//"F";
+  string epochb = "G";//"G";//"BCD";//"G";//"E";//"E";//"F";//"G";
 
   // Add the rest as well
-  string epocha2 = "EF";
-  string epochb2 = "G";
+  string epocha2 = "";//"EF";
+  string epochb2 = "H";//"G";
 
   string type = "data";
 
@@ -66,7 +66,7 @@ void drawAvsB() {
   methods.push_back("ptchs");
   bool nozjptb = false;
   bool nogjmpf = false;
-  bool nogjptb = false;//true;
+  bool nogjptb = true;
   bool mjvsjes = false;
   
   vector<string> samples;
@@ -97,7 +97,8 @@ void drawAvsB() {
 		     Form(";p_{T,ref} (GeV);%s ratio (%s / %s)",
 			  (type=="ratio" ? "Data/MC" :
 			   type=="data" ? "Data/data" : "MC/MC"),
-			  epocha.c_str(),epochb.c_str()),
+			  (epocha + (epocha2!="" ? "+"+epocha2 : "")).c_str(),
+			  (epochb + (epochb2!="" ? "+"+epochb2 : "")).c_str()),
 		     3470,30,3500);
   h->SetMinimum(0.90);
   h->SetMaximum(1.15);
@@ -127,6 +128,14 @@ void drawAvsB() {
   if (epocha=="H" && epochb=="G")
     lumi_13TeV = "Run2016G+H, 8.0+8.8 fb^{-1}";
 
+  if ((epocha=="BCD" && epocha2=="EF" && epochb=="G" && epochb2=="H")) 
+    lumi_13TeV = "Run2016BCDFearly+FlateGH, 19.7+16.8 fb^{-1}";
+  if ((epocha=="BCD" && epocha2=="" && epochb=="G" && epochb2=="H")) 
+    lumi_13TeV = "Run2016BCD+FlateGH, 12.9+16.8 fb^{-1}";
+  if ((epocha=="EF" && epocha2=="" && epochb=="G" && epochb2=="H")) 
+    lumi_13TeV = "Run2016EFearly+FlateGH, 6.8+16.8 fb^{-1}";
+
+
   TCanvas *c1 = tdrCanvas("c1",h,4,11,true);
   c1->SetLogx();
 
@@ -134,7 +143,8 @@ void drawAvsB() {
   tex->SetNDC(); tex->SetTextSize(0.045);
 
   TMultiGraph *mg = new TMultiGraph();
-  string s = "draw"+epocha+"vs"+epochb;
+  string s = "draw"+epocha+(epocha2!="" ? "p" + epocha2 : "")
+    +"vs"+epochb+(epochb2!="" ? "p" + epochb2 : "");
 
   TGraphErrors *gmjb(0), *gmpf(0);
 
@@ -239,7 +249,11 @@ void drawAvsB() {
   TF1 *ft = new TF1("ft","[0]+(1-[0])/(1. + exp(-(log(x)-[1])/[2]))",30,2200);
   //ft->SetParameters(0.98,log(145),log(190)-log(145));
   //ft->SetParameters(0.982,4.967,0.271);
-  ft->SetParameters(0.976,5.040,0.370);
+  //ft->SetParameters(0.976,5.040,0.370); // ENDCAP
+  //ft->SetParameters(0.985,5.0,0.3);
+  ft->SetParameters(0.985,5.025,0.3);
+  ft->FixParameter(1,5.03); // semi-weighted average of BCD and EF
+  ft->FixParameter(2,0.395); // combined fit to BCD+EF / G+H 
   // Log-sigmoid + powerlaw
   //TF1 *ft = new TF1("ft","[0]+(1-[0])/(1. + exp(-(log(x)-[1])/[2]))"
   //	       "*(1-[3]*pow(x,[4]))",30,2200);
@@ -298,11 +312,12 @@ void drawAvsB() {
 		      ft->GetParameter(0),ft->GetParError(0),
 		      ft->GetParameter(1),ft->GetParError(1),
 		      ft->GetParameter(2),ft->GetParError(2)));
-  tex->DrawLatex(0.20,0.17,
-		 Form("p_{3}=%1.3f#pm%1.3f"
-		      ", p_{4}=%1.3f#pm%1.3f",
-		      ft->GetParameter(3),ft->GetParError(3),
-		      ft->GetParameter(4),ft->GetParError(4)));
+  if (ft->GetNpar()>3)
+    tex->DrawLatex(0.20,0.17,
+		   Form("p_{3}=%1.3f#pm%1.3f"
+			", p_{4}=%1.3f#pm%1.3f",
+			ft->GetParameter(3),ft->GetParError(3),
+			ft->GetParameter(4),ft->GetParError(4)));
 
   c1->SaveAs(Form("pdf/%s.pdf",s.c_str()));
 

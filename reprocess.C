@@ -107,13 +107,14 @@ void reprocess(string epoch="") {
   // Hugues Lattaud, 2016 Legacy re-reco (29 Nov 2017)
   // https://indico.cern.ch/event/684468/
   map<string,const char*> fp_files;
-  fp_files["BCD"] = "RunBCDEFH";//"runBCD_TESTB";
-  fp_files["EF"] = "RunEF";//"runEFearly_TESTB";
-  fp_files["G"] = "RunFG";//"runFlateG_TESTB";
-  fp_files["H"] = "RunH";//"runH_TESTB";
+  fp_files["BCD"] = "BCD";//"RunBCDEFH";//"runBCD_TESTB";
+  fp_files["EF"] = "EF";//"RunEF";//"runEFearly_TESTB";
+  fp_files["G"] = "FG";//"RunFG";//"runFlateG_TESTB";
+  fp_files["H"] = "H";//"RunH";//"runH_TESTB";
   fp_files["BCDEFGH"] = "RunBCDEFH";//"BCDEFGH";
   //TFile *fp = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/Combination_file_gammaplusjet_%s_03FeB17_nores_fixed_etabinning.root", fp_files[epoch]),"READ");
-  TFile *fp = new TFile(Form("rootfiles/Gjet_ENDCAPS_%s_07Aug_2017noresidual_V1.root", fp_files[epoch]),"READ");
+  //TFile *fp = new TFile(Form("rootfiles/Gjet_ENDCAPS_%s_07Aug_2017noresidual_V1.root", fp_files[epoch]),"READ"); // endcap photons
+  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_nores_V2_%s.root", fp_files[epoch]),"READ"); // endcap photons
 
   assert(fp && !fp->IsZombie());
 
