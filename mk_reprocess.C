@@ -22,7 +22,7 @@
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "H";
+  string epoch = "BCDEFGH";
   //"BCD", "EF", "G", "H", "BCDEFGH", "L4" (closure for |eta|<2.4)
   // BCD 47->46.9, EF 48.4->47.9, G 33.5->33.5, H 50.5
 
@@ -32,8 +32,8 @@
   softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
   // Run multijet analysis to store information for later global fit
   // => multijet central values now old, but FSR still needed
-  multijet(false,epoch);
-  multijet(true,epoch);
+  //multijet(false,epoch);
+  //multijet(true,epoch);
   // Perform final global fit (goes into GT)
   globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
 
@@ -96,6 +96,6 @@
    globalFitL3Res(3.0,3.2,epoch); // coarse L2Res
    globalFitL3Res(3.2,5.2,epoch); // coarse L2Res
 
-
-
+   // Repeat to see parameters
+  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
 }

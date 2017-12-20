@@ -1,3 +1,8 @@
+#include "TFile.h"
+#include "TF1.h"
+#include "TGraphErrors.h"
+#include "TMultiGraph.h"
+
 #include "tdrstyle_mod15.C"
 
 TF1 *fhb(0);
@@ -52,12 +57,12 @@ void drawAvsB() {
 
   setTDRStyle();
 
-  string epocha = "EF";//"BCD";//"H";//"F";//"BCD";//"F";//"E";//"BCD";//"F";
-  string epochb = "G";//"G";//"BCD";//"G";//"E";//"E";//"F";//"G";
+  string epocha = "BCD";//"BCD";//"H";//"F";//"BCD";//"F";//"E";//"BCD";//"F";
+  string epochb = "GH";//"G";//"BCD";//"G";//"E";//"E";//"F";//"G";
 
   // Add the rest as well
   string epocha2 = "";//"EF";
-  string epochb2 = "H";//"G";
+  string epochb2 = "";//"G";
 
   string type = "data";
 
@@ -130,8 +135,14 @@ void drawAvsB() {
 
   if ((epocha=="BCD" && epocha2=="EF" && epochb=="G" && epochb2=="H")) 
     lumi_13TeV = "Run2016BCDFearly+FlateGH, 19.7+16.8 fb^{-1}";
-  if ((epocha=="BCD" && epocha2=="" && epochb=="G" && epochb2=="H")) 
+
+  if ((epocha=="BCD" && epocha2=="" && ((epochb=="GH" && epochb2=="") ||
+					(epochb=="G" && epochb2=="H"))))
     lumi_13TeV = "Run2016BCD+FlateGH, 12.9+16.8 fb^{-1}";
+  if ((epocha=="EF" && epocha2=="" && ((epochb=="GH" && epochb2=="") ||
+				       (epochb=="G" && epochb2=="H"))))
+    lumi_13TeV = "Run2016EF+FlateGH, 6.8+16.8 fb^{-1}";
+
   if ((epocha=="EF" && epocha2=="" && epochb=="G" && epochb2=="H")) 
     lumi_13TeV = "Run2016EFearly+FlateGH, 6.8+16.8 fb^{-1}";
 
@@ -174,12 +185,27 @@ void drawAvsB() {
       gf = addGraph(gf,gf2);
     }
     
-    TGraphErrors *g = (TGraphErrors*)gg->Clone(Form("ge_%s_%s",cm,cs));
     if (!(gf->GetN()==gg->GetN())) {
-      cout << "sample " << samples[is] << " method " << methods[im]
-	   << " gf->N: " << gf->GetN() << " gg->N: " << gg->GetN() << endl;
+
+      // Remove highest pT point is that is the offender (BCD vs GH)
+      if (gg->GetN()>gf->GetN() &&
+	  fabs(gg->GetX()[gg->GetN()-1]/gf->GetX()[gf->GetN()-1]-1)>0.1 &&
+	  fabs(gg->GetX()[gg->GetN()-2]/gf->GetX()[gf->GetN()-1]-1)<0.1) {
+	cout << "Remove point B(N-1)" << endl;
+	gg->RemovePoint(gg->GetN()-1);
+      }
+      else {
+	cout << "sample " << samples[is] << " method " << methods[im]
+	     << " gf->N: " << gf->GetN() << " gg->N: " << gg->GetN() << endl;
+	cout << " x_gf(N-1)=" << gf->GetX()[gf->GetN()-1]
+	     << " x_gg(N-1)=" << gg->GetX()[gg->GetN()-1]
+	     << " x_gg(N-2)=" << gg->GetX()[gg->GetN()-2] << endl;
+      }
+
       assert(gf->GetN()==gg->GetN());
     }
+
+    TGraphErrors *g = (TGraphErrors*)gg->Clone(Form("ge_%s_%s",cm,cs));
     for (int i = 0; i != g->GetN(); ++i) {
       double yg = gg->GetY()[i];
       double yf = gf->GetY()[i];
@@ -252,8 +278,12 @@ void drawAvsB() {
   //ft->SetParameters(0.976,5.040,0.370); // ENDCAP
   //ft->SetParameters(0.985,5.0,0.3);
   ft->SetParameters(0.985,5.025,0.3);
-  ft->FixParameter(1,5.03); // semi-weighted average of BCD and EF
-  ft->FixParameter(2,0.395); // combined fit to BCD+EF / G+H 
+  //ft->FixParameter(1,5.03); // semi-weighted average of BCD and EF
+  //ft->FixParameter(2,0.395); // combined fit to BCD+EF / G+H 
+  // ( 12.9*5.055+6.8*5.000)/(12.9+6.8)
+  ft->FixParameter(1,5.036); // semi-weighted average of BCD/GH and EF/GH
+  // ( 12.9*0.344 + 6.8*0.455)/(12.9+6.8)
+  ft->FixParameter(2,0.391); // combined fit to BCD+EF / GH 
   // Log-sigmoid + powerlaw
   //TF1 *ft = new TF1("ft","[0]+(1-[0])/(1. + exp(-(log(x)-[1])/[2]))"
   //	       "*(1-[3]*pow(x,[4]))",30,2200);

@@ -35,9 +35,18 @@ const double gRho = 15.36; // 2017-06-02 for 2016 data
 const bool _dcsonly = false;
 
 // Appy mass corrections to Z+jet
-bool correctZeeMass = true; // Legacy2016
 bool correctZmmMass = true; // Legacy2016
+bool correctZeeMass = true; // Legacy2016
 bool correctGamMass = true; // Legacy2016
+bool correctUncert = true; // Legacy2016
+// Legacy 2016: all false 0.990/0.006, 84.4/56, 0.8781
+// Legacy 2016: Zmm       0.989/0.005, 77.9/56, 0.7942
+// Legacy 2016: Zee       0.990/0.011, 80.6/56, 0.8890
+// Legacy 2016: Gam       0.990/0.010, 71.7/56, 0.7106
+// Legacy 2016: Zee+Zm    0.990/0.011, 74.6/56, 0.8143
+// Legacy 2016: Zee+Gam   0.991/0.018, 66.3/56, 0.8098
+// Legacy 2016: all true  0.990/0.017, 60.7/56, 0.7341
+// Legacy 2016: all+nosys 0.990/0.026, 88.9/56, 0.9648
 
 // Minimum pTcut for gamma+jet
 double fpmpfptmin(175);//30);   // photon+jet
@@ -87,7 +96,7 @@ void reprocess(string epoch="") {
 
   // Anastasia Karavdina, 2016 Legacy re-reco (8 Dec 2017) :
   // https://indico.cern.ch/event/682570/
-  TFile *fdj = new TFile("rootfiles/JEC_L2_Dijet_AK4PFchs_pythia8_07122017hcalCleaning_wideEtabins.root");
+  TFile *fdj = new TFile("rootfiles/JEC_L2_Dijet_AK4PFchs_pythia8_07122017hcalCleaning_wideEtabins.root"); // BCDEFGH only?
 
   assert(fdj && !fdj->IsZombie());
 
@@ -98,6 +107,7 @@ void reprocess(string epoch="") {
   fm_files["EF"] = "0428_Run2016EFearly"; // also update multijet.C
   fm_files["G"] = "0428_Run2016FlateG"; // also update multijet.C
   fm_files["H"] = "0428_Run2016H"; // also update multijet.C
+  fm_files["GH"] = "0428_Run2016H"; // duplicate H
   fm_files["BCDEFGH"] = "0428_Run2016All"; // also update multijet.C
   TFile *fmj = new TFile(Form("rootfiles/multijet_2017%s.root",
   			      fm_files[epoch]),"READ");
@@ -106,30 +116,34 @@ void reprocess(string epoch="") {
   
   // Hugues Lattaud, 2016 Legacy re-reco (29 Nov 2017)
   // https://indico.cern.ch/event/684468/
+  //  <CMS-JME-L2L3Residual-Analysts@cern.ch> (20 Dec 2017; V1 for BCDEFGH, GH)
   map<string,const char*> fp_files;
-  fp_files["BCD"] = "BCD";//"RunBCDEFH";//"runBCD_TESTB";
-  fp_files["EF"] = "EF";//"RunEF";//"runEFearly_TESTB";
-  fp_files["G"] = "FG";//"RunFG";//"runFlateG_TESTB";
-  fp_files["H"] = "H";//"RunH";//"runH_TESTB";
-  fp_files["BCDEFGH"] = "RunBCDEFH";//"BCDEFGH";
+  fp_files["BCD"] = "V2_BCD";//"RunBCDEFH";//"runBCD_TESTB";
+  fp_files["EF"] = "V2_EF";//"RunEF";//"runEFearly_TESTB";
+  fp_files["G"] = "V2_FG";//"RunFG";//"runFlateG_TESTB";
+  fp_files["H"] = "V2_H";//"RunH";//"runH_TESTB";
+  fp_files["GH"] = "V1_FGH";//"RunH";//"runH_TESTB";
+  fp_files["BCDEFGH"] = "V1_BCDEFGH";////"RunBCDEFH";//"BCDEFGH";
   //TFile *fp = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/Combination_file_gammaplusjet_%s_03FeB17_nores_fixed_etabinning.root", fp_files[epoch]),"READ");
   //TFile *fp = new TFile(Form("rootfiles/Gjet_ENDCAPS_%s_07Aug_2017noresidual_V1.root", fp_files[epoch]),"READ"); // endcap photons
-  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_nores_V2_%s.root", fp_files[epoch]),"READ"); // endcap photons
+  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", fp_files[epoch]),"READ"); // endcap photons
 
   assert(fp && !fp->IsZombie());
 
-  // Thomas Berger,2016 Legacy re-reco (8 Dec 2017)
+  // Thomas Berger, 2016 Legacy re-reco (8 Dec 2017)
   // https://indico.cern.ch/event/684468/
+  // https://indico.cern.ch/event/687650/ (19 Dec 2017; add wide+narrow for GH)
   map<string,const char*> fz_files;
-  fz_files["BCD"] = "BCD";
-  fz_files["EF"] = "EF";
-  fz_files["G"] = "G";
-  fz_files["H"] = "H";
-  fz_files["BCDEFGH"] = "BCDEFGH"; 
+  fz_files["BCD"] = "BCD_2017-12-08";
+  fz_files["EF"] = "EF_2017-12-08";
+  fz_files["G"] = "G_2017-12-08";
+  fz_files["H"] = "H_2017-12-08";
+  fz_files["GH"] = "GH_2017-12-19";
+  fz_files["BCDEFGH"] = "BCDEFGH_2017-12-08"; 
   //TFile *fzmm = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/combination_ZJet_Zmm_%s_2017-10-10.root", fz_files[epoch]),"READ");
   //TFile *fzee = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/combination_ZJet_Zee_%s_2017-10-10.root",fz_files[epoch]),"READ");
-  TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s_2017-12-08_wide.root", fz_files[epoch]),"READ");
-  TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s_2017-12-08_wide.root",fz_files[epoch]),"READ");
+  TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s_wide.root", fz_files[epoch]),"READ");
+  TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s_wide.root",fz_files[epoch]),"READ");
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
@@ -158,7 +172,7 @@ void reprocess(string epoch="") {
   // Smoothen mass corrections
   TF1 *f1mzee = new TF1("f1mzee","[0]+[1]*log(x)+[2]*log(x)*log(x)",
 			fzeeptmin, fzeeptmax);
-  if (correctZeeMass) {
+  if (correctZeeMass || correctGamMass) {
     hmzee->Fit(f1mzee);
   }
   TF1 *f1mzmm = new TF1("f1mzmm","[0]+[1]*log(x)+[2]*log(x)*log(x)",
@@ -624,44 +638,50 @@ void reprocess(string epoch="") {
 	    } // patch missing multijet ratio
 
 	    // Mass corrections for Zmm
+	    // Limit uncertainty at high pT to 0.5% (about twice correction)
  	    if (correctZmmMass && s=="zmmjet" && (d=="data" || d=="ratio")) {
  	      for (int i = 0; i != g->GetN(); ++i) {
 		double pt = g->GetX()[i];
  		double ipt = hmzmm->FindBin(pt);
 		//double k = max(0.99,min(1.01,hmzmm->GetBinContent(ipt)));
- 		double ek = hmzmm->GetBinError(ipt);
+ 		double ek = min(0.005,hmzmm->GetBinError(ipt));
 		double k = f1mzmm->Eval(pt);
 		//double ek = femzmm->Eval(pt);
  		g->SetPoint(i, g->GetX()[i], g->GetY()[i]*k);
- 		g->SetPointError(i, g->GetEX()[i], 
-				 sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
+		if (correctUncert)
+		  g->SetPointError(i, g->GetEX()[i], 
+				   sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
  	      }
  	    }
 	    // Mass corrections for Zee
+	    // Limit uncertainty at high pT to 0.5% (about half correction)
 	    if (correctZeeMass && s=="zeejet" && (d=="data" || d=="ratio")) {
 	      for (int i = 0; i != g->GetN(); ++i) {
 		double pt = g->GetX()[i];
 		double ipt = hmzee->FindBin(pt);
 		//double k = max(0.99,min(1.01,hmzee->GetBinContent(ipt)));
-		double ek = hmzee->GetBinError(ipt);
+		double ek = min(0.005,hmzee->GetBinError(ipt));
 		double k = f1mzee->Eval(pt);
 		//double ek = femzee->Eval(pt);
 		g->SetPoint(i, g->GetX()[i], g->GetY()[i]*k);
- 		g->SetPointError(i, g->GetEX()[i], 
-				 sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
+		if (correctUncert)
+		  g->SetPointError(i, g->GetEX()[i], 
+				   sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
 	      }
 	    }
 	    // Zee mass corrections for photon+jet
+	    // Limit uncertainty at high pT to 0.5% (about half correction)
 	    if (correctGamMass && s=="gamjet" && (d=="data" || d=="ratio")) {
 	      for (int i = 0; i != g->GetN(); ++i) {
 		double pt = g->GetX()[i];
 		double ipt = hmzee->FindBin(pt);
-		double ek = hmzee->GetBinError(ipt);
+		double ek = min(0.005,hmzee->GetBinError(ipt));
 		double k = f1mzee->Eval(pt);
 		//double ek = femzee->Eval(pt);
 		g->SetPoint(i, g->GetX()[i], g->GetY()[i]*k);
- 		g->SetPointError(i, g->GetEX()[i], 
-				 sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
+		if (correctUncert)
+		  g->SetPointError(i, g->GetEX()[i], 
+				   sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
 	      }
 	    }
 

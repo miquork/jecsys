@@ -111,7 +111,9 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   if (!ftr) ftr = new TF1("ftr","[0]+(1-[0])/(1. + exp(-(log(x)-[1])/[2]))",
 			  30,3500);
   //ftr->SetParameters(0.9763, 5.04, 0.3695); // ENDCAP
-  ftr->SetParameters(0.979, 5.030, 0.395); // BCD/G+H
+  //ftr->SetParameters(0.979, 5.030, 0.395); // BCD/G+H
+  //ftr->SetParameters(0.980, 5.055, 0.324); // BCD/GH
+  ftr->SetParameters(0.979, 5.036, 0.391); // BCD/GH p1,p2 fix BCD+EF/GH
 
   //if (!feg) feg = new TF1("feg","[0]*TMath::Gaus(x,[1],[2]*sqrt(x))",
   if (!feg) feg = new TF1("feg","[0]+[1]*log(x)+"
@@ -585,6 +587,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     }
     if (s=="gamjet" && m=="ptchs") { //imethod==0) {
       escale = 0.020; // Legacy2016
+      // BCDEGHG 2%: 47.7/56 0.989,0.028, 1%: 48.2/56(0.5369) same,
+      // BCDEFGH 0.5%: 49.8/56 0.988,0.027(0.5904)
+      // BCDEFGH 0.2%: 54.5/56 0.986,0.023(0.6199) => some tension
+      if (epoch=="GH" || epoch=="BCDEFGH") escale = 0.005;
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_gamjet_%02.0f_%d",
 		       (1<<(n0+igj) | (1<<(n1+igj))), escale*1000., i));
@@ -778,9 +784,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //lumimap["E"] = "Run2016E re-mAOD, 4.0 fb^{-1}";
   //lumimap["F"] = "Run2016F re-mAOD, 2.8 fb^{-1}";//3.1 fb^{-1}";
   lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
-  lumimap["G"] = "Run2016FG Legacy, 8.0 fb^{-1}";
+  lumimap["G"] = "Run2016fG Legacy, 8.0 fb^{-1}";
   lumimap["H"] = "Run2016H Legacy, 8.8 fb^{-1}";
   //lumimap["GH"] = "Run2016FGH re-mAOD, 16.8 fb^{-1}";
+  lumimap["GH"] = "Run2016fGH Legacy, 16.8 fb^{-1}";
   //lumimap["BCDEF"] = "Run2016BCDEF re-mAOD, 19.7 fb^{-1}";
   lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
   lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
@@ -951,7 +958,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     //if (epoch=="BCD" || epoch=="EF") fixTDI = 1;
     if (epoch=="BCD") fixTDI = 1;
     if (epoch=="EF") fixTDI = 1.524;//=(1-0.968)/(1-0.979);
-    if (epoch=="G" || epoch=="H") fixTDI = 0;
+    if (epoch=="G" || epoch=="H" || epoch=="GH") fixTDI = 0;
     //if (epoch=="BCDEFGH") fixTDI = 19.7/(19.7+16.8);
     if (epoch=="BCDEFGH") fixTDI = (12.9*1+6.8*1.524)/(19.7+16.8);
     jesfit->SetParameters(0.985, 0.001);
@@ -1127,7 +1134,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   cout << "Uncertainty sources:" << endl;
   for (int i = np; i != Npar; ++i) {
-    if (tmp_par[i]==0&&fabs(tmp_err[i]-1)<1e-2)
+    //if (tmp_par[i]==0&&fabs(tmp_err[i]-1)<1e-2)
+    if (tmp_par[i]==0&&fabs(tmp_err[i]-1)<2e-2)
       cout << Form("%2d - %35s:  ----------\n",
 		   (i-np+1), (*_vsrc)[i-np]->GetName());
     else

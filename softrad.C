@@ -481,6 +481,16 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	    } // MPF
 	  } // use priors
 
+	  // Create graph to store results
+	  TGraphErrors *gk = gkmap[cd][cm][cs];
+	  if (!gk) {
+	    gk = new TGraphErrors(0);
+	    gk->SetMarkerStyle(ga->GetMarkerStyle());
+	    gk->SetMarkerColor(ga->GetMarkerColor());
+	    gk->SetLineColor(ga->GetLineColor());
+	    gkmap[cd][cm][cs] = gk;
+	  }
+
 	  if (ga->GetN()>2) {
 
 	    f1->SetRange(minalpha, 3.);
@@ -494,14 +504,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 	      // Store results
 	      TGraphErrors *gk = gkmap[cd][cm][cs];
-	      if (!gk) {
-		gk = new TGraphErrors(0);
-		gk->SetMarkerStyle(ga->GetMarkerStyle());
-		gk->SetMarkerColor(ga->GetMarkerColor());
-		gk->SetLineColor(ga->GetLineColor());
-		gkmap[cd][cm][cs] = gk;
-	      }
 	      int n = gk->GetN();
+
 	      TProfile *ppt = (isample==0 ? ppt2 : ppt1);
 	      //if (isample==3) { ppt = ppt4; } // pas-v6
 	      if (isample==idj) { ppt = ppt4; } // pas-v6
@@ -509,15 +513,21 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      gk->SetPoint(n, pt, f1->GetParameter(1));
 	      gk->SetPointError(n, 0, f1->GetParError(1));
 	    } // f1->GetNDF()>=0
+	    else {
+	      cout << " f1->GetNDF()<0 in "<<cd<<" "<<cs<<" "<<cm<<endl<<flush; 
+	    }
 	  } // ga->GetN()>2
+	  else {
+	    cout << " ga->GetN()<=2 for "<<cd<<" "<<cs<<" "<<cm<<endl<<flush; 
+	  }
 	} // for itpt
 	
       } // for isample
       
       c2->SaveAs(Form("pdf/%s/softrad_3x3_%s_%s_vsalpha_eta%02.0f-%02.0f.pdf",cep,cd,cm,10*etamin,10*etamax));
       
-    }
-  }
+    } // for method
+  } // for dir
 
 
   cout << "Drawing plots of kFSR vs pT" << endl;
@@ -552,7 +562,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 	const char *cs = samples[isample];
 	TGraphErrors *gk = gkmap[cd][cm][cs];
-	if (!gk) cout << cd << " " << cm << " " << cs << endl << flush;
+	if (!gk) cout << cd << " " << cm << " " << cs
+		      << "eta_"<<etamin<<"_"<<etamax << endl << flush;
 	assert(gk);
 	
 	leg->AddEntry(gk,texlabel[cs],"P");
