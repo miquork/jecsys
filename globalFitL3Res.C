@@ -587,11 +587,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 		       (1<<(n0-1) | (1<<(n1-1))), escale*1000., i));
     }
     if (s=="gamjet" && m=="ptchs") { //imethod==0) {
-      escale = 0.020; // Legacy2016
+      //escale = 0.020; // Legacy2016
       // BCDEGHG 2%: 47.7/56 0.989,0.028, 1%: 48.2/56(0.5369) same,
       // BCDEFGH 0.5%: 49.8/56 0.988,0.027(0.5904)
       // BCDEFGH 0.2%: 54.5/56 0.986,0.023(0.6199) => some tension
-      if (epoch=="GH" || epoch=="BCDEFGH") escale = 0.005;
+      //if (epoch=="GH" || epoch=="BCDEFGH") escale = 0.005;
+      escale = 0.005;
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_gamjet_%02.0f_%d",
 		       (1<<(n0+igj) | (1<<(n1+igj))), escale*1000., i));
