@@ -49,13 +49,13 @@ bool correctUncert = true; // Legacy2016
 // Legacy 2016: all+nosys 0.990/0.026, 88.9/56, 0.9648
 
 // Minimum pTcut for gamma+jet
-double fpmpfptmin(175);//30);   // photon+jet
-double fpbalptmin(175);//30);   // photon+jet
+double fpmpfptmin(100.);//60.);//30);//175);//30);   // photon+jet
+double fpbalptmin(100.);//60);//175);//30);   // photon+jet
 double fzeeptmin(30.); // Zee+jet
 double fzmmptmin(30.); // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
 double fzmpfptmin(30.); // Z+jet MPF
-double fzbalptmin(85.); // Z+jet pTbal
+double fzbalptmin(85.);//100.);//85.); // Z+jet pTbal
 
 //for fine etabins deactivate ptbal
 double fdijetmpfptmin(30);
@@ -64,8 +64,8 @@ double fdijetptmax(1500.);
 
 // Maximum pTcut for samples (to avoid bins with too large uncertainty)
 double fpptmax(1500.);
-double fzeeptmax(1000.);
-double fzmmptmax(1000.);
+double fzeeptmax(400.);//500);//1000.);
+double fzmmptmax(400.);//500);//1000.);
 
 //minimum event counts
 const double neventsmin = 20.;
@@ -520,11 +520,11 @@ void reprocess(string epoch="") {
                   cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries "<< nentries <<  " y: " << g->GetY()[i] << endl;
                   g->RemovePoint(i);
                 }
-              }
+              } // zmm/zee
 
-              if (i==0)continue;
+              //else if (i==0)continue;
               //remove points where difference of central value between points is larger than 5*sigma(higher pt point) to remove spurious high pt gamma+jet points with presumably low stats
-              else if (i>0 && i==g->GetN()-1 && fabs(g->GetY()[i]-g->GetY()[i-1])>g->GetEY()[i]*5.) g->RemovePoint(i);
+              //else if (i>0 && i==g->GetN()-1 && fabs(g->GetY()[i]-g->GetY()[i-1])>g->GetEY()[i]*5.) g->RemovePoint(i);
 	    } // for i
 
 	    // // patch MC/data to data/MC for dijet samples

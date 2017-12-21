@@ -113,7 +113,8 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   //ftr->SetParameters(0.9763, 5.04, 0.3695); // ENDCAP
   //ftr->SetParameters(0.979, 5.030, 0.395); // BCD/G+H
   //ftr->SetParameters(0.980, 5.055, 0.324); // BCD/GH
-  ftr->SetParameters(0.979, 5.036, 0.391); // BCD/GH p1,p2 fix BCD+EF/GH
+  //ftr->SetParameters(0.979, 5.036, 0.391); // BCD/GH g180; p1,p2 fix BCD+EF/GH
+  ftr->SetParameters(0.982, 5.036, 0.391); // BCD/GH g100; p1,p2 fix BCD+EF/GH
 
   //if (!feg) feg = new TF1("feg","[0]*TMath::Gaus(x,[1],[2]*sqrt(x))",
   if (!feg) feg = new TF1("feg","[0]+[1]*log(x)+"
@@ -957,10 +958,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     double ftdi = 0.5;
     //if (epoch=="BCD" || epoch=="EF") fixTDI = 1;
     if (epoch=="BCD") fixTDI = 1;
-    if (epoch=="EF") fixTDI = 1.524;//=(1-0.968)/(1-0.979);
+    //if (epoch=="EF") fixTDI = 1.524;//=(1-0.968)/(1-0.979); // g180
+    if (epoch=="EF") fixTDI = 1.500;//=(1-0.968)/(1-0.979); // g100
     if (epoch=="G" || epoch=="H" || epoch=="GH") fixTDI = 0;
     //if (epoch=="BCDEFGH") fixTDI = 19.7/(19.7+16.8);
-    if (epoch=="BCDEFGH") fixTDI = (12.9*1+6.8*1.524)/(19.7+16.8);
+    //if (epoch=="BCDEFGH") fixTDI = (12.9*1+6.8*1.524)/(19.7+16.8); // g180
+    if (epoch=="BCDEFGH") fixTDI = (12.9*1+6.8*1.500)/(19.7+16.8); // g100
     jesfit->SetParameters(0.985, 0.001);
   }
 

@@ -301,15 +301,15 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	}
 	
 	map<string, const char*> lumimap;
-	lumimap["BCD"] = "Run2016BCD re-mAOD, 12.9 fb^{-1}";
-	lumimap["E"] = "Run2016E re-mAOD, 4.0 fb^{-1}";
-	lumimap["F"] = "Run2016F re-mAOD, 2.8 fb^{-1}";//3.1 fb^{-1}";
-	lumimap["G"] = "Run2016FG re-mAOD, 8.0 fb^{-1}";
-	lumimap["H"] = "Run2016H re-mAOD, 8.8 fb^{-1}";
-	lumimap["GH"] = "Run2016FGH re-mAOD, 16.8 fb^{-1}";
-	lumimap["BCDEF"] = "Run2016BCDEF re-mAOD, 19.7 fb^{-1}";
-	lumimap["BCDEFGH"] = "Run2016BCDEFGH re-mAOD, 36.5 fb^{-1}";
-	lumimap["EF"] = "Run2016EF re-mAOD, 6.8 fb^{-1}";
+	lumimap["BCD"] = "Run2016BCD Legacy, 12.9 fb^{-1}";
+	lumimap["E"] = "Run2016E Legacy, 4.0 fb^{-1}";
+	lumimap["F"] = "Run2016F Legacy, 2.8 fb^{-1}";//3.1 fb^{-1}";
+	lumimap["G"] = "Run2016FG Legacy, 8.0 fb^{-1}";
+	lumimap["H"] = "Run2016H Legacy, 8.8 fb^{-1}";
+	lumimap["GH"] = "Run2016FGH Legacy, 16.8 fb^{-1}";
+	lumimap["BCDEF"] = "Run2016BCDEF Legacy, 19.7 fb^{-1}";
+	lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
+	lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
 	lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
 	lumi_13TeV = lumimap[epoch];
 

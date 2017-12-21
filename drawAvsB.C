@@ -280,10 +280,12 @@ void drawAvsB() {
   ft->SetParameters(0.985,5.025,0.3);
   //ft->FixParameter(1,5.03); // semi-weighted average of BCD and EF
   //ft->FixParameter(2,0.395); // combined fit to BCD+EF / G+H 
+
   // ( 12.9*5.055+6.8*5.000)/(12.9+6.8)
   ft->FixParameter(1,5.036); // semi-weighted average of BCD/GH and EF/GH
   // ( 12.9*0.344 + 6.8*0.455)/(12.9+6.8)
   ft->FixParameter(2,0.391); // combined fit to BCD+EF / GH 
+
   // Log-sigmoid + powerlaw
   //TF1 *ft = new TF1("ft","[0]+(1-[0])/(1. + exp(-(log(x)-[1])/[2]))"
   //	       "*(1-[3]*pow(x,[4]))",30,2200);
