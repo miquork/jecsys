@@ -22,7 +22,7 @@
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "BCDEFGH";
+  string epoch = "BCDEFGH";//"BCDEFGH";
   //"BCD", "EF", "G", "H", "BCDEFGH", "L4" (closure for |eta|<2.4)
   // BCD 47->46.9, EF 48.4->47.9, G 33.5->33.5, H 50.5
 

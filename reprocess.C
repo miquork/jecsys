@@ -35,10 +35,14 @@ const double gRho = 15.36; // 2017-06-02 for 2016 data
 const bool _dcsonly = false;
 
 // Appy mass corrections to Z+jet
+bool useFixedFit = true; // New
+double fitUncMin = 0.00000; // Some bug if unc<0?
 bool correctZmmMass = true; // Legacy2016
 bool correctZeeMass = true; // Legacy2016
 bool correctGamMass = true; // Legacy2016
 bool correctUncert = true; // Legacy2016
+bool correctGamScale = false; // Legacy2016
+double valueGamScale = 1./0.989;  // drawGamVsZmm BCDEFGH
 // Legacy 2016: all false 0.990/0.006, 84.4/56, 0.8781
 // Legacy 2016: Zmm       0.989/0.005, 77.9/56, 0.7942
 // Legacy 2016: Zee       0.990/0.011, 80.6/56, 0.8890
@@ -63,9 +67,13 @@ double fdijetbalptmin(30.);
 double fdijetptmax(1500.);
 
 // Maximum pTcut for samples (to avoid bins with too large uncertainty)
-double fpptmax(1500.);
-double fzeeptmax(400.);//500);//1000.);
-double fzmmptmax(400.);//500);//1000.);
+double fpmpfptmax(1500.);
+double fpbalptmax(700.);
+double fzeeptmax(700.);//400.);//500);//1000.);
+double fzmmptmax(700.);//400.);//500);//1000.);
+// Additional cuts to Z+jet MPF / balance methods
+double fzmpfptmax(500.);
+double fzbalptmax(400.);
 
 //minimum event counts
 const double neventsmin = 20.;
@@ -172,13 +180,33 @@ void reprocess(string epoch="") {
   // Smoothen mass corrections
   TF1 *f1mzee = new TF1("f1mzee","[0]+[1]*log(x)+[2]*log(x)*log(x)",
 			fzeeptmin, fzeeptmax);
+  TF1 *f1ezee = new TF1("f1ezee","sqrt([0]+pow(log(x),2)*[1]+pow(log(x),4)*[2]"
+			"+2*log(x)*[3]+2*pow(log(x),2)*[4]+2*pow(log(x),3)*[5])"
+			,fzeeptmin, fzeeptmax);
   if (correctZeeMass || correctGamMass) {
-    hmzee->Fit(f1mzee);
+    if (useFixedFit) {
+      // BCDEFGH fit with minitools/drawZmass.C
+      f1mzee->SetParameters(1.01732, -0.00909, 0.00116);
+      f1ezee->SetParameters(7.54e-05, 1.41e-05, 1.63e-07,
+			    -3.26e-05, 3.47e-06, -1.51e-06);
+    }
+    else
+      hmzee->Fit(f1mzee);
+
   }
   TF1 *f1mzmm = new TF1("f1mzmm","[0]+[1]*log(x)+[2]*log(x)*log(x)",
 			fzmmptmin, fzmmptmax);
+  TF1 *f1ezmm = new TF1("f1ezmm","sqrt([0]+pow(log(x),2)*[1]+pow(log(x),4)*[2]"
+			"+2*log(x)*[3]+2*pow(log(x),2)*[4]+2*pow(log(x),3)*[5])"
+			,fzmmptmin, fzmmptmax);
   if (correctZmmMass) {
-    hmzmm->Fit(f1mzmm);
+    if (useFixedFit) {
+      // BCDEFGH fit with minitools/drawZmass.C
+      f1mzmm->SetParameters(0.99855, 0., 0.);
+      f1ezmm->SetParameters(pow(0.00010,2),0,0, 0,0,0);
+    }
+    else
+      hmzmm->Fit(f1mzmm);
   }
 
   // Link to Z+jet 2D distribution for JEC calculations
@@ -480,10 +508,10 @@ void reprocess(string epoch="") {
               else if (g->GetEY()[i]>0.2)  g->RemovePoint(i);
 	      // Clean out point outside good ranges
 	      else if (s=="gamjet" && t=="mpfchs1" &&
-		       (g->GetX()[i]<fpmpfptmin || g->GetX()[i]>fpptmax))
+		       (g->GetX()[i]<fpmpfptmin || g->GetX()[i]>fpmpfptmax))
 		g->RemovePoint(i);
 	      else if (s=="gamjet" && t=="ptchs" &&
-		       (g->GetX()[i]<fpbalptmin || g->GetX()[i]>fpptmax))
+		       (g->GetX()[i]<fpbalptmin || g->GetX()[i]>fpbalptmax))
 		g->RemovePoint(i);
 	      else if (s=="dijet" && t=="mpfchs1" &&
 		       (g->GetX()[i]<fdijetmpfptmin || g->GetX()[i]>fdijetptmax))
@@ -498,10 +526,10 @@ void reprocess(string epoch="") {
 		       (g->GetX()[i]<fzmmptmin || g->GetX()[i]>fzmmptmax))
 		g->RemovePoint(i);
 	      else if ((s=="zmmjet" || s=="zeejet") && t=="mpfchs1" &&
-		       (g->GetX()[i]<fzmpfptmin))
+		       (g->GetX()[i]<fzmpfptmin || g->GetX()[i]>fzmpfptmax))
 		g->RemovePoint(i);
 	      else if ((s=="zmmjet" || s=="zeejet") && t=="ptchs" &&
-		       (g->GetX()[i]<fzbalptmin))
+		       (g->GetX()[i]<fzbalptmin || g->GetX()[i]>fzbalptmax))
 		g->RemovePoint(i);
               else if (s=="zmmjet" || s=="zeejet"){ // patch: clean away points with low statistics based on event counts histograms, currently Z+jet
                 assert(counts[d][s][ieta][ialpha]);
@@ -645,6 +673,7 @@ void reprocess(string epoch="") {
  		double ipt = hmzmm->FindBin(pt);
 		//double k = max(0.99,min(1.01,hmzmm->GetBinContent(ipt)));
  		double ek = min(0.005,hmzmm->GetBinError(ipt));
+		if (useFixedFit) ek = max(fitUncMin,f1ezmm->Eval(pt));
 		double k = f1mzmm->Eval(pt);
 		//double ek = femzmm->Eval(pt);
  		g->SetPoint(i, g->GetX()[i], g->GetY()[i]*k);
@@ -661,6 +690,7 @@ void reprocess(string epoch="") {
 		double ipt = hmzee->FindBin(pt);
 		//double k = max(0.99,min(1.01,hmzee->GetBinContent(ipt)));
 		double ek = min(0.005,hmzee->GetBinError(ipt));
+		if (useFixedFit) ek = max(fitUncMin,f1ezee->Eval(pt));
 		double k = f1mzee->Eval(pt);
 		//double ek = femzee->Eval(pt);
 		g->SetPoint(i, g->GetX()[i], g->GetY()[i]*k);
@@ -670,18 +700,31 @@ void reprocess(string epoch="") {
 	      }
 	    }
 	    // Zee mass corrections for photon+jet
+	    // Note fix (post Legacy2016): pT,gamma=pT,lepton=pT,Z/2
 	    // Limit uncertainty at high pT to 0.5% (about half correction)
 	    if (correctGamMass && s=="gamjet" && (d=="data" || d=="ratio")) {
 	      for (int i = 0; i != g->GetN(); ++i) {
-		double pt = g->GetX()[i];
-		double ipt = hmzee->FindBin(pt);
+		assert(!correctGamScale);
+		double ptgam = g->GetX()[i];
+		double pt = 2*ptgam; // fix post Legacy2016
+		//double ipt = hmzee->FindBin(pt);
+		double ipt = min(hmzee->FindBin(fzmmptmax), hmzee->FindBin(pt));
 		double ek = min(0.005,hmzee->GetBinError(ipt));
+		if (useFixedFit) ek = max(fitUncMin,f1ezee->Eval(pt));
 		double k = f1mzee->Eval(pt);
 		//double ek = femzee->Eval(pt);
 		g->SetPoint(i, g->GetX()[i], g->GetY()[i]*k);
 		if (correctUncert)
 		  g->SetPointError(i, g->GetEX()[i], 
 				   sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
+	      }
+	    }
+	    // Photon scale correction (from drawGamVsZmm)
+	    // No separate unceratinty added, is already in global fit
+	    if (correctGamScale && s=="gamjet" && (d=="data" || d=="ratio")) {
+	      assert(!correctGamMass);
+	      for (int i = 0; i != g->GetN(); ++i) {
+		g->SetPoint(i, g->GetX()[i], g->GetY()[i]*valueGamScale);
 	      }
 	    }
 

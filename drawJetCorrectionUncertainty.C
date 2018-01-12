@@ -1577,7 +1577,7 @@ void plotUncertainty(vector<uncert> const& sys,
     //ofstream fouts(Form("txt/Spring16_25nsV8M1_DATA_Uncertainty_%s.txt",
     //ofstream fouts(Form("txt/Summer16_23Sep2016V3_DATA_Uncertainty_%s.txt",
     //ofstream fouts(Form("txt/Summer16_03Feb2017_V3_DATA_Uncertainty_%s.txt",
-    ofstream fouts(Form("txt/Summer16_03Feb2017_V7_DATA_Uncertainty_%s.txt",
+    ofstream fouts(Form("txt/Summer16_03Feb2017_V9_DATA_Uncertainty_%s.txt",
 			(*_algnames)[d_algo]), ios::out);
     fouts << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
     //ofstream fout5s("txt/Summer15_25nsV6M3_DATA_Uncertainty_AK4PFchs.txt",ios::out);
@@ -1725,20 +1725,20 @@ void plotUncertainty(vector<uncert> const& sys,
     //ofstream fout(Form("txt/Spring16_25nsV8M1_DATA_UncertaintySources_%s.txt",
     //ofstream fout(Form("txt/Summer16_23Sep2016V3_DATA_UncertaintySources_%s.txt",
     //ofstream fout(Form("txt/Summer16_03Feb2017_V3_DATA_UncertaintySources_%s.txt",
-    ofstream fout(Form("txt/Summer16_03Feb2017_V7_DATA_UncertaintySources_%s.txt",
+    ofstream fout(Form("txt/Summer16_03Feb2017_V9_DATA_UncertaintySources_%s.txt",
 		       (*_algnames)[d_algo]), ios::out);
     //fout << Form("#Uncertainty sources for Spring16_25nsV4M3_DATA_%s",
     //fout << Form("#Uncertainty sources for Spring16_25nsV8M1_DATA_%s",
     //fout << Form("#Uncertainty sources for Summer16_23Sep2016V3_DATA_%s",
     //fout << Form("#Uncertainty sources for Summer16_03Feb2017_V3_DATA_%s",
-    fout << Form("#Uncertainty sources for Summer16_03Feb2017_V7_DATA_%s",
+    fout << Form("#Uncertainty sources for Summer16_03Feb2017_V9_DATA_%s",
 		 (*_algnames)[d_algo]) << endl;
     cout << "Storing uncertainties to: "
       //<< Form("txt/Spring16_25nsV4M3_DATA_UncertaintySources_%s.txt",
       //<< Form("txt/Spring16_25nsV8M1_DATA_UncertaintySources_%s.txt",
       //<< Form("txt/Summer16_23Sep2016V3_DATA_UncertaintySources_%s.txt",
       //<< Form("txt/Summer16_03Feb2017_V3_DATA_UncertaintySources_%s.txt",
-	 << Form("txt/Summer16_03Feb2017_V7_DATA_UncertaintySources_%s.txt",
+	 << Form("txt/Summer16_03Feb2017_V9_DATA_UncertaintySources_%s.txt",
 		 (*_algnames)[d_algo]) << endl;
     //ofstream fout5("txt/Summer15_25nsV6M3_DATA_UncertaintySources_AK4PFchs.txt",ios::out);
     //fout5 << "#Uncertainty sources for Summer15_25nsV6M3_DATA_AK4PFchs" << endl;
@@ -1776,7 +1776,7 @@ void plotUncertainty(vector<uncert> const& sys,
        jec::kRelativeJEREC1, jec::kRelativeJEREC2, jec::kRelativeJERHF,
        jec::kRelativePtBB, /*new*/
        jec::kRelativePtEC1, jec::kRelativePtEC2, jec::kRelativePtHF,
-       jec::kRelativeBal, /*new*/
+       jec::kRelativeBal, /*new*/ jec::kRelativeSample, /*new*/
        jec::kRelativeFSR, /*new*/ jec::kRelativeStatFSR, 
        jec::kRelativeStatEC, jec::kRelativeStatHF,
        /*jec::kRelativeSample,*/
@@ -1816,6 +1816,7 @@ void plotUncertainty(vector<uncert> const& sys,
     srcname[jec::kRelativePtEC2] = "RelativePtEC2";
     srcname[jec::kRelativePtHF] = "RelativePtHF";
     srcname[jec::kRelativeBal] = "RelativeBal";
+    srcname[jec::kRelativeSample] = "RelativeSample"; // new in 03FebV9
     srcname[jec::kRelativeFSR] = "RelativeFSR"; // new in Summer13_V1
     srcname[jec::kRelativeStatFSR] = "RelativeStatFSR"; // new in Winter14_V6
     srcname[jec::kRelativeStatEC] = "RelativeStatEC";

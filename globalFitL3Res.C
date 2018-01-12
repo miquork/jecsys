@@ -600,14 +600,16 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       is_gj = hs.size();
     }
     if (s=="zeejet" && m=="ptchs") { //imethod==0) {
-      escale = 0.002; // Legacy2016G, Zee mass fit within 0.2% up to 300 GeV
+      //escale = 0.002; // Legacy2016G, Zee mass fit within 0.2% up to 300 GeV
+      escale = 0.0005; // Legacy2016BCDEFGH after minitools/drawZmass.C fit
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_zeejet_%02.0f_%d",
 		       (1<<(n0+izee) | (1<<(n1+izee))), escale*1000, i));
       is_zee = hs.size();
     }
     if (s=="zmmjet" && m=="ptchs") { // imethod==0) {
-      escale = 0.002; // Legacy2016G, Zmm mass fit within 0.2% up to 300 GeV
+      //escale = 0.002; // Legacy2016G, Zmm mass fit within 0.2% up to 300 GeV
+      escale = 0.0005; // Legacy2016BCDEFGH minitools/drawZmass.C fit
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_zmmjet_%02.0f_%d",
 		       (1<<(n0+izmm) | (1<<(n1+izmm))), escale*1000, i));
