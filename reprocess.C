@@ -151,7 +151,7 @@ void reprocess(string epoch="") {
   assert(fp && !fp->IsZombie());
 
   // Thomas Berger, 2016 Legacy re-reco (8 Dec 2017)
-  // https://indico.cern.ch/event/684468/
+  // https://indico.cern.ch/event/684468/ (08 Dec 2017; both wide+narrow)
   // https://indico.cern.ch/event/687650/ (19 Dec 2017; add wide+narrow for GH)
   map<string,const char*> fz_files;
   fz_files["BCD"] = "BCD_2017-12-08";
@@ -167,7 +167,7 @@ void reprocess(string epoch="") {
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
-  // Add Z+jet narrow files (GH only for now, though)
+  // Add Z+jet narrow files
   TFile *fzmm2 = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s_narrow.root", fz_files[epoch]),"READ");
   TFile *fzee2 = new TFile(Form("rootfiles/combination_ZJet_Zee_%s_narrow.root",fz_files[epoch]),"READ");
   assert(fzmm2 && !fzmm2->IsZombie());
