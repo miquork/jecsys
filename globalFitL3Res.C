@@ -859,7 +859,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   legm->AddEntry(hrun1,"Run I","FL");
 
   legp->AddEntry(herr_ref," ","");
-  legm->AddEntry(herr_ref,"03FebV8","FL");
+  legm->AddEntry(herr_ref,"07AugV4","FL");
 
   hrun1->SetFillStyle(kNone);
   hrun1->DrawClone("SAME E5");
@@ -1058,7 +1058,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	 << "  ("<<gs2[i]->GetName()<<")"<< endl;
   }
 
-  ofstream txtL2L3("GlobalFitOutput_L2L3Residuals.txt",ios_base::app);
+  ofstream txtL2L3("txt2/GlobalFitOutput_L2L3Residuals.txt",ios_base::app);
   if(etamin==0.&&etamax==0.261)txtL2L3 << "{ 1 JetEta 1 JetPt 1./([0]+[1]*100./3.*(TMath::Max(0.,1.03091-0.051154*pow(x,-0.154227))-TMath::Max(0.,1.03091-0.051154*TMath::Power(208.,-0.154227)))+[2]*((-2.36997+0.413917*TMath::Log(x))/x-(-2.36997+0.413917*TMath::Log(208))/208)) Correction L2Relative}";
   if(np==2&& !(etamin==0.&&etamax==1.3)){
     txtL2L3 << Form("\n %7.4f  %7.4f  5 10 6500 %7.4f %7.4f 0.0 ", etamin, etamax, tmp_par[0], tmp_par[1]);
@@ -1075,7 +1075,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       if (!h) cout << "Histo "<<s<<" not found!" << endl << flush;
       assert(h);
 
-      ofstream txtFSRDiJet(Form("GlobalFitOutput_FSR_%s_%s.txt",cs,cm),ios_base::app);
+      ofstream txtFSRDiJet(Form("txt2/GlobalFitOutput_FSR_%s_%s.txt",cs,cm),ios_base::app);
       if(etamin==0.&&etamax==0.261)txtFSRDiJet << "{ 2 JetEta  JetPt 1 JetPt [0] Correction L2Relative}";
       for (int i = 1; i != h->GetNbinsX()+1; ++i) {
         //        double pt = h->GetBinCenter(i);

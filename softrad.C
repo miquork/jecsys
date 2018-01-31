@@ -304,9 +304,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	lumimap["BCD"] = "Run2016BCD Legacy, 12.9 fb^{-1}";
 	lumimap["E"] = "Run2016E Legacy, 4.0 fb^{-1}";
 	lumimap["F"] = "Run2016F Legacy, 2.8 fb^{-1}";//3.1 fb^{-1}";
-	lumimap["G"] = "Run2016FG Legacy, 8.0 fb^{-1}";
+	lumimap["G"] = "Run2016fG Legacy, 8.0 fb^{-1}";
 	lumimap["H"] = "Run2016H Legacy, 8.8 fb^{-1}";
-	lumimap["GH"] = "Run2016FGH Legacy, 16.8 fb^{-1}";
+	lumimap["GH"] = "Run2016fGH Legacy, 16.8 fb^{-1}";
 	lumimap["BCDEF"] = "Run2016BCDEF Legacy, 19.7 fb^{-1}";
 	lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
 	lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
@@ -604,7 +604,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  gk->DrawClone("SAME Pz");
 
 
-          ofstream txtFSRDiJet(Form("GlobalFitOutput_FSRFit_%s_%s_%s.txt",cd, cs,cm),ios_base::app);
+          ofstream txtFSRDiJet(Form("txt2/GlobalFitOutput_FSRFit_%s_%s_%s.txt",cd, cs,cm),ios_base::app);
           if(etamin==0.&&etamax==0.261)txtFSRDiJet << "{ 1 JetEta 1 JetPt [0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2) Correction L2Relative}";
           if(!(etamin==0.&&etamax==1.3))txtFSRDiJet      << Form("\n%7.4f   %7.4f  5 10 6500 %7.4f  %7.4f  %7.4f ", etamin, etamax, fk->GetParameter(0), fk->GetParameter(1), fk->GetParameter(2) );
 

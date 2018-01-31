@@ -22,7 +22,8 @@
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "BCDEFGH";//"BCDEFGH";
+  string epoch = "GH";//"BCDEFGH";
+  // 0.8->0.9% 52.6->54.7, 53.5->60.8, 39.4->54.4, 71.8->72.5
   //"BCD", "EF", "G", "H", "BCDEFGH", "L4" (closure for |eta|<2.4)
   // BCD 47->46.9, EF 48.4->47.9, G 33.5->33.5, H 50.5
 
@@ -40,43 +41,45 @@
   //now do narrow bins for L2Res
   // Calculate soft radiation (ISR+FSR) corrections
   // and uncertainty eigenvectors for global fit
-  // softrad(0.000,0.261, true, epoch); 
-  // softrad(0.261,0.522, true, epoch); 
-  // softrad(0.522,0.783, true, epoch); 
-  // softrad(0.783,1.044, true, epoch); 
-  // softrad(1.044,1.305, true, epoch); 
-  // softrad(1.305,1.479, true, epoch); 
-  // softrad(1.479,1.653, true, epoch); 
-  // softrad(1.653,1.930, true, epoch); 
-  // softrad(1.930,2.172, true, epoch); 
-  // softrad(2.172,2.322, true, epoch); 
-  // softrad(2.322,2.500, true, epoch); 
-  // softrad(2.500,2.650, true, epoch); 
-  // softrad(2.650,2.853, true, epoch); 
-  // softrad(2.853,2.964, true, epoch); 
-  // softrad(2.964,3.139, true, epoch); 
-  // softrad(3.139,3.489, true, epoch); 
-  // softrad(3.489,3.839, true, epoch); 
-  // softrad(3.839,5.191, true, epoch);
 
-  // globalFitL3Res(0.000,0.261, epoch); 
-  // globalFitL3Res(0.261,0.522, epoch); 
-  // globalFitL3Res(0.522,0.783, epoch); 
-  // globalFitL3Res(0.783,1.044, epoch); 
-  // globalFitL3Res(1.044,1.305, epoch); 
-  // globalFitL3Res(1.305,1.479, epoch); 
-  // globalFitL3Res(1.479,1.653, epoch); 
-  // globalFitL3Res(1.653,1.930, epoch); 
-  // globalFitL3Res(1.930,2.172, epoch); 
-  // globalFitL3Res(2.172,2.322, epoch); 
-  // globalFitL3Res(2.322,2.500, epoch); 
-  // globalFitL3Res(2.500,2.650, epoch); 
-  // globalFitL3Res(2.650,2.853, epoch); 
-  // globalFitL3Res(2.853,2.964, epoch); 
-  // globalFitL3Res(2.964,3.139, epoch); 
-  // globalFitL3Res(3.139,3.489, epoch); 
-  // globalFitL3Res(3.489,3.839, epoch); 
-  // globalFitL3Res(3.839,5.191, epoch);
+  softrad(0.000,0.261, true, epoch); 
+  softrad(0.261,0.522, true, epoch); 
+  softrad(0.522,0.783, true, epoch); 
+  softrad(0.783,1.044, true, epoch); 
+  softrad(1.044,1.305, true, epoch); 
+  softrad(1.305,1.479, true, epoch); 
+  softrad(1.479,1.653, true, epoch); 
+  softrad(1.653,1.930, true, epoch); 
+  softrad(1.930,2.172, true, epoch); 
+  softrad(2.172,2.322, true, epoch); 
+  softrad(2.322,2.500, true, epoch); 
+  softrad(2.500,2.650, true, epoch); 
+  softrad(2.650,2.853, true, epoch); 
+  softrad(2.853,2.964, true, epoch); 
+  softrad(2.964,3.139, true, epoch); 
+  softrad(3.139,3.489, true, epoch); 
+  softrad(3.489,3.839, true, epoch); 
+  softrad(3.839,5.191, true, epoch);
+
+  globalFitL3Res(0.000,0.261, epoch); 
+  globalFitL3Res(0.261,0.522, epoch); 
+  globalFitL3Res(0.522,0.783, epoch); 
+  globalFitL3Res(0.783,1.044, epoch); 
+  globalFitL3Res(1.044,1.305, epoch); 
+  globalFitL3Res(1.305,1.479, epoch); 
+  globalFitL3Res(1.479,1.653, epoch); 
+  globalFitL3Res(1.653,1.930, epoch); 
+  globalFitL3Res(1.930,2.172, epoch); 
+  globalFitL3Res(2.172,2.322, epoch); 
+  globalFitL3Res(2.322,2.500, epoch); 
+  globalFitL3Res(2.500,2.650, epoch); 
+  globalFitL3Res(2.650,2.853, epoch); 
+  globalFitL3Res(2.853,2.964, epoch); 
+  globalFitL3Res(2.964,3.139, epoch); 
+  globalFitL3Res(3.139,3.489, epoch); 
+  globalFitL3Res(3.489,3.839, epoch); 
+  globalFitL3Res(3.839,5.191, epoch);
+
 
   //wide eta bins
    // softrad(0.0,0.8,true,epoch); // missing dijet
