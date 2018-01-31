@@ -292,8 +292,8 @@ void reprocess(string epoch="") {
   // color and style codes
   map<string, map<string, int> > style;
 
-  style["dijet"]["mpfchs1"] = kFullCircle;
-  style["dijet"]["ptchs"] = kOpenSquare;
+  style["dijet"]["mpfchs1"] = kFullDiamond;//kFullCircle;
+  style["dijet"]["ptchs"] = kOpenDiamond;//kOpenSquare;
   style["multijet"]["mpfchs1"] = kFullTriangleUp;
   style["multijet"]["ptchs"] = kOpenTriangleUp;
   style["gamjet"]["mpfchs1"] = kFullSquare;
