@@ -35,31 +35,24 @@ const double gRho = 15.36; // 2017-06-02 for 2016 data
 const bool _dcsonly = false;
 
 // Appy mass corrections to Z+jet
-bool useFixedFit = true; // New
+bool useFixedFit = true; // with minitools/drawZmass.C
 double fitUncMin = 0.00000; // Some bug if unc<0?
-bool correctZmmMass = true; // Legacy2016
-bool correctZeeMass = true; // Legacy2016
-bool correctGamMass = true;//false; // 07AugV4plus
-bool correctUncert = true; // Legacy2016
-bool correctGamScale = false; // Legacy2016
+bool correctZmmMass = true; // pT with mumu mass
+bool correctZeeMass = true; // pT with ee mass
+bool correctGamMass = true; // pT with ee mass at 2*pT
+bool correctUncert = true;  // ll mass uncertainty
+//
+bool correctGamScale = false;     // separate fixed scale with value below
 double valueGamScale = 1./0.989;  // drawGamVsZmm BCDEFGH
-// Legacy 2016: all false 0.990/0.006, 84.4/56, 0.8781
-// Legacy 2016: Zmm       0.989/0.005, 77.9/56, 0.7942
-// Legacy 2016: Zee       0.990/0.011, 80.6/56, 0.8890
-// Legacy 2016: Gam       0.990/0.010, 71.7/56, 0.7106
-// Legacy 2016: Zee+Zm    0.990/0.011, 74.6/56, 0.8143
-// Legacy 2016: Zee+Gam   0.991/0.018, 66.3/56, 0.8098
-// Legacy 2016: all true  0.990/0.017, 60.7/56, 0.7341
-// Legacy 2016: all+nosys 0.990/0.026, 88.9/56, 0.9648
 
 // Minimum pTcut for gamma+jet
-double fpmpfptmin(100.);//60.);//30);//175);//30);   // photon+jet
-double fpbalptmin(100.);//60);//175);//30);   // photon+jet
-double fzeeptmin(30.); // Zee+jet
-double fzmmptmin(30.); // Zmm+jet
+double fpmpfptmin(100.); // photon+jet MPF
+double fpbalptmin(100.); // photon+jet pTbal
+double fzeeptmin(30.);   // Zee+jet both methods
+double fzmmptmin(30.);   // Zmm+jet both methods
 // Additional cuts to Z+jet MPF / balance methods
-double fzmpfptmin(30.); // Z+jet MPF
-double fzbalptmin(30.);//85.);//100.);//85.); // Z+jet pTbal
+double fzmpfptmin(30.);   // Z+jet MPF
+double fzbalptmin(30.);   // Z+jet pTbal
 
 //for fine etabins deactivate ptbal
 double fdijetmpfptmin(30);
@@ -67,13 +60,13 @@ double fdijetbalptmin(30.);
 double fdijetptmax(1500.);
 
 // Maximum pTcut for samples (to avoid bins with too large uncertainty)
-double fpmpfptmax(1500.);
-double fpbalptmax(700.);
-double fzeeptmax(700.);//400.);//500);//1000.);
-double fzmmptmax(700.);//400.);//500);//1000.);
+double fpmpfptmax(1500.); // photon+jet MPF
+double fpbalptmax(700.);  // photon+jet pTbal
+double fzeeptmax(700.);   // Zee+jet
+double fzmmptmax(700.);   // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
-double fzmpfptmax(500.);
-double fzbalptmax(400.);
+double fzmpfptmax(500.);  // Z+jet MPF
+double fzbalptmax(400.);  // Z+je pTbal
 
 //minimum event counts
 const double neventsmin = 20.;
@@ -159,7 +152,8 @@ void reprocess(string epoch="") {
   //assert(fp && !fp->IsZombie());
 
   // Daniel Savoiu, 2017 Prompt reco (12 Feb 2018)
-  // https://indico.cern.ch/event/704635/
+  // https://indico.cern.ch/event/704635/ => previous 02-12 files
+  // https://indico.cern.ch/event/706518/ => current 02-18 files
   map<string,const char*> fz_files;
   fz_files["B"] = "B";
   fz_files["C"] = "C";
@@ -167,8 +161,8 @@ void reprocess(string epoch="") {
   fz_files["E"] = "E";
   fz_files["F"] = "F";
   fz_files["BCDEF"] = "BCDEF";
-  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV4_Zmm_%s_2018-02-12.root",fz_files[epoch]),"READ");
-  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV4_Zee_%s_2018-02-12.root",fz_files[epoch]),"READ");
+  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV4_Zmm_%s_2018-02-18.root",fz_files[epoch]),"READ");
+  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV4_Zee_%s_2018-02-18.root",fz_files[epoch]),"READ");
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
@@ -227,8 +221,11 @@ void reprocess(string epoch="") {
       //f1mzmm->SetParameters(0.99855, 0., 0.);
       //f1ezmm->SetParameters(pow(0.00010,2),0,0, 0,0,0);
       // Fall17 BCDEF
-      f1mzmm->SetParameters(0.99837, 0., 0.);
-      f1ezmm->SetParameters(pow(0.00019,2),0,0, 0,0,0);
+      //f1mzmm->SetParameters(0.99837, 0., 0.);
+      //f1ezmm->SetParameters(pow(0.00019,2),0,0, 0,0,0);
+      // Fall17 BCDEF (full Zmm statistics)
+      f1mzmm->SetParameters(0.998440, 0., 0.);
+      f1ezmm->SetParameters(pow(0.00011,2),0,0, 0,0,0);
     }
     else
       hmzmm->Fit(f1mzmm);

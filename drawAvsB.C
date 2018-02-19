@@ -57,11 +57,11 @@ void drawAvsB() {
 
   setTDRStyle();
 
-  string epocha = "BCD";//"BCD";//"H";//"F";//"BCD";//"F";//"E";//"BCD";//"F";
-  string epochb = "GH";//"G";//"BCD";//"G";//"E";//"E";//"F";//"G";
+  string epocha = "D";
+  string epochb = "C";
 
   // Add the rest as well
-  string epocha2 = "";//"EF";
+  string epocha2 = "E";//"EF";
   string epochb2 = "";//"G";
 
   string type = "data";
@@ -70,7 +70,7 @@ void drawAvsB() {
   methods.push_back("mpfchs1");
   methods.push_back("ptchs");
   bool nozjptb = false;
-  bool nogjmpf = false;
+  bool nogjmpf = true;//false;
   bool nogjptb = true;
   bool mjvsjes = false;
   
@@ -226,13 +226,13 @@ void drawAvsB() {
     }
     else if (samples[is]=="gamjet" && methods[im]=="ptchs" && nogjptb) {
       tex->SetTextColor(kBlue);
-      tex->DrawLatex(0.20,0.63,"#gamma+jet p_{T}^{bal} excl. from fit");
+      tex->DrawLatex(0.20,0.57,"#gamma+jet p_{T}^{bal} excl. from fit");
       tex->SetTextColor(kBlack);
     }
     else if ((samples[is]=="zmmjet" || samples[is]=="zeejet") &&
 	     methods[im]=="ptchs" && nozjptb) {
       tex->SetTextColor(kRed);
-      tex->DrawLatex(0.20,0.63,"Z+jet p_{T}^{bal} excl. from fit");
+      tex->DrawLatex(0.20,0.51,"Z+jet p_{T}^{bal} excl. from fit");
       tex->SetTextColor(kBlack);
     }
     else if (samples[is]=="multijet") {
@@ -264,42 +264,17 @@ void drawAvsB() {
   fjes->SetRange(10.,3500.);
   fjes->Draw("SAME");
   
-  //TF1 *ft = new TF1("ft","1-[0]-[1]*pow(x,[2]) + ([3]+[4]*log(x))/x",30,2200);
-  //ft->SetParameters(0,0.05,-0.5,1,0.1);
-  //ft->FixParameter(3,0);
-
   // Logarithmic sigmoid
-  //TF1 *ft = new TF1("ft","[0]+(1-[0])/(1. + exp(-(log(x)-log(abs([1])))"
-  //	       "/(log(abs([2])+abs([1]))-log(abs([1])))))", 30,2200);
-  //ft->SetParameters(0.98, 150, 50);
   TF1 *ft = new TF1("ft","[0]+(1-[0])/(1. + exp(-(log(x)-[1])/[2]))",30,2200);
-  //ft->SetParameters(0.98,log(145),log(190)-log(145));
-  //ft->SetParameters(0.982,4.967,0.271);
-  //ft->SetParameters(0.976,5.040,0.370); // ENDCAP
-  //ft->SetParameters(0.985,5.0,0.3);
   ft->SetParameters(0.985,5.025,0.3);
-  //ft->FixParameter(1,5.03); // semi-weighted average of BCD and EF
-  //ft->FixParameter(2,0.395); // combined fit to BCD+EF / G+H 
-
-  // ( 12.9*5.055+6.8*5.000)/(12.9+6.8)
   ft->FixParameter(1,5.036); // semi-weighted average of BCD/GH and EF/GH
-  // ( 12.9*0.344 + 6.8*0.455)/(12.9+6.8)
   ft->FixParameter(2,0.391); // combined fit to BCD+EF / GH 
-
-  // Log-sigmoid + powerlaw
-  //TF1 *ft = new TF1("ft","[0]+(1-[0])/(1. + exp(-(log(x)-[1])/[2]))"
-  //	       "*(1-[3]*pow(x,[4]))",30,2200);
-  //ft->SetParameters(0.982,4.967,0.271,0.1,-0.2);
-  // Double powerlaw
-  //TF1 *ft = new TF1("ft","[4]-[0]*pow(x,[1])-[2]*pow(x,[3])",30,2200);
-  //ft->SetParameters(0.05,-0.15,0.01,-0.3,1);
-  
 
   mg->Fit(ft,"RN");
   ft->SetLineColor(kBlue);
   ft->SetLineWidth(2);
   ft->SetRange(10.,3500.);
-  ft->Draw("SAME");
+  //ft->Draw("SAME");
 
   // Map multijet with response ratio
   if (gmpf) { // we have multijet available
@@ -324,32 +299,34 @@ void drawAvsB() {
   } // multijet
 
   tex->SetTextColor(kBlue);
-  tex->DrawLatex(0.50,0.85,Form("#chi^{2} / NDF = %1.1f / %d",
-				ft->GetChisquare(),
-				ft->GetNDF()));
+  //tex->DrawLatex(0.50,0.85,Form("#chi^{2} / NDF = %1.1f / %d",
+  //			ft->GetChisquare(),
+  //			ft->GetNDF()));
   tex->SetTextColor(kBlack);
-  tex->SetTextSize(0.040);
-  tex->DrawLatex(0.50,0.80,Form("(#chi^{2} / NDF = %1.1f / %d)",
+  //tex->SetTextSize(0.040);
+  //tex->DrawLatex(0.50,0.80,Form("(#chi^{2} / NDF = %1.1f / %d)",
+  tex->DrawLatex(0.50,0.80,Form("#chi^{2} / NDF = %1.1f / %d",
 				fjes->GetChisquare(),
 				fjes->GetNDF()));
 
 
-  tex->SetTextColor(kBlue-9);
-  tex->SetTextSize(0.030);
-  tex->DrawLatex(0.20,0.25,ft->GetExpFormula());
+  //tex->DrawLatex(0.20,0.25,fjes->GetExpFormula()); // crash
   tex->DrawLatex(0.20,0.20,
 		 Form("p_{0}=%1.3f#pm%1.3f"
-		      ", p_{1}=%1.3f#pm%1.3f"
-		      ", p_{2}=%1.3f#pm%1.3f",
-		      ft->GetParameter(0),ft->GetParError(0),
-		      ft->GetParameter(1),ft->GetParError(1),
-		      ft->GetParameter(2),ft->GetParError(2)));
-  if (ft->GetNpar()>3)
-    tex->DrawLatex(0.20,0.17,
-		   Form("p_{3}=%1.3f#pm%1.3f"
-			", p_{4}=%1.3f#pm%1.3f",
-			ft->GetParameter(3),ft->GetParError(3),
-			ft->GetParameter(4),ft->GetParError(4)));
+		      ", p_{1}=%1.3f#pm%1.3f",
+		      fjes->GetParameter(0),fjes->GetParError(0),
+		      fjes->GetParameter(1),fjes->GetParError(1)));
+
+  //tex->SetTextColor(kBlue-9);
+  //tex->SetTextSize(0.030);
+  //tex->DrawLatex(0.20,0.25,ft->GetExpFormula());
+  //tex->DrawLate(x
+  //if (ft->GetNpar()>3)
+  //tex->DrawLatex(0.20,0.17,
+  //	   Form("p_{3}=%1.3f#pm%1.3f"
+  //		", p_{4}=%1.3f#pm%1.3f",
+  //		ft->GetParameter(3),ft->GetParError(3),
+  //		ft->GetParameter(4),ft->GetParError(4)));
 
   c1->SaveAs(Form("pdf/%s.pdf",s.c_str()));
 
