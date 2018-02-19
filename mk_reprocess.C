@@ -16,13 +16,13 @@
   gROOT->ProcessLine(".L tools.C+g");
   gROOT->ProcessLine(".L reprocess.C+g");
   gROOT->ProcessLine(".L softrad.C+g");
-  gROOT->ProcessLine(".L multijet.C+g");
+  //gROOT->ProcessLine(".L multijet.C+g");
   gROOT->ProcessLine(".L globalFitL3Res.C+g");
 
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "BCDEFGH";//"BCDEFGH";
+  string epoch = "BCDEF";//"BCDEFGH";
   // 0.8->0.9% 52.6->54.7, 53.5->60.8, 39.4->54.4, 71.8->72.5
   //"BCD", "EF", "G", "H", "BCDEFGH", "L4" (closure for |eta|<2.4)
   // BCD 47->46.9, EF 48.4->47.9, G 33.5->33.5, H 50.5
@@ -35,13 +35,16 @@
   // => multijet central values now old, but FSR still needed
   //multijet(false,epoch);
   //multijet(true,epoch);
+
   // Perform final global fit (goes into GT)
+
   globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
+
 
   //now do narrow bins for L2Res
   // Calculate soft radiation (ISR+FSR) corrections
   // and uncertainty eigenvectors for global fit
-
+  /*
   softrad(0.000,0.261, true, epoch); 
   softrad(0.261,0.522, true, epoch); 
   softrad(0.522,0.783, true, epoch); 
@@ -79,8 +82,8 @@
   globalFitL3Res(3.139,3.489, epoch); 
   globalFitL3Res(3.489,3.839, epoch); 
   globalFitL3Res(3.839,5.191, epoch);
-
-
+  */
+  /*
   //wide eta bins
    // softrad(0.0,0.8,true,epoch); // missing dijet
    // softrad(0.8,1.3,true,epoch); // missing dijet
@@ -101,4 +104,5 @@
 
    // Repeat to see parameters
   globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
+  */
 }

@@ -240,6 +240,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
 
   // Normal global fit with all four samples (multijet/dijet, gamma+jet, Z+jets)
+  /*
   const int nsamples = 4;
   const int nsample0 = 1; // first Z/gamma+jet sample
   const char* samples[4] = {(isl3 ? "multijet" : "dijet"),
@@ -247,7 +248,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int igj = 0;
   const int izee = 1;
   const int izmm = 2;
-
+  */
 
   /*
   // Global fit with only dijet, Z+jets
@@ -270,7 +271,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izmm = -1;
   */
 
-  /*
+
   // Global fit without multijets/dijets
   const int nsamples = 3;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -278,7 +279,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int igj = 0;
   const int izee = 1;
   const int izmm = 2;
-  */
+
   
 
   /*
@@ -795,6 +796,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //lumimap["BCDEF"] = "Run2016BCDEF re-mAOD, 19.7 fb^{-1}";
   lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
   lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
+
+  lumimap["BCDEF"] = "Run2017BCDEF prompt reco, X fb^{-1}";
+  lumimap["B"] = "Run2017B prompt reco, X fb^{-1}";
+  lumimap["C"] = "Run2017C prompt reco, X fb^{-1}";
+  lumimap["D"] = "Run2017D prompt reco, X fb^{-1}";
+  lumimap["E"] = "Run2017E prompt reco, X fb^{-1}";
+  lumimap["F"] = "Run2017F prompt reco, X fb^{-1}";
   lumi_13TeV = lumimap[epoch];
 
   TCanvas *c0 = tdrCanvas("c0",h,4,11,true);
@@ -859,7 +867,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   legm->AddEntry(hrun1,"Run I","FL");
 
   legp->AddEntry(herr_ref," ","");
-  legm->AddEntry(herr_ref,"07AugV4","FL");
+  //legm->AddEntry(herr_ref,"07AugV4","FL");
+  legm->AddEntry(herr_ref,"07AugV4EF","FL");
 
   hrun1->SetFillStyle(kNone);
   hrun1->DrawClone("SAME E5");
@@ -967,6 +976,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     //if (epoch=="BCDEFGH") fixTDI = 19.7/(19.7+16.8);
     //if (epoch=="BCDEFGH") fixTDI = (12.9*1+6.8*1.524)/(19.7+16.8); // g180
     if (epoch=="BCDEFGH") fixTDI = (12.9*1+6.8*1.500)/(19.7+16.8); // g100
+    // Fall17
+    if (epoch=="BCDEF" || epoch=="B" || epoch=="C" || epoch=="D" ||
+	epoch=="E" || epoch=="F") fixTDI = 1.5;//1.25;
+    //if (epoch=="BCDEF" || epoch=="B") fixTDI = 1.25; // override
     jesfit->SetParameters(0.985, 0.001);
   }
 
