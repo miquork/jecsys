@@ -22,6 +22,7 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
+#include "tools.h"
 #include "tdrstyle_mod14.C"
 
 #include <string>
@@ -66,8 +67,8 @@ double fpbalptmax(2500.);//700.);  // photon+jet pTbal
 double fzeeptmax(700.);   // Zee+jet
 double fzmmptmax(700.);   // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
-double fzmpfptmax(500.);  // Z+jet MPF
-double fzbalptmax(400.);  // Z+je pTbal
+double fzmpfptmax(700.);  // Z+jet MPF
+double fzbalptmax(700.);  // Z+je pTbal
 
 //minimum event counts
 const double neventsmin = 20.;
@@ -307,6 +308,8 @@ void reprocess(string epoch="") {
   style["zeejet"]["ptchs"] = kOpenCircle;
   style["zmmjet"]["mpfchs1"] = kFullStar;
   style["zmmjet"]["ptchs"] = kOpenStar;
+  style["zlljet"]["mpfchs1"] = kFullDiamond;
+  style["zlljet"]["ptchs"] = kOpenDiamond;
 
   map<string, int> color;
   color["dijet"] = kBlack;
@@ -314,6 +317,7 @@ void reprocess(string epoch="") {
   color["gamjet"] = kBlue;
   color["zeejet"] = kGreen+2;
   color["zmmjet"] = kRed;
+  color["zlljet"] = kMagenta+2;
 
   map<double, double> size;
   size[0.10] = 0.6;
@@ -343,6 +347,7 @@ void reprocess(string epoch="") {
   sets.push_back("gamjet");
   sets.push_back("zeejet");
   sets.push_back("zmmjet");
+  sets.push_back("zlljet");
 
   vector<pair<double,double> > etas;
   // reference region |eta|<1.3
@@ -442,7 +447,7 @@ void reprocess(string epoch="") {
 	  //if (t=="mpfchs" || t=="mpfchs1") f = fp;//fp1;
 	  //if (t=="ptchs") f = fp;//fp2;
 	  //}
-	  //assert(f);
+	  assert(f || s=="zlljet");
 
 	  // C_recoil is only meant for multijets
 	  if (t=="crecoil" && s!="multijet") continue;
@@ -464,12 +469,12 @@ void reprocess(string epoch="") {
 	    bool narrowBin = ((fabs(eta2-eta1)<0.4 && 
 			       !(fabs(eta1-3.0)<0.05 && fabs(eta2-3.2)<0.05)) ||
 			      fabs(eta1)>3.8);
-	    //if (narrowBin) {
-	    //if (s=="dijet")  f = fdj2;  // BCDEFGH only
-	    //if (s=="zeejet") f = fzee2; // GH only
-	    //if (s=="zmmjet") f = fzmm2; // GH only
-	    //}
-	    //assert(f);
+	    if (narrowBin) {
+	      if (s=="dijet")  f = fdj2;  // BCDEFGH only
+	      if (s=="zeejet") f = fzee2; // GH only
+	      if (s=="zmmjet") f = fzmm2; // GH only
+	    }
+	    assert(f || s=="zlljet");
 
 
             if (t=="counts" && s!="zmmjet" && s!="zeejet" && s!="gamjet")
@@ -510,16 +515,28 @@ void reprocess(string epoch="") {
 	    	       rename[s][d], rename[s][t], 100.*alpha,
 	    	       10.01*eta1, 10.01*eta2);
 	    } // Z+jet
-	    assert(c);
+	    assert(c || s=="zlljet");
 
-	    TObject *obj = f->Get(c);
-	    if (!obj) {
+	    TObject *obj = (s=="zlljet" ? 0 : f->Get(c));
+	    if (!obj && s!="zlljet") {
 	      cout << "Graph " << c << " not found for "
 		   << s << " " << t << " " << d << "!" <<endl << flush;
 	      cout << "File: " << f->GetName() << endl << flush;
 	      cout << "Eta " << eta1 << " - " << eta2 <<  endl << flush;
 	      if (narrowBin) cout << "Narrow bin" << endl << flush;
 	      else           cout << "Wide bin" << endl << flush;
+	    }
+	    
+	    // Merge Zee+jet and Zmumu+jet
+	    if (s=="zlljet") {
+
+	      TGraphErrors *gee =  grs[d][t]["zeejet"][ieta][ialpha];
+	      TGraphErrors *gmm =  grs[d][t]["zmmjet"][ieta][ialpha];
+	      assert(gee);
+	      assert(gmm);
+
+	      TGraphErrors *g = tools::mergeGraphs(gee, gmm);
+	      obj = (TObject*)g;
 	    }
 	    
 	    assert(obj);

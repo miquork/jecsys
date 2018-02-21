@@ -72,14 +72,14 @@ Double_t fitError(Double_t *xx, Double_t *p);
 // 2) add JER uncertainty for multijets
 
 // Alternative parameterizations
-bool useOff = false; // pT-dependent offset
+bool useOff = true;//false; // pT-dependent offset
 bool useTDI = false; // tracker dynamic inefficiency for 3p fit
 double fixTDI = 0;//1; // fix TDI for BCD+EF and G+H
 bool useEG = false; // ECAL gain shift for 3p fit
 
 //const int njesFit = 1; // scale only
-const int njesFit = 2; // scale(ECAL)+HB
-//const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
+//const int njesFit = 2; // scale(ECAL)+HB
+const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
 //const int njesFit = 3; //useTDI=true; // scale(ECAL)+HB+tracker (switchable)
 //const int njesFit = 3; //useEG=true; // scale(ECAL)+HB+ECALgain
 //const int njesFit = 4; // scale(ECAL)+HB+offset+ECALgain
@@ -238,7 +238,6 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   bool isl3 = (etamin==0 && ((epoch!="L4" && fabs(etamax-1.3)<0.1) ||
 			     (epoch=="L4" && fabs(etamax-2.4)<0.1)));
 
-
   // Normal global fit with all four samples (multijet/dijet, gamma+jet, Z+jets)
   /*
   const int nsamples = 4;
@@ -280,6 +279,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izee = 1;
   const int izmm = 2;
   
+  // Global fit without multijets/dijets and with merged Z+jet
+  const int nsamples = 2;
+  const int nsample0 = 0; // first Z/gamma+jet sample
+  const char* samples[3] = {"gamjet", "zlljet"};
+  const int igj = 0;
+  const int izll = 1;
+  const int izee = -1;
+  const int izmm = -1;
 
 
   /*
@@ -473,7 +480,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	
 	double pt = g->GetX()[i];
 	double r = g->GetY()[i];
-	double ptreco = (string(cs)=="zeejet"||string(cs)=="zmmjet" ?
+	double ptreco = (string(cs)=="zeejet"||string(cs)=="zmmjet"
+			 ||string(s)=="zlljet" ?
 			 ptreco_zjet : ptreco_gjet);
 	double aeff = max(alpha, ptreco/pt);
 	double kfsr = (dofsr ? 1./(1+aeff*h->GetBinContent(h->FindBin(pt))):1);
@@ -550,7 +558,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	int ibm = isample + nsamples*imethod;	
 	for (int i = 1; i != h->GetNbinsX()+1; ++i) {
 	  double pt = h->GetBinCenter(i);
-	  double ptreco = (string(cs)=="zeejet"||string(cs)=="zmmjet" ?
+	  double ptreco = (string(cs)=="zeejet"||string(cs)=="zmmjet"
+			   ||string(cs)=="zlljet" ?
 			 ptreco_zjet : ptreco_gjet);
 	  double aeff = max(alpha, ptreco/pt);
 	  h->SetBinContent(i, aeff*h->GetBinContent(i));
@@ -565,7 +574,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   // Uncertainty sources for e, gamma and mu scale uncertainties
   // (and extra source for multijets?)
   int is(0);
-  int is_gj(0), is_zee(0), is_zmm(0);
+  int is_gj(0), is_zee(0), is_zmm(0), is_zll(0);
   for (unsigned int i = 0; i != _vdt->size(); ++i) {
       
     string s = samples[i%nsamples]; const char *cs = s.c_str();
@@ -615,6 +624,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       h2->SetName(Form("bm%d_scale_zmmjet_%02.0f_%d",
 		       (1<<(n0+izmm) | (1<<(n1+izmm))), escale*1000, i));
       is_zmm = hs.size();
+    }
+    if (s=="zlljet" && m=="ptchs") {
+      escale = 0.0005;
+      // Use same source for both MPF and pT balance
+      h2->SetName(Form("bm%d_scale_zlljet_%02.0f_%d",
+		       (1<<(n0+izll) | (1<<(n1+izll))), escale*1000, i));
+      is_zll = hs.size();
     }
 
     // Same scale uncertainty applies to all pT bins
@@ -827,6 +843,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   texlabel["gamjet"] = "#gamma+jet";
   texlabel["zeejet"] = "Zee+jet";
   texlabel["zmmjet"] = "Z#mu#mu+jet";
+  texlabel["zlljet"] = "Z+jet";//"Zl^{+}l{-}+jet";
 
   TLegend *legm = tdrLeg(0.66,0.55,0.96,0.90);
   legm->SetHeader("MPF");
@@ -1435,7 +1452,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	// This is probably because kfsr = 1/(1+alpha*hk) so ~ 1 - alpha*hk
 	double pt = hke->GetBinCenter(ipt);
 	const char *cs = samples[isample];
-	double ptreco = (string(cs)=="zeejet"||string(cs)=="zmmjet" ?
+	double ptreco = (string(cs)=="zeejet"||string(cs)=="zmmjet"
+			 ||string(cs)=="zlljet" ?
 			 ptreco_zjet : ptreco_gjet);
 	double aeff = max(alpha, ptreco/pt);
 	hke->SetBinContent(ipt, (aeff*hk->GetBinContent(ipt) - yeig)/aeff);

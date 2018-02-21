@@ -31,6 +31,7 @@ namespace tools {
   TGraphErrors *ratioGraphs(TGraphErrors *g1, TGraphErrors *g2, double erry=1.);
   TGraphErrors *ratioGraphs(TGraphErrors *g1, TF1 *f2);
   int findPoint(TGraph *g, double x);
+  TGraphErrors *mergeGraphs(TGraphErrors *g1, TGraphErrors *g2);
 
   // Histogram manipulation
   TH1D *Divide(const TH1D *h1, const TH1D *h2, double c1=1, double c2=1,
