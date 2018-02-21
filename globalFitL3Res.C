@@ -74,7 +74,7 @@ Double_t fitError(Double_t *xx, Double_t *p);
 // Alternative parameterizations
 bool useOff = false; // pT-dependent offset
 bool useTDI = false; // tracker dynamic inefficiency for 3p fit
-double fixTDI = 1; // fix TDI for BCD+EF and G+H
+double fixTDI = 0;//1; // fix TDI for BCD+EF and G+H
 bool useEG = false; // ECAL gain shift for 3p fit
 
 //const int njesFit = 1; // scale only
@@ -797,12 +797,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
   lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
 
-  lumimap["BCDEF"] = "Run2017BCDEF , X fb^{-1}";
-  lumimap["B"] = "Run2017B, X fb^{-1}";
-  lumimap["C"] = "Run2017C, X fb^{-1}";
-  lumimap["D"] = "Run2017D, X fb^{-1}";
-  lumimap["E"] = "Run2017E, X fb^{-1}";
-  lumimap["F"] = "Run2017F, X fb^{-1}";
+  lumimap["BCDEF"] = "Run2017BCDEF , 41.4 fb^{-1}"; // sum below 41.3
+  lumimap["B"] = "Run2017B, 4.8 fb^{-1}";
+  lumimap["C"] = "Run2017C, 9.6 fb^{-1}";
+  lumimap["D"] = "Run2017D, 4.2 fb^{-1}";
+  lumimap["E"] = "Run2017E, 9.3 fb^{-1}";
+  lumimap["F"] = "Run2017F, 13.4 fb^{-1}";
   lumi_13TeV = lumimap[epoch];
 
   TCanvas *c0 = tdrCanvas("c0",h,4,11,true);
