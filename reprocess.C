@@ -21,6 +21,7 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
+#include "tools.h"
 #include "tdrstyle_mod14.C"
 
 #include <string>
@@ -53,13 +54,13 @@ double valueGamScale = 1./0.989;  // drawGamVsZmm BCDEFGH
 // Legacy 2016: all+nosys 0.990/0.026, 88.9/56, 0.9648
 
 // Minimum pTcut for gamma+jet
-double fpmpfptmin(100.);//60.);//30);//175);//30);   // photon+jet
-double fpbalptmin(100.);//60);//175);//30);   // photon+jet
+double fpmpfptmin(80.);//30.);//100.); // photon+jet MPF
+double fpbalptmin(180.);//30.);//100.); // photon+jet pTbal
 double fzeeptmin(30.); // Zee+jet
 double fzmmptmin(30.); // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
 double fzmpfptmin(30.); // Z+jet MPF
-double fzbalptmin(85.);//100.);//85.); // Z+jet pTbal
+double fzbalptmin(80.);//30.);//85.); // Z+jet pTbal
 
 //for fine etabins deactivate ptbal
 double fdijetmpfptmin(30);
@@ -67,13 +68,13 @@ double fdijetbalptmin(30.);
 double fdijetptmax(1500.);
 
 // Maximum pTcut for samples (to avoid bins with too large uncertainty)
-double fpmpfptmax(1500.);
-double fpbalptmax(700.);
-double fzeeptmax(700.);//400.);//500);//1000.);
-double fzmmptmax(700.);//400.);//500);//1000.);
+double fpmpfptmax(1500.); // photon+jet MPF
+double fpbalptmax(1500.);//700.);  // photon+jet pTbal 
+double fzeeptmax(700.); // Zee+jet
+double fzmmptmax(700.); // Zmm+jet 
 // Additional cuts to Z+jet MPF / balance methods
-double fzmpfptmax(500.);
-double fzbalptmax(400.);
+double fzmpfptmax(700.);//500.); // Z+jet MPF
+double fzbalptmax(700.);//400.); // Z+jet pTbal
 
 //minimum event counts
 const double neventsmin = 20.;
@@ -302,6 +303,8 @@ void reprocess(string epoch="") {
   style["zeejet"]["ptchs"] = kOpenCircle;
   style["zmmjet"]["mpfchs1"] = kFullStar;
   style["zmmjet"]["ptchs"] = kOpenStar;
+  style["zlljet"]["mpfchs1"] = kFullDiamond;
+  style["zlljet"]["ptchs"] = kOpenDiamond;
 
   map<string, int> color;
   color["dijet"] = kBlack;
@@ -309,6 +312,7 @@ void reprocess(string epoch="") {
   color["gamjet"] = kBlue;
   color["zeejet"] = kGreen+2;
   color["zmmjet"] = kRed;
+  color["zlljet"] = kMagenta+2;
 
   map<double, double> size;
   size[0.10] = 0.6;
@@ -338,6 +342,7 @@ void reprocess(string epoch="") {
   sets.push_back("gamjet");
   sets.push_back("zeejet");
   sets.push_back("zmmjet");
+  sets.push_back("zlljet");
 
   vector<pair<double,double> > etas;
   // reference region |eta|<1.3
@@ -433,11 +438,11 @@ void reprocess(string epoch="") {
 	  TFile *f = files[s];
 
 	  // Take pT and MPF from different files for gamma+jet (or not)
-	  if (s=="gamjet" && f==0) {
-	    if (t=="mpfchs" || t=="mpfchs1") f = fp;//fp1;
-	    if (t=="ptchs") f = fp;//fp2;
-	  }
-	  assert(f);
+	  //if (s=="gamjet" && f==0) {
+	  //if (t=="mpfchs" || t=="mpfchs1") f = fp;//fp1;
+	  //if (t=="ptchs") f = fp;//fp2;
+	  //}
+	  assert(f || s=="zlljet");
 
 	  // C_recoil is only meant for multijets
 	  if (t=="crecoil" && s!="multijet") continue;
@@ -464,7 +469,7 @@ void reprocess(string epoch="") {
 	      if (s=="zeejet") f = fzee2; // GH only
 	      if (s=="zmmjet") f = fzmm2; // GH only
 	    }
-	    assert(f);
+	    assert(f || s=="zlljet");
 
 
             if (t=="counts" && s!="zmmjet" && s!="zeejet")
@@ -498,16 +503,28 @@ void reprocess(string epoch="") {
 	    	       rename[s][d], rename[s][t], 100.*alpha,
 	    	       10.01*eta1, 10.01*eta2);
 	    } // Z+jet
-	    assert(c);
+	    assert(c || s=="zlljet");
 
-	    TObject *obj = f->Get(c);
-	    if (!obj) {
+	    TObject *obj = (s=="zlljet" ? 0 : f->Get(c));
+	    if (!obj && s!="zlljet") {
 	      cout << "Graph " << c << " not found for "
 		   << s << " " << t << "!" <<endl << flush;
 	      cout << "File: " << f->GetName() << endl << flush;
 	      cout << "Eta " << eta1 << " - " << eta2 <<  endl << flush;
 	      if (narrowBin) cout << "Narrow bin" << endl << flush;
 	      else           cout << "Wide bin" << endl << flush;
+	    }
+	    
+	    // Merge Zee+jet and Zmumu+jet
+	    if (s=="zlljet") {
+
+	      TGraphErrors *gee =  grs[d][t]["zeejet"][ieta][ialpha];
+	      TGraphErrors *gmm =  grs[d][t]["zmmjet"][ieta][ialpha];
+	      assert(gee);
+	      assert(gmm);
+
+	      TGraphErrors *g = tools::mergeGraphs(gee, gmm);
+	      obj = (TObject*)g;
 	    }
 	    
 	    assert(obj);
