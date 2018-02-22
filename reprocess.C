@@ -60,8 +60,8 @@ double fdijetbalptmin(30.);
 double fdijetptmax(1500.);
 
 // Maximum pTcut for samples (to avoid bins with too large uncertainty)
-double fpmpfptmax(1500.); // photon+jet MPF
-double fpbalptmax(700.);  // photon+jet pTbal
+double fpmpfptmax(2500.); // photon+jet MPF
+double fpbalptmax(2500.);//700.);  // photon+jet pTbal
 double fzeeptmax(700.);   // Zee+jet
 double fzmmptmax(700.);   // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
@@ -139,11 +139,11 @@ void reprocess(string epoch="") {
   fp_files["BCDEFGH"] = "V1_BCDEFGH";
   // Fall17
   fp_files["B"] = "V2_B";
-  fp_files["C"] = "V1_C";
+  fp_files["C"] = "V2_C";//"V1_C";
   fp_files["D"] = "V1_D";
-  fp_files["E"] = "V1_E";
+  fp_files["E"] = "V2_E";//"V1_E";
   fp_files["F"] = "V1_F";
-  fp_files["BCDEF"] = "V2_B";
+  fp_files["BCDEF"] = "V1_BCDEF";
   //TFile *fp = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/Combination_file_gammaplusjet_%s_03FeB17_nores_fixed_etabinning.root", fp_files[epoch]),"READ");
   //TFile *fp = new TFile(Form("rootfiles/Gjet_ENDCAPS_%s_07Aug_2017noresidual_V1.root", fp_files[epoch]),"READ"); // endcap photons
   //TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", fp_files[epoch]),"READ");
