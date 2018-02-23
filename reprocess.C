@@ -6,6 +6,7 @@
 #include "TFile.h"
 #include "TGraphErrors.h"
 #include "TH1D.h"
+#include "TH1F.h"
 #include "TH2D.h"
 #include "TCanvas.h"
 #include "TLegend.h"
@@ -274,6 +275,7 @@ void reprocess(string epoch="") {
   rename["gamjet"]["mpfchs"] = "resp_MPFchs";
   rename["gamjet"]["mpfchs1"] = "resp_MPFchs"; 
   rename["gamjet"]["ptchs"] = "resp_PtBalchs"; 
+  rename["gamjet"]["counts"] = "RawNEvents_data_vs_pt";
 
   rename["zeejet"]["ratio"] = "Ratio";
   rename["zeejet"]["data"] = "Data";
@@ -385,7 +387,7 @@ void reprocess(string epoch="") {
   ///////////////////////////////////////////
 
   map<string, map<string, map<string, map<int, map<int, TGraphErrors*> > > > > grs;
-  map<string, map<string, map<int, map<int, TH1D*> > > > counts;
+  map<string, map<string, map<int, map<int, TH1F*> > > > counts;
 
   // Loop over data, MC, ratio
   for (unsigned int idir = 0; idir != dirs.size(); ++idir) {
@@ -470,8 +472,8 @@ void reprocess(string epoch="") {
 	    //assert(f);
 
 
-            if (t=="counts" && s!="zmmjet" && s!="zeejet")
-              continue; // counts available only for z+jet, so far
+            if (t=="counts" && s!="zmmjet" && s!="zeejet" && s!="gamjet")
+              continue; // counts available only for z+jet and gamjet, so far
 
 	    if (s=="multijet" && (!((epoch!="L4" &&
 				     fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1) ||
@@ -491,7 +493,14 @@ void reprocess(string epoch="") {
 	    if (s=="multijet") {
 	      c = Form("%s/Pt%1.0f/%s", rename[s][d], 100.*alpha, rename[s][t]);
 	    } // multijet
-	    if (s=="gamjet") {
+	    
+	    //if (s=="gamjet" && t=="counts" && d=="ratio")continue;
+	    if (s=="gamjet" && t=="counts") {
+	      c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f_%s",
+		       rename[s]["mpfchs1"], d=="ratio" ? rename[s]["data"] :rename[s][d],
+		       100.*alpha, 10.*eta1, 10.*eta2, rename[s][t]);
+	    }
+	    else if (s=="gamjet") {
 	      c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f",
 		       rename[s][t], rename[s][d],
 		       100.*alpha, 10.*eta1, 10.*eta2);
@@ -506,7 +515,7 @@ void reprocess(string epoch="") {
 	    TObject *obj = f->Get(c);
 	    if (!obj) {
 	      cout << "Graph " << c << " not found for "
-		   << s << " " << t << "!" <<endl << flush;
+		   << s << " " << t << " " << d << "!" <<endl << flush;
 	      cout << "File: " << f->GetName() << endl << flush;
 	      cout << "Eta " << eta1 << " - " << eta2 <<  endl << flush;
 	      if (narrowBin) cout << "Narrow bin" << endl << flush;
@@ -516,10 +525,12 @@ void reprocess(string epoch="") {
 	    assert(obj);
 
 
-            if (t=="counts" && (s=="zmmjet" || s=="zeejet")){ // write out counts to jecdata.root (as TH1D)
-              assert(obj->InheritsFrom("TH1D"));
-              TH1D *g = (TH1D*)obj;
-
+            if (t=="counts" && (s=="zmmjet" || s=="zeejet" || s=="gamjet") ){ // write out counts to jecdata.root (as TH1D)
+              assert(obj->InheritsFrom("TH1D")||obj->InheritsFrom("TH1F"));
+	      TH1F *g;
+	      if (obj->InheritsFrom("TH1F")) g = (TH1F*)obj;
+	      else if (obj->InheritsFrom("TH1D")) g->Copy( *(TH1D*)obj );
+	      //              TH1D *g = (TH1D*)obj;
               g->SetName(Form("%s_%s_a%1.0f",tt,ss,100.*alphas[ialpha]));
               g->UseCurrentStyle(); // Basic TDR style
               g->SetMarkerStyle(style[s][t]);
@@ -573,7 +584,7 @@ void reprocess(string epoch="") {
 	      else if ((s=="zmmjet" || s=="zeejet") && t=="ptchs" &&
 		       (g->GetX()[i]<fzbalptmin || g->GetX()[i]>fzbalptmax))
 		g->RemovePoint(i);
-              else if (s=="zmmjet" || s=="zeejet"){ // patch: clean away points with low statistics based on event counts histograms, currently Z+jet
+              else if (s=="zmmjet" || s=="zeejet" || s=="gamjet"){ // patch: clean away points with low statistics based on event counts histograms, currently Z+jet
                 assert(counts[d][s][ieta][ialpha]);
                 double pt = g->GetX()[i];
                 double ipt = counts[d][s][ieta][ialpha]->FindBin(pt);
