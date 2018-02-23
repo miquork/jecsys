@@ -22,7 +22,12 @@
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "BCDEF";//"BCDEFGH";
+  string epoch = "BCDEFG";//"BCDEFGH";
+  #ifdef epochname
+  std::cout << epoch.c_str()<< std::endl;
+  std::cout << inputepoch.c_str()<< std::endl;
+  epoch = inputepoch;
+  #endif
   // 0.8->0.9% 52.6->54.7, 53.5->60.8, 39.4->54.4, 71.8->72.5
   //"BCD", "EF", "G", "H", "BCDEFGH", "L4" (closure for |eta|<2.4)
   // BCD 47->46.9, EF 48.4->47.9, G 33.5->33.5, H 50.5
@@ -44,25 +49,27 @@
   //now do narrow bins for L2Res
   // Calculate soft radiation (ISR+FSR) corrections
   // and uncertainty eigenvectors for global fit
-  /*
-  softrad(0.000,0.261, true, epoch); 
-  softrad(0.261,0.522, true, epoch); 
-  softrad(0.522,0.783, true, epoch); 
-  softrad(0.783,1.044, true, epoch); 
-  softrad(1.044,1.305, true, epoch); 
-  softrad(1.305,1.479, true, epoch); 
-  softrad(1.479,1.653, true, epoch); 
-  softrad(1.653,1.930, true, epoch); 
-  softrad(1.930,2.172, true, epoch); 
-  softrad(2.172,2.322, true, epoch); 
-  softrad(2.322,2.500, true, epoch); 
-  softrad(2.500,2.650, true, epoch); 
-  softrad(2.650,2.853, true, epoch); 
-  softrad(2.853,2.964, true, epoch); 
-  softrad(2.964,3.139, true, epoch); 
-  softrad(3.139,3.489, true, epoch); 
-  softrad(3.489,3.839, true, epoch); 
-  softrad(3.839,5.191, true, epoch);
+
+  Bool_t dodijetsoftrad=false;
+
+  softrad(0.000,0.261, dodijetsoftrad, epoch); 
+  softrad(0.261,0.522, dodijetsoftrad, epoch); 
+  softrad(0.522,0.783, dodijetsoftrad, epoch); 
+  softrad(0.783,1.044, dodijetsoftrad, epoch); 
+  softrad(1.044,1.305, dodijetsoftrad, epoch); 
+  softrad(1.305,1.479, dodijetsoftrad, epoch); 
+  softrad(1.479,1.653, dodijetsoftrad, epoch); 
+  softrad(1.653,1.930, dodijetsoftrad, epoch); 
+  softrad(1.930,2.172, dodijetsoftrad, epoch); 
+  softrad(2.172,2.322, dodijetsoftrad, epoch); 
+  softrad(2.322,2.500, dodijetsoftrad, epoch); 
+  softrad(2.500,2.650, dodijetsoftrad, epoch); 
+  softrad(2.650,2.853, dodijetsoftrad, epoch); 
+  softrad(2.853,2.964, dodijetsoftrad, epoch); 
+  softrad(2.964,3.139, dodijetsoftrad, epoch); 
+  softrad(3.139,3.489, dodijetsoftrad, epoch); 
+  softrad(3.489,3.839, dodijetsoftrad, epoch); 
+  softrad(3.839,5.191, dodijetsoftrad, epoch);
 
   globalFitL3Res(0.000,0.261, epoch); 
   globalFitL3Res(0.261,0.522, epoch); 
@@ -82,7 +89,13 @@
   globalFitL3Res(3.139,3.489, epoch); 
   globalFitL3Res(3.489,3.839, epoch); 
   globalFitL3Res(3.839,5.191, epoch);
-  */
+
+  //produce summary pdf with all plots according to era
+  gSystem->Exec(Form("pdflatex '\\def\\RunPeriod{pdf/%s}\\input{pdf/jecslides_FineEta_2017_BCDEFG.tex}'", epoch.c_str()));
+  gSystem->Exec("mkdir CollectL2Output");
+  gSystem->Exec(Form("mv jecslides_FineEta_2017_BCDEFG.pdf CollectL2Output/jecslides_FineEta_2017_%s.pdf", epoch.c_str()));
+  gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals.txt  CollectL2Output/GlobalFitOutput_L2L3Residuals_%s.txt", epoch.c_str()));
+  
   /*
   //wide eta bins
    // softrad(0.0,0.8,true,epoch); // missing dijet
@@ -105,4 +118,5 @@
    // Repeat to see parameters
   globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
   */
+
 }
