@@ -179,7 +179,6 @@ int tools::findPoint(TGraph *g, double x) {
 
 // combine points statistically
 TGraphErrors *tools::mergeGraphs(TGraphErrors *g1, TGraphErrors *g2) {
-
   // find j closests to i, and i closest to j
   // when both are the same, pair points
   map<int,int> itoj, jtoi;
@@ -195,9 +194,10 @@ TGraphErrors *tools::mergeGraphs(TGraphErrors *g1, TGraphErrors *g2) {
 
   TGraphErrors *g = new TGraphErrors(0);
   for (int i = 0; i != g1->GetN(); ++i) {
-
     int j = itoj[i];
-    if (jtoi[j]==i) {
+    //cout <<Form("i %i j %i itoj[i] %i",i,j, itoj[i]) << endl;
+    //cout << Form("g1->GetN() %i g2->GetN() %i", g1->GetN(), g2->GetN()) << endl;
+    if (jtoi[j]==i && g2->GetN()>0) {
       int n = g->GetN();
       double w1 = g2->GetEY()[j] / (g2->GetEY()[j] + g1->GetEY()[i]);
       double w2 = g1->GetEY()[i] / (g2->GetEY()[j] + g1->GetEY()[i]);
