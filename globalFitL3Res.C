@@ -72,14 +72,14 @@ Double_t fitError(Double_t *xx, Double_t *p);
 // 2) add JER uncertainty for multijets
 
 // Alternative parameterizations
-bool useOff = true;//false; // pT-dependent offset
+bool useOff = false;//true;//false; // pT-dependent offset
 bool useTDI = false; // tracker dynamic inefficiency for 3p fit
 double fixTDI = 0;//1; // fix TDI for BCD+EF and G+H
 bool useEG = false; // ECAL gain shift for 3p fit
 
 //const int njesFit = 1; // scale only
-//const int njesFit = 2; // scale(ECAL)+HB
-const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
+const int njesFit = 2; // scale(ECAL)+HB
+//const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
 //const int njesFit = 3; //useTDI=true; // scale(ECAL)+HB+tracker (switchable)
 //const int njesFit = 3; //useEG=true; // scale(ECAL)+HB+ECALgain
 //const int njesFit = 4; // scale(ECAL)+HB+offset+ECALgain
@@ -270,7 +270,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izmm = -1;
   */
 
-  
+  /*
   // Global fit without multijets/dijets
   const int nsamples = 3;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -278,6 +278,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int igj = 0;
   const int izee = 1;
   const int izmm = 2;
+  */
   
   // Global fit without multijets/dijets and with merged Z+jet
   const int nsamples = 2;
