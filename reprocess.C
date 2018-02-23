@@ -469,11 +469,11 @@ void reprocess(string epoch="") {
 	    bool narrowBin = ((fabs(eta2-eta1)<0.4 && 
 			       !(fabs(eta1-3.0)<0.05 && fabs(eta2-3.2)<0.05)) ||
 			      fabs(eta1)>3.8);
-	    if (narrowBin) {
-	      if (s=="dijet")  f = fdj2;  // BCDEFGH only
-	      if (s=="zeejet") f = fzee2; // GH only
-	      if (s=="zmmjet") f = fzmm2; // GH only
-	    }
+	    //if (narrowBin) {
+	    //  if (s=="dijet")  f = fdj2;  // BCDEFGH only
+	    //  if (s=="zeejet") f = fzee2; // GH only
+	    //  if (s=="zmmjet") f = fzmm2; // GH only
+	    //}
 	    assert(f || s=="zlljet");
 
 
@@ -526,10 +526,9 @@ void reprocess(string epoch="") {
 	      if (narrowBin) cout << "Narrow bin" << endl << flush;
 	      else           cout << "Wide bin" << endl << flush;
 	    }
-	    
+
 	    // Merge Zee+jet and Zmumu+jet
 	    if (s=="zlljet") {
-
 	      TGraphErrors *gee =  grs[d][t]["zeejet"][ieta][ialpha];
 	      TGraphErrors *gmm =  grs[d][t]["zmmjet"][ieta][ialpha];
 	      assert(gee);
