@@ -91,7 +91,8 @@
   gSystem->Exec(Form("pdflatex '\\def\\RunPeriod{pdf/%s}\\input{pdf/jecslides_FineEta_2017_BCDEFG.tex}'", epoch.c_str()));
   gSystem->Exec("mkdir CollectL2Output");
   gSystem->Exec(Form("mv jecslides_FineEta_2017_BCDEFG.pdf CollectL2Output/jecslides_FineEta_2017_%s.pdf", epoch.c_str()));
-  gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals.txt  CollectL2Output/GlobalFitOutput_L2L3Residuals_%s.txt", epoch.c_str()));
+  gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals.txt  CollectL2Output/Fall17_17Nov2017%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", epoch.c_str()));
+  gSystem->Exec("rm txt2/*");
   
   //wide eta bins
    // softrad(0.0,0.8,true,epoch); // missing dijet
