@@ -175,7 +175,7 @@ void compareJECversions(string algo="AK4PFchs",
   //string sid2 = (_mc ? "Summer16_23Sep2016GV2_MC" : "Summer16_23Sep2016GV2_DATA");
   //string sid2 = (_mc ? "Summer16_23Sep2016V2_MC" : "Summer16_23Sep2016GV3_DATA");
   //string sid2 = (_mc ? "Summer16_23Sep2016V3_MC" : "Summer16_23Sep2016HV3_DATA");
-  string sid2 = (_mc ? "Summer16_03Feb2017_V1_MC" : "Summer16_03Feb2017H_V3_DATA");
+  string sid2 = (_mc ? "Summer16_07Aug2017_V5_MC" : "Summer16_07Aug2017BCD_V5_DATA");
   const char *cid2 = sid2.c_str();
   const char *a2 = a;
   //const char *s2 = "1.3 fb^{-1} (13 TeV)";
@@ -195,8 +195,8 @@ void compareJECversions(string algo="AK4PFchs",
   //const char *s2 = "80X Sum16 G";
   //const char *s2 = "Summer16GV3";
   //const char *s2s = "Sum16V3";
-  const char *s2 = "03Feb2017H_V3";
-  const char *s2s = "03Feb17HV3";
+  const char *s2 = "07Aug2017_V5";
+  const char *s2s = "07Aug17_V5";
   // PATCH 2012 with clones
   //if (algo=="AK4PF") a2 = "AK5PF";
   //if (algo=="AK4PFchs") a2 = "AK5PFchs";
@@ -213,7 +213,7 @@ void compareJECversions(string algo="AK4PFchs",
   //string sid1 = (_mc ? "Spring16_23Sep2016V1_MC" : "Spring16_23Sep2016GV2_DATA");
   //string sid1 = (_mc ? "Summer16_23Sep2016V3_MC" : "Summer16_23Sep2016HV3_DATA");
   //string sid1 = (_mc ? "Summer16_03Feb2017_V3_MC" : "Summer16_03Feb2017G_V3_DATA");
-  string sid1 = (_mc ? "Summer16_23Sep2016_V3_MC" : "Summer16_23Sep2016HV3_DATA");
+  string sid1 = (_mc ? "Fall17_17Nov2017_V6_MC" : "Fall17_17Nov2017B_V6_DATA");
   const char *cid1 = sid1.c_str();
   //const char *a1 = "AK5PFchs";//a;
   const char *a1 = "AK4PFchs";//a;
@@ -221,8 +221,8 @@ void compareJECversions(string algo="AK4PFchs",
   //const char *s1s = "23Sep16HV3";
   //const char *s1 = "03Feb2017G_V3";
   //const char *s1s = "03Feb17G_V3";
-  const char *s1 = "23Sep2016H_V3";
-  const char *s1s = "23Sep16H_V3";
+  const char *s1 = "17Nov2017_V6";
+  const char *s1s = "17Nov17_V6";
   //const char *s1 = "20 fb^{-1} (8 TeV)";
   //const char *s1s = "2012";
   //const char *s1 = "1.3 fb^{-1} (13 TeV)";
@@ -471,7 +471,8 @@ if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
   //lumi_13TeV  = "19.8 fb^{-1} (8 TeV) + 1.3--2.1 fb^{-1}";
   //lumi_13TeV  = "27 fb^{-1} (13 TeV)";
   //lumi_13TeV  = "2016 re-reco 36.5 fb^{-1}";
-  lumi_13TeV  = "2016 re-mAOD 36.5 fb^{-1}";
+  //  lumi_13TeV  = "2016 re-mAOD 36.5 fb^{-1}";
+  lumi_13TeV  = "2017 vs. 2016 legacy";
 
   TH1D *h1a = (TH1D*)h->Clone(Form("h1a_%s",a));
   TCanvas *c1a = tdrCanvas(Form("c1a_%s",a),h1a,4,11,kSquare);
