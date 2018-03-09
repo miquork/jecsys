@@ -201,7 +201,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if(verboseGF)cout << Form("Running globalFitL3Res(etamin=%02.2f,etamax=%02.2f,epoch=%s",etamin,etamax,epoch.c_str()) << endl << flush;
   _etamin = etamin;
   const char *cep = epoch.c_str();
-  //njesFit = (njesFit==3 && useTDI && (epoch=="G"||epoch=="H") ? 2 : njesFit);
+  //njesFit = (njesgFit==3 && useTDI && (epoch=="G"||epoch=="H") ? 2 : njesFit);
 
   TDirectory *curdir = gDirectory;
   setTDRStyle();
@@ -229,8 +229,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //
   const int nmethods = 2;
   const char* methods[nmethods] = {"ptchs","mpfchs1"};
-  //  const int nmethods = 1;//MPFOnlyTest for FineEtaBins
-  //  const char* methods[nmethods] = {"mpfchs1"};
+  //const int nmethods = 1;//MPFOnlyTest for FineEtaBins
+  //const char* methods[nmethods] = {"mpfchs1"};
   _nmethods = nmethods; // for multijets in global fit
 
   // Global fit with multijets, gamma+jet, Z+jet
@@ -266,6 +266,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int nsample0 = 0; // first Z/gamma+jet sample
   const char* samples[1] = {"dijet"};
   const int igj = -1;
+  const int izll = -1;
   const int izee = -1;
   const int izmm = -1;
   */
@@ -279,6 +280,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izee = 1;
   const int izmm = 2;
   */
+
   
   // Global fit without multijets/dijets and with merged Z+jet
   const int nsamples = 2;
@@ -288,7 +290,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izll = 1;
   const int izee = -1;
   const int izmm = -1;
-
+  
 
   /*
   // Global fit without photon+jet
@@ -365,7 +367,6 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   vector<TGraphErrors*> gs3;
   for (int imethod = 0; imethod != nmethods; ++imethod) {
     for (int isample = 0; isample != nsamples; ++isample) {
-
       const char *cm = methods[imethod];
       const char *cs = samples[isample];
 
@@ -786,10 +787,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   // use global pointer to give outside access
   _vsrc = &hs;
 
-
+  
   /////////////////////////
   // Draw original data  //
   /////////////////////////
+  cout << "Draw original data" << endl;
 
   const int maxpt = 3500;//1600;
   const int minpt = 30;
@@ -830,14 +832,15 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   legpf->AddEntry(gs[0]," ","PL");
   if (_vpt2->size()!=0) legpf->AddEntry((*_vpt2)[0]," ","PL");
   TLegend *legmf = tdrLeg(0.66,0.79,0.96,0.83);
-  legmf->AddEntry(gs[nsamples]," ","PL");
+  if(nmethods==2)legmf->AddEntry(gs[nsamples]," ","PL");
   if (_vpt2->size()>1) legmf->AddEntry((*_vpt2)[1]," ","PL");
 
   TLegend *legp = tdrLeg(0.58,0.55,0.88,0.90);
-  legp->SetHeader("p_{T}^{bal}");
-  for (int i = 0; i != nsamples; ++i)
-    legp->AddEntry(gs[i]," ",i==0 ? "" : "PL");
-
+  if( (nmethods==1||nmethods==2) && strcmp(methods[0],"ptchs")  ==0 ){
+    legp->SetHeader("p_{T}^{bal}");
+    for (int i = 0; i != nsamples; ++i)
+      legp->AddEntry(gs[i]," ",i==0 ? "" : "PL");
+  }
   map<string, const char*> texlabel;
   texlabel["multijet"] = "Multijet";
   texlabel["dijet"] = "Dijet";
@@ -847,10 +850,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   texlabel["zlljet"] = "Z+jet";//"Zl^{+}l{-}+jet";
 
   TLegend *legm = tdrLeg(0.66,0.55,0.96,0.90);
-  legm->SetHeader("MPF");
-  for (int i = 0; i != nsamples; ++i)
-    legm->AddEntry(gs[i+nsamples],texlabel[samples[i]],i==0 ? "" : "PL");
-
+  if( (nmethods==1&&strcmp(methods[0],"mpfchs1")  ==0) || (nmethods==2 && strcmp(methods[1],"mpfchs")  ==0 )){
+    legm->SetHeader("MPF");
+    for (int i = 0; i != nsamples; ++i)
+      legm->AddEntry(gs[i+(strcmp(methods[0],"mpfchs1")==0 ? 0 : nsamples)],texlabel[samples[i]],i==0 ? "" : "PL");
+  }
   TLatex *tex = new TLatex();
   tex->SetNDC(); tex->SetTextSize(0.045);
   if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1)) {
@@ -920,10 +924,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   ///////////////////////
   // Draw raw response
   //////////////////////
+  cout << "Draw raw response" << endl;
 
   h = (TH1D*)h->Clone("h0b");
   h->SetYTitle("Raw jet response (ratio)");  
-
   TCanvas *c0b = tdrCanvas("c0b",h,4,11,true);
   gPad->SetLogx();
 
@@ -967,7 +971,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   ///////////////////////
   // Perform global fit
   //////////////////////
-
+  cout << "Perform global fit" << endl;
+  
   // Fit function
   // 2015-01-17: use only range visible on plots (one g+jet point at >2.5 TeV)
   TF1 *jesfit = new TF1("jesfit",jesFit,minpt,maxpt,njesFit);
@@ -1090,10 +1095,17 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
 
   ofstream txtL2L3("txt2/GlobalFitOutput_L2L3Residuals.txt",ios_base::app);
-  if(etamin==0.&&etamax==0.261)txtL2L3 << "{ 1 JetEta 1 JetPt 1./([0]+[1]*100./3.*(TMath::Max(0.,1.03091-0.051154*pow(x,-0.154227))-TMath::Max(0.,1.03091-0.051154*TMath::Power(208.,-0.154227)))+[2]*((-2.36997+0.413917*TMath::Log(x))/x-(-2.36997+0.413917*TMath::Log(208))/208)) Correction L2Relative}";
-  if(np==2&& !(etamin==0.&&etamax==1.3)){
-    txtL2L3 << Form("\n %7.4f  %7.4f  5 10 6500 %7.4f %7.4f 0.0 ", etamin, etamax, tmp_par[0], tmp_par[1]);
-    //    txtL2L3 << Form("%7.4f  %7.4f  5 10 6500 %7.4f %7.4f 0.0 \n ", -etamax, -etamin, tmp_par[0], tmp_par[1]);
+  if(njesFit==2){
+    if(etamin==0.&&etamax==0.261)txtL2L3 << "{ 1 JetEta 1 JetPt 1./([0]+[1]*100./3.*(TMath::Max(0.,1.03091-0.051154*pow(x,-0.154227))-TMath::Max(0.,1.03091-0.051154*TMath::Power(208.,-0.154227)))+[2]*((-2.36997+0.413917*TMath::Log(x))/x-(-2.36997+0.413917*TMath::Log(208))/208)) Correction L2Relative}";
+    if(np==2&& !(etamin==0.&&etamax==1.3)){
+      txtL2L3 << Form("\n %7.4f  %7.4f  5 10 6500 %7.4f %7.4f 0.0 ", etamin, etamax, tmp_par[0], tmp_par[1]);
+    }
+  }
+  if(njesFit==1){
+    if(etamin==0.&&etamax==0.261)txtL2L3 << "{ 1 JetEta 1 JetPt 1./[0] Correction L2Relative}";
+    if(np==1&& !(etamin==0.&&etamax==1.3)){
+      txtL2L3 << Form("\n %7.4f  %7.4f  5 10 6500 %7.4f 0.0 0.0 ", etamin, etamax, tmp_par[0]);
+    }
   }
 
 
@@ -1186,7 +1198,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   ///////////////////////
   // Draw shifted data
   ///////////////////////
-
+  cout << "Draw shifted data" <<endl;
+  
   h = (TH1D*)h->Clone("h1");
   h->SetYTitle("Post-fit jet response (ratio)");  
 
