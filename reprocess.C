@@ -35,6 +35,7 @@ using namespace std;
 // rho used to calculate l1bias
 const double gRho = 15.36; // 2017-06-02 for 2016 data
 const bool _dcsonly = false;
+bool doFall17Closure = true;
 
 // Appy mass corrections to Z+jet
 bool useFixedFit = true; // with minitools/drawZmass.C
@@ -88,14 +89,17 @@ void reprocess(string epoch="") {
   // Define input files //
   ////////////////////////
 
-
-  //map<string,const char*> fdj_files;
-  //fdj_files["BCD"] = "BCD";
-  //fdj_files["EF"] = "EFearly";
-  //fdj_files["G"] = "FlateG";
-  //fdj_files["H"] = "H";
-  //fdj_files["BCDEFGH"] = "BCDEFGH";
-  //TFile *fdj = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/L2Res_Dijet_09Oct2017_InputGlobalFit/Run%s/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
+  // Monday 19 Feb 2018
+  //https://indico.cern.ch/event/706518/#2-l2res-with-dijet-2017-data
+  //https://indico.cern.ch/event/706518/contributions/2899252/attachments/1602656/2549097/L2Res_Fall17_17Nov_V5V6_dijet_nominal.tar.gz
+  map<string,const char*> fdj_files;
+  fdj_files["B"] = "B";
+  fdj_files["C"] = "C";
+  fdj_files["D"] = "D";
+  fdj_files["E"] = "E";
+  fdj_files["F"] = "F";
+  fdj_files["BCDEF"] = "BCDEF";
+  TFile *fdj = new TFile(Form("rootfiles/L2Res_Fall17_17Nov_V5V6/Run%s/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
 
   // Anastasia Karavdina, 2016 Legacy re-reco (8 Dec 2017) :
   // https://indico.cern.ch/event/682570/
@@ -146,11 +150,25 @@ void reprocess(string epoch="") {
   fp_files["E"] = "V2_E";//"V1_E";
   fp_files["F"] = "V1_F";
   fp_files["BCDEF"] = "V1_BCDEF";
+
   //TFile *fp = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/Combination_file_gammaplusjet_%s_03FeB17_nores_fixed_etabinning.root", fp_files[epoch]),"READ");
   //TFile *fp = new TFile(Form("rootfiles/Gjet_ENDCAPS_%s_07Aug_2017noresidual_V1.root", fp_files[epoch]),"READ"); // endcap photons
   //TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", fp_files[epoch]),"READ");
   TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_17Nov17_nores_%s_2017.root", fp_files[epoch]),"READ");
 
+  // Fall17 Closure for V5 and V6 corrections
+  if (doFall17Closure){
+    fp_files["B"] = "B_";
+    fp_files["C"] = "C_";//"V1_C";
+    fp_files["D"] = "D_";
+    fp_files["E"] = "E_";//"V1_E";
+    fp_files["F"] = "F_";
+    fp_files["BCDEF"] = "BCDEF";
+    fp = new TFile(Form("rootfiles/Gjet_combinationfile_17Nov17_V6_%s_2017.root", fp_files[epoch]),"READ");
+  }
+
+
+  
   //assert(fp && !fp->IsZombie());
 
   // Daniel Savoiu, 2017 Prompt reco (12 Feb 2018)
@@ -168,6 +186,13 @@ void reprocess(string epoch="") {
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
+  // Fall17 Closure for V5 and V6 corrections
+  if (doFall17Closure){
+    fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV6_Zmm_%s_2018-02-24.root",fz_files[epoch]),"READ");
+    fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV6_Zee_%s_2018-02-24.root",fz_files[epoch]),"READ");
+    assert(fzmm && !fzmm->IsZombie());
+    assert(fzee && !fzee->IsZombie());
+  }
 
   // Link to Z mass files (same as above now) and histograms
   // This is used for scaling Z mass back to 1 for Zee and Zmm
@@ -247,7 +272,7 @@ void reprocess(string epoch="") {
 
   // Store pointers to all files in a map for easy handling later
   map<string, TFile*> files;
-  //files["dijet"] = fdj;
+  files["dijet"] = fdj;
   //files["multijet"] = fmj;
   files["gamjet"] = fp;
   files["zeejet"] = fzee;
