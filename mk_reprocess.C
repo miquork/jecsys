@@ -33,8 +33,8 @@
   softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
   // Run multijet analysis to store information for later global fit
   // => multijet central values now old, but FSR still needed
-  //multijet(false,epoch);
-  //multijet(true,epoch);
+  multijet(false,epoch);
+  multijet(true,epoch);
   // Perform final global fit (goes into GT)
   globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
 
