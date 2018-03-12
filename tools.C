@@ -177,6 +177,42 @@ int tools::findPoint(TGraph *g, double x) {
   return k;
 } // findPoint(TGraph*)
 
+// combine points statistically
+TGraphErrors *tools::mergeGraphs(TGraphErrors *g1, TGraphErrors *g2) {
+
+  // find j closests to i, and i closest to j
+  // when both are the same, pair points
+  map<int,int> itoj, jtoi;
+  map<int,double> idxmin, jdxmin;
+  for (int i = 0; i != g1->GetN(); ++i) {
+    for (int j = 0; j != g2->GetN(); ++j) {
+
+      double dx = fabs(g1->GetX()[i]-g2->GetX()[j]);
+      if (dx<idxmin[i] || j==0) { itoj[i] = j; idxmin[i] = dx; }
+      if (dx<jdxmin[j] || i==0) { jtoi[j] = i; jdxmin[j] = dx; }
+    }
+  }
+
+  TGraphErrors *g = new TGraphErrors(0);
+  for (int i = 0; i != g1->GetN(); ++i) {
+
+    int j = itoj[i];
+    if (jtoi[j]==i) {
+      int n = g->GetN();
+      double w1 = g2->GetEY()[j] / (g2->GetEY()[j] + g1->GetEY()[i]);
+      double w2 = g1->GetEY()[i] / (g2->GetEY()[j] + g1->GetEY()[i]);
+      double y = (g1->GetY()[i]*w1 + g2->GetY()[j]*w2);
+      double dy = sqrt(pow(g1->GetEY()[i]*w1,2)+pow(g2->GetEY()[j]*w2,2));
+      double x = (g1->GetX()[i]*w1 + g2->GetX()[j]*w2);
+      double dx = sqrt(pow(g1->GetEX()[i]*w1,2)+pow(g2->GetEX()[j]*w2,2));
+      g->SetPoint(n, x, y);
+      g->SetPointError(n, dx, dy);
+    }
+  }
+
+  return g;
+} // mergeGraphs
+
 // Divide histograms, invoking rebin if needed
 TH1D *tools::Divide(const TH1D *h1, const TH1D *h2, double c1, double c2,
 		    const char *opt) {

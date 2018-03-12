@@ -63,10 +63,14 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   const char* dirs[ndirs] = {"data", "mc", "ratio"};
   const int nmethods = 2;
   const char* methods[nmethods] = {"mpfchs1", "ptchs"};
-  const int nsamples = (dodijet ? 4 : 3);
-  const char* samples[4] = {"gamjet","zeejet", "zmmjet", "dijet"};
+  const int nsamples = (dodijet ? 5 : 4);
+  const char* samples[5] = {"gamjet","zeejet", "zmmjet", "zlljet", "dijet"};
+  //const int nsamples = (dodijet ? 4 : 3);
+  //const char* samples[4] = {"gamjet","zeejet", "zmmjet", "dijet"};
   //const int nsamples = (dodijet ? 3 : 2);
   //const char* samples[3] = {"gamjet", "zmmjet", "dijet"};
+  //const int nsamples = (dodijet ? 3 : 2);
+  //const char* samples[3] = {"gamjet", "zlljet", "dijet"};
   const int idj = (dodijet ? nsamples-1 : -1);
   string sbin = Form("eta%02.0f-%02.0f",10*etamin,10*etamax);
   const char* bin = sbin.c_str();
@@ -107,6 +111,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   //texlabel["zeejet"] = "Z(#rightarrowee)+jet RS";
   texlabel["zmmjet"] = "Z(#rightarrow#mu#mu)+jet";// TB";
   //texlabel["zmmjet"] = "Z(#rightarrow#mu#mu)+jet RS";
+  texlabel["zlljet"] = "Z(#rightarrowl^{+}l^{-})+jet";
   texlabel["dijet"] = "Dijet";
   texlabel["ptchs"] = "p_{T} balance (CHS)";
   texlabel["mpfchs"] = "MPF raw (CHS)";
@@ -175,7 +180,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 		(string(cs)=="dijet" && g->GetX()[i]<70.)  ||
 		(string(cs)=="gamjet" && g->GetX()[i]>ptmax2) ||
 		(string(cs)=="zeejet" && g->GetX()[i]>ptmax1) ||
-		(string(cs)=="zmmjet" && g->GetX()[i]>ptmax1))
+		(string(cs)=="zmmjet" && g->GetX()[i]>ptmax1) ||
+		(string(cs)=="zlljet" && g->GetX()[i]>ptmax1))
 	      g->RemovePoint(i);
 	  }
 
@@ -397,6 +403,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	leg->AddEntry(gemap[cd][cm]["gamjet"][30], texlabel["gamjet"], "P");
 	leg->AddEntry(gemap[cd][cm]["zeejet"][30], texlabel["zeejet"], "P");
 	leg->AddEntry(gemap[cd][cm]["zmmjet"][30], texlabel["zmmjet"], "P");
+	leg->AddEntry(gemap[cd][cm]["zlljet"][30], texlabel["zlljet"], "P");
 	leg->AddEntry(gemap[cd][cm]["dijet"][30], texlabel["dijet"], "P");
       }
 
