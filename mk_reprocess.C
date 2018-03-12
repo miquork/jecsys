@@ -88,10 +88,10 @@
   globalFitL3Res(3.839,5.191, epoch);
 
   //produce summary pdf with all plots according to era
-  gSystem->Exec(Form("pdflatex '\\def\\RunPeriod{pdf/%s}\\input{pdf/jecslides_FineEta_2017_BCDEFG.tex}'", epoch.c_str()));
+  gSystem->Exec(Form("pdflatex '\\def\\RunPeriod{pdf/%s}\\input{pdf/jecslides_FineEta_2016Legacy.tex}'", epoch.c_str()));
   gSystem->Exec("mkdir CollectL2Output");
-  gSystem->Exec(Form("mv jecslides_FineEta_2017_BCDEFG.pdf CollectL2Output/jecslides_FineEta_2017_%s.pdf", epoch.c_str()));
-  gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals.txt  CollectL2Output/Fall17_17Nov2017%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", epoch.c_str()));
+  gSystem->Exec(Form("mv jecslides_FineEta_2016Legacy.tex.pdf CollectL2Output/jecslides_FineEta_2016_%s.pdf", epoch.c_str()));
+  gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals.txt  CollectL2Output/Summer16Legacy%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", epoch.c_str()));
   gSystem->Exec("rm txt2/*");
   
   //wide eta bins
