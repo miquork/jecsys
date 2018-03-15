@@ -28,6 +28,13 @@
 #include <vector>
 #include <map>
 
+//jec-fit-protype adds
+#include "MultijetBinnedSum.hpp"
+#include "JetCorrDefinitions.hpp"
+#include <list>
+#include <Minuit2/Minuit2Minimizer.h>
+#include <Math/Functor.h>
+
 using namespace std;
 
 bool dofsr = true; // correct for FSR
@@ -42,6 +49,7 @@ string scalingForL2OrL3Fit = "None"; //"None" - for inpunt combination files wit
 //"PutBackL2Res" - put L2res back in for gamma/Z+jet for vs eta studies
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
+bool useNewMultijet = true;
 bool verboseGF = false;
 
 unsigned int _nsamples(0);
@@ -74,15 +82,25 @@ Double_t fitError(Double_t *xx, Double_t *p);
 // Alternative parameterizations
 bool useOff = true;//false; // pT-dependent offset
 bool useTDI = false; // tracker dynamic inefficiency for 3p fit
-double fixTDI = 1; // fix TDI for BCD+EF and G+H
+//double fixTDI = 1; // fix TDI for BCD+EF and G+H
+double fixTDI = 0; // do NOT fix TDI for BCD+EF and G+H
 bool useEG = false; // ECAL gain shift for 3p fit
 
 //const int njesFit = 1; // scale only
-//const int njesFit = 2; // scale(ECAL)+HB
-const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
+const int njesFit = 2; // scale(ECAL)+HB
+//const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
 //const int njesFit = 3; //useTDI=true; // scale(ECAL)+HB+tracker (switchable)
 //const int njesFit = 3; //useEG=true; // scale(ECAL)+HB+ECALgain
 //const int njesFit = 4; // scale(ECAL)+HB+offset+ECALgain
+
+std::vector<double> parTransForMultiJet(njesFit, 0.001);
+
+auto jetCorr2 = make_unique<JetCorrStd2P>();
+//if(njesFit == 3) auto jetCorr = make_unique<JetCorrStd3P>();
+auto jetCorr3 = make_unique<JetCorrStd3P>();
+CombLossFunction* _lossFunc;
+//CombLossFunction lossFunc2(move(jetCorr2));
+//CombLossFunction lossFunc3(move(jetCorr3));
 
 const double ptminJesFit = 30;
 TF1 *fhb(0), *fl1(0), *ftr(0), *feg(0); double _etamin(0);
@@ -203,6 +221,19 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const char *cep = epoch.c_str();
   //njesFit = (njesFit==3 && useTDI && (epoch=="G"||epoch=="H") ? 2 : njesFit);
 
+  if(njesFit==2)_lossFunc = new CombLossFunction(move(jetCorr2));
+  if(njesFit==3)_lossFunc = new CombLossFunction(move(jetCorr3));
+
+  list<unique_ptr<MeasurementBase>> measurements;
+  measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",
+						  MultijetBinnedSum::Method::MPF ));
+  //only MPF for testing
+  //  measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",
+  //						  MultijetBinnedSum::Method::PtBal ));
+  for (auto const &measurement: measurements)
+    _lossFunc->AddMeasurement(measurement.get());
+
+  
   TDirectory *curdir = gDirectory;
   setTDRStyle();
   writeExtraText = true; // for JEC paper CWR
@@ -1068,6 +1099,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
        << np << " fit parameters and "
        << nsrc << " ("<<nsrc_true<<") uncertainty sources" << endl;
   cout << endl;
+  cout <<"New multijet:" <<endl;
+  cout << "Dimensions: "<< _lossFunc->GetNDF() + _lossFunc->GetNumParams() << endl;
+  cout << "chi2(multijet) term: "<< _lossFunc->Eval(parTransForMultiJet) << endl;
+  cout << endl;
   cout << "For data chi2/ndf = " << chi2_data << " / " << Nk << endl;
   cout << "For sources chi2/ndf = " << chi2_src << " / " << nsrc_true << endl;
   cout << "Per data set:" << endl;
@@ -1493,6 +1528,12 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
   //assert(int(_vsrc->size())==npar-_jesFit->GetNumberFreeParameters());
   assert(_vdt->size()<=sizeof(int)*8); // bitmap large enough
 
+  assert(_lossFunc->GetNumParams()==_jesFit->GetNpar());
+  assert(parTransForMultiJet.size()==_jesFit->GetNpar());
+  parTransForMultiJet[0] = par[0]-1;
+  parTransForMultiJet[1] = par[1];
+  if(_jesFit->GetNpar()==3)parTransForMultiJet[2] = par[2];
+
   Double_t *ps = &par[_jesFit->GetNpar()];
   int ns = npar - _jesFit->GetNpar();
   //int ns = npar - _jesFit->GetNumberFreeParameters();
@@ -1598,7 +1639,12 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
       
       chi2 += ps[is]*ps[is];
     } // for ipar
-    
+
+    //simpy add multijet MPF chi2-term for now and add bining dimensionality from multijet
+    if(useNewMultijet){
+      chi2 += _lossFunc->Eval(parTransForMultiJet);
+      Nk += _lossFunc->GetNDF() + _lossFunc->GetNumParams();
+    }
     // Give some feedback on progress in case loop gets stuck
     if ((++cnt)%1000==0) cout << "." << flush;
   } // if flag
