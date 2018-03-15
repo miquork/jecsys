@@ -12,6 +12,29 @@
   gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+");
   gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+");
 
+
+  //Quick recipe to make the new multijet work:
+  //setup the jecsys as usual. You are already on the right branch if you can read this (2016LegacyWithNewMultijet for integration)
+  //-make sure you have a working ROOT version with C++14 support enabled (see below for instructions)
+  //-fetch Andrey's package (you can do this directly in the jecsys folder):
+  /*
+    git clone git@github.com:IPNL-CMS/jec-fit-prototype.git
+    mkdir jec-fit-prototype/build
+    cd jec-fit-prototype/build
+    cmake ..
+    make
+    cd ..
+    #reading root file directly from https only works if ROOT was compiled with -Dssl=ON (see below), otherwise test with local file
+    #inputdir="https://aapopov.web.cern.ch/aapopov/jec_inputs/prototype"
+    #bin/fit --photonjet-run1 $inputdir/photonjet_Run1.root --multijet-binnedsum $inputdir/multijet_BinnedSum.root --zjet-run1 $inputdir/Zjet_Run1.root
+    #run locally instead
+    bin/fit --zjet-run1 ../rootfiles/Zjet_Run1.root --multijet-binnedsum ../rootfiles/multijet_BinnedSum.root
+   */
+  //-go back to jecsys
+  //run root -b -q 'mk_reprocessAndreyMultifit.C'
+  //if there are any error messages, you should consider to turn the '+' to '++' at least temporary to make sure everything is recompiled with the fixed ROOT version
+  
+
   //~Universal recipe to get a compatible root version compiled (standard ROOT releases don't seem to have C++14 activated by default, yet, at least not for Mac and Ubuntu16:)
   /*
   git clone http://root.cern.ch/git/root.git
@@ -19,17 +42,23 @@
   cd root_build
   cmake  -Dcxx14=ON -Dminuit2=ON ../root
   //precompiled Mac version with also -Dssl=ON available from https://cernbox.cern.ch/index.php/s/ZG7V7L3FivXyUWS
+  //standard Mac environment does not have openssl anymore, can do 
+  //brew install openssl 
+  //and then do 
+  //export OPENSSL_ROOT_DIR=/usr/local/Cellar/openssl/1.0.2l
+  //before compiling root for a "one-time-fix"
   cmake --build .
   */ 
 
   //to read in Andrey's global fit library [for multijet inclusion] - edit path by hand for now (needs to be absolute?)
-  gSystem->AddIncludePath("-I/Users/kirschen/cernbox/JERC/jec-fit-prototype/include");
-  gSystem->Load("/Users/kirschen/cernbox/JERC/jec-fit-prototype/lib/libjecfit.so");
+  //  gSystem->AddIncludePath("-I/Users/kirschen/cernbox/JERC/jec-fit-prototype/include");
+  //  gSystem->Load("/Users/kirschen/cernbox/JERC/jec-fit-prototype/lib/libjecfit.so");
 
-//  string currentWorkingDir = gSystem->pwd();
-//  cout <<currentWorkingDir.c_str() <<endl;
-//  gSystem->AddIncludePath(Form("-I%s/jec-fit-prototype/include",currentWorkingDir.c_str()));
-//  gSystem->Load(Form("-I%s/jec-fit-prototype/lib/libjecfit.so",currentWorkingDir.c_str()));
+  //if you have a symbolic link in jecsys to jec-fit-prototype, you can just do
+  string currentWorkingDir = gSystem->pwd();
+  cout <<currentWorkingDir.c_str() <<endl;
+  gSystem->AddIncludePath(Form("-I%s/jec-fit-prototype/include",currentWorkingDir.c_str()));
+  gSystem->Load(Form("%s/jec-fit-prototype/lib/libjecfit.so",currentWorkingDir.c_str()));
 
   // Compile with +g to make sure asserts are run
   gROOT->ProcessLine(".L tools.C+g");
