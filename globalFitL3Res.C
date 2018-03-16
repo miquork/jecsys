@@ -29,6 +29,7 @@
 #include <map>
 
 //jec-fit-protype adds
+#include "FitBase.hpp"
 #include "MultijetBinnedSum.hpp"
 #include "JetCorrDefinitions.hpp"
 #include <list>
@@ -985,6 +986,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     g3->DrawClone("SAMEPz");
   }
 
+  Nuisances dummyNuisances;
+  JetCorrStd2P  jetCorr2Dummy;
+  MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",MultijetBinnedSum::Method::MPF );
+  TH1D NewMultijet_Raw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, dummyNuisances, MultijetBinnedSum::HistReturnType::bal);
+  TH1D NewMultijet_SimRaw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, dummyNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D* NewMultijet_RatioRaw = (TH1D*) NewMultijet_Raw.Clone("NewMultijet_RatioRaw");
+  NewMultijet_RatioRaw->Divide(&NewMultijet_SimRaw);
+  NewMultijet_RatioRaw->Draw("SAME");
 
   ///////////////////////
   // Perform global fit
@@ -1339,6 +1348,29 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   fke->SetParameter(0,+1);
   fke->DrawClone("SAME");
 
+  TH1D NewMultijet_PostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), dummyNuisances, MultijetBinnedSum::HistReturnType::recompBal);
+  TH1D NewMultijet_SimPostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), dummyNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D* NewMultijet_RatioPostFit = (TH1D*) NewMultijet_PostFit.Clone("NewMultijet_RatioPostFit");
+  NewMultijet_RatioPostFit->Divide(&NewMultijet_SimPostFit);
+  NewMultijet_RatioPostFit->Draw("SAME");
+
+  TFile *fout = new TFile(Form("rootfiles/jecdata%s_Multijet.root",cep),"RECREATE");
+  NewMultijet_Raw      	  .SetName("NewMultijet_Raw"       );	
+  NewMultijet_RatioRaw    ->SetName("NewMultijet_RatioRaw"       );	
+  NewMultijet_SimRaw   	  .SetName("NewMultijet_SimRaw"    );	
+  NewMultijet_PostFit  	  .SetName("NewMultijet_PostFit"	  );
+  NewMultijet_RatioPostFit->SetName("NewMultijet_RatioPostFit"	  );
+  NewMultijet_SimPostFit  .SetName("NewMultijet_SimPostFit");
+
+  NewMultijet_Raw      	.Write();
+  NewMultijet_RatioRaw      	->Write();
+  NewMultijet_SimRaw   	.Write();
+  NewMultijet_PostFit  	.Write();
+  NewMultijet_RatioPostFit  	->Write();
+  NewMultijet_SimPostFit.Write();
+  fout->Close();
+
+  
   // Factorize error matrix into eigenvectors
   TVectorD eigvec(np);
   TMatrixD eigmat = emat2.EigenVectors(eigvec);

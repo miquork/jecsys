@@ -58,7 +58,7 @@
   string currentWorkingDir = gSystem->pwd();
   cout <<currentWorkingDir.c_str() <<endl;
   gSystem->AddIncludePath(Form("-I%s/jec-fit-prototype/include",currentWorkingDir.c_str()));
-  gSystem->Load(Form("%s/jec-fit-prototype/lib/libjecfit.so",currentWorkingDir.c_str()));
+  gSystem->Load(Form("%s/jec-fit-prototype/lib/libjecfit",currentWorkingDir.c_str()));
 
   // Compile with +g to make sure asserts are run
   gROOT->ProcessLine(".L tools.C+g");
@@ -80,15 +80,15 @@
   //"BCD", "EF", "G", "H", "BCDEFGH", "L4" (closure for |eta|<2.4)
   // BCD 47->46.9, EF 48.4->47.9, G 33.5->33.5, H 50.5
 
-  reprocess(epoch); // Switched off for JetMET100
-
-  //softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
-  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
-  // Run multijet analysis to store information for later global fit
-  // => multijet central values now old, but FSR still needed
-  multijet(false,epoch);
-  multijet(true,epoch);
-  // Perform final global fit (goes into GT)
+//  reprocess(epoch); // Switched off for JetMET100
+//
+//  //softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
+//  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
+//  // Run multijet analysis to store information for later global fit
+//  // => multijet central values now old, but FSR still needed
+//  multijet(false,epoch);
+//  multijet(true,epoch);
+//  // Perform final global fit (goes into GT)
   globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
 
   //now do narrow bins for L2Res
