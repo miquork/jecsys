@@ -151,28 +151,28 @@ void reprocess(string epoch="") {
 
   assert(fp && !fp->IsZombie());
 
-  // Thomas Berger, 2016 Legacy re-reco (8 Dec 2017)
-  // https://indico.cern.ch/event/684468/ (08 Dec 2017; both wide+narrow)
-  // https://indico.cern.ch/event/687650/ (19 Dec 2017; add wide+narrow for GH)
+  // Daniel Savoiu, 2016 Legacy re-reco after L2Res (7 March 2018)
+  // https://indico.cern.ch/event/708449/contributions/2908718/attachments/1606370/2561905/zjet_combination_07Aug2017_Summer16_JECV6_BCDEFGHseparate_2018-03-06.tar.gz
+  // https://indico.cern.ch/event/708449/contributions/2908718/attachments/1606370/2561906/zjet_combination_07Aug2017_Summer16_JECV6_BCDEFGHtogether_2018-03-06.tar.gz
   map<string,const char*> fz_files;
-  fz_files["BCD"] = "BCD_2017-12-08";
-  fz_files["EF"] = "EF_2017-12-08";
-  fz_files["G"] = "G_2017-12-08";
-  fz_files["H"] = "H_2017-12-08";
-  fz_files["GH"] = "GH_2017-12-19";
-  fz_files["BCDEFGH"] = "BCDEFGH_2017-12-08"; 
-  //TFile *fzmm = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/combination_ZJet_Zmm_%s_2017-10-10.root", fz_files[epoch]),"READ");
-  //TFile *fzee = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/combination_ZJet_Zee_%s_2017-10-10.root",fz_files[epoch]),"READ");
-  TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s_wide.root", fz_files[epoch]),"READ");
-  TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s_wide.root",fz_files[epoch]),"READ");
+  fz_files["BCD"] = "BCD_2018-03-06";
+  fz_files["EF"] = "EF_2018-03-06";
+  //fz_files["G"] = "G_2017-12-08";
+  //fz_files["H"] = "H_2017-12-08";
+  fz_files["GH"] = "GH_2018-03-06";
+  fz_files["BCDEFGH"] = "BCDEFGH_2018-03-06"; 
+  //TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s_wide.root", fz_files[epoch]),"READ");
+  //TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s_wide.root",fz_files[epoch]),"READ");
+  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_07Aug2017_Summer16_JECV6_Zmm_%s.root",fz_files[epoch]),"READ");
+  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_07Aug2017_Summer16_JECV6_Zee_%s.root",fz_files[epoch]),"READ");
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
   // Add Z+jet narrow files
-  TFile *fzmm2 = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s_narrow.root", fz_files[epoch]),"READ");
-  TFile *fzee2 = new TFile(Form("rootfiles/combination_ZJet_Zee_%s_narrow.root",fz_files[epoch]),"READ");
-  assert(fzmm2 && !fzmm2->IsZombie());
-  assert(fzee2 && !fzee2->IsZombie());
+  //TFile *fzmm2 = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s_narrow.root", fz_files[epoch]),"READ");
+  //TFile *fzee2 = new TFile(Form("rootfiles/combination_ZJet_Zee_%s_narrow.root",fz_files[epoch]),"READ");
+  //assert(fzmm2 && !fzmm2->IsZombie());
+  //assert(fzee2 && !fzee2->IsZombie());
 
 
   // Link to Z mass files (same as above now) and histograms
@@ -198,32 +198,38 @@ void reprocess(string epoch="") {
   assert(hmzmm_mc);
 
   // Smoothen mass corrections
-  TF1 *f1mzee = new TF1("f1mzee","[0]+[1]*log(x)+[2]*log(x)*log(x)",
+  TF1 *f1mzee = new TF1("f1mzee","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
 			fzeeptmin, fzeeptmax);
-  TF1 *f1ezee = new TF1("f1ezee","sqrt([0]+pow(log(x),2)*[1]+pow(log(x),4)*[2]"
-			"+2*log(x)*[3]+2*pow(log(x),2)*[4]+2*pow(log(x),3)*[5])"
+  TF1 *f1ezee = new TF1("f1ezee","sqrt([0]+pow(log(0.01*x),2)*[1]"
+                        "+pow(log(0.01*x),4)*[2]"
+                        "+2*log(0.01*x)*[3]+2*pow(log(0.01*x),2)*[4]"
+                        "+2*pow(log(0.01*x),3)*[5])"
 			,fzeeptmin, fzeeptmax);
   if (correctZeeMass || correctGamMass) {
     if (useFixedFit) {
       // BCDEFGH fit with minitools/drawZmass.C
-      f1mzee->SetParameters(1.01732, -0.00909, 0.00116);
-      f1ezee->SetParameters(7.54e-05, 1.41e-05, 1.63e-07,
-			    -3.26e-05, 3.47e-06, -1.51e-06);
+      f1mzee->SetParameters(1.00017, 0.00166, 0.00114);
+      f1ezee->SetParameters(+3.28e-08, +7.82e-08, +1.58e-07,
+                            +1.31e-08, -4.37e-08, -1.14e-08);
     }
     else
       hmzee->Fit(f1mzee);
 
   }
-  TF1 *f1mzmm = new TF1("f1mzmm","[0]+[1]*log(x)+[2]*log(x)*log(x)",
+
+  TF1 *f1mzmm = new TF1("f1mzmm","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
 			fzmmptmin, fzmmptmax);
-  TF1 *f1ezmm = new TF1("f1ezmm","sqrt([0]+pow(log(x),2)*[1]+pow(log(x),4)*[2]"
-			"+2*log(x)*[3]+2*pow(log(x),2)*[4]+2*pow(log(x),3)*[5])"
+  TF1 *f1ezmm = new TF1("f1ezmm","sqrt([0]+pow(log(0.01*x),2)*[1]"
+			"+pow(log(0.01*x),4)*[2]"
+			"+2*log(0.01*x)*[3]+2*pow(log(0.01*x),2)*[4]"
+			"+2*pow(log(0.01*x),3)*[5])"
 			,fzmmptmin, fzmmptmax);
   if (correctZmmMass) {
     if (useFixedFit) {
       // BCDEFGH fit with minitools/drawZmass.C
-      f1mzmm->SetParameters(0.99855, 0., 0.);
-      f1ezmm->SetParameters(pow(0.00010,2),0,0, 0,0,0);
+      f1mzmm->SetParameters(0.99868, 0.00000, 0.00000);
+      f1ezmm->SetParameters(+1.22e-08,        +0,        +0,
+                                   +0,        +0,        +0);
     }
     else
       hmzmm->Fit(f1mzmm);
@@ -349,6 +355,7 @@ void reprocess(string epoch="") {
   if (epoch!="L4") etas.push_back(make_pair<double,double>(0,1.305));
   if (epoch=="L4") etas.push_back(make_pair<double,double>(0,2.4));
   // Narrow eta bins for L2Res
+  /*
   etas.push_back(make_pair<double,double>(0.000,0.261)); 
   etas.push_back(make_pair<double,double>(0.261,0.522)); 
   etas.push_back(make_pair<double,double>(0.522,0.783)); 
@@ -373,7 +380,7 @@ void reprocess(string epoch="") {
   etas.push_back(make_pair<double,double>(2.5,2.964));
   etas.push_back(make_pair<double,double>(2.964,3.2));
   etas.push_back(make_pair<double,double>(3.2,5.191));
-
+  */
 
 
   vector<double> alphas;
@@ -462,13 +469,13 @@ void reprocess(string epoch="") {
 	      fabs(eta1)>3.4);
 	    */
 	    bool narrowBin = ((fabs(eta2-eta1)<0.4 && 
-			       !(fabs(eta1-3.0)<0.05 && fabs(eta2-3.2)<0.05)) ||
-			      fabs(eta1)>3.8);
-	    if (narrowBin) {
-	      if (s=="dijet")  f = fdj2;  // BCDEFGH only
-	      if (s=="zeejet") f = fzee2; // GH only
-	      if (s=="zmmjet") f = fzmm2; // GH only
-	    }
+	    		       !(fabs(eta1-3.0)<0.05 && fabs(eta2-3.2)<0.05)) ||
+	    		      fabs(eta1)>3.8);
+	    //if (narrowBin) {
+	    //if (s=="dijet")  f = fdj2;  // BCDEFGH only
+	    //if (s=="zeejet") f = fzee2; // GH only
+	    //if (s=="zmmjet") f = fzmm2; // GH only
+	    //}
 	    assert(f || s=="zlljet");
 
 
