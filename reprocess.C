@@ -40,7 +40,7 @@ bool useFixedFit    =  true; // New
 double fitUncMin  = 0.00000; // Some bug if unc<0?
 bool correctZmmMass =  true; 
 bool correctZeeMass =  true; 
-bool correctGamMass =  false; // V6-although inconsistent
+bool correctGamMass =  true;//false; // V6-although inconsistent
 bool correctUncert  =  true; 
 bool correctGamScale = false; 
 double valueGamScale = 1.;
@@ -54,13 +54,13 @@ double valueGamScale = 1.;
 // Legacy 2016: all+nosys 0.990/0.026, 88.9/56, 0.9648
 
 // Minimum pTcut for gamma+jet
-double fpmpfptmin(30.);//80.); // photon+jet MPF
-double fpbalptmin(30.);//180.); // photon+jet pTbal
+double fpmpfptmin(100.);//30.);//80.); // photon+jet MPF
+double fpbalptmin(100.);//30.);//180.); // photon+jet pTbal
 double fzeeptmin(30.); // Zee+jet
 double fzmmptmin(30.); // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
 double fzmpfptmin(30.); // Z+jet MPF
-double fzbalptmin(30.);//80.); // Z+jet pTbal
+double fzbalptmin(100.);//30.);//80.); // Z+jet pTbal
 
 //for fine etabins deactivate ptbal
 double fdijetmpfptmin(30);
@@ -69,12 +69,14 @@ double fdijetptmax(1500.);
 
 // Maximum pTcut for samples (to avoid bins with too large uncertainty)
 double fpmpfptmax(1500.); // photon+jet MPF
-double fpbalptmax(1500.);//700.);  // photon+jet pTbal 
+double fpbalptmax(700.);//1500.);//700.);  // photon+jet pTbal 
 double fzeeptmax(700.); // Zee+jet
 double fzmmptmax(700.); // Zmm+jet 
 // Additional cuts to Z+jet MPF / balance methods
-double fzmpfptmax(700.);//500.); // Z+jet MPF
-double fzbalptmax(700.);//400.); // Z+jet pTbal
+double fzmpfptmax(500.);//700.);//500.); // Z+jet MPF
+double fzbalptmax(300);//700.);//400.); // Z+jet pTbal
+
+//161.6/48 before pT cuts, 20.5/29 after (incl. correctGamMass)
 
 //minimum event counts
 const double neventsmin = 20.;
