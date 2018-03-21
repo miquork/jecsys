@@ -36,14 +36,14 @@ const double gRho = 15.36; // 2017-06-02 for 2016 data
 const bool _dcsonly = false;
 
 // Appy mass corrections to Z+jet
-bool useFixedFit = true; // New
-double fitUncMin = 0.00000; // Some bug if unc<0?
-bool correctZmmMass = true; // Legacy2016
-bool correctZeeMass = true; // Legacy2016
-bool correctGamMass = true;//false; // 07AugV4plus
-bool correctUncert = true; // Legacy2016
-bool correctGamScale = false; // Legacy2016
-double valueGamScale = 1./0.989;  // drawGamVsZmm BCDEFGH
+bool useFixedFit    =  true; // New
+double fitUncMin  = 0.00000; // Some bug if unc<0?
+bool correctZmmMass =  true; 
+bool correctZeeMass =  true; 
+bool correctGamMass =  false; // V6-although inconsistent
+bool correctUncert  =  true; 
+bool correctGamScale = false; 
+double valueGamScale = 1.;
 // Legacy 2016: all false 0.990/0.006, 84.4/56, 0.8781
 // Legacy 2016: Zmm       0.989/0.005, 77.9/56, 0.7942
 // Legacy 2016: Zee       0.990/0.011, 80.6/56, 0.8890
@@ -54,13 +54,13 @@ double valueGamScale = 1./0.989;  // drawGamVsZmm BCDEFGH
 // Legacy 2016: all+nosys 0.990/0.026, 88.9/56, 0.9648
 
 // Minimum pTcut for gamma+jet
-double fpmpfptmin(80.);//30.);//100.); // photon+jet MPF
-double fpbalptmin(180.);//30.);//100.); // photon+jet pTbal
+double fpmpfptmin(30.);//80.); // photon+jet MPF
+double fpbalptmin(30.);//180.); // photon+jet pTbal
 double fzeeptmin(30.); // Zee+jet
 double fzmmptmin(30.); // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
 double fzmpfptmin(30.); // Z+jet MPF
-double fzbalptmin(80.);//30.);//85.); // Z+jet pTbal
+double fzbalptmin(30.);//80.); // Z+jet pTbal
 
 //for fine etabins deactivate ptbal
 double fdijetmpfptmin(30);
@@ -111,47 +111,48 @@ void reprocess(string epoch="") {
   TFile *fdj2 = new TFile("rootfiles/JEC_L2_Dijet_AK4PFchs_pythia8_07122017hcalCleaning.root"); // narrow bins to complement above wide ones
   assert(fdj2 && !fdj2->IsZombie());
 
-  // Andrey Popov, April 28, 2017 (Feb03_L2ResV2)
+  // Andrey Popov, April, 2017 (Feb03_L2ResV2)
   // https://indico.cern.ch/event/634367/
   map<string,const char*> fm_files;
   fm_files["BCD"] = "0428_Run2016BCD"; // also update multijet.C
   fm_files["EF"] = "0428_Run2016EFearly"; // also update multijet.C
   fm_files["G"] = "0428_Run2016FlateG"; // also update multijet.C
   fm_files["H"] = "0428_Run2016H"; // also update multijet.C
-  fm_files["GH"] = "0428_Run2016H"; // duplicate H
+  fm_files["GH"] = "0428_Run2016All";//H"; // duplicate H
   fm_files["BCDEFGH"] = "0428_Run2016All"; // also update multijet.C
   TFile *fmj = new TFile(Form("rootfiles/multijet_2017%s.root",
-  			      fm_files[epoch]),"READ");
+  		      fm_files[epoch]),"READ");
+
+  // Andrey Popov, March 19, 2018
+  // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
+  //fm_files["BCD"] = "BCD";
+  //fm_files["EF"] = "EFearly";
+  //fm_files["G"] = "FlateGH"; //X
+  //fm_files["H"] = "FlateGH"; //X
+  //fm_files["GH"] = "FlateGH";
+  //fm_files["BCDEFGH"] = "All";
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_180319_2016%s.root",
+  //		      fm_files[epoch]),"READ");
+
 
   assert(fmj && !fmj->IsZombie());
   
-  // Hugues Lattaud, 2016 Legacy re-reco (29 Nov 2017)
-  // https://indico.cern.ch/event/684468/
-  //  <CMS-JME-L2L3Residual-Analysts@cern.ch> (20 Dec 2017; V1 for BCDEFGH, GH)
+  // Hugues Lattaud, 2016 Legacy re-reco (16 March 2018)
+  // https://indico.cern.ch/event/713034/#b-290808-2016-legacy-results-v
   map<string,const char*> fp_files;
-  /*
-  // New Jan15 EGamma corrections not working (and missing GH, BCDEFGH)...
-  fp_files["BCD"] = "V1-Jan15_BCD";//"V2_BCD";//"RunBCDEFH";//"runBCD_TESTB";
-  fp_files["EF"] = "V1-Jan15_EF";//V2_EF";//"RunEF";//"runEFearly_TESTB";
-  fp_files["G"] = "V1-Jan15_FG";//"V2_FG";//"RunFG";//"runFlateG_TESTB";
-  fp_files["H"] = "V1-Jan15_H";//"V2_H";//"RunH";//"runH_TESTB";
-  fp_files["GH"] = "V1_FGH";//"RunH";//"runH_TESTB";
-  fp_files["BCDEFGH"] = "V1_BCDEFGH";////"RunBCDEFH";//"BCDEFGH";
-  */
-  // New Jan15 EGamma corrections not working... so back to old V2
-  fp_files["BCD"] = "V2_BCD";
-  fp_files["EF"] = "V2_EF";
-  fp_files["G"] = "V2_FG";
-  fp_files["H"] = "V2_H";
-  fp_files["GH"] = "V1_FGH";
-  fp_files["BCDEFGH"] = "V1_BCDEFGH";
-  //TFile *fp = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/Combination_file_gammaplusjet_%s_03FeB17_nores_fixed_etabinning.root", fp_files[epoch]),"READ");
-  //TFile *fp = new TFile(Form("rootfiles/Gjet_ENDCAPS_%s_07Aug_2017noresidual_V1.root", fp_files[epoch]),"READ"); // endcap photons
-  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", fp_files[epoch]),"READ"); // endcap photons
+  fp_files["BCD"] = "BCD";//"V2_BCD";
+  fp_files["EF"] = "EF";//"V2_EF";
+  fp_files["G"] = "FG";//V2_FG";
+  fp_files["H"] = "H";//"V2_H";
+  fp_files["GH"] = "H";//NB!  "V1_FGH";
+  fp_files["BCDEFGH"] = "BCDEFGH";//"BCEDFGH";//"V1_BCDEFGH";
+  //TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", fp_files[epoch]),"READ"); // 47.5/35
+  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_L2res_V6_%s_2016.root", fp_files[epoch]),"READ"); // 58.0/35
 
   assert(fp && !fp->IsZombie());
 
-  // Daniel Savoiu, 2016 Legacy re-reco after L2Res (7 March 2018)
+  // Daniel Savoiu, 2016 Legacy re-reco after L2Res (6 March 2018)
+  // (https://indico.cern.ch/event/713034/#b-290808-2016-legacy-results-v)
   // https://indico.cern.ch/event/708449/contributions/2908718/attachments/1606370/2561905/zjet_combination_07Aug2017_Summer16_JECV6_BCDEFGHseparate_2018-03-06.tar.gz
   // https://indico.cern.ch/event/708449/contributions/2908718/attachments/1606370/2561906/zjet_combination_07Aug2017_Summer16_JECV6_BCDEFGHtogether_2018-03-06.tar.gz
   map<string,const char*> fz_files;

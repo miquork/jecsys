@@ -64,13 +64,13 @@
   gROOT->ProcessLine(".L tools.C+g");
   gROOT->ProcessLine(".L reprocess.C+g");
   gROOT->ProcessLine(".L softrad.C+g");
-  gROOT->ProcessLine(".L multijet.C+g");
+  //gROOT->ProcessLine(".L multijet.C+g");
   gROOT->ProcessLine(".L globalFitL3Res.C+g");
 
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "BCDEFGH";//"BCDEFGH";
+  string epoch = "GH";//"BCDEFGH";//"BCDEFGH";
   #ifdef epochname
   std::cout << epoch.c_str()<< std::endl;
   std::cout << inputepoch.c_str()<< std::endl;
@@ -80,10 +80,10 @@
   //"BCD", "EF", "G", "H", "BCDEFGH", "L4" (closure for |eta|<2.4)
   // BCD 47->46.9, EF 48.4->47.9, G 33.5->33.5, H 50.5
 
-//  reprocess(epoch); // Switched off for JetMET100
+  reprocess(epoch); // Switched off for JetMET100
 //
 //  //softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
-//  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
+  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
 //  // Run multijet analysis to store information for later global fit
 //  // => multijet central values now old, but FSR still needed
 //  multijet(false,epoch);

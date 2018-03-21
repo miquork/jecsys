@@ -50,7 +50,7 @@ string scalingForL2OrL3Fit = "None"; //"None" - for inpunt combination files wit
 //"PutBackL2Res" - put L2res back in for gamma/Z+jet for vs eta studies
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
-bool useNewMultijet = true;
+bool useNewMultijet = false;//true;
 bool verboseGF = false;
 
 unsigned int _nsamples(0);
@@ -226,7 +226,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if(njesFit==3)_lossFunc = new CombLossFunction(move(jetCorr3));
 
   list<unique_ptr<MeasurementBase>> measurements;
-  measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",
+  //measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",
+  //measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_180319_2016All.root",
+measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_180319_2016FlateGH.root",
 						  MultijetBinnedSum::Method::MPF ));
   //only MPF for testing
   //  measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",
@@ -988,7 +990,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   Nuisances dummyNuisances;
   JetCorrStd2P  jetCorr2Dummy;
-  MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",MultijetBinnedSum::Method::MPF );
+  //MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",MultijetBinnedSum::Method::MPF );
+  //MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum("rootfiles/multijet_180319_2016All.root",MultijetBinnedSum::Method::MPF );
+  MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum("rootfiles/multijet_180319_2016FlateGH.root",MultijetBinnedSum::Method::MPF );
   TH1D NewMultijet_Raw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, dummyNuisances, MultijetBinnedSum::HistReturnType::bal);
   TH1D NewMultijet_SimRaw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, dummyNuisances, MultijetBinnedSum::HistReturnType::simBal);
   TH1D* NewMultijet_RatioRaw = (TH1D*) NewMultijet_Raw.Clone("NewMultijet_RatioRaw");
