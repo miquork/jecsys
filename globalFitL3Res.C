@@ -225,10 +225,21 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if(njesFit==2)_lossFunc = new CombLossFunction(move(jetCorr2));
   if(njesFit==3)_lossFunc = new CombLossFunction(move(jetCorr3));
 
+  // Andrey Popov, March 19, 2018
+  // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
+  map<string,const char*> fm_files;
+  fm_files["BCD"] = "BCD";
+  fm_files["EF"] = "EFearly";
+  fm_files["G"] = "FlateGH"; //X
+  fm_files["H"] = "FlateGH"; //X
+  fm_files["GH"] = "FlateGH";
+  fm_files["BCDEFGH"] = "All";
+
   list<unique_ptr<MeasurementBase>> measurements;
   //measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",
   //measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_180319_2016All.root",
-measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_180319_2016FlateGH.root",
+  //measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_180319_2016FlateGH.root",
+  measurements.emplace_back(new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),
 						  MultijetBinnedSum::Method::MPF ));
   //only MPF for testing
   //  measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",
@@ -992,11 +1003,14 @@ measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_180319_2016F
   JetCorrStd2P  jetCorr2Dummy;
   //MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",MultijetBinnedSum::Method::MPF );
   //MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum("rootfiles/multijet_180319_2016All.root",MultijetBinnedSum::Method::MPF );
-  MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum("rootfiles/multijet_180319_2016FlateGH.root",MultijetBinnedSum::Method::MPF );
+  MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),MultijetBinnedSum::Method::MPF );
   TH1D NewMultijet_Raw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, dummyNuisances, MultijetBinnedSum::HistReturnType::bal);
   TH1D NewMultijet_SimRaw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, dummyNuisances, MultijetBinnedSum::HistReturnType::simBal);
-  TH1D* NewMultijet_RatioRaw = (TH1D*) NewMultijet_Raw.Clone("NewMultijet_RatioRaw");
-  NewMultijet_RatioRaw->Divide(&NewMultijet_SimRaw);
+  //TH1D* NewMultijet_RatioRaw = (TH1D*) NewMultijet_Raw.Clone("NewMultijet_RatioRaw");
+  //NewMultijet_RatioRaw->Divide(&NewMultijet_SimRaw);
+  TH1D* NewMultijet_RatioRaw = (TH1D*) NewMultijet_SimRaw.Clone("NewMultijet_RatioRaw");
+  NewMultijet_RatioRaw->Divide(&NewMultijet_Raw);
+  NewMultijet_RatioRaw->SetMarkerSize(0.5);
   NewMultijet_RatioRaw->Draw("SAME");
 
   ///////////////////////
@@ -1354,8 +1368,12 @@ measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_180319_2016F
 
   TH1D NewMultijet_PostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), dummyNuisances, MultijetBinnedSum::HistReturnType::recompBal);
   TH1D NewMultijet_SimPostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), dummyNuisances, MultijetBinnedSum::HistReturnType::simBal);
-  TH1D* NewMultijet_RatioPostFit = (TH1D*) NewMultijet_PostFit.Clone("NewMultijet_RatioPostFit");
-  NewMultijet_RatioPostFit->Divide(&NewMultijet_SimPostFit);
+  //TH1D* NewMultijet_RatioPostFit = (TH1D*) NewMultijet_PostFit.Clone("NewMultijet_RatioPostFit");
+  //NewMultijet_RatioPostFit->Divide(&NewMultijet_SimPostFit);
+  TH1D* NewMultijet_RatioPostFit = (TH1D*) NewMultijet_SimPostFit.Clone("NewMultijet_RatioPostFit");
+  NewMultijet_RatioPostFit->Divide(&NewMultijet_PostFit);
+  NewMultijet_RatioPostFit->SetMarkerSize(0.5);
+  NewMultijet_RatioPostFit->Scale(_jesFit->Eval(450.)/NewMultijet_RatioPostFit->GetBinContent(NewMultijet_RatioPostFit->FindBin(450.)));
   NewMultijet_RatioPostFit->Draw("SAME");
 
   TFile *fout = new TFile(Form("rootfiles/jecdata%s_Multijet.root",cep),"RECREATE");
