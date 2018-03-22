@@ -50,7 +50,7 @@ string scalingForL2OrL3Fit = "None"; //"None" - for inpunt combination files wit
 //"PutBackL2Res" - put L2res back in for gamma/Z+jet for vs eta studies
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
-bool useNewMultijet = false;//true;
+bool useNewMultijet = true;
 bool verboseGF = false;
 
 unsigned int _nsamples(0);
@@ -236,14 +236,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   fm_files["BCDEFGH"] = "All";
 
   list<unique_ptr<MeasurementBase>> measurements;
-  //measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",
-  //measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_180319_2016All.root",
-  //measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_180319_2016FlateGH.root",
-  measurements.emplace_back(new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),
-						  MultijetBinnedSum::Method::MPF ));
-  //only MPF for testing
-  //  measurements.emplace_back(new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",
-  //						  MultijetBinnedSum::Method::PtBal ));
+  measurements.emplace_back(new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF ));
+  //measurements.emplace_back(new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal ));
   for (auto const &measurement: measurements)
     _lossFunc->AddMeasurement(measurement.get());
 
@@ -1001,17 +995,25 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   Nuisances dummyNuisances;
   JetCorrStd2P  jetCorr2Dummy;
-  //MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum("rootfiles/multijet_BinnedSum.root",MultijetBinnedSum::Method::MPF );
-  //MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum("rootfiles/multijet_180319_2016All.root",MultijetBinnedSum::Method::MPF );
   MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),MultijetBinnedSum::Method::MPF );
-  TH1D NewMultijet_Raw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, dummyNuisances, MultijetBinnedSum::HistReturnType::bal);
-  TH1D NewMultijet_SimRaw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, dummyNuisances, MultijetBinnedSum::HistReturnType::simBal);
-  //TH1D* NewMultijet_RatioRaw = (TH1D*) NewMultijet_Raw.Clone("NewMultijet_RatioRaw");
-  //NewMultijet_RatioRaw->Divide(&NewMultijet_SimRaw);
-  TH1D* NewMultijet_RatioRaw = (TH1D*) NewMultijet_SimRaw.Clone("NewMultijet_RatioRaw");
-  NewMultijet_RatioRaw->Divide(&NewMultijet_Raw);
-  NewMultijet_RatioRaw->SetMarkerSize(0.5);
-  NewMultijet_RatioRaw->Draw("SAME");
+  MultijetBinnedSum* MJBMultijet = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),MultijetBinnedSum::Method::PtBal );
+
+  // MPF
+  TH1D MPF_Raw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, dummyNuisances, MultijetBinnedSum::HistReturnType::bal);
+  TH1D MPF_SimRaw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, dummyNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D* MPF_RatioRaw = (TH1D*) MPF_SimRaw.Clone("MPF_RatioRaw");
+  MPF_RatioRaw->Divide(&MPF_Raw);
+  MPF_RatioRaw->SetMarkerSize(0.5);
+  MPF_RatioRaw->Draw("SAME");
+
+  // MJB
+  TH1D MJB_Raw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, dummyNuisances, MultijetBinnedSum::HistReturnType::bal);
+  TH1D MJB_SimRaw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, dummyNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D* MJB_RatioRaw = (TH1D*) MJB_SimRaw.Clone("MJB_RatioRaw");
+  MJB_RatioRaw->Divide(&MJB_Raw);
+  MJB_RatioRaw->SetMarkerSize(0.5);
+  MJB_RatioRaw->SetMarkerStyle(kOpenCircle);
+  MJB_RatioRaw->Draw("SAME");
 
   ///////////////////////
   // Perform global fit
@@ -1366,30 +1368,69 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   fke->SetParameter(0,+1);
   fke->DrawClone("SAME");
 
-  TH1D NewMultijet_PostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), dummyNuisances, MultijetBinnedSum::HistReturnType::recompBal);
-  TH1D NewMultijet_SimPostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), dummyNuisances, MultijetBinnedSum::HistReturnType::simBal);
-  //TH1D* NewMultijet_RatioPostFit = (TH1D*) NewMultijet_PostFit.Clone("NewMultijet_RatioPostFit");
-  //NewMultijet_RatioPostFit->Divide(&NewMultijet_SimPostFit);
-  TH1D* NewMultijet_RatioPostFit = (TH1D*) NewMultijet_SimPostFit.Clone("NewMultijet_RatioPostFit");
-  NewMultijet_RatioPostFit->Divide(&NewMultijet_PostFit);
-  NewMultijet_RatioPostFit->SetMarkerSize(0.5);
-  NewMultijet_RatioPostFit->Scale(_jesFit->Eval(450.)/NewMultijet_RatioPostFit->GetBinContent(NewMultijet_RatioPostFit->FindBin(450.)));
-  NewMultijet_RatioPostFit->Draw("SAME");
+  TH1D MPF_PostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), dummyNuisances, MultijetBinnedSum::HistReturnType::recompBal);
+  TH1D MPF_SimPostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), dummyNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D* MPF_RatioPostFit = (TH1D*) MPF_SimPostFit.Clone("MPF_RatioPostFit");
+  MPF_RatioPostFit->Divide(&MPF_PostFit);
+  MPF_RatioPostFit->SetMarkerSize(0.5);
+  TH1D *MPF_RatioPostFitScaled = (TH1D*)MPF_RatioPostFit->Clone("NewMultiJet_RatioPostFitScaled");
+  //MPF_RatioPostFitScaled->Scale(_jesFit->Eval(450.)/MPF_RatioPostFit->GetBinContent(MPF_RatioPostFit->FindBin(450.)));
+  //MPF_RatioPostFitScaled->Scale(_jesFit->Eval(450.));
+  //MPF_RatioPostFitScaled->Scale(_jesFit->Eval(450. * 0.4));
+  for (int i = 0; i != MPF_RatioPostFitScaled->GetNbinsX()+1; ++i) {
+    double ptlead = MPF_RatioPostFitScaled->GetBinCenter(i);
+    double mpf = MPF_RatioPostFitScaled->GetBinContent(i);
+    MPF_RatioPostFitScaled->SetBinContent(i, mpf * _jesFit->Eval(ptlead));
+  }
+  MPF_RatioPostFitScaled->Draw("SAME");
+
+  TH1D MJB_PostFit =  MJBMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), dummyNuisances, MultijetBinnedSum::HistReturnType::recompBal);
+  TH1D MJB_SimPostFit =  MJBMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), dummyNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D* MJB_RatioPostFit = (TH1D*) MJB_SimPostFit.Clone("MJB_RatioPostFit");
+  MJB_RatioPostFit->Divide(&MJB_PostFit);
+  MJB_RatioPostFit->SetMarkerSize(0.5);
+  MJB_RatioPostFit->SetMarkerStyle(kOpenCircle);
+  TH1D *MJB_RatioPostFitScaled = (TH1D*)MJB_RatioPostFit->Clone("NewMultiJet_RatioPostFitScaled");
+  //MJB_RatioPostFitScaled->Scale(_jesFit->Eval(450.)/MJB_RatioPostFit->GetBinContent(MJB_RatioPostFit->FindBin(450.)));
+  //MJB_RatioPostFitScaled->Scale(_jesFit->Eval(450.));
+  //MJB_RatioPostFitScaled->Scale(_jesFit->Eval(450. * 0.4));
+  for (int i = 0; i != MJB_RatioPostFitScaled->GetNbinsX()+1; ++i) {
+    double ptlead = MJB_RatioPostFitScaled->GetBinCenter(i);
+    double mjb = MJB_RatioPostFitScaled->GetBinContent(i);
+    MJB_RatioPostFitScaled->SetBinContent(i, mjb * _jesFit->Eval(ptlead));
+  }
+  MJB_RatioPostFitScaled->Draw("SAME");
 
   TFile *fout = new TFile(Form("rootfiles/jecdata%s_Multijet.root",cep),"RECREATE");
-  NewMultijet_Raw      	  .SetName("NewMultijet_Raw"       );	
-  NewMultijet_RatioRaw    ->SetName("NewMultijet_RatioRaw"       );	
-  NewMultijet_SimRaw   	  .SetName("NewMultijet_SimRaw"    );	
-  NewMultijet_PostFit  	  .SetName("NewMultijet_PostFit"	  );
-  NewMultijet_RatioPostFit->SetName("NewMultijet_RatioPostFit"	  );
-  NewMultijet_SimPostFit  .SetName("NewMultijet_SimPostFit");
+  MPF_Raw      	  .SetName("MPF_Raw"       );	
+  MPF_RatioRaw    ->SetName("MPF_RatioRaw"       );	
+  MPF_SimRaw   	  .SetName("MPF_SimRaw"    );	
+  MPF_PostFit  	  .SetName("MPF_PostFit"	  );
+  MPF_RatioPostFit->SetName("MPF_RatioPostFit"	  );
+  MPF_SimPostFit  .SetName("MPF_SimPostFit");
 
-  NewMultijet_Raw      	.Write();
-  NewMultijet_RatioRaw      	->Write();
-  NewMultijet_SimRaw   	.Write();
-  NewMultijet_PostFit  	.Write();
-  NewMultijet_RatioPostFit  	->Write();
-  NewMultijet_SimPostFit.Write();
+  MPF_Raw      	.Write();
+  MPF_RatioRaw      	->Write();
+  MPF_SimRaw   	.Write();
+  MPF_PostFit  	.Write();
+  MPF_RatioPostFit  	->Write();
+  MPF_RatioPostFitScaled->Write();
+  MPF_SimPostFit.Write();
+
+  MJB_Raw      	  .SetName("MJB_Raw"       );	
+  MJB_RatioRaw    ->SetName("MJB_RatioRaw"       );	
+  MJB_SimRaw   	  .SetName("MJB_SimRaw"    );	
+  MJB_PostFit  	  .SetName("MJB_PostFit"	  );
+  MJB_RatioPostFit->SetName("MJB_RatioPostFit"	  );
+  MJB_SimPostFit  .SetName("MJB_SimPostFit");
+
+  MJB_Raw      	.Write();
+  MJB_RatioRaw      	->Write();
+  MJB_SimRaw   	.Write();
+  MJB_PostFit  	.Write();
+  MJB_RatioPostFit  	->Write();
+  MJB_RatioPostFitScaled->Write();
+  MJB_SimPostFit.Write();
   fout->Close();
 
   
