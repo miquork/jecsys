@@ -470,7 +470,8 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_25ns_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); // Sum16V3
     //s = Form("%sSummer16_03Feb2017HV3_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); // 03Feb
     //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
-    s = Form("%sSummer16_03Feb2017V7BCDEFGH_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    //s = Form("%sSummer16_03Feb2017V7BCDEFGH_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    s = Form("%sCollectL2Output_DijetZJetGammaJet_1Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -485,7 +486,8 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_25ns_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // Sum16V3
     //s = Form("%sSummer16_03Feb2017HV3_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03Feb
     //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
-    s = Form("%sSummer16_03Feb2017V7BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    //s = Form("%sSummer16_03Feb2017V7BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    s = Form("%sCollectL2Output_DijetZJetGammaJet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -500,7 +502,8 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_25ns_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // Sum16V3
     //s = Form("%sSummer16_03Feb2017HV3_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03Feb
     //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
-    s = Form("%sSummer16_03Feb2017V7BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    //    s = Form("%sSummer16_03Feb2017V7BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    s = Form("%sCollectL2Output_DijetZJetGammaJet_2Par_MPF_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -512,8 +515,9 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_23Sep2016BCDEFGHV1_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // Sum16V2
     //s = Form("%sSummer16_25ns_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // Sum16V3
     //s = Form("%sSummer16_03Feb2017HV3_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03Feb
-    s = Form("%sSummer16_03Feb2017BCDEFGH_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
-    s = Form("%sSummer16_03Feb2017V7BCDEFGH_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    //s = Form("%sSummer16_03Feb2017BCDEFGH_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
+    //s = Form("%sSummer16_03Feb2017V7BCDEFGH_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    s = Form("%sCollectL2Output_DijetZJetGammaJet_2Par_PtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -523,7 +527,8 @@ void JECUncertainty::_InitL2Res() {
 
   // For RelativeSample (dijet vs Z/gam+jet); new source for Sum16_03FebV7
   {
-    s = Form("%s/Summer16_03Feb2017V7BCDEFGH_GlobalFit_DiJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_%s.txt",d,a);
+    //    s = Form("%s/Summer16_03Feb2017V7BCDEFGH_GlobalFit_DiJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_%s.txt",d,a);
+    s = Form("%sCollectL2Output_Dijet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -531,7 +536,8 @@ void JECUncertainty::_InitL2Res() {
     _jecL2L3ResDiJet = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%s/Summer16_03Feb2017V7BCDEFGH_GlobalFit_ZJet_GammaJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_%s.txt",d,a);
+    //    s = Form("%s/Summer16_03Feb2017V7BCDEFGH_GlobalFit_ZJet_GammaJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_%s.txt",d,a);
+    s = Form("%sCollectL2Output_ZJetGammaJet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -539,7 +545,8 @@ void JECUncertainty::_InitL2Res() {
     _jecL2L3ResZGamJet = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%s/Summer16_03Feb2017V7BCDEFGH_GlobalFit_ZJet_GammaJet_DiJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_%s.txt",d,a);
+    //    s = Form("%s/Summer16_03Feb2017V7BCDEFGH_GlobalFit_ZJet_GammaJet_DiJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_%s.txt",d,a);
+    s = Form("%sCollectL2Output_DijetZJetGammaJet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -550,7 +557,8 @@ void JECUncertainty::_InitL2Res() {
   // RelativeFSR (Pythia vs Herwig)
   {
     //s = Form("%sSpring16_25ns_MPF_FLAT_L2Residual_pythia8_v3_%s.txt",d,a); // 80XV3
-    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v4_%s.txt",d,a); // 80XV8 -- no update for Sum16V2, Sum16V3, 03FebV3, 03FebV7
+    //    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v4_%s.txt",d,a); // 80XV8 -- no update for Sum16V2, Sum16V3, 03FebV3, 03FebV7
+    s = Form("%sWinter14_V8_MC_L3Absolute_AK7PF.txt",d); //HACK
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -559,7 +567,8 @@ void JECUncertainty::_InitL2Res() {
   }
   {
     //s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_herwigpp_v3_%s.txt",d,a); // 80XV3
-    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_herwigpp_v4_%s.txt",d,a); // 80XV8 -- no update for Sum16V2, Sum16V3, 03FebV3, 03FebV7
+    //    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_herwigpp_v4_%s.txt",d,a); // 80XV8 -- no update for Sum16V2, Sum16V3, 03FebV3, 03FebV7
+    s = Form("%sWinter14_V8_MC_L3Absolute_AK7PF.txt",d); //HACK
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -1372,6 +1381,7 @@ double JECUncertainty::_RelativePt(const double pTprime,
   assert(_jecL2ResPt);
   double rpt = _Rjet(pTprime, eta, -1, -1, _jecL2ResPt);
 
+  //  cout << "rflat: " << rflat << " rpt: "<< rpt << endl;
   // Use 50% of the slope as uncertainty consistently everywhere
   // We do correct for it for a reason, so 100% seems too conservative
   //double kfactor = 0.5; // 76X
