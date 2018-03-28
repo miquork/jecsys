@@ -12,6 +12,14 @@
   gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+");
   gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+");
 
+
+  //if you have a symbolic link in jecsys to jec-fit-prototype, you can just do
+  string currentWorkingDir = gSystem->pwd();
+  cout <<currentWorkingDir.c_str() <<endl;
+  gSystem->AddIncludePath(Form("-I%s/jec-fit-prototype/include",currentWorkingDir.c_str()));
+  gSystem->Load(Form("%s/jec-fit-prototype/lib/libjecfit",currentWorkingDir.c_str()));
+
+  
   // Compile with +g to make sure asserts are run
   gROOT->ProcessLine(".L tools.C+g");
   gROOT->ProcessLine(".L reprocess.C+g");
@@ -90,7 +98,7 @@
   //produce summary pdf with all plots according to era
   gSystem->Exec(Form("pdflatex '\\def\\RunPeriod{pdf/%s}\\input{pdf/jecslides_FineEta_2016Legacy.tex}'", epoch.c_str()));
   gSystem->Exec("mkdir CollectL2Output");
-  gSystem->Exec(Form("mv jecslides_FineEta_2016Legacy.tex.pdf CollectL2Output/jecslides_FineEta_2016_%s.pdf", epoch.c_str()));
+  gSystem->Exec(Form("mv jecslides_FineEta_2016Legacy.pdf CollectL2Output/jecslides_FineEta_2016_%s.pdf", epoch.c_str()));
   gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals.txt  CollectL2Output/Summer16Legacy%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", epoch.c_str()));
   gSystem->Exec("rm txt2/*");
   
