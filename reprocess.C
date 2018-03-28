@@ -97,21 +97,22 @@ void reprocess(string epoch="") {
   ////////////////////////
 
 
-  //map<string,const char*> fdj_files;
-  //fdj_files["BCD"] = "BCD";
-  //fdj_files["EF"] = "EFearly";
-  //fdj_files["G"] = "FlateG";
-  //fdj_files["H"] = "H";
-  //fdj_files["BCDEFGH"] = "BCDEFGH";
-  //TFile *fdj = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/L2Res_Dijet_09Oct2017_InputGlobalFit/Run%s/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
+  map<string,const char*> fdj_files;
+  fdj_files["BCD"] = "BCD";
+  fdj_files["EF"] = "EFearly";
+  fdj_files["GH"] = "FlateGH";
+  fdj_files["BCDEFGH"] = "BCDEFGH";
+  // Jens Multhaup, 2016 Legacy closure test - V6 applied
+  // https://indico.cern.ch/event/715277/#8-closure-test-with-dijet-for
+  TFile *fdj = new TFile(Form("rootfiles/L2Res_07Aug2017_V6_ClosureTest_InputGlobalFit/Run%s/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
 
   // Anastasia Karavdina, 2016 Legacy re-reco (8 Dec 2017) :
   // https://indico.cern.ch/event/682570/
-  TFile *fdj = new TFile("rootfiles/JEC_L2_Dijet_AK4PFchs_pythia8_07122017hcalCleaning_wideEtabins.root"); // BCDEFGH only?
-  assert(fdj && !fdj->IsZombie());
+  //TFile *fdj = new TFile("rootfiles/JEC_L2_Dijet_AK4PFchs_pythia8_07122017hcalCleaning_wideEtabins.root"); // BCDEFGH only?
+  //assert(fdj && !fdj->IsZombie());
 
-  TFile *fdj2 = new TFile("rootfiles/JEC_L2_Dijet_AK4PFchs_pythia8_07122017hcalCleaning.root"); // narrow bins to complement above wide ones
-  assert(fdj2 && !fdj2->IsZombie());
+  //TFile *fdj2 = new TFile("rootfiles/JEC_L2_Dijet_AK4PFchs_pythia8_07122017hcalCleaning.root"); // narrow bins to complement above wide ones
+  //assert(fdj2 && !fdj2->IsZombie());
 
   // Andrey Popov, April, 2017 (Feb03_L2ResV2)
   // https://indico.cern.ch/event/634367/
@@ -358,7 +359,7 @@ void reprocess(string epoch="") {
   if (epoch!="L4") etas.push_back(make_pair<double,double>(0,1.305));
   if (epoch=="L4") etas.push_back(make_pair<double,double>(0,2.4));
   // Narrow eta bins for L2Res
-  /*
+  
   etas.push_back(make_pair<double,double>(0.000,0.261)); 
   etas.push_back(make_pair<double,double>(0.261,0.522)); 
   etas.push_back(make_pair<double,double>(0.522,0.783)); 
@@ -383,7 +384,7 @@ void reprocess(string epoch="") {
   etas.push_back(make_pair<double,double>(2.5,2.964));
   etas.push_back(make_pair<double,double>(2.964,3.2));
   etas.push_back(make_pair<double,double>(3.2,5.191));
-  */
+  
 
 
   vector<double> alphas;
