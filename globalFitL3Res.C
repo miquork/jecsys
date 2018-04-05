@@ -46,11 +46,12 @@ bool _paper = true;
 double _cleanUncert = 0.05; // for eta>2
 //double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
-string scalingForL2OrL3Fit = "None"; //"None" - for inpunt combination files without any residual applied
+string scalingForL2OrL3Fit = "ApplyL3ResDontScaleDijets"; //"None" - for inpunt combination files without any residual applied
 //"PutBackL2Res" - put L2res back in for gamma/Z+jet for vs eta studies
+//"ApplyL3ResDontScaleDijets" - apply barrel JES (use case: check closure when only L2Res is applied to the inputs and L3Res didn't change)
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
-bool useNewMultijet = true;
+bool useNewMultijet = false; //true;
 bool verboseGF = false;
 
 unsigned int _nsamples(0);
@@ -96,13 +97,7 @@ const int njesFit = 2; // scale(ECAL)+HB
 
 std::vector<double> parTransForMultiJet(njesFit, 0.001);
 
-auto jetCorr2 = make_unique<JetCorrStd2P>();
-//if(njesFit == 3) auto jetCorr = make_unique<JetCorrStd3P>();
-auto jetCorr3 = make_unique<JetCorrStd3P>();
-CombLossFunction* _lossFunc;
-//CombLossFunction lossFunc2(move(jetCorr2));
-//CombLossFunction lossFunc3(move(jetCorr3));
-
+CombLossFunction* _lossFunc=0;
 const double ptminJesFit = 30;
 TF1 *fhb(0), *fl1(0), *ftr(0), *feg(0); double _etamin(0);
 Double_t jesFit(Double_t *x, Double_t *p) {
@@ -222,9 +217,16 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const char *cep = epoch.c_str();
   //njesFit = (njesFit==3 && useTDI && (epoch=="G"||epoch=="H") ? 2 : njesFit);
 
+  if(_lossFunc!=0){
+    delete _lossFunc;
+  }
+  auto jetCorr2 = make_unique<JetCorrStd2P>();
+  auto jetCorr3 = make_unique<JetCorrStd3P>();
+  
   if(njesFit==2)_lossFunc = new CombLossFunction(move(jetCorr2));
   if(njesFit==3)_lossFunc = new CombLossFunction(move(jetCorr3));
-
+  cout << "going to use _lossFunc" << _lossFunc << " " << _lossFunc->GetNumParams()<< endl;
+  
   // Andrey Popov, March 19, 2018
   // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
   map<string,const char*> fm_files;
@@ -268,8 +270,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //
   const int nmethods = 2;
   const char* methods[nmethods] = {"ptchs","mpfchs1"};
-  //  const int nmethods = 1;//MPFOnlyTest for FineEtaBins
-  //  const char* methods[nmethods] = {"mpfchs1"};
+  //const int nmethods = 1;//MPFOnlyTest for FineEtaBins
+  //const char* methods[nmethods] = {"mpfchs1"};
+  ////const char* methods[nmethods] = {"ptchs"};
   _nmethods = nmethods; // for multijets in global fit
 
   // Global fit with multijets, gamma+jet, Z+jet
@@ -305,6 +308,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int nsample0 = 0; // first Z/gamma+jet sample
   const char* samples[1] = {"dijet"};
   const int igj = -1;
+  const int izll = -1;
   const int izee = -1;
   const int izmm = -1;
   */
@@ -319,6 +323,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izmm = 2;
   */
   
+  
   // Global fit without multijets/dijets and with merged Z+jet
   const int nsamples = 2;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -327,7 +332,20 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izll = 1;
   const int izee = -1;
   const int izmm = -1;
+  
 
+  /*
+  // Global fit with all samples: multijets/dijets, gamma+jet, merged Z+jet
+  const int nsamples = 3;
+  const int nsample0 = 1; // first Z/gamma+jet sample
+  const char* samples[3] = {(isl3 ? "multijet" : "dijet"),
+			    "gamjet", "zlljet"};
+  const int igj = 0;
+  const int izll = 1;
+  const int izee = -1;
+  const int izmm = -1;
+  */
+  
   /*
   // Global fit without photon+jet
   const int nsamples = 3;
@@ -538,6 +556,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	  // divide by jesref(=1) in case hjes had L2L3Res instead of L2Res
           if(scalingForL2OrL3Fit=="None")scale= 1.0;//no residual input
           else if(scalingForL2OrL3Fit=="PutBackL2Res")scale = jes / jesref;
+          else if(scalingForL2OrL3Fit=="ApplyL3ResDontScaleDijets")scale = 1 / jesref;
           else assert(false);
 	}
 	g->SetPoint(i, pt, scale*l1*r*kfsr);
@@ -563,7 +582,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	  gf2->SetPoint(i, ptref, jes / r);
 	}
 	// For dijet, multiply by barrel JES
-	if (string(cs)=="dijet") {
+	if (string(cs)=="dijet" && scalingForL2OrL3Fit!="ApplyL3ResDontScaleDijets") {
 	  double jesref = herr0->GetBinContent(herr0->FindBin(pt));
 	  g->SetPoint(i, pt, r*kfsr * jesref);
 	  g2->SetPoint(i, pt, r*kfsr * jesref);
@@ -1030,7 +1049,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     jesfit->SetParameters(0.98, 0.0);
   }
   if (njesFit==3 && useOff) {
-    jesfit->SetParameters(0.98, 0.0, 0.0);
+    jesfit->SetParameters(0.982, 0.0136, -0.952);
   }
   if (njesFit==3 && useTDI) {
     jesfit->SetParameters(0.985, 0.001, 0.5);
@@ -1141,9 +1160,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
 
   ofstream txtL2L3("txt2/GlobalFitOutput_L2L3Residuals.txt",ios_base::app);
-  if(etamin==0.&&etamax==0.261)txtL2L3 << "{ 1 JetEta 1 JetPt 1./([0]+[1]*100./3.*(TMath::Max(0.,1.03091-0.051154*pow(x,-0.154227))-TMath::Max(0.,1.03091-0.051154*TMath::Power(208.,-0.154227)))+[2]*((-2.36997+0.413917*TMath::Log(x))/x-(-2.36997+0.413917*TMath::Log(208))/208)) Correction L2Relative}";
+  if(etamin==0.&&etamax==0.261&&np==2)txtL2L3 << "{ 1 JetEta 1 JetPt 1./([0]+[1]*100./3.*(TMath::Max(0.,1.03091-0.051154*pow(x,-0.154227))-TMath::Max(0.,1.03091-0.051154*TMath::Power(208.,-0.154227)))+[2]*((-2.36997+0.413917*TMath::Log(x))/x-(-2.36997+0.413917*TMath::Log(208))/208)) Correction L2Relative}";
   if(np==2&& !(etamin==0.&&etamax==1.3)){
     txtL2L3 << Form("\n %7.4f  %7.4f  5 10 6500 %7.4f %7.4f 0.0 ", etamin, etamax, tmp_par[0], tmp_par[1]);
+    //    txtL2L3 << Form("%7.4f  %7.4f  5 10 6500 %7.4f %7.4f 0.0 \n ", -etamax, -etamin, tmp_par[0], tmp_par[1]);
+  }
+  if(etamin==0.&&etamax==0.261&&np==1)txtL2L3 << "{ 1 JetEta 1 JetPt 1/[0] Correction L2Relative}";
+  if(np==1&& !(etamin==0.&&etamax==1.3)){
+    txtL2L3 << Form("\n %7.4f  %7.4f  3 10 6500 %7.4f ", etamin, etamax, tmp_par[0]);
     //    txtL2L3 << Form("%7.4f  %7.4f  5 10 6500 %7.4f %7.4f 0.0 \n ", -etamax, -etamin, tmp_par[0], tmp_par[1]);
   }
 
@@ -1382,7 +1406,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     double mpf = MPF_RatioPostFitScaled->GetBinContent(i);
     MPF_RatioPostFitScaled->SetBinContent(i, mpf * _jesFit->Eval(ptlead));
   }
-  MPF_RatioPostFitScaled->Draw("SAME");
+  if(useNewMultijet)MPF_RatioPostFitScaled->Draw("SAME");
 
   TH1D MJB_PostFit =  MJBMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), dummyNuisances, MultijetBinnedSum::HistReturnType::recompBal);
   TH1D MJB_SimPostFit =  MJBMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), dummyNuisances, MultijetBinnedSum::HistReturnType::simBal);
@@ -1399,7 +1423,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     double mjb = MJB_RatioPostFitScaled->GetBinContent(i);
     MJB_RatioPostFitScaled->SetBinContent(i, mjb * _jesFit->Eval(ptlead));
   }
-  MJB_RatioPostFitScaled->Draw("SAME");
+  if(useNewMultijet)MJB_RatioPostFitScaled->Draw("SAME");
 
   TFile *fout = new TFile(Form("rootfiles/jecdata%s_Multijet.root",cep),"RECREATE");
   MPF_Raw      	  .SetName("MPF_Raw"       );	
@@ -1623,6 +1647,8 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
   //assert(int(_vsrc->size())==npar-_jesFit->GetNumberFreeParameters());
   assert(_vdt->size()<=sizeof(int)*8); // bitmap large enough
 
+//  cout << _lossFunc << endl;
+  assert(_lossFunc!=0);
   assert(_lossFunc->GetNumParams()==_jesFit->GetNpar());
   assert(parTransForMultiJet.size()==_jesFit->GetNpar());
   parTransForMultiJet[0] = par[0]-1;
@@ -1735,6 +1761,7 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
       chi2 += ps[is]*ps[is];
     } // for ipar
 
+    //    cout << Form("standard chi2: %2.4f  multijet chi2: %2.4f \n", chi2, _lossFunc->Eval(parTransForMultiJet));
     //simpy add multijet MPF chi2-term for now and add bining dimensionality from multijet
     if(useNewMultijet){
       chi2 += _lossFunc->Eval(parTransForMultiJet);
@@ -1795,3 +1822,4 @@ Double_t fitError(Double_t *xx, Double_t *pp) {
 
   return (f->Eval(x) + k*err);
 }
+
