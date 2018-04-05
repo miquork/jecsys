@@ -9,6 +9,7 @@
 #include "TLine.h"
 #include "TF1.h"
 #include "TMultiGraph.h"
+#include "TMatrixD.h"
 
 void drawZeeVsZmm(string run = "BCDEFGH") {
 
@@ -50,12 +51,28 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
   TGraphErrors *gep = (TGraphErrors*)d->Get("ptchs_zeejet_a30"); assert(gep);
   TGraphErrors *gmm = (TGraphErrors*)d->Get("mpfchs1_zmmjet_a30"); assert(gmm);
   TGraphErrors *gmp = (TGraphErrors*)d->Get("ptchs_zmmjet_a30"); assert(gmp);
+
+  TGraphErrors *gpm = (TGraphErrors*)d->Get("mpfchs1_gamjet_a30"); assert(gpm);
+  TGraphErrors *gpp = (TGraphErrors*)d->Get("ptchs_gamjet_a30"); assert(gpp);
+
+  TH1D *hpm = (TH1D*)d->Get("fsr/hkfsr_mpfchs1_gamjet"); assert(hpm);
+  TH1D *hpp = (TH1D*)d->Get("fsr/hkfsr_ptchs_gamjet"); assert(hpp);
+  for (int i = 0; i != gpm->GetN(); ++i) {
+    double kfsr  = hpm->GetBinContent(hpm->FindBin(gpm->GetX()[i]));
+    gpm->SetPoint(i, gpm->GetX()[i], gpm->GetY()[i]*(1. - 0.3*kfsr));
+  }
+  for (int i = 0; i != gpp->GetN(); ++i) {
+    double kfsr  = hpp->GetBinContent(hpp->FindBin(gpp->GetX()[i]));
+    gpp->SetPoint(i, gpp->GetX()[i], gpp->GetY()[i]*(1. - 0.3*kfsr));
+  }
+
+
   curdir->cd();
 
   double ptmax = 2.*1200.;
   TH1D *hup = new TH1D("hup",";p_{T,Z} (GeV);Data / MC",670,30,ptmax);
-  hup->SetMinimum(0.97);
-  hup->SetMaximum(1.02);
+  hup->SetMinimum(0.96);
+  hup->SetMaximum(1.01);
   hup->GetXaxis()->SetMoreLogLabels();
   hup->GetXaxis()->SetNoExponent();
 
@@ -84,6 +101,10 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
   tdrDraw(gem,"Pz",kFullCircle,kGreen+2);
   tdrDraw(gep,"Pz",kOpenCircle,kGreen+2);
 
+  tdrDraw(gpm,"Pz",kFullDiamond,kBlue);
+  // Don't draw gam+jet pTbal, because different MC => kFSR does not cancel
+  tdrDraw(gpp,"Pz",kOpenDiamond,kBlue);
+
   c1->cd(1);
   gPad->SetLogx();
 
@@ -96,6 +117,9 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
   TGraphErrors *grm = tools::ratioGraphs(gem,gmm);
   TGraphErrors *grp = tools::ratioGraphs(gep,gmp);
 
+  TGraphErrors *grpm = tools::ratioGraphs(gpm,gmm);
+  TGraphErrors *grpp = tools::ratioGraphs(gpp,gmp);
+
   // Change result to (Zee/Zmm-1)*100
   for (int i = 0; i != grm->GetN(); ++i) {
     grm->SetPoint(i, grm->GetX()[i], (grm->GetY()[i]-1)*100);
@@ -105,26 +129,66 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
     grp->SetPoint(i, grp->GetX()[i], (grp->GetY()[i]-1)*100);
     grp->SetPointError(i, grp->GetEX()[i], (grp->GetEY()[i])*100);
   }
+  // Change result to (gam/Zmm-1)*100
+  for (int i = 0; i != grpm->GetN(); ++i) {
+    grpm->SetPoint(i, grpm->GetX()[i], (grpm->GetY()[i]-1)*100);
+    grpm->SetPointError(i, grpm->GetEX()[i], (grpm->GetEY()[i])*100);
+  }
+  for (int i = 0; i != grpp->GetN(); ++i) {
+    grpp->SetPoint(i, grpp->GetX()[i], (grpp->GetY()[i]-1)*100);
+    grpp->SetPointError(i, grpp->GetEX()[i], (grpp->GetEY()[i])*100);
+  }
 
-  TLegend *legdw = tdrLeg(0.5,0.70,0.70,0.90);
+
+
+  TLegend *legdw = tdrLeg(0.5,0.65,0.70,0.90);
   legdw->AddEntry(grm,"MPF","PL");
   legdw->AddEntry(grp,"p_{T} balance","PL");
+  legdw->AddEntry(grpm,"#gamma / Z#mu#mu MPF","PL");
+  legdw->AddEntry(grpp,"#gamma / Z#mu#mu p_{T}^{bal}","PL");
 
   tdrDraw(grm,"Pz",kFullCircle,kGreen+2);
   tdrDraw(grp,"Pz",kOpenSquare,kGreen+2);
+
+  tdrDraw(grpm,"Pz",kFullDiamond,kBlue);
+  // Don't draw gam+jet pTbal, because different MC => kFSR does not cancel
+  tdrDraw(grpp,"Pz",kOpenDiamond,kBlue);
 
   TMultiGraph *gm = new TMultiGraph();
   gm->Add(grm);
   gm->Add(grp);
 
-  TF1 *fs = new TF1("fs","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",30,ptmax);
-  fs->SetParameters(0,0,0);//1.7,-1,1);
-  fs->FixParameter(2,0);
+  TF1 *fs = new TF1("fs","([0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)-1)*100",
+		    30,ptmax);
+  fs->SetParameters(1,0,0);//1.7,-1,1);
+  //fs->FixParameter(2,0);
 
   gm->Fit(fs,"QRN");
   fs->SetLineStyle(kSolid);
   fs->SetLineColor(kGreen+2);
   fs->Draw("SAME");
+
+  TMatrixD emat(fs->GetNpar(),fs->GetNpar());
+  gMinuit->mnemat(&emat[0][0],fs->GetNpar());
+
+  // d/dp0=1, d/dp1=log(x), d/dp2=log(x)^2
+  // eps =   (d/dp0)^2 m_00 +   (d/dp1)^2 m_11   +   (d/dp2)^2 m_22
+  //     + 2*(d/dp0/p1)m_01 + 2*(d/dp0/p2)m_02 + 2*(d/dp1/p2)m_12
+  TF1 *fse = new TF1("fse","([0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)"
+		     "+ [3]*sqrt([4] + pow(log(0.01*x),2)*[5]"
+		     "+ pow(log(0.01*x),4)*[6]"
+		     "+ 2*log(0.01*x)*[7]+2*pow(log(0.01*x),2)*[8]"
+		     "+ 2*pow(log(0.01*x),3)*[9])"
+		     " - 1)*100",30,ptmax);
+  fse->SetParameters(fs->GetParameter(0),fs->GetParameter(1),
+		     fs->GetParameter(2), +1,
+		     emat[0][0], emat[1][1], emat[2][2],
+		     emat[0][1], emat[0][2], emat[1][2]);
+
+  fse->SetLineColor(kGreen-8);
+  fse->DrawClone("SAME");
+  fse->SetParameter(3, -1);
+  fse->DrawClone("SAME");
   
   TLatex *tex = new TLatex();
   tex->SetNDC();
@@ -135,11 +199,14 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
   tex->DrawLatex(0.20,0.20,Form("#chi^{2}/NDF = %1.1f/%d",
 				fs->GetChisquare(), fs->GetNDF()));
   tex->DrawLatex(0.20,0.15,Form("p_{0} = %1.2f #pm %1.2f",
-				fs->GetParameter(0),fs->GetParError(0)));
+				100*(fs->GetParameter(0)-1),
+				100*fs->GetParError(0)));
   tex->DrawLatex(0.20,0.10,Form("p_{1} = %1.2f #pm %1.2f",
-				fs->GetParameter(1),fs->GetParError(1)));
+				100.*fs->GetParameter(1),
+				100.*fs->GetParError(1)));
   tex->DrawLatex(0.20,0.05,Form("p_{2} = %1.2f #pm %1.2f",
-				fs->GetParameter(2),fs->GetParError(2)));
+				100.*fs->GetParameter(2),
+				100.*fs->GetParError(2)));
 
 
   // Compare to Zee mass corrections
