@@ -624,6 +624,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_inactive_%s_%s_%d",1<<i,cm,cs,i));
 
     double escale(0);
+    bool gain6(true), gain1(true);
     const int n0 = nsample0;
     const int n1 = nsamples+nsample0;
     if (s=="multijet" && m=="ptchs") { // imethod==0) {
@@ -642,9 +643,21 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       // BCDEFGH 0.2%: 54.5/56 0.986,0.023(0.6199) => some tension
       //if (epoch=="GH" || epoch=="BCDEFGH") escale = 0.005;
       escale = 0.005;
+      gain6 = true; gain1 = true;//false;
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_gamjet_%02.0f_%d",
 		       (1<<(n0+igj) | (1<<(n1+igj))), escale*1000., i));
+      is = hs.size();
+      is_gj = hs.size();
+    }
+    // Separate photon scale uncertainty for gains 1 and 6 (pT>400 GeV)
+    // (turned off for time being)
+    if (s=="gamjet" && m=="mpfchs1") { //imethod==1{
+      escale = 0;//0.005;
+      gain6 = false; gain1 = false;//true;
+      // Use same source for both MPF and pT balance 
+      h2->SetName(Form("bm%d_scale2_gamjet_%03.0f_%d",
+		       (1<<(n0+igj) | (1<<(n1+igj))), escale*10000., i));
       is = hs.size();
       is_gj = hs.size();
     }
@@ -652,30 +665,38 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //escale = 0.002; // Legacy2016G, Zee mass fit within 0.2% up to 300 GeV
       escale = 0.0005; // Legacy2016BCDEFGH after minitools/drawZmass.C fit
       // Use same source for both MPF and pT balance
-      h2->SetName(Form("bm%d_scale_zeejet_%02.0f_%d",
-		       (1<<(n0+izee) | (1<<(n1+izee))), escale*1000, i));
+      h2->SetName(Form("bm%d_scale_zeejet_%03.0f_%d",
+		       (1<<(n0+izee) | (1<<(n1+izee))), escale*10000, i));
       is_zee = hs.size();
     }
     if (s=="zmmjet" && m=="ptchs") { // imethod==0) {
       //escale = 0.002; // Legacy2016G, Zmm mass fit within 0.2% up to 300 GeV
       escale = 0.0005; // Legacy2016BCDEFGH minitools/drawZmass.C fit
       // Use same source for both MPF and pT balance
-      h2->SetName(Form("bm%d_scale_zmmjet_%02.0f_%d",
-		       (1<<(n0+izmm) | (1<<(n1+izmm))), escale*1000, i));
+      h2->SetName(Form("bm%d_scale_zmmjet_%03.0f_%d",
+		       (1<<(n0+izmm) | (1<<(n1+izmm))), escale*10000, i));
       is_zmm = hs.size();
     }
     if (s=="zlljet" && m=="ptchs") {
       escale = 0.0005;
       // Use same source for both MPF and pT balance
-      h2->SetName(Form("bm%d_scale_zlljet_%02.0f_%d",
-		       (1<<(n0+izll) | (1<<(n1+izll))), escale*1000, i));
+      h2->SetName(Form("bm%d_scale_zlljet_%03.0f_%d",
+		       (1<<(n0+izll) | (1<<(n1+izll))), escale*10000, i));
       is_zll = hs.size();
     }
 
     // Same scale uncertainty applies to all pT bins
+    // UPDATE: now separated by ECAL gain
     for (int j = 1; j != h2->GetNbinsX()+1; ++j) {
-      h2->SetBinContent(j, escale);
-      h2->SetBinError(j, escale);
+      if (gain6 && h2->GetBinCenter(j)<400. ||
+	  gain1 && h2->GetBinCenter(j)>=400.) {
+	h2->SetBinContent(j, escale);
+	h2->SetBinError(j, escale);
+      }
+      else {
+	h2->SetBinContent(j, 0.);
+	h2->SetBinError(j, 0.);
+      }
     } // for j
 
     hs.push_back(h2);
@@ -1030,7 +1051,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     jesfit->SetParameters(0.98, 0.0);
   }
   if (njesFit==3 && useOff) {
-    jesfit->SetParameters(0.98, 0.0, 0.0);
+    //jesfit->SetParameters(0.98, 0.0, 0.0);
+    //jesfit->SetParameters(0.988, 0.083, -0.922); // GH
+    jesfit->SetParameters(0.982, 0.136, -0.952); // BCD
   }
   if (njesFit==3 && useTDI) {
     jesfit->SetParameters(0.985, 0.001, 0.5);
