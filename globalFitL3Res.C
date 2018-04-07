@@ -246,9 +246,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   MultijetBinnedSum* MPF_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF );
   if(dropFirstXNewMultijetTriggerBins>0)MPF_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
   measurements.emplace_back(MPF_MJ);//new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF ));
-//  MultijetBinnedSum* MJB_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal );
-//  if(dropFirstXNewMultijetTriggerBins>0)MJB_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
-//  measurements.emplace_back(MJB_MJ);//new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF ));
+  MultijetBinnedSum* MJB_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal );
+  if(dropFirstXNewMultijetTriggerBins>0)MJB_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
+  measurements.emplace_back(MJB_MJ);//new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF ));
   for (auto const &measurement: measurements)
     _lossFunc->AddMeasurement(measurement.get());
 
@@ -996,6 +996,37 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     g2->DrawClone("SAMEPz");
   }
 
+  JetCorrStd2P  jetCorr2Dummy;
+  for (auto &i: MultijetNuisances.Multijet_NuisanceCollection){
+    *std::get<double*>(i) = 0.;
+  }
+    
+  MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),MultijetBinnedSum::Method::MPF );
+  MultijetBinnedSum* MJBMultijet = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),MultijetBinnedSum::Method::PtBal );
+  if(dropFirstXNewMultijetTriggerBins>0){
+    MPFMultijet->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
+    MJBMultijet->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
+  }
+  // MPF
+  TH1D MPF_Raw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::bal);
+  TH1D MPF_SimRaw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D* MPF_RatioRaw = (TH1D*) MPF_SimRaw.Clone("MPF_RatioRaw");
+  MPF_RatioRaw->Divide(&MPF_Raw);
+  MPF_RatioRaw->SetMarkerSize(0.5);
+
+  // MJB
+  TH1D MJB_Raw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::bal);
+  TH1D MJB_SimRaw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D* MJB_RatioRaw = (TH1D*) MJB_SimRaw.Clone("MJB_RatioRaw");
+  MJB_RatioRaw->Divide(&MJB_Raw);
+  MJB_RatioRaw->SetMarkerSize(0.5);
+  MJB_RatioRaw->SetMarkerStyle(kOpenCircle);
+
+  if(useNewMultijet){
+    MPF_RatioRaw->Draw("SAME");
+    MJB_RatioRaw->Draw("SAME");
+  }
+
   ///////////////////////
   // Draw raw response
   //////////////////////
@@ -1042,30 +1073,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     g3->DrawClone("SAMEPz");
   }
 
-  JetCorrStd2P  jetCorr2Dummy;
-  MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),MultijetBinnedSum::Method::MPF );
-  MultijetBinnedSum* MJBMultijet = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),MultijetBinnedSum::Method::PtBal );
-  if(dropFirstXNewMultijetTriggerBins>0){
-    MPFMultijet->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
-    MJBMultijet->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
+  if(useNewMultijet){
+    MPF_RatioRaw->Draw("SAME");
+    MJB_RatioRaw->Draw("SAME");
   }
-  // MPF
-  TH1D MPF_Raw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::bal);
-  TH1D MPF_SimRaw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
-  TH1D* MPF_RatioRaw = (TH1D*) MPF_SimRaw.Clone("MPF_RatioRaw");
-  MPF_RatioRaw->Divide(&MPF_Raw);
-  MPF_RatioRaw->SetMarkerSize(0.5);
-  MPF_RatioRaw->Draw("SAME");
-
-  // MJB
-  TH1D MJB_Raw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::bal);
-  TH1D MJB_SimRaw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
-  TH1D* MJB_RatioRaw = (TH1D*) MJB_SimRaw.Clone("MJB_RatioRaw");
-  MJB_RatioRaw->Divide(&MJB_Raw);
-  MJB_RatioRaw->SetMarkerSize(0.5);
-  MJB_RatioRaw->SetMarkerStyle(kOpenCircle);
-  MJB_RatioRaw->Draw("SAME");
-
+  
   ///////////////////////
   // Perform global fit
   //////////////////////
@@ -1303,13 +1315,6 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 		   tmp_par[i],tmp_err[i]);
   }
   cout << endl;
-//  cout << "MultijetNuisances.  MPF_JER" << MultijetNuisances.  MPF_JER << " "<<  endl; 
-//  cout << "MultijetNuisances.  MPF_JEC" << MultijetNuisances.  MPF_JEC << " "<<  endl ;
-//  cout << "MultijetNuisances.  MPF_FSR" << MultijetNuisances.  MPF_FSR << " "<<  endl ;
-//  cout << "MultijetNuisances.  MPF_PU "<<  MultijetNuisances.  MPF_PU << " " <<  endl;
-//  for (auto &i: MultijetNuisances.Multijet_NuisanceCollection){
-//    std::cout << std::get<std::string>(i).c_str() << " value "<< *std::get<double*>(i) <<std::endl;
-//  }
 
 
 
