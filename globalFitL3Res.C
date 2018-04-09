@@ -220,7 +220,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if(verboseGF)cout << Form("Running globalFitL3Res(etamin=%02.2f,etamax=%02.2f,epoch=%s",etamin,etamax,epoch.c_str()) << endl << flush;
   _etamin = etamin;
   const char *cep = epoch.c_str();
-  //njesFit = (njesgFit==3 && useTDI && (epoch=="G"||epoch=="H") ? 2 : njesFit);
+  //njesFit = (njesFit==3 && useTDI && (epoch=="G"||epoch=="H") ? 2 : njesFit);
 
   if(_lossFunc!=0){
     delete _lossFunc;
@@ -369,7 +369,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izll = -1;
   const int izee = -1;
   const int izmm = -1;
-  /*
+  */
 
 
   /*
@@ -1249,7 +1249,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if(np==1&& !(etamin==0.&&etamax==1.3)){
       txtL2L3 << Form("\n %7.4f  %7.4f  5 10 6500 %7.4f 0.0 0.0 ", etamin, etamax, tmp_par[0]);
     }
-
+  }
 
   for (int isample = 0; isample != nsamples; ++isample) {
     for (int imethod = 0; imethod != nmethods; ++imethod) {
