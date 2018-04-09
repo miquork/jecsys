@@ -51,7 +51,7 @@ string scalingForL2OrL3Fit = "ApplyL3ResDontScaleDijets"; //"None" - for inpunt 
 //"ApplyL3ResDontScaleDijets" - apply barrel JES (use case: check closure when only L2Res is applied to the inputs and L3Res didn't change)
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
-bool useNewMultijet = true;
+bool useNewMultijet = false;
 //int dropFirstXNewMultijetTriggerBins = 3; //3:ptlead>400GeV
 int dropFirstXNewMultijetTriggerBins = 3; //3:ptlead>400GeV
 bool verboseGF = false;
@@ -228,6 +228,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   auto jetCorr2 = make_unique<JetCorrStd2P>();
   auto jetCorr3 = make_unique<JetCorrStd3P>();
   
+  if(njesFit==1){
+    _lossFunc = new CombLossFunction(move(jetCorr2));
+    std::cout << "FORCING TO DEACTIVATE NEW MULTIJET: 'njesFit==1' not supported right now" << std::endl;
+    useNewMultijet=false;
+  }
   if(njesFit==2)_lossFunc = new CombLossFunction(move(jetCorr2));
   if(njesFit==3)_lossFunc = new CombLossFunction(move(jetCorr3));
   cout << "going to use _lossFunc" << _lossFunc << " " << _lossFunc->GetNumParams()<< endl;
@@ -277,10 +282,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const double ptmj = 30.;
   const char *ct = "ratio";
   //
-  const int nmethods = 2;
-  const char* methods[nmethods] = {"ptchs","mpfchs1"};
-  //const int nmethods = 1;//MPFOnlyTest for FineEtaBins
-  //const char* methods[nmethods] = {"mpfchs1"};
+  //const int nmethods = 2;
+  //const char* methods[nmethods] = {"ptchs","mpfchs1"};
+  const int nmethods = 1;//MPFOnlyTest for FineEtaBins
+  const char* methods[nmethods] = {"mpfchs1"};
   ////const char* methods[nmethods] = {"ptchs"};
   _nmethods = nmethods; // for multijets in global fit
 
@@ -312,17 +317,6 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   */
 
   /*
-  // Global fit with only dijet
-  const int nsamples = 1;
-  const int nsample0 = 0; // first Z/gamma+jet sample
-  const char* samples[1] = {"dijet"};
-  const int igj = -1;
-  const int izll = -1;
-  const int izee = -1;
-  const int izmm = -1;
-  */
-
-  /*
   // Global fit without multijets/dijets
   const int nsamples = 3;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -332,7 +326,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izmm = 2;
   */
   
-  
+  /*  
   // Global fit without multijets/dijets and with merged Z+jet
   const int nsamples = 2;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -341,7 +335,41 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izll = 1;
   const int izee = -1;
   const int izmm = -1;
+  */
   
+  /*
+  // Global fit with  merged Z+jet only
+  const int nsamples = 1;
+  const int nsample0 = 0; // first Z/gamma+jet sample
+  const char* samples[3] = {"zlljet"};
+  const int igj = -1;
+  const int izll = 0;
+  const int izee = -1;
+  const int izmm = -1;
+  */
+
+  
+  // Global fit with gamma+jet only
+  const int nsamples = 1;
+  const int nsample0 = 0; // first Z/gamma+jet sample
+  const char* samples[3] = {"gamjet"};
+  const int igj = 0;
+  const int izll = -1;
+  const int izee = -1;
+  const int izmm = -1;
+  
+    
+  /*
+  // Global fit with only dijet
+  const int nsamples = 1;
+  const int nsample0 = 1; // first Z/gamma+jet sample
+  const char* samples[1] = {"dijet"};
+  const int igj = -1;
+  const int izll = -1;
+  const int izee = -1;
+  const int izmm = -1;
+  /*
+
 
   /*
   // Global fit with all samples: multijets/dijets, gamma+jet, merged Z+jet
@@ -716,8 +744,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     // Same scale uncertainty applies to all pT bins
     // UPDATE: now separated by ECAL gain
     for (int j = 1; j != h2->GetNbinsX()+1; ++j) {
-      if (gain6 && h2->GetBinCenter(j)<400. ||
-	  gain1 && h2->GetBinCenter(j)>=400.) {
+      if ((gain6 && h2->GetBinCenter(j)<400.) ||
+	  (gain1 && h2->GetBinCenter(j)>=400.)) {
 	h2->SetBinContent(j, escale);
 	h2->SetBinError(j, escale);
       }
@@ -1195,7 +1223,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   cout << endl;
   cout <<"New multijet:" <<endl;
   cout << "Dimensions: "<< _lossFunc->GetNDF() + _lossFunc->GetNumParams() << endl;
-  cout << "chi2(multijet) term: "<< _lossFunc->Eval(parTransForMultiJet,MultijetNuisances) << endl;
+  if(useNewMultijet)cout << "chi2(multijet) term: "<< _lossFunc->Eval(parTransForMultiJet,MultijetNuisances) << endl;
   cout << endl;
   cout << "For data chi2/ndf = " << chi2_data << " / " << Nk << endl;
   cout << "For sources chi2/ndf = " << chi2_src << " / " << nsrc_true << endl;
@@ -1709,7 +1737,7 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 
 //  cout << _lossFunc << endl;
   assert(_lossFunc!=0);
-  assert(_lossFunc->GetNumParams()==(unsigned int)_jesFit->GetNpar());
+  if(useNewMultijet)assert(_lossFunc->GetNumParams()==(unsigned int)_jesFit->GetNpar());
   assert(parTransForMultiJet.size()==(unsigned int)_jesFit->GetNpar());
   parTransForMultiJet[0] = par[0]-1;
   parTransForMultiJet[1] = par[1];
