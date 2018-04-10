@@ -53,7 +53,7 @@ string scalingForL2OrL3Fit = "ApplyL3ResDontScaleDijets"; //"None" - for inpunt 
 
 bool useNewMultijet = true;
 //int dropFirstXNewMultijetTriggerBins = 3; //3:ptlead>400GeV
-int dropFirstXNewMultijetTriggerBins = 3; //3:ptlead>400GeV
+int dropFirstXNewMultijetTriggerBins = 0; //3:ptlead>400GeV
 bool verboseGF = false;
 
 unsigned int _nsamples(0);
@@ -91,8 +91,8 @@ double fixTDI = 0; // do NOT fix TDI for BCD+EF and G+H
 bool useEG = false; // ECAL gain shift for 3p fit
 
 //const int njesFit = 1; // scale only
-const int njesFit = 2; // scale(ECAL)+HB
-//const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
+//const int njesFit = 2; // scale(ECAL)+HB
+const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
 //const int njesFit = 3; //useTDI=true; // scale(ECAL)+HB+tracker (switchable)
 //const int njesFit = 3; //useEG=true; // scale(ECAL)+HB+ECALgain
 //const int njesFit = 4; // scale(ECAL)+HB+offset+ECALgain
@@ -232,8 +232,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if(njesFit==3)_lossFunc = new CombLossFunction(move(jetCorr3));
   cout << "going to use _lossFunc" << _lossFunc << " " << _lossFunc->GetNumParams()<< endl;
   
-  // Andrey Popov, March 19, 2018
-  // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
+  // // Andrey Popov, March 19, 2018
+  // // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
+  // Andrey Popov, April 10, 2018 (v2 of above)
+  // https://indico.cern.ch/event/720429/#7-unhealthy-high-pt-electrons
   map<string,const char*> fm_files;
   fm_files["BCD"] = "BCD";
   fm_files["EF"] = "EFearly";
@@ -243,10 +245,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   fm_files["BCDEFGH"] = "All";
 
   list<unique_ptr<MeasurementBase>> measurements;
-  MultijetBinnedSum* MPF_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF );
+  MultijetBinnedSum* MPF_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319v2_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF );
   if(dropFirstXNewMultijetTriggerBins>0)MPF_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
   measurements.emplace_back(MPF_MJ);//new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF ));
-  MultijetBinnedSum* MJB_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal );
+  MultijetBinnedSum* MJB_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319v2_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal );
   if(dropFirstXNewMultijetTriggerBins>0)MJB_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
   measurements.emplace_back(MJB_MJ);//new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF ));
   for (auto const &measurement: measurements)
@@ -1014,6 +1016,15 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   MPF_RatioRaw->Divide(&MPF_Raw);
   MPF_RatioRaw->SetMarkerSize(0.5);
 
+  // Center points around input JES
+  for (int i = 0; i != MPF_RatioRaw->GetNbinsX()+1; ++i) {
+    double ptlead = MPF_RatioRaw->GetBinCenter(i);
+    double mpf = MPF_RatioRaw->GetBinContent(i);
+    double jesfit = herr_ref->GetBinContent(herr_ref->FindBin(ptlead));
+    //_jesFit->Eval(ptlead);
+    MPF_RatioRaw->SetBinContent(i, mpf * jesfit);
+  }
+
   // MJB
   TH1D MJB_Raw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::bal);
   TH1D MJB_SimRaw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
@@ -1021,6 +1032,16 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   MJB_RatioRaw->Divide(&MJB_Raw);
   MJB_RatioRaw->SetMarkerSize(0.5);
   MJB_RatioRaw->SetMarkerStyle(kOpenCircle);
+
+  // Center points around input JES
+  for (int i = 0; i != MJB_RatioRaw->GetNbinsX()+1; ++i) {
+    double ptlead = MJB_RatioRaw->GetBinCenter(i);
+    double mjb = MJB_RatioRaw->GetBinContent(i);
+    double jesfit = herr_ref->GetBinContent(herr_ref->FindBin(ptlead));
+    //_jesFit->Eval(ptlead);
+    MJB_RatioRaw->SetBinContent(i, mjb * jesfit);
+  }
+
 
   if(useNewMultijet){
     MPF_RatioRaw->Draw("SAME");
@@ -1090,10 +1111,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     jesfit->SetParameter(0, 0.98);
   }
   if (njesFit==2) {
-    jesfit->SetParameters(0.98, 0.0);
+    jesfit->SetParameters(0.990, 0.043);
   }
   if (njesFit==3 && useOff) {
-    jesfit->SetParameters(0.982, 0.0136, -0.952);
+    jesfit->SetParameters(0.989, 0.053, -0.370);
   }
   if (njesFit==3 && useTDI) {
     jesfit->SetParameters(0.985, 0.001, 0.5);
@@ -1478,6 +1499,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //MJB_RatioPostFitScaled->Scale(_jesFit->Eval(450.)/MJB_RatioPostFit->GetBinContent(MJB_RatioPostFit->FindBin(450.)));
   //MJB_RatioPostFitScaled->Scale(_jesFit->Eval(450.));
   //MJB_RatioPostFitScaled->Scale(_jesFit->Eval(450. * 0.4));
+  // Center points around fitted JES
   for (int i = 0; i != MJB_RatioPostFitScaled->GetNbinsX()+1; ++i) {
     double ptlead = MJB_RatioPostFitScaled->GetBinCenter(i);
     double mjb = MJB_RatioPostFitScaled->GetBinContent(i);
