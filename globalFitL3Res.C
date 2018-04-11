@@ -103,6 +103,7 @@ Nuisances MultijetNuisances;
 const int nsrcnmj = MultijetNuisances.MPF_NuisanceCollection.size() + MultijetNuisances.MJB_NuisanceCollection.size();
 
 CombLossFunction* _lossFunc=0;
+CombLossFunction* _inputFunc=0;
 const double ptminJesFit = 30;
 TF1 *fhb(0), *fl1(0), *ftr(0), *feg(0); double _etamin(0);
 Double_t jesFit(Double_t *x, Double_t *p) {
@@ -225,6 +226,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if(_lossFunc!=0){
     delete _lossFunc;
   }
+  if(_inputFunc!=0){
+    delete _inputFunc;
+  }
   auto jetCorr2 = make_unique<JetCorrStd2P>();
   auto jetCorr3 = make_unique<JetCorrStd3P>();
   
@@ -232,6 +236,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if(njesFit==3)_lossFunc = new CombLossFunction(move(jetCorr3));
   cout << "going to use _lossFunc" << _lossFunc << " " << _lossFunc->GetNumParams()<< endl;
   
+  // This is for drawing multijet in _raw.pdf and _orig.pdf around input JEC,
+  // to validate the global fit steps (kFSR, shifting by nuisances)
+  _inputFunc = new CombLossFunction(move(jetCorr3));
+
   // // Andrey Popov, March 19, 2018
   // // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
   // Andrey Popov, April 10, 2018 (v2 of above)
@@ -963,12 +971,6 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   herr_ref->DrawClone("SAME E5");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
 
-  legp->AddEntry(hrun1," ","");
-  legm->AddEntry(hrun1,"Run I","FL");
-
-  legp->AddEntry(herr_ref," ","");
-  legm->AddEntry(herr_ref,"07AugV4","FL");
-
   hrun1->SetFillStyle(kNone);
   hrun1->DrawClone("SAME E5");
   (new TGraph(hrun1))->DrawClone("SAMEL");
@@ -1016,15 +1018,6 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   MPF_RatioRaw->Divide(&MPF_Raw);
   MPF_RatioRaw->SetMarkerSize(0.5);
 
-  // Center points around input JES
-  for (int i = 0; i != MPF_RatioRaw->GetNbinsX()+1; ++i) {
-    double ptlead = MPF_RatioRaw->GetBinCenter(i);
-    double mpf = MPF_RatioRaw->GetBinContent(i);
-    double jesfit = herr_ref->GetBinContent(herr_ref->FindBin(ptlead));
-    //_jesFit->Eval(ptlead);
-    MPF_RatioRaw->SetBinContent(i, mpf * jesfit);
-  }
-
   // MJB
   TH1D MJB_Raw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::bal);
   TH1D MJB_SimRaw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
@@ -1034,19 +1027,36 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   MJB_RatioRaw->SetMarkerStyle(kOpenCircle);
 
   // Center points around input JES
-  for (int i = 0; i != MJB_RatioRaw->GetNbinsX()+1; ++i) {
+  for (int i = 1; i != MPF_RatioRaw->GetNbinsX()+1; ++i) {
+    double ptlead = MPF_RatioRaw->GetBinCenter(i);
+    double mpf = MPF_RatioRaw->GetBinContent(i);
+    double jesfit = herr_ref->GetBinContent(herr_ref->FindBin(ptlead));
+    MPF_RatioRaw->SetBinContent(i, mpf * jesfit);
+  }
+  for (int i = 1; i != MJB_RatioRaw->GetNbinsX()+1; ++i) {
     double ptlead = MJB_RatioRaw->GetBinCenter(i);
     double mjb = MJB_RatioRaw->GetBinContent(i);
     double jesfit = herr_ref->GetBinContent(herr_ref->FindBin(ptlead));
-    //_jesFit->Eval(ptlead);
     MJB_RatioRaw->SetBinContent(i, mjb * jesfit);
   }
-
+  // Clone and correct for FSR
+  TH1D *MPF_RatioOrig = (TH1D*)MPF_RatioRaw->Clone("MPF_RatioOrig");
+  TH1D *MJB_RatioOrig = (TH1D*)MJB_RatioRaw->Clone("MJB_RatioOrig");
 
   if(useNewMultijet){
-    MPF_RatioRaw->Draw("SAME");
-    MJB_RatioRaw->Draw("SAME");
+    MPF_RatioOrig->Draw("SAME");
+    MJB_RatioOrig->Draw("SAME");
+
+    legp->AddEntry(MJB_RatioRaw," ","");
+    legm->AddEntry(MPF_RatioRaw,"Multijet","PL");
   }
+
+  legp->AddEntry(hrun1," ","");
+  legm->AddEntry(hrun1,"Run I","FL");
+
+  legp->AddEntry(herr_ref," ","");
+  legm->AddEntry(herr_ref,"07AugV4","FL");
+
 
   ///////////////////////
   // Draw raw response
@@ -1115,6 +1125,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
   if (njesFit==3 && useOff) {
     jesfit->SetParameters(0.989, 0.053, -0.370);
+    // per era settings to make converge faster with multijets
+    if (epoch=="BCD") jesfit->SetParameters(0.983, 0.138, -0.772);
+    if (epoch=="GH") jesfit->SetParameters(0.989, 0.053, -0.370);
   }
   if (njesFit==3 && useTDI) {
     jesfit->SetParameters(0.985, 0.001, 0.5);
