@@ -42,6 +42,18 @@ bool correctZmmMass =  true;
 bool correctZeeMass =  true; 
 bool correctGamMass =  true;//false; // V6-although inconsistent
 bool correctUncert  =  true; 
+//set to false for [at least] EGM3 as not redone, yet
+//bool correctZmmMass =  false; 
+//bool correctZeeMass =  false; 
+//bool correctGamMass =  false;//false; // V6-although inconsistent
+//bool correctUncert  =  false; 
+
+string EGM_Config = "EGM2";
+//EGM1: raw Supercluster
+//EGM2: plain MiniAOD
+//EGM3: 80X regression + 80X Scale and Smearing
+//for latest inputs
+
 bool correctGamScale = false; 
 double valueGamScale = 1.;
 // Legacy 2016: all false 0.990/0.006, 84.4/56, 0.8781
@@ -150,7 +162,10 @@ void reprocess(string epoch="") {
   fp_files["GH"] = "H";//NB!  "V1_FGH";
   fp_files["BCDEFGH"] = "BCDEFGH";//"BCEDFGH";//"V1_BCDEFGH";
   //TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", fp_files[epoch]),"READ"); // 47.5/35
-  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_L2res_V6_%s_2016.root", fp_files[epoch]),"READ"); // 58.0/35
+  //  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_L2res_V6_%s_2016.root", fp_files[epoch]),"READ"); // 58.0/35 //with some intermediat dev version of Scale/Smearing applied
+
+  //EGM1/2/3 variants from https://indico.cern.ch/event/719411/ 04 April 2018 agenda; slightly renamed for conformity
+  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_L2res_V6_%s_%s.root", fp_files[epoch], EGM_Config.c_str()),"READ"); // 
 
   assert(fp && !fp->IsZombie());
 
@@ -161,14 +176,23 @@ void reprocess(string epoch="") {
   map<string,const char*> fz_files;
   fz_files["BCD"] = "BCD_2018-03-06";
   fz_files["EF"] = "EF_2018-03-06";
-  //fz_files["G"] = "G_2017-12-08";
-  //fz_files["H"] = "H_2017-12-08";
   fz_files["GH"] = "GH_2018-03-06";
-  fz_files["BCDEFGH"] = "BCDEFGH_2018-03-06"; 
-  //TFile *fzmm = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s_wide.root", fz_files[epoch]),"READ");
-  //TFile *fzee = new TFile(Form("rootfiles/combination_ZJet_Zee_%s_wide.root",fz_files[epoch]),"READ");
+  fz_files["BCDEFGH"] = "BCDEFGH_2018-03-06";
+  //Zee inputs for EGM1/2/3
+  fz_files["BCDEGM1"] = "rawECAL_Zee_BCD_2018-04-04";
+  fz_files["EFEGM1"] = "rawECAL_Zee_EF_2018-04-04";
+  fz_files["GHEGM1"] = "rawECAL_Zee_GH_2018-04-04";
+  fz_files["BCDEFGHEGM1"] = "rawECAL_Zee_BCDEFGH_2018-04-04"; 
+  fz_files["BCDEGM2"] = "Zee_BCD_2018-03-06";
+  fz_files["EFEGM2"] = "Zee_EF_2018-03-06";
+  fz_files["GHEGM2"] = "Zee_GH_2018-03-06";
+  fz_files["BCDEFGHEGM2"] = "Zee_BCDEFGH_2018-03-06"; 
+  fz_files["BCDEGM3"] = "egmUpdate_Zee_BCD_2018-04-04";
+  fz_files["EFEGM3"] = "egmUpdate_Zee_EF_2018-04-04";
+  fz_files["GHEGM3"] = "egmUpdate_Zee_GH_2018-04-04";
+  fz_files["BCDEFGHEGM3"] = "egmUpdate_Zee_BCDEFGH_2018-04-04"; 
   TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_07Aug2017_Summer16_JECV6_Zmm_%s.root",fz_files[epoch]),"READ");
-  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_07Aug2017_Summer16_JECV6_Zee_%s.root",fz_files[epoch]),"READ");
+  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_07Aug2017_Summer16_JECV6_%s.root",fz_files[epoch+EGM_Config]),"READ");
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
