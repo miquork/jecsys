@@ -53,7 +53,7 @@ string scalingForL2OrL3Fit = "ApplyL3ResDontScaleDijets"; //"None" - for inpunt 
 
 bool useNewMultijet = false;
 //int dropFirstXNewMultijetTriggerBins = 3; //3:ptlead>400GeV
-int dropFirstXNewMultijetTriggerBins = 3; //3:ptlead>400GeV
+int dropFirstXNewMultijetTriggerBins = 0; //3:ptlead>400GeV
 bool verboseGF = false;
 
 unsigned int _nsamples(0);
@@ -91,8 +91,8 @@ double fixTDI = 0; // do NOT fix TDI for BCD+EF and G+H
 bool useEG = false; // ECAL gain shift for 3p fit
 
 //const int njesFit = 1; // scale only
-const int njesFit = 2; // scale(ECAL)+HB
-//const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
+//const int njesFit = 2; // scale(ECAL)+HB
+const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
 //const int njesFit = 3; //useTDI=true; // scale(ECAL)+HB+tracker (switchable)
 //const int njesFit = 3; //useEG=true; // scale(ECAL)+HB+ECALgain
 //const int njesFit = 4; // scale(ECAL)+HB+offset+ECALgain
@@ -103,6 +103,7 @@ Nuisances MultijetNuisances;
 const int nsrcnmj = MultijetNuisances.MPF_NuisanceCollection.size() + MultijetNuisances.MJB_NuisanceCollection.size();
 
 CombLossFunction* _lossFunc=0;
+CombLossFunction* _inputFunc=0;
 const double ptminJesFit = 30;
 TF1 *fhb(0), *fl1(0), *ftr(0), *feg(0); double _etamin(0);
 Double_t jesFit(Double_t *x, Double_t *p) {
@@ -225,6 +226,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if(_lossFunc!=0){
     delete _lossFunc;
   }
+  if(_inputFunc!=0){
+    delete _inputFunc;
+  }
   auto jetCorr2 = make_unique<JetCorrStd2P>();
   auto jetCorr3 = make_unique<JetCorrStd3P>();
   
@@ -237,8 +241,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if(njesFit==3)_lossFunc = new CombLossFunction(move(jetCorr3));
   cout << "going to use _lossFunc" << _lossFunc << " " << _lossFunc->GetNumParams()<< endl;
   
-  // Andrey Popov, March 19, 2018
-  // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
+  // This is for drawing multijet in _raw.pdf and _orig.pdf around input JEC,
+  // to validate the global fit steps (kFSR, shifting by nuisances)
+  _inputFunc = new CombLossFunction(move(jetCorr3));
+
+  // // Andrey Popov, March 19, 2018
+  // // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
+  // Andrey Popov, April 10, 2018 (v2 of above)
+  // https://indico.cern.ch/event/720429/#7-unhealthy-high-pt-electrons
   map<string,const char*> fm_files;
   fm_files["BCD"] = "BCD";
   fm_files["EF"] = "EFearly";
@@ -248,10 +258,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   fm_files["BCDEFGH"] = "All";
 
   list<unique_ptr<MeasurementBase>> measurements;
-  MultijetBinnedSum* MPF_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF );
+  MultijetBinnedSum* MPF_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319v2_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF );
   if(dropFirstXNewMultijetTriggerBins>0)MPF_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
   measurements.emplace_back(MPF_MJ);//new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF ));
-  MultijetBinnedSum* MJB_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal );
+  MultijetBinnedSum* MJB_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319v2_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal );
   if(dropFirstXNewMultijetTriggerBins>0)MJB_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
   measurements.emplace_back(MJB_MJ);//new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF ));
   for (auto const &measurement: measurements)
@@ -1004,12 +1014,6 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   herr_ref->DrawClone("SAME E5");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
 
-  legp->AddEntry(hrun1," ","");
-  legm->AddEntry(hrun1,"Run I","FL");
-
-  legp->AddEntry(herr_ref," ","");
-  legm->AddEntry(herr_ref,"07AugV4","FL");
-
   hrun1->SetFillStyle(kNone);
   hrun1->DrawClone("SAME E5");
   (new TGraph(hrun1))->DrawClone("SAMEL");
@@ -1065,10 +1069,37 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   MJB_RatioRaw->SetMarkerSize(0.5);
   MJB_RatioRaw->SetMarkerStyle(kOpenCircle);
 
-  if(useNewMultijet){
-    MPF_RatioRaw->Draw("SAME");
-    MJB_RatioRaw->Draw("SAME");
+  // Center points around input JES
+  for (int i = 1; i != MPF_RatioRaw->GetNbinsX()+1; ++i) {
+    double ptlead = MPF_RatioRaw->GetBinCenter(i);
+    double mpf = MPF_RatioRaw->GetBinContent(i);
+    double jesfit = herr_ref->GetBinContent(herr_ref->FindBin(ptlead));
+    MPF_RatioRaw->SetBinContent(i, mpf * jesfit);
   }
+  for (int i = 1; i != MJB_RatioRaw->GetNbinsX()+1; ++i) {
+    double ptlead = MJB_RatioRaw->GetBinCenter(i);
+    double mjb = MJB_RatioRaw->GetBinContent(i);
+    double jesfit = herr_ref->GetBinContent(herr_ref->FindBin(ptlead));
+    MJB_RatioRaw->SetBinContent(i, mjb * jesfit);
+  }
+  // Clone and correct for FSR
+  TH1D *MPF_RatioOrig = (TH1D*)MPF_RatioRaw->Clone("MPF_RatioOrig");
+  TH1D *MJB_RatioOrig = (TH1D*)MJB_RatioRaw->Clone("MJB_RatioOrig");
+
+  if(useNewMultijet){
+    MPF_RatioOrig->Draw("SAME");
+    MJB_RatioOrig->Draw("SAME");
+
+    legp->AddEntry(MJB_RatioRaw," ","");
+    legm->AddEntry(MPF_RatioRaw,"Multijet","PL");
+  }
+
+  legp->AddEntry(hrun1," ","");
+  legm->AddEntry(hrun1,"Run I","FL");
+
+  legp->AddEntry(herr_ref," ","");
+  legm->AddEntry(herr_ref,"07AugV4","FL");
+
 
   ///////////////////////
   // Draw raw response
@@ -1134,10 +1165,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     jesfit->SetParameter(0, 0.98);
   }
   if (njesFit==2) {
-    jesfit->SetParameters(0.98, 0.0);
+    jesfit->SetParameters(0.990, 0.043);
   }
   if (njesFit==3 && useOff) {
-    jesfit->SetParameters(0.982, 0.0136, -0.952);
+    jesfit->SetParameters(0.989, 0.053, -0.370);
+    // per era settings to make converge faster with multijets
+    if (epoch=="BCD") jesfit->SetParameters(0.983, 0.138, -0.772);
+    if (epoch=="GH") jesfit->SetParameters(0.989, 0.053, -0.370);
   }
   if (njesFit==3 && useTDI) {
     jesfit->SetParameters(0.985, 0.001, 0.5);
@@ -1524,6 +1558,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //MJB_RatioPostFitScaled->Scale(_jesFit->Eval(450.)/MJB_RatioPostFit->GetBinContent(MJB_RatioPostFit->FindBin(450.)));
   //MJB_RatioPostFitScaled->Scale(_jesFit->Eval(450.));
   //MJB_RatioPostFitScaled->Scale(_jesFit->Eval(450. * 0.4));
+  // Center points around fitted JES
   for (int i = 0; i != MJB_RatioPostFitScaled->GetNbinsX()+1; ++i) {
     double ptlead = MJB_RatioPostFitScaled->GetBinCenter(i);
     double mjb = MJB_RatioPostFitScaled->GetBinContent(i);
