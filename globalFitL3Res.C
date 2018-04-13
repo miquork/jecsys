@@ -282,11 +282,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const double ptmj = 30.;
   const char *ct = "ratio";
   //
-  //const int nmethods = 2;
-  //const char* methods[nmethods] = {"ptchs","mpfchs1"};
-  const int nmethods = 1;//MPFOnlyTest for FineEtaBins
-  const char* methods[nmethods] = {"mpfchs1"};
-  ////const char* methods[nmethods] = {"ptchs"};
+  const int nmethods = 2;
+  const char* methods[nmethods] = {"ptchs","mpfchs1"};
+  //const int nmethods = 1;//MPFOnlyTest for FineEtaBins
+  //const char* methods[nmethods] = {"mpfchs1"};
+  //const char* methods[nmethods] = {"ptchs"};
   _nmethods = nmethods; // for multijets in global fit
 
   // Global fit with multijets, gamma+jet, Z+jet
@@ -325,9 +325,20 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izee = 1;
   const int izmm = 2;
   */
-
   
-  /*  
+  /*
+  // Global fit with only dijets, merged Z+jet
+  const int nsamples = 2;
+  const int nsample0 = 1; // first Z/gamma+jet sample
+  const char* samples[3] = {(isl3 ? "multijet" : "dijet"),
+			    "zlljet"};
+  const int igj = -1;
+  const int izll = 0;
+  const int izee = -1;
+  const int izmm = -1;
+  */
+  
+  /*
   // Global fit without multijets/dijets and with merged Z+jet
   const int nsamples = 2;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -349,7 +360,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izmm = -1;
   */
 
-  
+  /*
   // Global fit with gamma+jet only
   const int nsamples = 1;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -358,7 +369,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izll = -1;
   const int izee = -1;
   const int izmm = -1;
-  
+  */
     
   /*
   // Global fit with only dijet
@@ -372,17 +383,18 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   */
 
 
-  /*
+  
   // Global fit with all samples: multijets/dijets, gamma+jet, merged Z+jet
   const int nsamples = 3;
   const int nsample0 = 1; // first Z/gamma+jet sample
   const char* samples[3] = {(isl3 ? "multijet" : "dijet"),
+			    //const char* samples[3] = {"dijet",
 			    "gamjet", "zlljet"};
   const int igj = 0;
   const int izll = 1;
   const int izee = -1;
   const int izmm = -1;
-  */
+    
   
   /*
   // Global fit without photon+jet
@@ -957,7 +969,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   texlabel["zlljet"] = "Z+jet";//"Zl^{+}l{-}+jet";
 
   TLegend *legm = tdrLeg(0.66,0.55,0.96,0.90);
-  if( (nmethods==1&&strcmp(methods[0],"mpfchs1")  ==0) || (nmethods==2 && strcmp(methods[1],"mpfchs")  ==0 )){
+  if( (nmethods==1&&strcmp(methods[0],"mpfchs1")  ==0) || (nmethods==2 && strcmp(methods[1],"mpfchs1")  ==0 )){
     legm->SetHeader("MPF");
     for (int i = 0; i != nsamples; ++i)
       legm->AddEntry(gs[i+(strcmp(methods[0],"mpfchs1")==0 ? 0 : nsamples)],texlabel[samples[i]],i==0 ? "" : "PL");
