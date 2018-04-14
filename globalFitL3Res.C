@@ -51,7 +51,7 @@ string scalingForL2OrL3Fit = "ApplyL3ResDontScaleDijets"; //"None" - for inpunt 
 //"ApplyL3ResDontScaleDijets" - apply barrel JES (use case: check closure when only L2Res is applied to the inputs and L3Res didn't change)
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
-bool useNewMultijet = false;
+bool useNewMultijet = true;//false;
 //int dropFirstXNewMultijetTriggerBins = 3; //3:ptlead>400GeV
 int dropFirstXNewMultijetTriggerBins = 0; //3:ptlead>400GeV
 bool verboseGF = false;
@@ -91,8 +91,8 @@ double fixTDI = 0; // do NOT fix TDI for BCD+EF and G+H
 bool useEG = false; // ECAL gain shift for 3p fit
 
 //const int njesFit = 1; // scale only
-const int njesFit = 2; // scale(ECAL)+HB
-//const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
+//const int njesFit = 2; // scale(ECAL)+HB
+const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
 //const int njesFit = 3; //useTDI=true; // scale(ECAL)+HB+tracker (switchable)
 //const int njesFit = 3; //useEG=true; // scale(ECAL)+HB+ECALgain
 //const int njesFit = 4; // scale(ECAL)+HB+offset+ECALgain
@@ -326,7 +326,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izmm = 2;
   */
 
-  
+  /*
   // Global fit without multijets/dijets
   const int nsamples = 3;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -335,7 +335,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izee = 1;
   const int izmm = 2;
   const int izll = -1;
-  
+  */
   
   /*
   // Global fit with only dijets, merged Z+jet
@@ -349,7 +349,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izmm = -1;
   */
   
-  /*
+
   // Global fit without multijets/dijets and with merged Z+jet
   const int nsamples = 2;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -358,7 +358,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izll = 1;
   const int izee = -1;
   const int izmm = -1;
-  */
+
   
   /*
   // Global fit with  merged Z+jet only
@@ -1170,9 +1170,21 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
   if (njesFit==3 && useOff) {
     jesfit->SetParameters(0.989, 0.053, -0.370);
-    // per era settings to make converge faster with multijets
-    if (epoch=="BCD") jesfit->SetParameters(0.983, 0.138, -0.772);
-    if (epoch=="GH") jesfit->SetParameters(0.989, 0.053, -0.370);
+    // per era settings to make converge faster with new multijets (EGM1 values)
+    if (epoch=="BCDEFGH") jesfit->SetParameters(0.988, 0.096, -0.338);
+    if (epoch=="BCD")     jesfit->SetParameters(0.983, 0.138, -0.714);
+    if (epoch=="EF")      jesfit->SetParameters(0.972, 0.135, -0.578);
+    if (epoch=="GH")      jesfit->SetParameters(0.989, 0.055, -0.377);
+    // per era settings to make converge faster with new multijets (EGM2 values)
+    //if (epoch=="BCDEFGH") jesfit->SetParameters(0.985, 0.088, -0.389);
+    //if (epoch=="BCD")     jesfit->SetParameters(0.983, 0.138, -0.785);
+    //if (epoch=="EF")      jesfit->SetParameters(0.973, 0.133, -0.530);
+    //if (epoch=="GH")      jesfit->SetParameters(0.989, 0.053, -0.370);
+    // per era settings to make converge faster with new multijets (EGM3 values)
+    //if (epoch=="BCDEFGH") jesfit->SetParameters(0.989, 0.095, -0.378);
+    //if (epoch=="BCD")     jesfit->SetParameters(0.984, 0.137, -0.798);
+    //if (epoch=="EF")      jesfit->SetParameters(0.973, 0.132, -0.608);
+    //if (epoch=="GH")      jesfit->SetParameters(0.990, 0.054, -0.413);
   }
   if (njesFit==3 && useTDI) {
     jesfit->SetParameters(0.985, 0.001, 0.5);
