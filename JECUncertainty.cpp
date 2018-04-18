@@ -34,7 +34,7 @@ using namespace std;
 // Turn debug mode on if the code fails with an exception from JEC packages
 // This is most likely a missing/misnamed file given to JetCorrectorParameters
 // The last file printed out before the crash in debug mode is usually the fault
-bool debug = false;//true;//false;
+bool debug = true;//true;//false;
 
 
 JECUncertainty::JECUncertainty(const jec::JetAlgo& algo, 
@@ -471,7 +471,9 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_03Feb2017HV3_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); // 03Feb
     //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
     //s = Form("%sSummer16_03Feb2017V7BCDEFGH_MPF_FLAT_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
-    s = Form("%sCollectL2Output_DijetZJetGammaJet_1Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    //s = Form("%sCollectL2Output_DijetZJetGammaJet_1Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    //    s = Form("%sNEW_CollectL2Output_GammaJetZJetDijet_1Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    s = Form("%sCollectL2Output_1par_MJDJ_gam_zll_PtBalMPF_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// Consistent zee/gamma+jet EGM2 after V6 corrections are applied
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -487,7 +489,9 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_03Feb2017HV3_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03Feb
     //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
     //s = Form("%sSummer16_03Feb2017V7BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
-    s = Form("%sCollectL2Output_DijetZJetGammaJet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    //s = Form("%sCollectL2Output_DijetZJetGammaJet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    //s = Form("%sNEW_CollectL2Output_GammaJetZJetDijet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    s = Form("%sCollectL2Output_MJDJ_gam_zll_PtBalMPF_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// Consistent zee/gamma+jet EGM2 after V6 corrections are applied
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -503,7 +507,9 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_03Feb2017HV3_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03Feb
     //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
     //    s = Form("%sSummer16_03Feb2017V7BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
-    s = Form("%sCollectL2Output_DijetZJetGammaJet_2Par_MPF_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    //s = Form("%sCollectL2Output_DijetZJetGammaJet_2Par_MPF_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    //    s = Form("%sNEW_CollectL2Output_GammaJetZJetDijet_2Par_MPF_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    s = Form("%sCollectL2Output_MJDJ_gam_zll_MPF_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// Consistent zee/gamma+jet EGM2 after V6 corrections are applied
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -517,7 +523,9 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_03Feb2017HV3_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03Feb
     //s = Form("%sSummer16_03Feb2017BCDEFGH_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // 03FebV3
     //s = Form("%sSummer16_03Feb2017V7BCDEFGH_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,a); //03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
-    s = Form("%sCollectL2Output_DijetZJetGammaJet_2Par_PtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    //s = Form("%sCollectL2Output_DijetZJetGammaJet_2Par_PtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    //    s = Form("%sNEW_CollectL2Output_GammaJetZJetDijet_2Par_PtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    s = Form("%sCollectL2Output_MJDJ_gam_zll_PtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// Consistent zee/gamma+jet EGM2 after V6 corrections are applied
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -528,7 +536,8 @@ void JECUncertainty::_InitL2Res() {
   // For RelativeSample (dijet vs Z/gam+jet); new source for Sum16_03FebV7
   {
     //    s = Form("%s/Summer16_03Feb2017V7BCDEFGH_GlobalFit_DiJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_%s.txt",d,a);
-    s = Form("%sCollectL2Output_Dijet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    //    s = Form("%sNEW_CollectL2Output_Dijet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    s = Form("%sCollectL2Output_DJ_PtBalMPF_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// Consistent zee/gamma+jet EGM2 after V6 corrections are applied
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -537,7 +546,8 @@ void JECUncertainty::_InitL2Res() {
   }
   {
     //    s = Form("%s/Summer16_03Feb2017V7BCDEFGH_GlobalFit_ZJet_GammaJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_%s.txt",d,a);
-    s = Form("%sCollectL2Output_ZJetGammaJet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    //    s = Form("%sNEW_CollectL2Output_GammaJetZJet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    s = Form("%sCollectL2Output_gam_zll_PtBalMPF_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// Consistent zee/gamma+jet EGM2 after V6 corrections are applied
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -545,8 +555,18 @@ void JECUncertainty::_InitL2Res() {
     _jecL2L3ResZGamJet = new FactorizedJetCorrector(v);
   }
   {
+    //    s = Form("%sNEW_CollectL2Output_ZJet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    s = Form("%sCollectL2Output_zll_PtBalMPF_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// Consistent zee/gamma+jet EGM2 after V6 corrections are applied
+    if (debug) cout << s << endl << flush;
+    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
+    vector<JetCorrectorParameters> v;
+    v.push_back(*l2l3res);
+    _jecL2L3ResZJet = new FactorizedJetCorrector(v);
+  }
+  {
     //    s = Form("%s/Summer16_03Feb2017V7BCDEFGH_GlobalFit_ZJet_GammaJet_DiJet_2_remove_lowpt_ZJet_L2L3Residual_pythia8_%s.txt",d,a);
-    s = Form("%sCollectL2Output_DijetZJetGammaJet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    //    s = Form("%sNEW_CollectL2Output_GammaJetZJetDijet_2Par_MPFPtBal_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// residual residual correction approach (post-L2Res)
+    s = Form("%sCollectL2Output_MJDJ_gam_zll_PtBalMPF_Summer16LegacyBCDEFGH_VXXX_DATA_L2L3Residual_%s.txt",d,a);// Consistent zee/gamma+jet EGM2 after V6 corrections are applied
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -557,8 +577,8 @@ void JECUncertainty::_InitL2Res() {
   // RelativeFSR (Pythia vs Herwig)
   {
     //s = Form("%sSpring16_25ns_MPF_FLAT_L2Residual_pythia8_v3_%s.txt",d,a); // 80XV3
-    //    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v4_%s.txt",d,a); // 80XV8 -- no update for Sum16V2, Sum16V3, 03FebV3, 03FebV7
-    s = Form("%sWinter14_V8_MC_L3Absolute_AK7PF.txt",d); //HACK
+    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_pythia8_v4_%s.txt",d,a); // 80XV8 -- no update for Sum16V2, Sum16V3, 03FebV3, 03FebV7
+    //s = Form("%sWinter14_V8_MC_L3Absolute_AK7PF.txt",d); //HACK
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -567,8 +587,8 @@ void JECUncertainty::_InitL2Res() {
   }
   {
     //s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_herwigpp_v3_%s.txt",d,a); // 80XV3
-    //    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_herwigpp_v4_%s.txt",d,a); // 80XV8 -- no update for Sum16V2, Sum16V3, 03FebV3, 03FebV7
-    s = Form("%sWinter14_V8_MC_L3Absolute_AK7PF.txt",d); //HACK
+    s = Form("%sSpring16_25ns_MPF_LOGLIN_L2Residual_herwigpp_v4_%s.txt",d,a); // 80XV8 -- no update for Sum16V2, Sum16V3, 03FebV3, 03FebV7
+    //s = Form("%sWinter14_V8_MC_L3Absolute_AK7PF.txt",d); //HACK
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -1434,18 +1454,21 @@ double JECUncertainty::_RelativeSample(const double pTprime,
   double rdj = _Rjet(pTprime, eta, -1, -1, _jecL2L3ResDiJet);
   assert(_jecL2L3ResZGamJet);
   double rzg = _Rjet(pTprime, eta, -1, -1, _jecL2L3ResZGamJet);
+  assert(_jecL2L3ResZJet);
+  double rz = _Rjet(pTprime, eta, -1, -1, _jecL2L3ResZJet);
   //assert(_jecL2L3ResZGamDiJet);
   //double rzgdj = _Rjet(pTprime, eta, -1, -1, _jecL2L3ResZGamDiJet);
   
   double kfactor = 1;
-  double err = kfactor*(rzg / rdj - 1);
-  //double erra = kfactor*(rzg / rdj - 1);
-  //double errb = kfactor*(rzg / rzgdj - 1);
-  //double errc = kfactor*(rzgdj / rdj - 1);
-  //double err(0);
-  //if (fabs(erra)>=fabs(errb) && fabs(erra)>=fabs(errc)) err = erra;
-  //if (fabs(errb)>fabs(erra)  && fabs(errb)>fabs(errc))  err = errb;
-  //if (fabs(errc)>fabs(erra)  && fabs(errc)>fabs(errb))  err = errc;
+  //double err = kfactor*(rzg / rdj - 1);
+  double erra = kfactor*(rzg / rdj - 1);
+  double errb = kfactor*(rzg / rz - 1);
+  double errc = kfactor*(rz / rdj - 1);
+  double err(erra);//usually only rzg (standard global fir) vs. rdj
+  //outside tracker coverage: also take rz individually and take largest deviation
+  if (fabs(eta)>2.5 && fabs(erra)>=fabs(errb) && fabs(erra)>=fabs(errc)) err = erra;
+  if (fabs(eta)>2.5 && fabs(errb)>fabs(erra)  && fabs(errb)>fabs(errc))  err = errb;
+  if (fabs(eta)>2.5 && fabs(errc)>fabs(erra)  && fabs(errc)>fabs(errb))  err = errc;
 
   return err;
 } // RelativeSample

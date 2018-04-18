@@ -156,6 +156,7 @@ private:
   FactorizedJetCorrector *_jecL2ResPY;
   FactorizedJetCorrector *_jecL2ResHW;
   FactorizedJetCorrector *_jecL2L3ResDiJet; // 03FebV7
+  FactorizedJetCorrector *_jecL2L3ResZJet;
   FactorizedJetCorrector *_jecL2L3ResZGamJet; // 03FebV7
   FactorizedJetCorrector *_jecL2L3ResZGamDiJet; // 03FebV7
   //JetCorrectionUncertainty *_uncL2ResStat;
