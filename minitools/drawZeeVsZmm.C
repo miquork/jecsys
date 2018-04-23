@@ -227,7 +227,9 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
   //			,30,ptmax);
   // BCDEFGH fit with minitools/drawZmass.C
   //f1mzee->SetParameters(1.01732, -0.00909, 0.00116, 0.99855);
-  f1mzee->SetParameters(1.00017, 0.00166, 0.00114, 0.99868);
+  f1mzee->SetParameters(0.99885, 0.00176, 0.00135, 0.99868);//EGM1
+  //f1mzee->SetParameters(1.00017, 0.00166, 0.00114, 0.99868);//EGM2
+  //f1mzee->SetParameters(1.00279, 0.00166, 0.00112, 0.99868);//EGM3
   //f1ezee->SetParameters(7.54e-05, 1.41e-05, 1.63e-07,
   //			-3.26e-05, 3.47e-06, -1.51e-06);
 

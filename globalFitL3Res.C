@@ -55,9 +55,9 @@ string scalingForL2OrL3Fit = "ApplyL3ResDontScaleDijets"; //"None" - for inpunt 
 //"ApplyL3ResDontScaleDijets" - apply barrel JES (use case: check closure when only L2Res is applied to the inputs and L3Res didn't change)
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
-bool useNewMultijet = true;
+bool useNewMultijet = true;//false;
 //int dropFirstXNewMultijetTriggerBins = 3; //3:ptlead>400GeV
-int dropFirstXNewMultijetTriggerBins = 0; //3:ptlead>400GeV
+int dropFirstXNewMultijetTriggerBins = 0; //0:ptlead>190GeV
 bool verboseGF = false;
 
 unsigned int _nsamples(0);
@@ -95,8 +95,8 @@ double fixTDI = 0; // do NOT fix TDI for BCD+EF and G+H
 bool useEG = false; // ECAL gain shift for 3p fit
 
 //const int njesFit = 1; // scale only
-const int njesFit = 2; // scale(ECAL)+HB
-//const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
+//const int njesFit = 2; // scale(ECAL)+HB
+const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
 //const int njesFit = 3; //useTDI=true; // scale(ECAL)+HB+tracker (switchable)
 //const int njesFit = 3; //useEG=true; // scale(ECAL)+HB+ECALgain
 //const int njesFit = 4; // scale(ECAL)+HB+offset+ECALgain
@@ -122,7 +122,8 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   // Values from fitting ratio/eta00-13/hl1bias (JEC set in reprocess.C)
   if (!fl1) fl1 = new TF1("fl1","1-([0]+[1]*log(x))/x",10,3500);
   //fl1->SetParameters(2.60382e-01, 1.96664e-01); // Sum16V6G hl1bias
-  fl1->SetParameters(5.71298e-01, 1.59635e-01);
+  //fl1->SetParameters(5.71298e-01, 1.59635e-01);
+  fl1->SetParameters(-1.96332e-01, 3.07378e-01); // Sum16_07AugBCDEFGHV6 hl1bias
 
   // Initialize tracker inefficiency shape
   // Values from drawAvsB.C for EvsG
@@ -748,23 +749,24 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       is_gj = hs.size();
     }
     if (s=="zeejet" && m=="ptchs") { //imethod==0) {
-      //escale = 0.002; // Legacy2016G, Zee mass fit within 0.2% up to 300 GeV
-      escale = 0.0005; // Legacy2016BCDEFGH after minitools/drawZmass.C fit
+      escale = 0.002; // Legacy2016G, Zee mass fit within 0.2% up to 300 GeV
+      //escale = 0.0005; // Legacy2016BCDEFGH after minitools/drawZmass.C fit
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_zeejet_%03.0f_%d",
 		       (1<<(n0+izee) | (1<<(n1+izee))), escale*10000, i));
       is_zee = hs.size();
     }
     if (s=="zmmjet" && m=="ptchs") { // imethod==0) {
-      //escale = 0.002; // Legacy2016G, Zmm mass fit within 0.2% up to 300 GeV
-      escale = 0.0005; // Legacy2016BCDEFGH minitools/drawZmass.C fit
+      escale = 0.002; // Legacy2016G, Zmm mass fit within 0.2% up to 300 GeV
+      //escale = 0.0005; // Legacy2016BCDEFGH minitools/drawZmass.C fit
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_zmmjet_%03.0f_%d",
 		       (1<<(n0+izmm) | (1<<(n1+izmm))), escale*10000, i));
       is_zmm = hs.size();
     }
     if (s=="zlljet" && m=="ptchs") {
-      escale = 0.0005;
+      escale = 0.0020;
+      //escale = 0.0005;
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_zlljet_%03.0f_%d",
 		       (1<<(n0+izll) | (1<<(n1+izll))), escale*10000, i));
@@ -1098,7 +1100,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     MPF_RatioOrig->Draw("SAME");
     MJB_RatioOrig->Draw("SAME");
 
-    legp->AddEntry(MJB_RatioRaw," ","");
+    legp->AddEntry(MJB_RatioRaw," ","PL");
     legm->AddEntry(MPF_RatioRaw,"Multijet","PL");
   }
 
@@ -1106,7 +1108,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   legm->AddEntry(hrun1,"Run I","FL");
 
   legp->AddEntry(herr_ref," ","");
-  legm->AddEntry(herr_ref,"07AugV4","FL");
+  legm->AddEntry(herr_ref,"07AugV6","FL");
 
 
   ///////////////////////
@@ -1177,9 +1179,26 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
   if (njesFit==3 && useOff) {
     jesfit->SetParameters(0.989, 0.053, -0.370);
-    // per era settings to make converge faster with multijets
-    if (epoch=="BCD") jesfit->SetParameters(0.983, 0.138, -0.772);
-    if (epoch=="GH") jesfit->SetParameters(0.989, 0.053, -0.370);
+    // per era settings to make converge faster with new multijets (EGM1 values)
+    //if (epoch=="BCDEFGH") jesfit->SetParameters(0.988, 0.096, -0.338);
+    //if (epoch=="BCD")     jesfit->SetParameters(0.983, 0.138, -0.714);
+    //if (epoch=="EF")      jesfit->SetParameters(0.972, 0.135, -0.578);
+    //if (epoch=="GH")      jesfit->SetParameters(0.989, 0.055, -0.377);
+    // per era settings to make converge faster with new multijets (EGM2 values)
+    //if (epoch=="BCDEFGH") jesfit->SetParameters(0.985, 0.088, -0.389);
+    //if (epoch=="BCD")     jesfit->SetParameters(0.983, 0.138, -0.785);
+    //if (epoch=="EF")      jesfit->SetParameters(0.973, 0.133, -0.530);
+    //if (epoch=="GH")      jesfit->SetParameters(0.989, 0.053, -0.370);
+    // per era settings to make converge faster with new multijets (EGM3 values)
+    //if (epoch=="BCDEFGH") jesfit->SetParameters(0.989, 0.095, -0.378);
+    //if (epoch=="BCD")     jesfit->SetParameters(0.984, 0.137, -0.798);
+    //if (epoch=="EF")      jesfit->SetParameters(0.973, 0.132, -0.608);
+    //if (epoch=="GH")      jesfit->SetParameters(0.990, 0.054, -0.413);
+    // per era for EGM3 and Sum16_07Aug2017BCDEFGH_V6 L1 bias
+    if (epoch=="BCD")     jesfit->SetParameters(0.9845, 0.1803, -1.682);
+    if (epoch=="EF")      jesfit->SetParameters(0.9726, 0.1643, -1.172);
+    if (epoch=="GH")      jesfit->SetParameters(0.9894, 0.0748, -0.783);
+    if (epoch=="BCDEFGH") jesfit->SetParameters(0.9902, 0.1152, -0.868);
   }
   if (njesFit==3 && useTDI) {
     jesfit->SetParameters(0.985, 0.001, 0.5);
@@ -1455,11 +1474,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   tex->DrawLatex(0.20,0.61,Form("N_{par}=%d",_jesFit->GetNpar()));
   //tex->DrawLatex(0.20,0.61,Form("N_{par}=%d (%d)",_jesFit->GetNpar(),
   //				_jesFit->GetNumberFreeParameters()));
-  tex->DrawLatex(0.32,0.61,Form("p_{0}=%1.3f #pm %1.3f",
+  tex->DrawLatex(0.32,0.61,Form("p_{0}=%1.4f #pm %1.4f",
 				_jesFit->GetParameter(0),
 				sqrt(emat[0][0])));
   if (njesFit>=2)
-    tex->DrawLatex(0.32,0.58,Form("p_{1}=%1.3f #pm %1.3f",
+    tex->DrawLatex(0.32,0.58,Form("p_{1}=%1.4f #pm %1.4f",
 				  _jesFit->GetParameter(1),
 				  sqrt(emat[1][1])));
   if (njesFit==2 && fixTDI)

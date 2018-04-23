@@ -34,6 +34,7 @@ using namespace std;
 // rho used to calculate l1bias
 const double gRho = 15.36; // 2017-06-02 for 2016 data
 const bool _dcsonly = false;
+const bool rp_debug = false; // verbose messages
 
 // Appy mass corrections to Z+jet
 bool useFixedFit    =  true; // New
@@ -48,7 +49,7 @@ bool correctUncert  =  true;
 //bool correctGamMass =  false;//false; // V6-although inconsistent
 //bool correctUncert  =  false; 
 
-string EGM_Config = "EGM2";
+string EGM_Config = "EGM3";
 //EGM1: raw Supercluster
 //EGM2: plain MiniAOD
 //EGM3: 80X regression + 80X Scale and Smearing
@@ -159,7 +160,7 @@ void reprocess(string epoch="") {
   fp_files["EF"] = "EF";//"V2_EF";
   fp_files["G"] = "FG";//V2_FG";
   fp_files["H"] = "H";//"V2_H";
-  fp_files["GH"] = "H";//NB!  "V1_FGH";
+  fp_files["GH"] = "FGH";//"H";//NB!  "V1_FGH";
   fp_files["BCDEFGH"] = "BCDEFGH";//"BCEDFGH";//"V1_BCDEFGH";
   //TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", fp_files[epoch]),"READ"); // 47.5/35
   //  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_L2res_V6_%s_2016.root", fp_files[epoch]),"READ"); // 58.0/35 //with some intermediat dev version of Scale/Smearing applied
@@ -236,9 +237,23 @@ void reprocess(string epoch="") {
   if (correctZeeMass || correctGamMass) {
     if (useFixedFit) {
       // BCDEFGH fit with minitools/drawZmass.C
-      f1mzee->SetParameters(1.00017, 0.00166, 0.00114);
-      f1ezee->SetParameters(+3.28e-08, +7.82e-08, +1.58e-07,
-                            +1.31e-08, -4.37e-08, -1.14e-08);
+      if (EGM_Config=="EGM3") {
+	f1mzee->SetParameters(1.00279, 0.00166, 0.00112);
+	f1ezee->SetParameters(+3.26e-08, +7.79e-08, +1.58e-07,
+			      +1.32e-08, -4.35e-08, -1.17e-08);
+      }
+      else if (EGM_Config=="EGM2") {
+	f1mzee->SetParameters(1.00017, 0.00166, 0.00114);
+	f1ezee->SetParameters(+3.28e-08, +7.82e-08, +1.58e-07,
+			      +1.31e-08, -4.37e-08, -1.14e-08);
+      }
+      else if (EGM_Config=="EGM1") {
+	f1mzee->SetParameters(0.99885, 0.00176, 0.00135);
+	f1ezee->SetParameters(+4.01e-08, +9.66e-08, +1.92e-07,
+			      +1.6e-08, -5.34e-08, -1.99e-08);
+      }
+      else
+	assert(false);
     }
     else
       hmzee->Fit(f1mzee);
@@ -631,12 +646,12 @@ void reprocess(string epoch="") {
                   assert(counts["mc"][s][ieta][ialpha]);
                   assert(counts["data"][s][ieta][ialpha]);
                   if(counts["mc"][s][ieta][ialpha]->GetBinContent(ipt) < neventsmin || counts["data"][s][ieta][ialpha]->GetBinContent(ipt) < neventsmin){
-                    cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries MC "<< counts["mc"][s][ieta][ialpha]->GetBinContent(ipt) << " nentries data " <<  counts["data"][s][ieta][ialpha]->GetBinContent(ipt)<<  " y: " << g->GetY()[i] << endl;
+                    if (rp_debug) cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries MC "<< counts["mc"][s][ieta][ialpha]->GetBinContent(ipt) << " nentries data " <<  counts["data"][s][ieta][ialpha]->GetBinContent(ipt)<<  " y: " << g->GetY()[i] << endl;
                     g->RemovePoint(i);
                   }
                 }
                 else if (nentries < neventsmin){
-                  cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries "<< nentries <<  " y: " << g->GetY()[i] << endl;
+                  if (rp_debug) cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries "<< nentries <<  " y: " << g->GetY()[i] << endl;
                   g->RemovePoint(i);
                 }
               } // zmm/zee
@@ -899,7 +914,8 @@ void reprocess(string epoch="") {
     {
       //s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_MPF_LOGLIN_%s_L2L3Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017 with L3 from V3
       //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      s = Form("%s/Summer16_07Aug2017%s_V4_DATA_L2L3Residual_AK4PFchs.txt",cd,
+      //s = Form("%s/Summer16_07Aug2017%s_V4_DATA_L2L3Residual_AK4PFchs.txt",cd,
+      s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L2L3Residual_AK4PFchs.txt",cd,
 	       epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : 
 	       (epoch=="G"||epoch=="H" ? "GH" : epoch.c_str()));
       cout << s << endl;
@@ -912,7 +928,7 @@ void reprocess(string epoch="") {
 
 	jecw1 = 12.9/36.5;
 
-	s=Form("%s/Summer16_07Aug2017EF_V4_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Summer16_07Aug2017EF_V6_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_ef = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_ef;
@@ -920,7 +936,7 @@ void reprocess(string epoch="") {
 	jec2 = new FactorizedJetCorrector(vpar_ef);
 	jecw2 = 6.8/36.5;
 
-	s=Form("%s/Summer16_07Aug2017GH_V4_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Summer16_07Aug2017GH_V6_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_gh = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_gh;
@@ -948,7 +964,8 @@ void reprocess(string epoch="") {
     {
       //s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_MPF_LOGLIN_%s_L2Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017
       //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      s = Form("%s/Summer16_07Aug2017%s_V4_DATA_L2L3Residual_AK4PFchs.txt",cd,
+      //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L2L3Residual_AK4PFchs.txt",cd,
+      s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L2Residual_AK4PFchs.txt",cd,
 	       epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : 
 	       (epoch=="G"||epoch=="H" ? "GH" : epoch.c_str()));
       cout << s << endl;
@@ -962,7 +979,8 @@ void reprocess(string epoch="") {
     FactorizedJetCorrector *jecl1flat;
     {
       //s = Form("%s/Summer16_03Feb2017%s_V3_DATA_L1RC_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce));
-      s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -972,7 +990,8 @@ void reprocess(string epoch="") {
     FactorizedJetCorrector *jecl1pt;
     {
       //s = Form("%s/Summer16_03Feb2017%s_V3_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); 
-      s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -990,7 +1009,8 @@ void reprocess(string epoch="") {
 
     // Total uncertainty, excluding Flavor and Time
     //s = Form("%s/Summer16_03Feb2017_V3_DATA_UncertaintySources_AK4PFchs.txt",cd); // Sum16
-    s = Form("%s/Summer16_03Feb2017BCD_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    //s = Form("%s/Summer16_03Feb2017BCD_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s = Form("%s/Summer16_07Aug2017BCD_V6_DATA_UncertaintySources_AK4PFchs.txt",cd);
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
@@ -998,7 +1018,8 @@ void reprocess(string epoch="") {
 
     // Partial uncertainties
     //s = Form("%s/Summer16_03Feb2017_V3_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    s = Form("%s/Summer16_03Feb2017BCD_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    //s = Form("%s/Summer16_03Feb2017BCD_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s = Form("%s/Summer16_07Aug2017BCD_V6_DATA_UncertaintySources_AK4PFchs.txt",cd);
     //s2 = "TotalNoFlavorNoTime";
     s2 = "SubTotalAbsolute"; // 07AugV4
     cout << s << ":" << s2 << endl << flush;

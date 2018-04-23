@@ -77,6 +77,26 @@ void drawZmass() {
   //tdrDraw(gzeer,"Pz",kFullSquare,kGreen+2);
   //tdrDraw(gzmmr,"Pz",kFullCircle,kRed);
 
+  // Plot the fit used in reprocess.C
+  TF1 *f1jec = new TF1("f1jec","(([0]+[1]*log(0.01*x)"
+			"+[2]*pow(log(0.01*x),2))"
+			"-1)*100", 30, ptmax);
+  //TF1 *f1ezee = new TF1("f1ezee","sqrt([0]+pow(log(2*x),2)*[1]"
+  //			"+pow(log(2*x),4)*[2]+2*log(2*x)*[3]"
+  //			"+2*pow(log(2*x),2)*[4]+2*pow(log(2*x),3)*[5])"
+  //			,30,ptmax);
+  // BCDEFGH fit with minitools/drawZmass.C
+  //f1mzee->SetParameters(1.01732, -0.00909, 0.00116, 0.99855);
+  f1jec->SetParameters(0.99885, 0.00176, 0.00135);//EGM1
+  //f1jec->SetParameters(1.00017, 0.00166, 0.00114);//EGM2
+  //f1jec->SetParameters(1.00279, 0.00166, 0.00112);//EGM3
+  //f1ezee->SetParameters(7.54e-05, 1.41e-05, 1.63e-07,
+  //			-3.26e-05, 3.47e-06, -1.51e-06);
+  f1jec->SetLineColor(kBlack);
+  f1jec->SetLineWidth(2);
+  f1jec->Draw("SAME");
+  
+
   l->DrawLine(30,0,ptmax,0);
 
   // Recreate ratios, because GetListOfFuctions segfaults
