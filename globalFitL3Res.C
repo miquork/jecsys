@@ -27,6 +27,9 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <algorithm>
+#include <functional>
+#include <iterator>
 
 //jec-fit-protype adds
 #include "FitBase.hpp"
@@ -37,6 +40,7 @@
 #include <Math/Functor.h>
 
 using namespace std;
+int iMultijet =0;
 
 bool dofsr = true; // correct for FSR
 double ptreco_gjet = 15.; // min jet pT when evaluating alphamax for gamma+jet
@@ -51,7 +55,7 @@ string scalingForL2OrL3Fit = "ApplyL3ResDontScaleDijets"; //"None" - for inpunt 
 //"ApplyL3ResDontScaleDijets" - apply barrel JES (use case: check closure when only L2Res is applied to the inputs and L3Res didn't change)
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
-bool useNewMultijet = false;
+bool useNewMultijet = true;
 //int dropFirstXNewMultijetTriggerBins = 3; //3:ptlead>400GeV
 int dropFirstXNewMultijetTriggerBins = 0; //3:ptlead>400GeV
 bool verboseGF = false;
@@ -217,12 +221,12 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 }
 
 void globalFitL3Res(double etamin = 0, double etamax = 1.3,
-		    string epoch="") {
-  if(verboseGF)cout << Form("Running globalFitL3Res(etamin=%02.2f,etamax=%02.2f,epoch=%s",etamin,etamax,epoch.c_str()) << endl << flush;
+		    string epoch="", string selectSample="Standard_MJDJ_gam_zee_zmm", string selectMethods="PtBalMPF") {
+  if(verboseGF)cout << Form("Running globalFitL3Res(etamin=%02.2f,etamax=%02.2f,epoch=%s, selectSample=%s, selectMethods=%s",etamin,etamax,epoch.c_str(),selectSample.c_str(),selectMethods.c_str()) << endl << flush;
   _etamin = etamin;
   const char *cep = epoch.c_str();
   //njesFit = (njesFit==3 && useTDI && (epoch=="G"||epoch=="H") ? 2 : njesFit);
-
+  iMultijet=0;
   if(_lossFunc!=0){
     delete _lossFunc;
   }
@@ -239,7 +243,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
   if(njesFit==2)_lossFunc = new CombLossFunction(move(jetCorr2));
   if(njesFit==3)_lossFunc = new CombLossFunction(move(jetCorr3));
-  cout << "going to use _lossFunc" << _lossFunc << " " << _lossFunc->GetNumParams()<< endl;
+  //  cout << "going to use _lossFunc" << _lossFunc << " " << _lossFunc->GetNumParams()<< endl;
   
   // This is for drawing multijet in _raw.pdf and _orig.pdf around input JEC,
   // to validate the global fit steps (kFSR, shifting by nuisances)
@@ -292,8 +296,19 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const double ptmj = 30.;
   const char *ct = "ratio";
   //
-  const int nmethods = 2;
-  const char* methods[nmethods] = {"ptchs","mpfchs1"};
+  map<string, std::vector<string> > methodsmap;
+  methodsmap["PtBalMPF"] = {"ptchs","mpfchs1"};
+  methodsmap["MPF"] = {"mpfchs1"};
+  methodsmap["PtBal"] = {"ptchs"};
+
+  assert(methodsmap.find(selectMethods)!=methodsmap.end());
+  const unsigned int nmethods = methodsmap[selectMethods].size();
+  vector<const char*> methodsvec;
+  for(int i = 0; i < nmethods; ++i)methodsvec.push_back(methodsmap[selectMethods].at(i).c_str());
+  const char** methods = &methodsvec.front();
+  
+  //  const int nmethods = 2;
+  //  const char* methods[nmethods] = {"ptchs","mpfchs1"};
   //const int nmethods = 1;//MPFOnlyTest for FineEtaBins
   //const char* methods[nmethods] = {"mpfchs1"};
   //const char* methods[nmethods] = {"ptchs"};
@@ -304,130 +319,122 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   bool isl3 = (etamin==0 && ((epoch!="L4" && fabs(etamax-1.3)<0.1) ||
 			     (epoch=="L4" && fabs(etamax-2.4)<0.1)));
 
+  
+  map<string, std::vector<string> > samplesmap;
+  map<string, int > nsample0map;
+  map<string, int > igjmap;
+  map<string, int > izeemap;
+  map<string, int > izmmmap;
+  map<string, int > izllmap;
   // Normal global fit with all four samples (multijet/dijet, gamma+jet, Z+jets)
-  /*
-  const int nsamples = 4;
-  const int nsample0 = 1; // first Z/gamma+jet sample
-  const char* samples[4] = {(isl3 ? "multijet" : "dijet"),
-			    "gamjet", "zeejet", "zmmjet"};
-  const int igj = 0;
-  const int izee = 1;
-  const int izmm = 2;
-  */
+  samplesmap["Standard_MJDJ_gam_zee_zmm"] =   {(isl3 ? "multijet" : "dijet"),
+					     "gamjet", "zeejet", "zmmjet"};
+  nsample0map["Standard_MJDJ_gam_zee_zmm"] = 1;
+  igjmap["Standard_MJDJ_gam_zee_zmm"] = 0;
+  izeemap["Standard_MJDJ_gam_zee_zmm"] = 1;
+  izmmmap["Standard_MJDJ_gam_zee_zmm"] = 2;
+  izllmap["Standard_MJDJ_gam_zee_zmm"] = -1;
 
-  /*
   // Global fit with only dijet, Z+jets
-  const int nsamples = 3;
-  const int nsample0 = 1; // first Z/gamma+jet sample
-  const char* samples[4] = {"dijet",
-			    "zeejet", "zmmjet"};
-  const int igj = -1;
-  const int izee = 1;
-  const int izmm = 2;
-  */
+  samplesmap["DJ_zee_zmm"] =   {"dijet", "zeejet", "zmmjet"};
+  nsample0map["DJ_zee_zmm"] = 1;
+  igjmap["DJ_zee_zmm"] = -1;
+  izeemap["DJ_zee_zmm"] = 0;
+  izmmmap["DJ_zee_zmm"] = 1;
+  izllmap["DJ_zee_zmm"] = -1;
 
-  
   // Global fit without multijets/dijets
-  const int nsamples = 3;
-  const int nsample0 = 0; // first Z/gamma+jet sample
-  const char* samples[3] = {"gamjet", "zeejet", "zmmjet"};
-  const int igj = 0;
-  const int izee = 1;
-  const int izmm = 2;
-  const int izll = -1;
-  
-  
-  /*
+  samplesmap["gam_zee_zmm"] =   {"gamjet", "zeejet", "zmmjet"};
+  nsample0map["gam_zee_zmm"] = 0;
+  igjmap["gam_zee_zmm"] = 0;
+  izeemap["gam_zee_zmm"] = 1;
+  izmmmap["gam_zee_zmm"] = 2;
+  izllmap["gam_zee_zmm"] = -1;
+
   // Global fit with only dijets, merged Z+jet
-  const int nsamples = 2;
-  const int nsample0 = 1; // first Z/gamma+jet sample
-  const char* samples[3] = {(isl3 ? "multijet" : "dijet"),
-			    "zlljet"};
-  const int igj = -1;
-  const int izll = 0;
-  const int izee = -1;
-  const int izmm = -1;
-  */
-  
-  /*
+  samplesmap["MJDJ_zll"] =   {(isl3 ? "multijet" : "dijet"), "zlljet"};
+  nsample0map["MJDJ_zll"] = 1;
+  igjmap["MJDJ_zll"] = -1;
+  izeemap["MJDJ_zll"] = -1;
+  izmmmap["MJDJ_zll"] = -1;
+  izllmap["MJDJ_zll"] = 0;
+
   // Global fit without multijets/dijets and with merged Z+jet
-  const int nsamples = 2;
-  const int nsample0 = 0; // first Z/gamma+jet sample
-  const char* samples[3] = {"gamjet", "zlljet"};
-  const int igj = 0;
-  const int izll = 1;
-  const int izee = -1;
-  const int izmm = -1;
-  */
-  
-  /*
+  samplesmap["gam_zll"] =   {"gamjet", "zlljet"};
+  nsample0map["gam_zll"] = 0;
+  igjmap["gam_zll"] = 0;
+  izeemap["gam_zll"] = -1;
+  izmmmap["gam_zll"] = -1;
+  izllmap["gam_zll"] = 1;
+
   // Global fit with  merged Z+jet only
-  const int nsamples = 1;
-  const int nsample0 = 0; // first Z/gamma+jet sample
-  const char* samples[3] = {"zlljet"};
-  const int igj = -1;
-  const int izll = 0;
-  const int izee = -1;
-  const int izmm = -1;
-  */
-
-  /*
+  samplesmap["zll"] =   { "zlljet"};
+  nsample0map["zll"] = 0;
+  igjmap["zll"] = -1;
+  izeemap["zll"] = -1;
+  izmmmap["zll"] = -1;
+  izllmap["zll"] = 0;
+  
   // Global fit with gamma+jet only
-  const int nsamples = 1;
-  const int nsample0 = 0; // first Z/gamma+jet sample
-  const char* samples[3] = {"gamjet"};
-  const int igj = 0;
-  const int izll = -1;
-  const int izee = -1;
-  const int izmm = -1;
-  */
-    
-  /*
-  // Global fit with only dijet
-  const int nsamples = 1;
-  const int nsample0 = 1; // first Z/gamma+jet sample
-  const char* samples[1] = {"dijet"};
-  const int igj = -1;
-  const int izll = -1;
-  const int izee = -1;
-  const int izmm = -1;
-  */
-
-
-  /*
+  samplesmap["gam"] =   { "gamjet"};
+  nsample0map["gam"] = 0;
+  igjmap["gam"] = 0;
+  izeemap["gam"] = -1;
+  izmmmap["gam"] = -1;
+  izllmap["gam"] = -1;
+  
+  // Global fit with only dijets
+  samplesmap["DJ"] =   { "dijet"};
+  nsample0map["DJ"] = 1;
+  igjmap["DJ"] = -1;
+  izeemap["DJ"] = -1;
+  izmmmap["DJ"] = -1;
+  izllmap["DJ"] = -1;
+  
   // Global fit with all samples: multijets/dijets, gamma+jet, merged Z+jet
-  const int nsamples = 3;
-  const int nsample0 = 1; // first Z/gamma+jet sample
-  const char* samples[3] = {(isl3 ? "multijet" : "dijet"),
-			    //const char* samples[3] = {"dijet",
-			    "gamjet", "zlljet"};
-  const int igj = 0;
-  const int izll = 1;
-  const int izee = -1;
-  const int izmm = -1;
-  */
-  
-  /*
+  samplesmap["MJDJ_gam_zll"] =   { (isl3 ? "multijet" : "dijet"),"gamjet", "zlljet"};
+  nsample0map["MJDJ_gam_zll"] = 1;
+  igjmap["MJDJ_gam_zll"] = 0;
+  izeemap["MJDJ_gam_zll"] = -1;
+  izmmmap["MJDJ_gam_zll"] = -1;
+  izllmap["MJDJ_gam_zll"] = 1;
+
+
   // Global fit without photon+jet
-  const int nsamples = 3;
-  const int nsample0 = 1; // first Z/gamma+jet sample
-  const char* samples[3] = {(etamin==0 && (etamax==1.3||etamax==2.4)? "multijet" : "dijet"),
-			    "zeejet", "zmmjet"};
-  const int igj = -1;
-  const int izee = 1;
-  const int izmm = 2;
-  */
+  samplesmap["MJDJ_zee_zmm"] =   {(etamin==0 && (etamax==1.3||etamax==2.4)? "multijet" : "dijet"),
+				   "zeejet", "zmmjet"};
+  nsample0map["MJDJ_zee_zmm"] = 1;
+  igjmap["MJDJ_zee_zmm"] = -1;
+  izeemap["MJDJ_zee_zmm"] = 0;
+  izmmmap["MJDJ_zee_zmm"] = 1;
+  izllmap["MJDJ_zee_zmm"] = -1;
   
-  /*
   // Global fit with Z+jet only
-  const int nsamples = 2;
-  const int nsample0 = 0; // first Z/gamma+jet sample
-  const char* samples[2] = {"zeejet", "zmmjet"};
-  const int igj = -1;
-  const int izee = 0;
-  const int izmm = 1;
-  */
+  samplesmap["zee_zmm"] =   {"zeejet", "zmmjet"};
+  nsample0map["zee_zmm"] = 0;
+  igjmap["zee_zmm"] = -1;
+  izeemap["zee_zmm"] = 0;
+  izmmmap["zee_zmm"] = 1;
+  izllmap["zee_zmm"] = -1;
   
+  //  string selectSample="Standard_MJDJ_gam_zee_zmm";
+  cout<<"Available global fit sample configs, accessible by selectSample in globalFit-function call:" <<endl;
+  for(auto elem : samplesmap){
+    for (auto i: elem.second)
+      std::cout << i << ", ";
+    cout << "... choose key: \"" <<elem.first << "\"\n";
+  }
+  const int nsamples = samplesmap[selectSample].size();
+  vector<const char*> samplevec;
+  for(int i = 0; i < nsamples; ++i)samplevec.push_back(samplesmap[selectSample].at(i).c_str());
+  const char** samples = &samplevec.front();
+  const int nsample0 = 1; // first Z/gamma+jet sample
+  //const int nsample0 = nsample0map[selectSample];
+  const int igj = igjmap[selectSample];
+  const int izee = izeemap[selectSample];
+  const int izmm = izmmmap[selectSample];
+  const int izll = izllmap[selectSample];
+
 
   // old default
   /*
@@ -1274,7 +1281,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   cout << endl;
   cout <<"New multijet:" <<endl;
   cout << "Dimensions: "<< _lossFunc->GetNDF() + _lossFunc->GetNumParams() << endl;
-  if(useNewMultijet)cout << "chi2(multijet) term: "<< _lossFunc->Eval(parTransForMultiJet,MultijetNuisances) << endl;
+  if(useNewMultijet){
+    cout << "chi2(multijet) term: "<< _lossFunc->Eval(parTransForMultiJet,MultijetNuisances) << endl;
+    cout << "mutltijet chi2 retrieved " << iMultijet << " times."<< endl;
+  }
   cout << endl;
   cout << "For data chi2/ndf = " << chi2_data << " / " << Nk << endl;
   cout << "For sources chi2/ndf = " << chi2_src << " / " << nsrc_true << endl;
@@ -1296,6 +1306,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if(np==1&& !(etamin==0.&&etamax==1.3)){
       txtL2L3 << Form("\n %7.4f  %7.4f  5 10 6500 %7.4f 0.0 0.0 ", etamin, etamax, tmp_par[0]);
     }
+  }
+
+  ofstream txtChi2_NDF("txt2/GlobalFitOutput_L2L3Residuals_Chi2OverNDF.txt",ios_base::app);
+  if(etamin==0.&&etamax==0.261)txtChi2_NDF << "{ 1 JetEta 1 JetPt [0] Correction L2Relative}";
+  if(np==2&& !(etamin==0.&&etamax==1.3)){
+    txtChi2_NDF << Form("\n %7.4f  %7.4f  5 10 6500 %7.4f 0.0 0.0 ", etamin, etamax, chi2_gbl/(Nk-np));
   }
 
   for (int isample = 0; isample != nsamples; ++isample) {
@@ -1776,6 +1792,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //if (etamin==0) c3->SaveAs("pdf/globalFitL3res_kfsr.pdf");
 
   curdir->cd();
+  f->Close();
 } // globalFitL3Res
 
 
@@ -1914,6 +1931,7 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 	
 	}
       chi2 += _lossFunc->Eval(parTransForMultiJet,MultijetNuisances);
+      iMultijet++;
       Nk += _lossFunc->GetNDF() + _lossFunc->GetNumParams();
       //does this need to be written back?
       
