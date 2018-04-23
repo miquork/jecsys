@@ -34,7 +34,7 @@ using namespace std;
 // Turn debug mode on if the code fails with an exception from JEC packages
 // This is most likely a missing/misnamed file given to JetCorrectorParameters
 // The last file printed out before the crash in debug mode is usually the fault
-bool debug = true;//true;//false;
+bool debug = false;//true;//false;
 
 
 JECUncertainty::JECUncertainty(const jec::JetAlgo& algo, 
@@ -648,7 +648,9 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sWinter14_V7_DATA_L2L3Residual_%s.txt.JERup",d,a);
     //s = Form("%sSummer16_23Sep2016_MPF_LOGLIN_JERUp_L2Residual_pythia8_%s.txt",d,a); // Sum16V3, !!MISSING!! for 03FebV3
     //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_JERup_L2Residual_pythia8_%s.txt",d,a); // 03Feb
-    s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_JERup_L2Residual_pythia8_%s.txt",d,a); // 03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    //s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_JERup_L2Residual_pythia8_%s.txt",d,a); // 03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    s = Form("%sSummer16_07Aug2017_V3_MC_NoReweighted_NewTriggerThresholds_WithJER_kFSRHist_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); ///Users/kirschen/sshfsmount/multh/JEC/2016Legacy/Residuals/Summer16_07Aug2017_V3/AK4CHS/MC_NoReweighted_NewTriggerThresholds/RunBCDEFGH/output/kFSR_Hist/Summer16_07Aug2017_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt
+    
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -661,8 +663,9 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sWinter14_V6_DATA_L2L3Residual_%s.txt.JERdown",d,a);
     //s = Form("%sWinter14_V7_DATA_L2L3Residual_%s.txt.JERdown",d,a);
     //s = Form("%sSummer16_23Sep2016_MPF_LOGLIN_JERDown_L2Residual_pythia8_%s.txt",d,a); // Sum16V3, !!MISSING!! for 03FebV3
-    s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_JERdown_L2Residual_pythia8_%s.txt",d,a); // 03Feb
-    s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_JERdown_L2Residual_pythia8_%s.txt",d,a); // 03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_JERdown_L2Residual_pythia8_%s.txt",d,a); // 03Feb
+    //s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_JERdown_L2Residual_pythia8_%s.txt",d,a); // 03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    s = Form("%sSummer16_07Aug2017_V3_MC_NoReweighted_NoSF_NoJER_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); ///Users/kirschen/sshfsmount/multh/JEC/2016Legacy/Residuals/Summer16_07Aug2017_V3/AK4CHS/MC_NoReweighted_NoSF/DATA_NoSF/RunBCDEFGH/output/Summer16_07Aug2017_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
