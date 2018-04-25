@@ -34,7 +34,7 @@ using namespace std;
 // Turn debug mode on if the code fails with an exception from JEC packages
 // This is most likely a missing/misnamed file given to JetCorrectorParameters
 // The last file printed out before the crash in debug mode is usually the fault
-bool debug = false;//true;//false;
+bool debug = true;//false;
 
 
 JECUncertainty::JECUncertainty(const jec::JetAlgo& algo, 
@@ -193,7 +193,8 @@ void JECUncertainty::_InitL1() {
     //const char *s = Form("%sSpring16_25nsV3_MC_L1RC_%s.txt",d,a); // 80XV3
     //const char *s = Form("%sSpring16_25nsV8p2_MC_L1RC_%s.txt",d,a); // 80XV8
     //const char *s = Form("%sSummer16_23Sep2016V2_MC_L1RC_%s.txt",d,a); //Sum16
-    const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1RC_%s.txt",d,a); // 03Feb
+    //const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1RC_%s.txt",d,a); // 03Feb
+    const char *s = Form("%sSummer16_07Aug2017_V7_MC_L1RC_%s.txt",d,a); // 07Aug17
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -205,7 +206,8 @@ void JECUncertainty::_InitL1() {
     //const char *s = Form("%sSpring16_25nsV3_MC_L1FastJet_%s.txt",d,a); //80XV3
     //const char *s = Form("%sSpring16_25nsV8p2_MC_L1FastJet_%s.txt",d,a); //80XV8
     //const char *s = Form("%sSummer16_23Sep2016V2_MC_L1FastJet_%s.txt",d,a); // Sum16
-    const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1FastJet_%s.txt",d,a); // 03Feb
+    //const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1FastJet_%s.txt",d,a); // 03Feb
+    const char *s = Form("%sSummer16_07Aug2017_V7_MC_L1FastJet_%s.txt",d,a); // 07Aug17
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -232,7 +234,8 @@ void JECUncertainty::_InitL1() {
     //const char *s = Form("%sSpring16_25nsV3_MC_L1RC_%s.txt",d,a); // 80XV3
     //const char *s = Form("%sSpring16_25nsV8p2_MC_L1RC_%s.txt",d,a); // 80XV8
     //const char *s = Form("%sSummer16_23Sep2016V2_MC_L1RC_%s.txt",d,a); //Sum16
-    const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1RC_%s.txt",d,a); // 03Feb
+    //const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1RC_%s.txt",d,a); // 03Feb
+    const char *s = Form("%sSummer16_07Aug2017_V7_MC_L1RC_%s.txt",d,a); // 07Aug17
 
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
@@ -246,7 +249,8 @@ void JECUncertainty::_InitL1() {
     //const char *s = Form("%sSpring16_25nsV3_MC_L1FastJet_%s.txt",d,a); //80XV3
     //const char *s = Form("%sSpring16_25nsV8p2_MC_L1FastJet_%s.txt",d,a); // 80XV8
     //const char *s = Form("%sSummer16_23Sep2016V2_MC_L1FastJet_%s.txt",d,a); // Sum16
-    const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1FastJet_%s.txt",d,a); // 03Feb
+    //const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1FastJet_%s.txt",d,a); // 03Feb
+    const char *s = Form("%sSummer16_07Aug2017_V7_MC_L1FastJet_%s.txt",d,a); // 07Aug17
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -649,7 +653,8 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_23Sep2016_MPF_LOGLIN_JERUp_L2Residual_pythia8_%s.txt",d,a); // Sum16V3, !!MISSING!! for 03FebV3
     //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_JERup_L2Residual_pythia8_%s.txt",d,a); // 03Feb
     //s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_JERup_L2Residual_pythia8_%s.txt",d,a); // 03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
-    s = Form("%sSummer16_07Aug2017_V3_MC_NoReweighted_NewTriggerThresholds_WithJER_kFSRHist_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); ///Users/kirschen/sshfsmount/multh/JEC/2016Legacy/Residuals/Summer16_07Aug2017_V3/AK4CHS/MC_NoReweighted_NewTriggerThresholds/RunBCDEFGH/output/kFSR_Hist/Summer16_07Aug2017_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt
+    //s = Form("%sSummer16_07Aug2017_V3_MC_NoReweighted_NewTriggerThresholds_WithJER_kFSRHist_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); ///Users/kirschen/sshfsmount/multh/JEC/2016Legacy/Residuals/Summer16_07Aug2017_V3/AK4CHS/MC_NoReweighted_NewTriggerThresholds/RunBCDEFGH/output/kFSR_Hist/Summer16_07Aug2017_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt
+    s = Form("%sSummer16_07Aug2017_20170425_JERup_kFSR_Fit_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // https://indico.cern.ch/event/724150/#14-dijet-with-2016-legacy-data
     
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
@@ -665,7 +670,8 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_23Sep2016_MPF_LOGLIN_JERDown_L2Residual_pythia8_%s.txt",d,a); // Sum16V3, !!MISSING!! for 03FebV3
     //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_JERdown_L2Residual_pythia8_%s.txt",d,a); // 03Feb
     //s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_JERdown_L2Residual_pythia8_%s.txt",d,a); // 03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
-    s = Form("%sSummer16_07Aug2017_V3_MC_NoReweighted_NoSF_NoJER_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); ///Users/kirschen/sshfsmount/multh/JEC/2016Legacy/Residuals/Summer16_07Aug2017_V3/AK4CHS/MC_NoReweighted_NoSF/DATA_NoSF/RunBCDEFGH/output/Summer16_07Aug2017_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt
+    //s = Form("%sSummer16_07Aug2017_V3_MC_NoReweighted_NoSF_NoJER_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); ///Users/kirschen/sshfsmount/multh/JEC/2016Legacy/Residuals/Summer16_07Aug2017_V3/AK4CHS/MC_NoReweighted_NoSF/DATA_NoSF/RunBCDEFGH/output/Summer16_07Aug2017_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt
+    s = Form("%sSummer16_07Aug2017_20170425_JERdown_kFSR_Fit_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a); // https://indico.cern.ch/event/724150/#14-dijet-with-2016-legacy-data
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -708,14 +714,26 @@ void JECUncertainty::_InitL3Res() {
   //   {{4.456e-06,  8.916e-06},
   //    {8.916e-06,  0.0001171}};
 
-  // 03FebV3 BCDEFGH fit 0.9911 +/- 0.0017, 0.0437 +/- 0.0029,
-  // p0 and p1 correlation 0.10, seems reasonable for pTref=208 GeV
-  const int n = 2;
+  //// 03FebV3 BCDEFGH fit 0.9911 +/- 0.0017, 0.0437 +/- 0.0029,
+  //// p0 and p1 correlation 0.10, seems reasonable for pTref=208 GeV
+  //const int n = 2;
+  //const double pars[n] =
+  //  { 0.9911, +0.0437};
+  //const double emata[n][n] =
+  //  {{2.819e-06,  4.872e-07},
+  //   {4.872e-07,  8.488e-06}};
+
+
+  // 07Aug17_EGM4 BCDEFGH fit 0.9894 ± 0.0008, 0.1164 ± 0.0098, -0.869 ± 0.268
+  // p0 and p1 correlation -0.25; p0 and p2 correlation: 0.12
+  const int n = 3;
   const double pars[n] =
-    { 0.9911, +0.0437};
+    { 0.9894, 0.1164,-0.8686};
   const double emata[n][n] =
-    {{2.819e-06,  4.872e-07},
-     {4.872e-07,  8.488e-06}};
+    {{ 5.711e-07, -1.834e-06,  2.499e-05}, 
+    {-1.834e-06,  9.698e-05,  -0.002456}, 
+    { 2.499e-05,  -0.002456,     0.0717}}; 
+
 
   // Sub-optimal to copy every time, but this is the most flexible interface
   if (!_emat) {
@@ -814,7 +832,7 @@ double JECUncertainty::_Absolute(const double pt) const {
 
 
 // pT dependent fit of L3Res
-TF1 *fhb(0);//, *fl1(0);
+TF1 *fhb(0), *fl1(0);
 //Double_t JECUncertainty::_jesfit(Double_t *x, Double_t *p) {
 Double_t _jesfit(Double_t *x, Double_t *p) {
 
@@ -842,12 +860,21 @@ Double_t _jesfit(Double_t *x, Double_t *p) {
   // 80X V4
   //double jes = p[0];
 
-  // 80XV8p2
   if (!fhb) fhb = new TF1("fhb","max(0.,[0]+[1]*pow(x,[2]))",10,3500);
   fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
-  // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
   double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
-  double jes = (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref)));
+
+  // 80XV8p2
+  // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
+  //double jes = (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref)));
+
+  //3 par fit for 07Aug17_V7 EGM4
+  if (!fl1) fl1 = new TF1("fl1","1-([0]+[1]*log(x))/x",10,3500);
+  fl1->SetParameters(-1.96332e-01, 3.07378e-01); // Sum16_07AugBCDEFGHV6 hl1bias
+
+  double jes = p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
+    + p[2]*(fl1->Eval(pt)-fl1->Eval(ptref));
+  
 
   return jes;
 } // jesfit
@@ -1583,12 +1610,22 @@ double JECUncertainty::_PileUpPt(const double pTprime, const double eta) {
     //_fl3 = new TF1("fl3","[0]+[1]*max(0.,[2]+[3]*pow(max(150.,min(340.,x)),[4]))",30,800); // 76X 25nsV1M2
     // 80XV8: Run I shape, range from 30 GeV (Z+jet) to 1.4 TeV (multijet)
     //        This range is on symmetric around 208 GeV in log scale
-    _fl3 = new TF1("fl3","[0]+[1]*max(0.,[2]+[3]*pow(x,[4]))",30,1400); //80XV8
-    _fl3->SetParameters(1,0, 0.03091e+00,-5.11540e-02,-1.54227e-01); // SPRH
-    _fl3->FixParameter(2, 0.03091e+00); // shape fixed in global fit
-    _fl3->FixParameter(3, -5.11540e-02); // shape fixed in global fit
-    _fl3->FixParameter(4, -1.54227e-01); // shape fixed in global fit
+    //_fl3 = new TF1("fl3","[0]+[1]*max(0.,[2]+[3]*pow(x,[4]))",30,1400); //80XV8
+    //_fl3->SetParameters(1,0, 0.03091e+00,-5.11540e-02,-1.54227e-01); // SPRH
+    //_fl3->FixParameter(2, 0.03091e+00); // shape fixed in global fit
+    //_fl3->FixParameter(3, -5.11540e-02); // shape fixed in global fit
+    //_fl3->FixParameter(4, -1.54227e-01); // shape fixed in global fit
 
+    //April 2018: in sync with globalFitL3Res.C as of 68e089af92244de9c56795 (Summer16_07Aug2017_V7)
+    _fl3 = new TF1("fl3","[0] + [1]*max(0.,[3]+[4]*pow(x,[5])) + [2]*(1-([6]+[7]*log(x))/x)",30,1400);
+    _fl3->SetParameters(1,0, 0, 0.03091e+00,-5.11540e-02,-1.54227e-01,-1.96332e-01, 3.07378e-01); // SPRH
+    _fl3->FixParameter(3, 0.03091e+00); // shape fixed in global fit
+    _fl3->FixParameter(4, -5.11540e-02); // shape fixed in global fit
+    _fl3->FixParameter(5, -1.54227e-01); // shape fixed in global fit
+    _fl3->FixParameter(6, -1.96332e-01); // shape fixed in global fit
+    _fl3->FixParameter(7, 3.07378e-01 ); // shape fixed in global fit
+
+    
     // For 80X V4, we use a constant fit
     //_fl3 = new TF1("fl3","[0]",60,300);
 
