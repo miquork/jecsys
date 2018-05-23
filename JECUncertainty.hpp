@@ -59,6 +59,7 @@ public:
   void _InitJEC();
   void _InitL2Res();
   void _InitL3Res();
+  void _InitL5();
   double _Rjet(const double pTprime, const double eta,
 	       const double ajet, const double mu,
 	       FactorizedJetCorrector *jec);
@@ -133,6 +134,18 @@ private:
   // JEC variations
   FactorizedJetCorrector *_jec;
   FactorizedJetCorrector *_jecDefault;
+  //
+  FactorizedJetCorrector *_jecL5P8ud;
+  FactorizedJetCorrector *_jecL5P8s;
+  FactorizedJetCorrector *_jecL5P8g;
+  FactorizedJetCorrector *_jecL5P8c;
+  FactorizedJetCorrector *_jecL5P8b;
+  //
+  FactorizedJetCorrector *_jecL5HWud;
+  FactorizedJetCorrector *_jecL5HWs;
+  FactorizedJetCorrector *_jecL5HWg;
+  FactorizedJetCorrector *_jecL5HWc;
+  FactorizedJetCorrector *_jecL5HWb;
   //
   FactorizedJetCorrector *_jecBCD;
   FactorizedJetCorrector *_jecEF;

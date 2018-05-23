@@ -34,7 +34,7 @@ using namespace std;
 // Turn debug mode on if the code fails with an exception from JEC packages
 // This is most likely a missing/misnamed file given to JetCorrectorParameters
 // The last file printed out before the crash in debug mode is usually the fault
-bool debug = true;//false;
+bool debug = false;
 
 
 JECUncertainty::JECUncertainty(const jec::JetAlgo& algo, 
@@ -72,6 +72,7 @@ JECUncertainty::JECUncertainty(const jec::JetAlgo& algo,
   _InitJEC();
   _InitL2Res();
   _InitL3Res();
+  _InitL5();
   
   // initialize Run I uncertainty
   {
@@ -753,6 +754,28 @@ void JECUncertainty::_InitL3Res() {
 
 } // _InitL3Res
 
+void JECUncertainty::_InitL5() {
+
+  // initialize L5Flavor corrections
+  {
+    const char *cd = "CondFormats/JetMETObjects/data";
+    const char *sp = Form("%s/Summer16_07Aug2017_V10_Flavor_Pythia8_MC_L5Flavor_AK4PFchs.txt",cd);
+    const char *sh = Form("%s/Summer16_07Aug2017_V10_Flavor_Herwig_MC_L5Flavor_AK4PFchs.txt",cd);
+
+    _jecL5P8ud = new FactorizedJetCorrector("L5Flavor",sp,"L5Flavor:ud");
+    _jecL5P8s  = new FactorizedJetCorrector("L5Flavor",sp,"L5Flavor:s");
+    _jecL5P8g  = new FactorizedJetCorrector("L5Flavor",sp,"L5Flavor:g");
+    _jecL5P8c  = new FactorizedJetCorrector("L5Flavor",sp,"L5Flavor:c");
+    _jecL5P8b  = new FactorizedJetCorrector("L5Flavor",sp,"L5Flavor:b");
+
+    _jecL5HWud = new FactorizedJetCorrector("L5Flavor",sh,"L5Flavor:ud");
+    _jecL5HWs  = new FactorizedJetCorrector("L5Flavor",sh,"L5Flavor:s");
+    _jecL5HWg  = new FactorizedJetCorrector("L5Flavor",sh,"L5Flavor:g");
+    _jecL5HWc  = new FactorizedJetCorrector("L5Flavor",sh,"L5Flavor:c");
+    _jecL5HWb  = new FactorizedJetCorrector("L5Flavor",sh,"L5Flavor:b");
+  }
+
+}
 
 // Solve pTraw from pTprime = pTraw / R(pTraw) using Brent's method
 // We want to provide JEC uncertainties vs pTprime, not pTraw, but JEC
@@ -1957,9 +1980,43 @@ double JECUncertainty::_FlavorMix(double pTprime, double eta,
 double JECUncertainty::_FlavorResponse(double pt, double eta,
 				       int iflavor) const{
 
- // flavors: 0/uds, 1/gluon, 2/charm, 3/bottom (, 4/unmatched->1/gluon)
+  // flavors: 0/uds, 1/gluon, 2/charm, 3/bottom (, 4/unmatched->1/gluon)
   // samples; 0/dijet, 1/Z/gamma+jet, 2/Zmm+jet, 3/Zee+jet 4/gamma+jet
+  FactorizedJetCorrector *rp(0), *rh(0);
+  if (iflavor==0) { // ud(s)
+    rp = _jecL5P8ud;
+    rh = _jecL5HWud;
+  }
+  if (iflavor==1 || iflavor==4) { // g
+    rp = _jecL5P8g;
+    rh = _jecL5HWg;
+  }
+  if (iflavor==2) { // ud(s)
+    rp = _jecL5P8c;
+    rh = _jecL5HWc;
+  }
+  if (iflavor==3) { // ud(s)
+    rp = _jecL5P8b;
+    rh = _jecL5HWb;
+  }
+
+  // Ensure reliable pT range
+  double ptmin = 10;//30;
+  double ptmax = 2000;
+  double emax = 3000;
+  ptmax = min(ptmax, emax/cosh(eta));
+  double x = max(ptmin, min(ptmax, pt));
+
+  rp->setJetPt(x);
+  rp->setJetEta(eta);
+  rh->setJetPt(x);
+  rh->setJetEta(eta);
+  //double f = rh->getCorrection() - rp->getCorrection();
+  double f = rp->getCorrection() - rh->getCorrection(); // Run I style
   
+  return f;
+  
+  /*
   // drawFragFlavor::drawPureFlavor()
   // Sample = Dijet (eta,flavor(phys),par), alpha=0.2 (June 27)
   static double pFlavor[5][4][4] =
@@ -2003,6 +2060,7 @@ double JECUncertainty::_FlavorResponse(double pt, double eta,
   double f = p[0]+p[1]*log10(0.01*x)+p[2]/x+p[3]/(x*x);
 
   return f;
+  */
 } // _FlavorResponse
 
 // Fraction of different flavors in various samples using Pythia6
