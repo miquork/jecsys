@@ -915,7 +915,9 @@ void reprocess(string epoch="") {
       //s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_MPF_LOGLIN_%s_L2L3Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017 with L3 from V3
       //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
       //s = Form("%s/Summer16_07Aug2017%s_V4_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L2L3Residual_AK4PFchs.txt",cd,
+      //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L2L3Residual_AK4PFchs.txt",cd,
+      //s = Form("%s/Summer16_07Aug2017%s_V7_DATA_L2L3Residual_AK4PFchs.txt",cd,
+      s = Form("%s/Summer16_07Aug2017%s_V10M_DATA_L2L3Residual_AK4PFchs.txt",cd,
 	       epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : 
 	       (epoch=="G"||epoch=="H" ? "GH" : epoch.c_str()));
       cout << s << endl;
@@ -928,7 +930,9 @@ void reprocess(string epoch="") {
 
 	jecw1 = 12.9/36.5;
 
-	s=Form("%s/Summer16_07Aug2017EF_V6_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	//s=Form("%s/Summer16_07Aug2017EF_V6_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	//s=Form("%s/Summer16_07Aug2017EF_V7_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Summer16_07Aug2017EF_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_ef = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_ef;
@@ -936,7 +940,9 @@ void reprocess(string epoch="") {
 	jec2 = new FactorizedJetCorrector(vpar_ef);
 	jecw2 = 6.8/36.5;
 
-	s=Form("%s/Summer16_07Aug2017GH_V6_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	//s=Form("%s/Summer16_07Aug2017GH_V6_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	//s=Form("%s/Summer16_07Aug2017GH_V7_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Summer16_07Aug2017GH_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_gh = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_gh;
@@ -965,7 +971,9 @@ void reprocess(string epoch="") {
       //s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_MPF_LOGLIN_%s_L2Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017
       //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
       //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L2Residual_AK4PFchs.txt",cd,
+      //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L2Residual_AK4PFchs.txt",cd,
+      //s = Form("%s/Summer16_07Aug2017%s_V7_DATA_L2Residual_AK4PFchs.txt",cd,
+      s = Form("%s/Summer16_07Aug2017%s_V10_DATA_L2Residual_AK4PFchs.txt",cd,
 	       epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : 
 	       (epoch=="G"||epoch=="H" ? "GH" : epoch.c_str()));
       cout << s << endl;
@@ -980,7 +988,9 @@ void reprocess(string epoch="") {
     {
       //s = Form("%s/Summer16_03Feb2017%s_V3_DATA_L1RC_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce));
       //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      //s = Form("%s/Summer16_07Aug2017%s_V7_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      s = Form("%s/Summer16_07Aug2017%s_V10_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -991,7 +1001,9 @@ void reprocess(string epoch="") {
     {
       //s = Form("%s/Summer16_03Feb2017%s_V3_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); 
       //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      //s = Form("%s/Summer16_07Aug2017%s_V7_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      s = Form("%s/Summer16_07Aug2017%s_V10_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1010,7 +1022,9 @@ void reprocess(string epoch="") {
     // Total uncertainty, excluding Flavor and Time
     //s = Form("%s/Summer16_03Feb2017_V3_DATA_UncertaintySources_AK4PFchs.txt",cd); // Sum16
     //s = Form("%s/Summer16_03Feb2017BCD_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    s = Form("%s/Summer16_07Aug2017BCD_V6_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    //s = Form("%s/Summer16_07Aug2017BCD_V6_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    //s = Form("%s/Summer16_07Aug2017BCD_V7_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s = Form("%s/Summer16_07Aug2017BCD_V10_DATA_UncertaintySources_AK4PFchs.txt",cd);
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
@@ -1019,7 +1033,9 @@ void reprocess(string epoch="") {
     // Partial uncertainties
     //s = Form("%s/Summer16_03Feb2017_V3_DATA_UncertaintySources_AK4PFchs.txt",cd);
     //s = Form("%s/Summer16_03Feb2017BCD_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    s = Form("%s/Summer16_07Aug2017BCD_V6_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    //s = Form("%s/Summer16_07Aug2017BCD_V6_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    //s = Form("%s/Summer16_07Aug2017BCD_V7_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s = Form("%s/Summer16_07Aug2017BCD_V10_DATA_UncertaintySources_AK4PFchs.txt",cd);
     //s2 = "TotalNoFlavorNoTime";
     s2 = "SubTotalAbsolute"; // 07AugV4
     cout << s << ":" << s2 << endl << flush;

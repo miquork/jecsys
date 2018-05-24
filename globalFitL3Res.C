@@ -46,7 +46,7 @@ bool dofsr = true; // correct for FSR
 double ptreco_gjet = 15.; // min jet pT when evaluating alphamax for gamma+jet
 double ptreco_zjet = 5.; // same for Z+jet
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
-bool _paper = true;
+bool _paper = false;//true;
 double _cleanUncert = 0.05; // for eta>2
 //double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
@@ -960,16 +960,20 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   h->DrawClone("AXIS");
 
   map<string, const char*> lumimap;
-  lumimap["BCD"] = "Run2016BCD Legacy, 12.9 fb^{-1}";
+  //lumimap["BCD"] = "Run2016BCD Legacy, 12.9 fb^{-1}";
+  lumimap["BCD"] = "Run2016BCD 12.9 fb^{-1}"; // DPNote
   //lumimap["E"] = "Run2016E re-mAOD, 4.0 fb^{-1}";
   //lumimap["F"] = "Run2016F re-mAOD, 2.8 fb^{-1}";//3.1 fb^{-1}";
-  lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
+  //lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
+  lumimap["EF"] = "Run2016EF 6.8 fb^{-1}"; // DPNote
   lumimap["G"] = "Run2016fG Legacy, 8.0 fb^{-1}";
   lumimap["H"] = "Run2016H Legacy, 8.8 fb^{-1}";
   //lumimap["GH"] = "Run2016FGH re-mAOD, 16.8 fb^{-1}";
-  lumimap["GH"] = "Run2016fGH Legacy, 16.8 fb^{-1}";
+  //lumimap["GH"] = "Run2016fGH Legacy, 16.8 fb^{-1}";
+  lumimap["GH"] = "Run2016GH 16.8 fb^{-1}"; // DPNote
   //lumimap["BCDEF"] = "Run2016BCDEF re-mAOD, 19.7 fb^{-1}";
-  lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
+  //lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
+  lumimap["BCDEFGH"] = "Run2016BCDEFGH 36.5 fb^{-1}"; // DPNote
   lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
   lumi_13TeV = lumimap[epoch];
 
@@ -1118,7 +1122,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   legm->AddEntry(hrun1,"Run I","FL");
 
   legp->AddEntry(herr_ref," ","");
-  legm->AddEntry(herr_ref,"07AugV6","FL");
+  //legm->AddEntry(herr_ref,"07AugV7","FL");
+  legm->AddEntry(herr_ref,"Run II","FL");
 
 
   ///////////////////////
@@ -1481,27 +1486,31 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   // Fitted lepton/photon scales too much detailed for the paper
   tex->SetTextSize(0.030); tex->SetTextColor(kBlue-9);
 
-  tex->DrawLatex(0.20,0.61,Form("N_{par}=%d",_jesFit->GetNpar()));
-  //tex->DrawLatex(0.20,0.61,Form("N_{par}=%d (%d)",_jesFit->GetNpar(),
-  //				_jesFit->GetNumberFreeParameters()));
-  tex->DrawLatex(0.32,0.61,Form("p_{0}=%1.4f #pm %1.4f",
-				_jesFit->GetParameter(0),
-				sqrt(emat[0][0])));
-  if (njesFit>=2)
-    tex->DrawLatex(0.32,0.58,Form("p_{1}=%1.4f #pm %1.4f",
-				  _jesFit->GetParameter(1),
-				  sqrt(emat[1][1])));
-  if (njesFit==2 && fixTDI)
-    tex->DrawLatex(0.32,0.55,Form("p_{2}=%1.3f (TDI fix)",fixTDI));
-  if (njesFit>=3)
-    tex->DrawLatex(0.32,0.55,Form("p_{2}=%1.3f #pm %1.3f",
+  if (!_paper) {
+ 
+    tex->SetTextColor(kWhite); // hide from view
+    tex->DrawLatex(0.32,0.64,Form("Npar=%d",_jesFit->GetNpar()));
+    //tex->DrawLatex(0.20,0.61,Form("N_{par}=%d (%d)",_jesFit->GetNpar(),
+    //				_jesFit->GetNumberFreeParameters()));
+    tex->DrawLatex(0.32,0.61,Form("p0=%1.4f #pm %1.4f",
+				  _jesFit->GetParameter(0),
+				  sqrt(emat[0][0])));
+    if (njesFit>=2)
+      tex->DrawLatex(0.32,0.58,Form("p1=%1.4f #pm %1.4f",
+				    _jesFit->GetParameter(1),
+				    sqrt(emat[1][1])));
+    if (njesFit==2 && fixTDI)
+      tex->DrawLatex(0.32,0.55,Form("p2=%1.3f (TDI fix)",fixTDI));
+    if (njesFit>=3)
+      tex->DrawLatex(0.32,0.55,Form("p2=%1.3f #pm %1.3f",
 				  _jesFit->GetParameter(2),
-				  sqrt(emat[2][2])));
-  if (njesFit>=4)
-    tex->DrawLatex(0.32,0.52,Form("p_{3}=%1.3f #pm %1.3f",
-				  _jesFit->GetParameter(3),
-				  sqrt(emat[3][3])));
-  tex->SetTextSize(0.045); tex->SetTextColor(kBlack);
+				    sqrt(emat[2][2])));
+    if (njesFit>=4)
+      tex->DrawLatex(0.32,0.52,Form("p3=%1.3f #pm %1.3f",
+				    _jesFit->GetParameter(3),
+				    sqrt(emat[3][3])));
+    tex->SetTextSize(0.045); tex->SetTextColor(kBlack);
+  }
 
   hrun1->DrawClone("SAME E5");
   (new TGraph(hrun1))->DrawClone("SAMEL");
