@@ -90,11 +90,18 @@ public:
   //
   double _Flavor(double pTprime, double eta) const;
   double _FlavorMixed(double pTprime, double eta, std::string smix) const;
-  double _FlavorMix(double pTprime, double eta, double fl, double fg, 
-		    double fc, double fb) const;
-  double _FlavorResponse(double pTprime, double eta, int iflavor) const;
-  double _FlavorFraction(double pTprime, double eta,
-			 int iflavor, int isample) const;
+  //double _FlavorMix(double pTprime, double eta, double fl, double fg, 
+  //		    double fc, double fb) const; // Run I
+  double _FlavorMix(double pTprime, double eta, double fud, double fs,
+		    double fc, double fb, double fg, double fo) const; // Run II
+  //double _FlavorResponse(double pTprime, double eta,
+  //			 int iflavor) const; // Run I
+  double _FlavorResponse(double pTprime, double eta,
+			 string flavor) const; // Run II
+  //double _FlavorFraction(double pTprime, double eta,
+  //			 int iflavor, int isample) const; // Run I
+  double _FlavorFraction(double pTptrim, double eta,
+			 string flavor, string sample) const; // Run II
   //
   double _Time(double pTprime, double eta);
   //double _TimeEta(const double eta);
@@ -146,6 +153,27 @@ private:
   FactorizedJetCorrector *_jecL5HWg;
   FactorizedJetCorrector *_jecL5HWc;
   FactorizedJetCorrector *_jecL5HWb;
+  //
+  FactorizedJetCorrector *_flvZjetud;
+  FactorizedJetCorrector *_flvZjets;
+  FactorizedJetCorrector *_flvZjetc;
+  FactorizedJetCorrector *_flvZjetb;
+  FactorizedJetCorrector *_flvZjetg;
+  FactorizedJetCorrector *_flvZjeto;
+  //
+  FactorizedJetCorrector *_flvGjetud;
+  FactorizedJetCorrector *_flvGjets;
+  FactorizedJetCorrector *_flvGjetc;
+  FactorizedJetCorrector *_flvGjetb;
+  FactorizedJetCorrector *_flvGjetg;
+  FactorizedJetCorrector *_flvGjeto;
+  //
+  FactorizedJetCorrector *_flvDijetud;
+  FactorizedJetCorrector *_flvDijets;
+  FactorizedJetCorrector *_flvDijetc;
+  FactorizedJetCorrector *_flvDijetb;
+  FactorizedJetCorrector *_flvDijetg;
+  FactorizedJetCorrector *_flvDijeto;
   //
   FactorizedJetCorrector *_jecBCD;
   FactorizedJetCorrector *_jecEF;

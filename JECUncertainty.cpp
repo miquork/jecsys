@@ -761,18 +761,43 @@ void JECUncertainty::_InitL5() {
     const char *cd = "CondFormats/JetMETObjects/data";
     const char *sp = Form("%s/Summer16_07Aug2017_V10_Flavor_Pythia8_MC_L5Flavor_AK4PFchs.txt",cd);
     const char *sh = Form("%s/Summer16_07Aug2017_V10_Flavor_Herwig_MC_L5Flavor_AK4PFchs.txt",cd);
-
+    //const char *sf = Form("%s/Summer16_07Aug2017_V10_Flavor_Pythia8_MC_Fractions_AK4PFchs.txt",cd); // Name needs to have L5Flavor for below code to work?
+    const char *sf = Form("%s/Summer16_07Aug2017_V10_Flavor_Fractions_MC_L5Flavor_AK4PFchs.txt",cd);
+    
+    // Flavor responses for pure flavors
     _jecL5P8ud = new FactorizedJetCorrector("L5Flavor",sp,"L5Flavor:ud");
     _jecL5P8s  = new FactorizedJetCorrector("L5Flavor",sp,"L5Flavor:s");
-    _jecL5P8g  = new FactorizedJetCorrector("L5Flavor",sp,"L5Flavor:g");
     _jecL5P8c  = new FactorizedJetCorrector("L5Flavor",sp,"L5Flavor:c");
     _jecL5P8b  = new FactorizedJetCorrector("L5Flavor",sp,"L5Flavor:b");
+    _jecL5P8g  = new FactorizedJetCorrector("L5Flavor",sp,"L5Flavor:g");
 
     _jecL5HWud = new FactorizedJetCorrector("L5Flavor",sh,"L5Flavor:ud");
     _jecL5HWs  = new FactorizedJetCorrector("L5Flavor",sh,"L5Flavor:s");
-    _jecL5HWg  = new FactorizedJetCorrector("L5Flavor",sh,"L5Flavor:g");
     _jecL5HWc  = new FactorizedJetCorrector("L5Flavor",sh,"L5Flavor:c");
     _jecL5HWb  = new FactorizedJetCorrector("L5Flavor",sh,"L5Flavor:b");
+    _jecL5HWg  = new FactorizedJetCorrector("L5Flavor",sh,"L5Flavor:g");
+
+    // Flavor fractions for select samples
+    _flvZjetud = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:zlljet_ud");
+    _flvZjets  = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:zlljet_s");
+    _flvZjetc  = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:zlljet_c");
+    _flvZjetb  = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:zlljet_b");
+    _flvZjetg  = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:zlljet_g");
+    _flvZjeto = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:zlljet_oth");
+
+    _flvGjetud = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:gamjet_ud");
+    _flvGjets  = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:gamjet_s");
+    _flvGjetc  = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:gamjet_c");
+    _flvGjetb  = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:gamjet_b");
+    _flvGjetg  = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:gamjet_g");
+    _flvGjeto = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:gamjet_oth");
+
+    _flvDijetud = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:dijet_ud");
+    _flvDijets  = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:dijet_s");
+    _flvDijetc  = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:dijet_c");
+    _flvDijetb  = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:dijet_b");
+    _flvDijetg  = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:dijet_g");
+    _flvDijeto = new FactorizedJetCorrector("L5Flavor",sf,"L5Flavor:dijet_oth");
   }
 
 }
@@ -1835,9 +1860,19 @@ double JECUncertainty::_Flavor(double pTprime, double eta) const {
     errFlavor = _FlavorMixed(pTprime,eta,"photon+jet");
     err2 += errFlavor*errFlavor;
   }
-  if (_errType & jec::kFlavorPureQuark) {
-    assert( !(_errType & (jec::kFlavorMask & ~jec::kFlavorPureQuark)) ); 
-    errFlavor = _FlavorMixed(pTprime,eta,"quark");
+  //if (_errType & jec::kFlavorPureQuark) {
+  //assert( !(_errType & (jec::kFlavorMask & ~jec::kFlavorPureQuark)) ); 
+  //errFlavor = _FlavorMixed(pTprime,eta,"quark");
+    //err2 += errFlavor*errFlavor;
+  //}
+  if (_errType & jec::kFlavorPureUpDown) {
+    assert( !(_errType & (jec::kFlavorMask & ~jec::kFlavorPureUpDown)) ); 
+    errFlavor = _FlavorMixed(pTprime,eta,"updown");
+    err2 += errFlavor*errFlavor;
+  }
+  if (_errType & jec::kFlavorPureStrange) {
+    assert( !(_errType & (jec::kFlavorMask & ~jec::kFlavorPureStrange)) ); 
+    errFlavor = _FlavorMixed(pTprime,eta,"strange");
     err2 += errFlavor*errFlavor;
   }
   if (_errType & jec::kFlavorPureGluon) {
@@ -1863,21 +1898,37 @@ double JECUncertainty::_Flavor(double pTprime, double eta) const {
 // Flavor systematic for predefined mixture
 // relative to "20% glue" (barrel) and "QCD" (forward)
 double JECUncertainty::_FlavorMixed(double pTprime, double eta,
-					     string smix) const {
+				    string smix) const {
 
   // Calculate the "20% glue" reference point at 200 GeV in the barrel
   // (if applying pT-dependent L3Residual, could use pTprime instead)
+  // Run II: switch to pTprime with Z+jet flavor as reference
+  // Future: smoothly switch to photon+jet flavor at high pT, then multijet
   double refb(0);
   {
-    double ptref = 200;
+    //double ptref = 200;
+    //double etaref = 0;
+    //
+    // Run I flavors
+    //double fL = _FlavorFraction(ptref, etaref, 0, 1);
+    //double fG = _FlavorFraction(ptref, etaref, 1, 1);
+    //double fC = _FlavorFraction(ptref, etaref, 2, 1);
+    //double fB = _FlavorFraction(ptref, etaref, 3, 1);
+    //
+    //refb = _FlavorMix(ptref, etaref, fL, fG, fC, fB);
+
+    double ptref = pTprime;
     double etaref = 0;
 
-    double fL = _FlavorFraction(ptref, etaref, 0, 1);
-    double fG = _FlavorFraction(ptref, etaref, 1, 1);
-    double fC = _FlavorFraction(ptref, etaref, 2, 1);
-    double fB = _FlavorFraction(ptref, etaref, 3, 1);
+    // Run II flavors
+    double fU = _FlavorFraction(ptref, etaref, "ud", "zlljet");
+    double fS = _FlavorFraction(ptref, etaref, "s",  "zlljet");
+    double fC = _FlavorFraction(ptref, etaref, "c",  "zlljet");
+    double fB = _FlavorFraction(ptref, etaref, "b",  "zlljet");
+    double fG = _FlavorFraction(ptref, etaref, "g",  "zlljet");
+    double fO = _FlavorFraction(ptref, etaref, "oth","zlljet");
   
-    refb = _FlavorMix(ptref, etaref, fL, fG, fC, fB);
+    refb = _FlavorMix(ptref, etaref, fU, fS, fC, fB, fG, fO);
   }
 
   // Calculate the QCD reference point at pTprime in the barrel
@@ -1886,13 +1937,24 @@ double JECUncertainty::_FlavorMixed(double pTprime, double eta,
   {
     double ptref = pTprime;
     double etaref = 0;
-    
-    double fL = _FlavorFraction(ptref, etaref, 0, 0);
-    double fG = _FlavorFraction(ptref, etaref, 1, 0);
-    double fC = _FlavorFraction(ptref, etaref, 2, 0);
-    double fB = _FlavorFraction(ptref, etaref, 3, 0);
+
+    // Run I
+    //double fL = _FlavorFraction(ptref, etaref, 0, 0);
+    //double fG = _FlavorFraction(ptref, etaref, 1, 0);
+    //double fC = _FlavorFraction(ptref, etaref, 2, 0);
+    //double fB = _FlavorFraction(ptref, etaref, 3, 0);
+    //
+    //qcdb = _FlavorMix(ptref, etaref, fL, fG, fC, fB);
+
+    // Run II
+    double fU = _FlavorFraction(ptref, etaref, "ud", "dijet");
+    double fS = _FlavorFraction(ptref, etaref, "s",  "dijet");
+    double fC = _FlavorFraction(ptref, etaref, "c",  "dijet");
+    double fB = _FlavorFraction(ptref, etaref, "b",  "dijet");
+    double fG = _FlavorFraction(ptref, etaref, "g",  "dijet");
+    double fO = _FlavorFraction(ptref, etaref, "oth","dijet");
   
-    qcdb = _FlavorMix(ptref, etaref, fL, fG, fC, fB);
+    qcdb = _FlavorMix(ptref, etaref, fU, fS, fC, fB, fG, fO);
   }
 
   // Calculate the QCD reference point at pTprime in the forward region
@@ -1901,12 +1963,22 @@ double JECUncertainty::_FlavorMixed(double pTprime, double eta,
   {
     double ptref = pTprime;
     
-    double fL = _FlavorFraction(ptref, eta, 0, 0);
-    double fG = _FlavorFraction(ptref, eta, 1, 0);
-    double fC = _FlavorFraction(ptref, eta, 2, 0);
-    double fB = _FlavorFraction(ptref, eta, 3, 0);
+    // Run I
+    //double fL = _FlavorFraction(ptref, eta, 0, 0);
+    //double fG = _FlavorFraction(ptref, eta, 1, 0);
+    //double fC = _FlavorFraction(ptref, eta, 2, 0);
+    //double fB = _FlavorFraction(ptref, eta, 3, 0);
+    //
+    //qcdf = _FlavorMix(ptref, eta, fL, fG, fC, fB);
+
+    double fU = _FlavorFraction(ptref, eta, "ud", "dijet");
+    double fS = _FlavorFraction(ptref, eta, "s",  "dijet");
+    double fC = _FlavorFraction(ptref, eta, "c",  "dijet");
+    double fB = _FlavorFraction(ptref, eta, "b",  "dijet");
+    double fG = _FlavorFraction(ptref, eta, "g",  "dijet");
+    double fO = _FlavorFraction(ptref, eta, "oth","dijet");
   
-    qcdf = _FlavorMix(ptref, eta, fL, fG, fC, fB);
+    qcdf = _FlavorMix(ptref, eta, fU, fS, fC, fB, fG, fO);
   }
 
   // Consider how calibration is propagated from Z+jet at 200 GeV
@@ -1921,30 +1993,58 @@ double JECUncertainty::_FlavorMixed(double pTprime, double eta,
     if (smix=="20% glue")
       pt = 200;// Z+jet effective mean pT
 
-    int iflavor(-1);
-    if (smix=="QCD")        iflavor = 0;
-    if (smix=="20% glue")   iflavor = 1; // Z/gamma+jet
-    if (smix=="Z+jet")      iflavor = 3; // Zee+jet //2; // Zmm+jet
-    if (smix=="photon+jet") iflavor = 4;
+    // Run I
+    //int iflavor(-1);
+    //if (smix=="QCD")        iflavor = 0;
+    //if (smix=="20% glue")   iflavor = 1; // Z/gamma+jet
+    //if (smix=="Z+jet")      iflavor = 3; // Zee+jet //2; // Zmm+jet
+    //if (smix=="photon+jet") iflavor = 4;
+    //
+    //double fL = _FlavorFraction(pt, eta, 0, iflavor);
+    //double fG = _FlavorFraction(pt, eta, 1, iflavor);
+    //double fC = _FlavorFraction(pt, eta, 2, iflavor);
+    //double fB = _FlavorFraction(pt, eta, 3, iflavor);
+    //
+    //return (_FlavorMix(pTprime, eta, fL, fG, fC, fB) - ref);
 
-    double fL = _FlavorFraction(pt, eta, 0, iflavor);
-    double fG = _FlavorFraction(pt, eta, 1, iflavor);
-    double fC = _FlavorFraction(pt, eta, 2, iflavor);
-    double fB = _FlavorFraction(pt, eta, 3, iflavor);
-  
-    return (_FlavorMix(pTprime, eta, fL, fG, fC, fB) - ref);
+    string sample = "";
+    if (smix=="QCD")        sample = "dijet";
+    if (smix=="20% glue")   sample = "zlljet";
+    if (smix=="Z+jet")      sample = "zlljet";
+    if (smix=="photon+jet") sample = "gamjet";
+    assert(sample != "");
+
+    double fU = _FlavorFraction(pt, eta, "ud", sample);
+    double fS = _FlavorFraction(pt, eta, "s",  sample);
+    double fC = _FlavorFraction(pt, eta, "c",  sample);
+    double fB = _FlavorFraction(pt, eta, "b",  sample);
+    double fG = _FlavorFraction(pt, eta, "g",  sample);
+    double fO = _FlavorFraction(pt, eta, "oth",sample);
+
+    return (_FlavorMix(pTprime, eta, fU, fS, fC, fB, fG, fO) - ref);
   }
   else if (smix=="quark")  {
-    return _FlavorMix(pTprime,eta, 1, 0, 0, 0) - ref;
+    //return _FlavorMix(pTprime,eta, 1, 0, 0, 0) - ref;
+    //return _FlavorMix(pTprime,eta, 1, 0, 0, 0, 0, 0) - ref;
+    assert(false);
+  }
+  else if (smix=="updown")  {
+    return _FlavorMix(pTprime,eta, 1, 0, 0, 0, 0, 0) - ref;
+  }
+  else if (smix=="strange")  {
+    return _FlavorMix(pTprime,eta, 0, 1, 0, 0, 0, 0) - ref;
   }
   else if (smix=="gluon")  {
-    return _FlavorMix(pTprime,eta, 0, 1, 0, 0) - ref;
+    //return _FlavorMix(pTprime,eta, 0, 1, 0, 0) - ref;
+    return _FlavorMix(pTprime,eta, 0, 0, 0, 0, 1, 0) - ref;
   }
   else if (smix=="charm")  {
-    return _FlavorMix(pTprime,eta, 0, 0, 1, 0) - ref;
+    //return _FlavorMix(pTprime,eta, 0, 0, 1, 0) - ref;
+    return _FlavorMix(pTprime,eta, 0, 0, 1, 0, 0, 0) - ref;
   }
   else if (smix=="bottom") {
-    return _FlavorMix(pTprime,eta, 0, 0, 0, 1) - ref;
+    //return _FlavorMix(pTprime,eta, 0, 0, 0, 1) - ref;
+    return _FlavorMix(pTprime,eta, 0, 0, 0, 1, 0, 0) - ref;
   }
   else {
     assert(false);
@@ -1952,11 +2052,11 @@ double JECUncertainty::_FlavorMixed(double pTprime, double eta,
 
 } // _Flavor
 
-
-// Flavor systematic for any given mixture
+/*
+// Flavor systematic for any given mixture (Run I)
 double JECUncertainty::_FlavorMix(double pTprime, double eta,
-					   double fl, double fg,
-					   double fc, double fb) const {
+				  double fl, double fg,
+				  double fc, double fb) const {
 
   assert(fabs(fl+fg+fc+fb-1)<0.0001);
   assert(fl>=0 && fl<=1);
@@ -1973,50 +2073,61 @@ double JECUncertainty::_FlavorMix(double pTprime, double eta,
 
   return diff;
 } // _FlavorMix
+*/
 
+// Flavor systematic for any given mixture (Run II)
+double JECUncertainty::_FlavorMix(double pTprime, double eta,
+				  double fud, double fs,
+				  double fc, double fb,
+				  double fg, double fo) const {
 
+  // Allow sum of (fitted) input fractions differ from 1 by up to 1%
+  // but normalize back to exact 1
+  assert(fabs(fud+fs+fc+fb+fg+fo-1)<0.01);
+  double sum = fud + fs + fc + fb + fg + fo;
+  fud /= sum;
+  fs /= sum;
+  fc /= sum;
+  fb /= sum;
+  fg /= sum;
+  fo /= sum;
+
+  // Spread 'other' (=undefined flavor) evenly into ud, s and g fractions
+  if (fo != 0) {
+    double sumudsg  = fud + fs + fg;
+    double sumudsgo = fud + fs + fg + fo;
+    assert(sumudsg != 0);
+    fud *= sumudsgo / sumudsg;
+    fs  *= sumudsgo / sumudsg;
+    fg  *= sumudsgo / sumudsg;
+  }
+
+  // Sanity checks on normalized fractions
+  assert(fabs(fud+fs+fc+fb+fg-1)<0.0001);
+  assert(fud>=0 && fud<=1);
+  assert(fs>=0 && fs<=1);
+  assert(fc>=0 && fc<=1);
+  assert(fb>=0 && fb<=1);
+  assert(fg>=0 && fg<=1);
+  assert(fo>=0 && fo<=1);
+
+  double Rud = _FlavorResponse(pTprime, eta, "ud");
+  double Rs  = _FlavorResponse(pTprime, eta, "s");
+  double Rc  = _FlavorResponse(pTprime, eta, "c");
+  double Rb  = _FlavorResponse(pTprime, eta, "b");
+  double Rg  = _FlavorResponse(pTprime, eta, "g");
+
+  double diff = fud*Rud + fs*Rs + fc*Rc + fb*Rb + fg*Rg;
+
+  return diff;
+} // _FlavorMix
+
+/*
 // Flavor response difference (Pythia/Herwig) for any given flavor
-// Determined from QCD dijet MC
+// Determined from QCD dijet MC (Run I)
 double JECUncertainty::_FlavorResponse(double pt, double eta,
 				       int iflavor) const{
 
-  // flavors: 0/uds, 1/gluon, 2/charm, 3/bottom (, 4/unmatched->1/gluon)
-  // samples; 0/dijet, 1/Z/gamma+jet, 2/Zmm+jet, 3/Zee+jet 4/gamma+jet
-  FactorizedJetCorrector *rp(0), *rh(0);
-  if (iflavor==0) { // ud(s)
-    rp = _jecL5P8ud;
-    rh = _jecL5HWud;
-  }
-  if (iflavor==1 || iflavor==4) { // g
-    rp = _jecL5P8g;
-    rh = _jecL5HWg;
-  }
-  if (iflavor==2) { // ud(s)
-    rp = _jecL5P8c;
-    rh = _jecL5HWc;
-  }
-  if (iflavor==3) { // ud(s)
-    rp = _jecL5P8b;
-    rh = _jecL5HWb;
-  }
-
-  // Ensure reliable pT range
-  double ptmin = 10;//30;
-  double ptmax = 2000;
-  double emax = 3000;
-  ptmax = min(ptmax, emax/cosh(eta));
-  double x = max(ptmin, min(ptmax, pt));
-
-  rp->setJetPt(x);
-  rp->setJetEta(eta);
-  rh->setJetPt(x);
-  rh->setJetEta(eta);
-  //double f = rh->getCorrection() - rp->getCorrection();
-  double f = rp->getCorrection() - rh->getCorrection(); // Run I style
-  
-  return f;
-  
-  /*
   // drawFragFlavor::drawPureFlavor()
   // Sample = Dijet (eta,flavor(phys),par), alpha=0.2 (June 27)
   static double pFlavor[5][4][4] =
@@ -2060,10 +2171,115 @@ double JECUncertainty::_FlavorResponse(double pt, double eta,
   double f = p[0]+p[1]*log10(0.01*x)+p[2]/x+p[3]/(x*x);
 
   return f;
-  */
 } // _FlavorResponse
+*/
 
-// Fraction of different flavors in various samples using Pythia6
+// Flavor response difference (Pythia/Herwig) for any given flavor
+// Determined from QCD dijet MC (Run II)
+double JECUncertainty::_FlavorResponse(double pt, double eta,
+				       string flavor) const{
+
+  FactorizedJetCorrector *rp(0), *rh(0);
+  if (flavor=="ud") {
+    rp = _jecL5P8ud;
+    rh = _jecL5HWud;
+  }
+  if (flavor=="s") {
+    rp = _jecL5P8s;
+    rh = _jecL5HWs;
+  }
+  if (flavor=="c") {
+    rp = _jecL5P8c;
+    rh = _jecL5HWc;
+  }
+  if (flavor=="b") {
+    rp = _jecL5P8b;
+    rh = _jecL5HWb;
+  }
+  if (flavor=="g") {
+    rp = _jecL5P8g;
+    rh = _jecL5HWg;
+  }
+  assert(rp);
+  assert(rh);
+
+  // Ensure reliable pT range
+  double ptmin = 10;//30;
+  double ptmax = 2000;
+  double emax = 3000;
+  ptmax = min(ptmax, emax/cosh(eta));
+  double x = max(ptmin, min(ptmax, pt));
+
+  rp->setJetPt(x);
+  rp->setJetEta(eta);
+  rh->setJetPt(x);
+  rh->setJetEta(eta);
+  //double dRf_plus = rp->getCorrection() - rh->getCorrection();
+  double dRf = rp->getCorrection() - rh->getCorrection();
+
+  //rp->setJetPt(x);
+  //rp->setJetEta(-eta);
+  //rh->setJetPt(x);
+  //rh->setJetEta(-eta);
+  //double dRf_minus = rp->getCorrection() - rh->getCorrection();
+  //
+  //double dRf = 0.5*(dRf_plus + dRf_minus);
+  
+  // Temporary patch for s/c/b: average response difference over wider bins
+  // This should reduce statistical fluctuations
+  //if (flavor=="s" || flavor=="c" || flavor=="b") {
+  if (false) { // Symmetrize all flavors
+
+    // Wide bins used for flavor fractions
+    const int netaw = 7;//6;
+    //double etawbins[netaw+1] = {0, 1.3, 1.9, 2.5, 3.0, 3.2, 5.2};
+    double etawbins[netaw+1] = {0,0.783,1.305, 1.93, 2.5, 2.964, 3.139, 5.191};
+    vector<double> v1(etawbins,etawbins+netaw+1);
+    // Narrow bins used for L5Flavor
+    const int neta = 18;
+    double etabins[neta+1] =
+      {0, 0.261, 0.522, 0.783, 1.044, 1.305, 1.479, 1.653, 1.93, 2.172, 2.322,
+       2.5, 2.65, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};    
+    vector<double> v2(etabins,etabins+neta+1);
+    
+    double abseta = fabs(eta);
+    double sumwr(0), sumw(0);
+    for (int iw = 0; iw != netaw; ++iw) {      
+      if (abseta >= etawbins[iw] && abseta < etawbins[iw+1]) {
+	for (int i = 0; i != neta; ++i) {
+	  double etab = 0.5*(etabins[i]+etabins[i+1]);
+	  if (etab >= etawbins[iw] && etab < etawbins[iw+1]) {
+
+	    double xw = max(ptmin, min(emax/cosh(etab), pt));
+	    double w = pow(max(0.,1 - 2*xw*cosh(etab)/13000.), 10);
+
+	    rp->setJetPt(xw);
+	    rp->setJetEta(etab);
+	    rh->setJetPt(xw);
+	    rh->setJetEta(etab);
+	    double dRf_plus = rp->getCorrection() - rh->getCorrection();
+
+	    rp->setJetPt(xw);
+	    rp->setJetEta(-etab);
+	    rh->setJetPt(xw);
+	    rh->setJetEta(-etab);
+	    double dRf_minus = rp->getCorrection() - rh->getCorrection();
+
+	    sumwr += w * 0.5 * (dRf_plus + dRf_minus);
+	    sumw  += w;
+	  }
+	} // for i
+      }
+    } // for iw
+
+    dRf = sumwr / sumw;
+  }
+ 
+  return dRf;
+}
+
+/*
+// Fraction of different flavors in various samples using Pythia6 (Run I)
 // This uses the physics definition (algorithmic does not work for Herwig)
 double JECUncertainty::_FlavorFraction(double pt, double eta,
 				       int iflavor, int isample) const{
@@ -2351,6 +2567,54 @@ double JECUncertainty::_FlavorFraction(double pt, double eta,
 
   return f;
 } // _FlavorFraction
+*/
+
+// Fraction of different flavors in various samples using Pythia8 (Run II)
+// This uses the Run II physics definition
+// Sum of flavors is *not* normalized to unity (misses e.g. undefined)
+double JECUncertainty::_FlavorFraction(double pt, double eta,
+				       string flavor, string sample) const {
+  
+  FactorizedJetCorrector *flv(0);
+  //double x = pt; // Set pT range to where fraction was measured
+  // => now implemented in input text file
+  if (sample=="zlljet") {
+    //x = max(30., min(2000./cosh(eta), pt));
+    if (flavor=="ud")  flv = _flvZjetud;
+    if (flavor=="s")   flv = _flvZjets;
+    if (flavor=="c")   flv = _flvZjetc;
+    if (flavor=="b")   flv = _flvZjetb;
+    if (flavor=="g")   flv = _flvZjetg;
+    if (flavor=="oth") flv = _flvZjeto;
+  }
+  if (sample=="gamjet") {
+    //x = max(40., min(3000./cosh(eta), pt));
+    if (flavor=="ud")  flv = _flvGjetud;
+    if (flavor=="s")   flv = _flvGjets;
+    if (flavor=="c")   flv = _flvGjetc;
+    if (flavor=="b")   flv = _flvGjetb;
+    if (flavor=="g")   flv = _flvGjetg;
+    if (flavor=="oth") flv = _flvGjeto;
+  }
+  if (sample=="dijet") {
+    //x = max(20., min(2000./cosh(eta), pt));
+    if (flavor=="ud")  flv = _flvDijetud;
+    if (flavor=="s")   flv = _flvDijets;
+    if (flavor=="c")   flv = _flvDijetc;
+    if (flavor=="b")   flv = _flvDijetb;
+    if (flavor=="g")   flv = _flvDijetg;
+    if (flavor=="oth") flv = _flvDijeto;
+  }
+  assert(flv);
+
+  //flv->setJetPt(x);
+  flv->setJetPt(pt);
+  flv->setJetEta(eta);
+  
+  double f = flv->getCorrection();
+
+  return f;
+}
 
 // Time-dependence uncertainties from L2 and L3
 double JECUncertainty::_Time(const double pt, const double eta) {

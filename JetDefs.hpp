@@ -59,9 +59,11 @@ namespace jec {
   const ErrorTypes kFlavorZJet          = ErrorTypes(0L, 1L << 37); //opt
   const ErrorTypes kFlavorPhotonJet     = ErrorTypes(0L, 1L << 38); //opt
   const ErrorTypes kFlavorPureGluon     = ErrorTypes(0L, 1L << 39); //opt
-  const ErrorTypes kFlavorPureQuark     = ErrorTypes(0L, 1L << 40); //opt
-  const ErrorTypes kFlavorPureCharm     = ErrorTypes(0L, 1L << 41); //opt
-  const ErrorTypes kFlavorPureBottom    = ErrorTypes(0L, 1L << 42); //opt
+  //const ErrorTypes kFlavorPureQuark     = ErrorTypes(0L, 1L << 40); //opt
+  const ErrorTypes kFlavorPureUpDown    = ErrorTypes(0L, 1L << 40); //opt
+  const ErrorTypes kFlavorPureStrange   = ErrorTypes(0L, 1L << 41); //opt
+  const ErrorTypes kFlavorPureCharm     = ErrorTypes(0L, 1L << 42); //opt
+  const ErrorTypes kFlavorPureBottom    = ErrorTypes(0L, 1L << 43); //opt
   // time dependence, bits 46-51
   //const ErrorTypes kTimeEta             = ErrorTypes(0L, 1L << 46);
   const ErrorTypes kTimePtEta           = ErrorTypes(0L, 1L << 47);
@@ -108,7 +110,7 @@ namespace jec {
   const ErrorTypes kAbsolute            = kAbsoluteFlat | kAbsolutePt;
 
   // Test mask: only one of these should be on at a time
-  const ErrorTypes kFlavorMask          = kFlavorQCD | kFlavorZJet | kFlavorPhotonJet | kFlavorPureQuark | kFlavorPureGluon | kFlavorPureCharm | kFlavorPureBottom;
+  const ErrorTypes kFlavorMask          = kFlavorQCD | kFlavorZJet | kFlavorPhotonJet | kFlavorPureUpDown | kFlavorPureStrange | kFlavorPureGluon | kFlavorPureCharm | kFlavorPureBottom;
   //const ErrorTypes kTimePtMask          = kTimePt | kTimePtRunBCD | kTimePtRunE | kTimePtRunF | kTimePtRunGH;
   //const ErrorTypes kTimePtEtaMask          = kTimePtEta | kTimeRunBCD | kTimeRunE | kTimeRunF | kTimeRunGH;
   const ErrorTypes kTimePtEtaMask          = kTimePtEta | kTimeRunBCD | kTimeRunEF | kTimeRunG | kTimeRunH;

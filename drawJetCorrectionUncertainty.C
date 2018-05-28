@@ -35,7 +35,7 @@ bool _extra = false; // single pion plots
 bool _paper = true; //  for paper
 
 // Plot uncertainty (true) or source (false)
-bool _absUncert = true;//true;//false
+bool _absUncert = false;//true;//true;//false
 // NB: All source files are currently printed together with AK4PFchs uncertainty
 bool _doTXT = true; // create uncertainty and source text files
 bool _didTXT = false;
@@ -433,8 +433,10 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
                        kMagenta+1, kNone, 1, // line
                        kMagenta+1, kOpenDiamond, // marker
                        kNone, kNone, "LP")); // fill
-  syf.push_back(uncert("flavor", "Light quarks",
-                       jec::kFlavorPureQuark,
+  //syf.push_back(uncert("flavor", "Light quarks",
+  //                   jec::kFlavorPureQuark,
+  syf.push_back(uncert("flavor", "Up+down quarks",
+		       jec::kFlavorPureUpDown,
                        "default", "default", -1, // defaults
                        kBlue, kNone, 1, // line
                        kBlue, kFullTriangleUp, // marker
@@ -445,6 +447,44 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
                        kBlack, kNone, 1, // line
                        kBlack, kFullTriangleDown, // marker
                        kNone, kNone, "LP")); // fill
+
+  vector<uncert> syfp;
+  syfp.push_back(uncert("flavor_gluon", "Gluons",
+			jec::kFlavorPureGluon,
+			"default", "default", -1, // defaults
+			kYellow+3, kSolid, 1, // line
+			kBlack, kNone, // marker
+			kYellow, 1001, "LF")); // fill
+  //syfp.push_back(uncert("flavor_b", "Bottom quarks",
+  //			jec::kFlavorPureBottom,
+  //			"default", "default", -1, // defaults
+  //			kRed, kNone, 1, // line
+  //			kRed, kOpenCircle, // marker
+  //			kNone, kNone, "LP")); // fill
+  syfp.push_back(uncert("flavor_ud", "Up+down quarks",
+			jec::kFlavorPureUpDown,
+			"default", "default", -1, // defaults
+			kBlue, kNone, 1, // line
+			kBlue, kFullTriangleUp, // marker
+			kNone, kNone, "LP")); // fill
+  syfp.push_back(uncert("flavor_s", "Strange quarks",
+			jec::kFlavorPureStrange,
+			"default", "default", -1, // defaults
+			kMagenta+1, kNone, 1, // line
+			kMagenta+1, kFullDiamond, // marker
+			kNone, kNone, "LP")); // fill
+  syfp.push_back(uncert("flavor_c", "Charm quarks",
+			jec::kFlavorPureCharm,
+			"default", "default", -1, // defaults
+			kGreen+2, kSolid, 1, // line
+			kGreen+2, kFullSquare, // marker
+			kNone, kNone, "LP")); // fill
+  syfp.push_back(uncert("flavor_b", "Bottom quarks",
+			jec::kFlavorPureBottom,
+			"default", "default", -1, // defaults
+			kBlack, kNone, 1, // line
+			kBlack, kFullTriangleDown, // marker
+			kNone, kNone, "LP")); // fill
 
   vector<uncert> syt;
   syt.push_back(uncert("time_eta", "TimePtEta",
@@ -1110,7 +1150,33 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   }
 
   if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",sf));
+  //_icanvas = 1;
+
+  // <PureFlavor--->
+  // Pure Flavor uncertainty
+  string ssfp = Form("%s_PureFlavor_%s",cu,names[jetAlg]);
+  const char *sfp = ssfp.c_str();
+
+  // vs pT
+  if (_paper && !_absUncert) {
+  plotUncertainty(syfp, 0, syfp.size(), jetAlg, Form("%s_Eta00",sfp),
+                  "JEC uncertainty", s,
+                  "|#eta_{jet}| = 0", 5,10,"fixEta",0.);
+  plotUncertainty(syfp, 0, syfp.size(), jetAlg, Form("%s_Eta27",sfp),
+                  "JEC uncertainty", s,
+                  "|#eta_{jet}| = 2.7", 5,10,"fixEta",2.7);
+  plotUncertainty(syfp, 0, syfp.size(), jetAlg, Form("%s_Pt30",sfp),
+                  "JEC uncertainty", s,
+                  "p_{T} = 30 GeV", 5,10,"fixPt",30.);
+  //
+  plotUncertainty(syfp, 0, syfp.size(), jetAlg, Form("%s_Pt100",sfp),
+                  "JEC uncertainty", s,
+                  "p_{T} = 100 GeV", 5,10,"fixPt",100.);
+  }
+
+  if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",sfp));
   _icanvas = 1;
+  // <---PureFlavor>
 
   _minimal = minimaltmp;
 
@@ -1292,16 +1358,23 @@ void plotUncertainty(vector<uncert> const& sys,
   const double x_pt[] =
     {8, 10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
      97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 362, 430,
-     507, 592, 686, 790, 905, 1032, 1172, 1327, 1497, 1684, 1890, //1999};
-     //2000, 2238, 2500, 2787, 3103, 3450,
-     2116, 2366, 2640, 2941, 3273, 3637, 
-     4037, 4477, 4961, 5492, 6076, 7000};
+     507, 592, 686, 790, 905, 1032, 1172, 1327, 1497, 1684, 1890,
+     1999}; // Run I
+     // //2000, 2238, 2500, 2787, 3103, 3450,
+     //2116, 2366, 2640, 2941, 3273, 3637, 
+     //4037, 4477, 4961, 5492, 6076, 7000}; // Run II
   const int ndiv_pt = sizeof(x_pt)/sizeof(x_pt[0])-1;
-  const double x_eta[] =
-    {-5.4,-5.0,-4.4,-4,-3.5,-3,-2.8,-2.6,-2.4,-2.2,-2.0,
-     -1.8,-1.6,-1.4,-1.2,-1.0, -0.8,-0.6,-0.4,-0.2,0.,
-     0.2,0.4,0.6,0.8,1.0,1.2,1.4,
-     1.6,1.8,2.0,2.2,2.4,2.6,2.8,3,3.5,4,4.4,5.0,5.4};
+  //const double x_eta[] =
+  //{-5.4,-5.0,-4.4,-4,-3.5,-3,-2.8,-2.6,-2.4,-2.2,-2.0,
+  // -1.8,-1.6,-1.4,-1.2,-1.0, -0.8,-0.6,-0.4,-0.2,0.,
+  // 0.2,0.4,0.6,0.8,1.0,1.2,1.4,
+  // 1.6,1.8,2.0,2.2,2.4,2.6,2.8,3,3.5,4,4.4,5.0,5.4};
+  // Bins from L5Flavor, should match L2L3 and residuals
+  const double x_eta[] = 
+    {-5.191, -3.839, -3.489, -3.139, -2.964, -2.853, -2.65, -2.5, -2.322,
+     -2.172, -1.93, -1.653, -1.479, -1.305, -1.044, -0.783, -0.522, -0.261,
+     0, 0.261, 0.522, 0.783, 1.044, 1.305, 1.479, 1.653, 1.93, 2.172, 2.322,
+     2.5, 2.65, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};
   const int ndiv_eta = sizeof(x_eta)/sizeof(x_eta[0])-1;     
 
   // Re-determine bin edges based on maxe=4000.
@@ -1792,7 +1865,8 @@ void plotUncertainty(vector<uncert> const& sys,
        jec::kData,//Total};
        jec::kDataNoFlavor, jec::kDataNoTime, jec::kDataNoFlavorNoTime,
        jec::kFlavorZJet, jec::kFlavorPhotonJet,
-       jec::kFlavorPureGluon, jec::kFlavorPureQuark, 
+       jec::kFlavorPureGluon, //jec::kFlavorPureQuark, 
+       jec::kFlavorPureUpDown, jec::kFlavorPureStrange, 
        jec::kFlavorPureCharm, jec::kFlavorPureBottom,
        jec::kTimeRunBCD, jec::kTimeRunEF, jec::kTimeRunG, jec::kTimeRunH,
        jec::kCorrelationGroupMPFInSitu, jec::kCorrelationGroupIntercalibration, jec::kCorrelationGroupbJES,
@@ -1860,7 +1934,9 @@ void plotUncertainty(vector<uncert> const& sys,
     srcname[jec::kFlavorZJet] = "FlavorZJet";
     srcname[jec::kFlavorPhotonJet] = "FlavorPhotonJet";
     srcname[jec::kFlavorPureGluon] = "FlavorPureGluon";
-    srcname[jec::kFlavorPureQuark] = "FlavorPureQuark";
+    //srcname[jec::kFlavorPureQuark] = "FlavorPureQuark";
+    srcname[jec::kFlavorPureUpDown] = "FlavorPureUpDown";
+    srcname[jec::kFlavorPureStrange] = "FlavorPureStrange";
     srcname[jec::kFlavorPureBottom] = "FlavorPureBottom";
     srcname[jec::kFlavorPureCharm] = "FlavorPureCharm";
     srcname[jec::kTimeRunBCD] = "TimeRunBCD"; 
