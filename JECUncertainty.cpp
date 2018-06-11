@@ -9,18 +9,19 @@
 #include <cmath>
 #include <map>
 
-// Fall17_17Nov_V6 uncertainty files:
-//
-// [RelativeXX]
-// https://indico.cern.ch/event/706518/ (dijet nominal, JERup, JERdown):
+// Fall17_17Nov2017_V11 uncertainty files
+// [Relative XX]
+// https://indico.cern.ch/event/734120/#4-l2res-for-ak4pfchs-2017-bcde (dijet nominal, JERup, JERdown):
 // (Fall17_17Nov2017BCDEF_MPF_FLAT_L2Residual_pythia8_AK4PFchs.txt)
-// Fall17_17Nov2017BCDEF_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt [Bal]
-// Fall17_17Nov2017BCDEF_pT_FLAT_L2Residual_pythia8_AK4PFchs.txt    [Pt]
-// Fall17_17Nov2017BCDEF_pT_LOGLIN_L2Residual_pythia8_AK4PFchs.txt  [V6 default]
-// Fall17_17Nov2017BCDEF_pT_LOGLIN_JERdown_L2Residual_pythia8_AK4PFchs.txt [JER]
-// Fall17_17Nov2017BCDEF_pT_LOGLIN_JERup_L2Residual_pythia8_AK4PFchs.txt   [JER]
-// https://www.dropbox.com/sh/tx300az16o1t3nd/AAAwmWUpHf8gFlwnukej3kdMa?dl=0 [Sample]
-// Fall17_17Nov2017BCDEF_pT_LOGLIN_L2L3Residual_pythia8_AK4PFchs.txt  [Sample]
+// Fall17_17Nov2017BCDEF_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt [Bal] (updated)
+// Fall17_17Nov2017BCDEF_pT_FLAT_L2Residual_pythia8_AK4PFchs.txt    [Pt] (updated)
+// Fall17_17Nov2017BCDEF_pT_LOGLIN_L2Residual_pythia8_AK4PFchs.txt  [V6 default] //kept for now...? (updated)
+// MISSING Fall17_17Nov2017BCDEF_pT_LOGLIN_JERdown_L2Residual_pythia8_AK4PFchs.txt [JER]
+// MISSING Fall17_17Nov2017BCDEF_pT_LOGLIN_JERup_L2Residual_pythia8_AK4PFchs.txt   [JER]
+// kept OLD https://www.dropbox.com/sh/tx300az16o1t3nd/AAAwmWUpHf8gFlwnukej3kdMa?dl=0 [Sample]
+// Fall17_17Nov2017BCDEF_pT_LOGLIN_L2L3Residual_pythia8_AK4PFchs.txt  [Sample] (updated with new L2Res, old L3Fit 2-par [0.9787 0.0656])
+
+
 
 
 // [PileUpXX] -- use RunE representative of DE (and CDE, BCDEF)
