@@ -102,9 +102,9 @@ const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
 //const int njesFit = 4; // scale(ECAL)+HB+offset+ECALgain
 
 std::vector<double> parTransForMultiJet(njesFit, 0.001);
-Nuisances MultijetNuisances;
+Nuisances DummyMultijetNuisances;
 //new multijet sources
-const int nsrcnmj = MultijetNuisances.MPF_NuisanceCollection.size() + MultijetNuisances.MJB_NuisanceCollection.size();
+int nsrcnmj= 10;// dummy value to be overwritten automatically
 
 CombLossFunction* _lossFunc=0;
 CombLossFunction* _inputFunc=0;
@@ -222,7 +222,7 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 }
 
 void globalFitL3Res(double etamin = 0, double etamax = 1.3,
-		    string epoch="", string selectSample="Standard_MJDJ_gam_zee_zmm", string selectMethods="PtBalMPF") {
+		    string epoch="", string selectSample="gam_zll", string selectMethods="PtBalMPF") {
   if(verboseGF)cout << Form("Running globalFitL3Res(etamin=%02.2f,etamax=%02.2f,epoch=%s, selectSample=%s, selectMethods=%s",etamin,etamax,epoch.c_str(),selectSample.c_str(),selectMethods.c_str()) << endl << flush;
   _etamin = etamin;
   const char *cep = epoch.c_str();
@@ -272,16 +272,22 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   fm_files["GH"] = "FlateGH";
   fm_files["BCDEFGH"] = "All";
 
-  list<unique_ptr<MeasurementBase>> measurements;
-  MultijetBinnedSum* MPF_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319v2_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF );
+  list<unique_ptr<MeasurementBase>> measurements;//multijet_180507_2016All.root
+  MultijetBinnedSum* MPF_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180507_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF );
   if(dropFirstXNewMultijetTriggerBins>0)MPF_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
-  measurements.emplace_back(MPF_MJ);//new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF ));
-  MultijetBinnedSum* MJB_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319v2_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal );
+  measurements.emplace_back(MPF_MJ);
+  MultijetBinnedSum* MJB_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180507_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal );
   if(dropFirstXNewMultijetTriggerBins>0)MJB_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
-  measurements.emplace_back(MJB_MJ);//new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF ));
+  measurements.emplace_back(MJB_MJ);
   for (auto const &measurement: measurements)
     _lossFunc->AddMeasurement(measurement.get());
+  nsrcnmj = _lossFunc->GetNuisances().GetNumParams();
 
+  std::cout << _lossFunc->GetNuisances().GetNumParams() << std::endl;
+
+  for ( unsigned i=0; i!=_lossFunc->GetNuisances().GetNumParams(); i++){
+    std::cout << _lossFunc->GetNuisances().GetName(i).c_str() << std::endl;
+  }
   
   TDirectory *curdir = gDirectory;
   setTDRStyle();
@@ -1068,9 +1074,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
 
   JetCorrStd2P  jetCorr2Dummy;
-  for (auto &i: MultijetNuisances.Multijet_NuisanceCollection){
-    *std::get<double*>(i) = 0.;
-  }
+  //for (auto &i: MultijetNuisances.Multijet_NuisanceCollection){
+  //  *std::get<double*>(i) = 0.;
+  //}
     
   MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),MultijetBinnedSum::Method::MPF );
   MultijetBinnedSum* MJBMultijet = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),MultijetBinnedSum::Method::PtBal );
@@ -1079,15 +1085,15 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     MJBMultijet->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
   }
   // MPF
-  TH1D MPF_Raw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::bal);
-  TH1D MPF_SimRaw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D MPF_Raw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, DummyMultijetNuisances, MultijetBinnedSum::HistReturnType::bal);
+  TH1D MPF_SimRaw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, DummyMultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
   TH1D* MPF_RatioRaw = (TH1D*) MPF_SimRaw.Clone("MPF_RatioRaw");
   MPF_RatioRaw->Divide(&MPF_Raw);
   MPF_RatioRaw->SetMarkerSize(0.5);
 
   // MJB
-  TH1D MJB_Raw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::bal);
-  TH1D MJB_SimRaw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D MJB_Raw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, DummyMultijetNuisances, MultijetBinnedSum::HistReturnType::bal);
+  TH1D MJB_SimRaw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, DummyMultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
   TH1D* MJB_RatioRaw = (TH1D*) MJB_SimRaw.Clone("MJB_RatioRaw");
   MJB_RatioRaw->Divide(&MJB_Raw);
   MJB_RatioRaw->SetMarkerSize(0.5);
@@ -1258,8 +1264,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   // Set parameters
   vector<string> parnames(Npar);
-  for(int i = Npar-nsrcnmj; i<Npar; ++i)
-    parnames.at(i)=std::get<std::string>(MultijetNuisances.Multijet_NuisanceCollection.at(i-(Npar-nsrcnmj)));
+  for(int i = Npar-nsrcnmj; i<Npar; ++i){
+    parnames.at(i)=_lossFunc->GetNuisances().GetName(i-(Npar-nsrcnmj)).c_str();
+  }
   for (int i = 0; i != Npar; ++i)
     fitter->SetParameter(i, parnames[i].c_str(), a[i], (i<np ? 0.01 : 1),
 			 -100, 100);
@@ -1316,7 +1323,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   cout <<"New multijet:" <<endl;
   cout << "Dimensions: "<< _lossFunc->GetNDF() + _lossFunc->GetNumParams() << endl;
   if(useNewMultijet){
-    cout << "chi2(multijet) term: "<< _lossFunc->Eval(parTransForMultiJet,MultijetNuisances) << endl;
+    cout << "chi2(multijet) term: "<< _lossFunc->Eval(parTransForMultiJet,_lossFunc->GetNuisances()) << endl;
     cout << "mutltijet chi2 retrieved " << iMultijet << " times."<< endl;
   }
   cout << endl;
@@ -1438,10 +1445,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     //    cout << i << endl;
     if (tmp_par[i]==0&&fabs(tmp_err[i]-1)<2e-2)
       cout << Form("%2d - %35s:  ----------\n",
-		   (i-np+1), std::get<std::string>(MultijetNuisances.Multijet_NuisanceCollection.at(i-(Npar-nsrcnmj))).c_str()  );  
+                   (i-np+1), _lossFunc->GetNuisances().GetName(i-(Npar-nsrcnmj)).c_str()); 
     else
       cout << Form("%2d - %35s:  %5.2f+/-%4.2f\n",
-		   i-np+1, std::get<std::string>(MultijetNuisances.Multijet_NuisanceCollection.at(i-(Npar-nsrcnmj))).c_str(), //(*_vsrc)[i-np]->GetName(),
+		   i-np+1, _lossFunc->GetNuisances().GetName(i-(Npar-nsrcnmj)).c_str(), 
 		   tmp_par[i],tmp_err[i]);
   }
   cout << endl;
@@ -1587,8 +1594,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   fke->SetParameter(0,+1);
   fke->DrawClone("SAME");
 
-  TH1D MPF_PostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), MultijetNuisances, MultijetBinnedSum::HistReturnType::recompBal);
-  TH1D MPF_SimPostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D MPF_PostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), _lossFunc->GetNuisances(), MultijetBinnedSum::HistReturnType::recompBal);
+  TH1D MPF_SimPostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), _lossFunc->GetNuisances(), MultijetBinnedSum::HistReturnType::simBal);
   TH1D* MPF_RatioPostFit = (TH1D*) MPF_SimPostFit.Clone("MPF_RatioPostFit");
   MPF_RatioPostFit->Divide(&MPF_PostFit);
   MPF_RatioPostFit->SetMarkerSize(0.5);
@@ -1603,8 +1610,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
   if(useNewMultijet)MPF_RatioPostFitScaled->Draw("SAME");
 
-  TH1D MJB_PostFit =  MJBMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), MultijetNuisances, MultijetBinnedSum::HistReturnType::recompBal);
-  TH1D MJB_SimPostFit =  MJBMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D MJB_PostFit =  MJBMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), _lossFunc->GetNuisances(), MultijetBinnedSum::HistReturnType::recompBal);
+  TH1D MJB_SimPostFit =  MJBMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), _lossFunc->GetNuisances(), MultijetBinnedSum::HistReturnType::simBal);
   TH1D* MJB_RatioPostFit = (TH1D*) MJB_SimPostFit.Clone("MJB_RatioPostFit");
   MJB_RatioPostFit->Divide(&MJB_PostFit);
   MJB_RatioPostFit->SetMarkerSize(0.5);
@@ -1846,7 +1853,8 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 
 //  cout << _lossFunc << endl;
   assert(_lossFunc!=0);
-  if(useNewMultijet)assert(_lossFunc->GetNumParams()==(unsigned int)_jesFit->GetNpar());
+  //  cout << _lossFunc->GetNumParams() << " and " << (unsigned int)_jesFit->GetNpar() << endl;
+  if(useNewMultijet)assert(_lossFunc->GetNumParams() - nsrcnmj==(unsigned int)_jesFit->GetNpar());
   assert(parTransForMultiJet.size()==(unsigned int)_jesFit->GetNpar());
   parTransForMultiJet[0] = par[0]-1;
   parTransForMultiJet[1] = par[1];
@@ -1961,14 +1969,8 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
     //cout << Form("standard chi2: %2.4f  multijet chi2: %2.4f \n", chi2, _lossFunc->Eval(parTransForMultiJet));
     //simpy add multijet MPF chi2-term for now and add bining dimensionality from multijet
     if(useNewMultijet){
-      for(int i = ns-nsrcnmj; i<ns; ++i)//transfer nuisance parameters back and forth between multijet and global fit
-	{
-	  //	  cout << "i " << i << endl;
-	  //	  cout << "setting " << std::get<string>(MultijetNuisances.Multijet_NuisanceCollection.at(i-(ns-nsrcnmj))).c_str() << " to " << ps[i] << " where i " << i << endl;
-	  *(std::get<double*>(MultijetNuisances.Multijet_NuisanceCollection.at(i-(ns-nsrcnmj))))=ps[i];
-	
-	}
-      chi2 += _lossFunc->Eval(parTransForMultiJet,MultijetNuisances);
+      _lossFunc->GetNuisances().SetValues(&ps[ns-nsrcnmj]); // set correct index, no copy involved
+      chi2 += _lossFunc->Eval(parTransForMultiJet,_lossFunc->GetNuisances());
       iMultijet++;
       Nk += _lossFunc->GetNDF() + _lossFunc->GetNumParams();
       //does this need to be written back?
