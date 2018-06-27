@@ -35,7 +35,7 @@ using namespace std;
 // rho used to calculate l1bias
 const double gRho = 15.36; // 2017-06-02 for 2016 data
 const bool _dcsonly = false;
-bool doFall17Closure = true;
+bool doFall17Closure = false;//true;
 
 // Appy mass corrections to Z+jet
 bool useFixedFit = true; // with minitools/drawZmass.C
@@ -55,7 +55,7 @@ double fzeeptmin(30.);   // Zee+jet both methods
 double fzmmptmin(30.);   // Zmm+jet both methods
 // Additional cuts to Z+jet MPF / balance methods
 double fzmpfptmin(30.);   // Z+jet MPF
-double fzbalptmin(30.);   // Z+jet pTbal
+double fzbalptmin(100);//30.);   // Z+jet pTbal
 
 //for fine etabins deactivate ptbal
 double fdijetmpfptmin(30);
@@ -63,13 +63,13 @@ double fdijetbalptmin(30.);
 double fdijetptmax(1500.);
 
 // Maximum pTcut for samples (to avoid bins with too large uncertainty)
-double fpmpfptmax(2500.); // photon+jet MPF
-double fpbalptmax(2500.);//700.);  // photon+jet pTbal
+double fpmpfptmax(1500.);//2500.); // photon+jet MPF
+double fpbalptmax(700.);//2500.);//700.);  // photon+jet pTbal
 double fzeeptmax(700.);   // Zee+jet
 double fzmmptmax(700.);   // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
-double fzmpfptmax(700.);  // Z+jet MPF
-double fzbalptmax(700.);  // Z+je pTbal
+double fzmpfptmax(500.);//700.);  // Z+jet MPF
+double fzbalptmax(300.);//700.);  // Z+je pTbal
 
 //minimum event counts
 const double neventsmin = 20.;
@@ -136,6 +136,7 @@ void reprocess(string epoch="") {
   fp_files["GH"] = "V1_FGH";//"RunH";//"runH_TESTB";
   fp_files["BCDEFGH"] = "V1_BCDEFGH";////"RunBCDEFH";//"BCDEFGH";
   */
+  /*
   // New Jan15 EGamma corrections not working... so back to old V2
   fp_files["BCD"] = "V2_BCD";
   fp_files["EF"] = "V2_EF";
@@ -150,11 +151,21 @@ void reprocess(string epoch="") {
   fp_files["E"] = "V2_E";//"V1_E";
   fp_files["F"] = "V1_F";
   fp_files["BCDEF"] = "V1_BCDEF";
+  */
+  // Hugues Lattaud, JERC on 11 Jun 2018: https://indico.cern.ch/event/735951/
+  // Fall17_V10, BCDEFGH file renamed from original
+  fp_files["B"] = "B";
+  fp_files["C"] = "C";
+  fp_files["D"] = "D";
+  fp_files["E"] = "E";
+  fp_files["F"] = "F";
+  fp_files["BCDEF"] = "BCDEF";
 
   //TFile *fp = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/Combination_file_gammaplusjet_%s_03FeB17_nores_fixed_etabinning.root", fp_files[epoch]),"READ");
   //TFile *fp = new TFile(Form("rootfiles/Gjet_ENDCAPS_%s_07Aug_2017noresidual_V1.root", fp_files[epoch]),"READ"); // endcap photons
   //TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", fp_files[epoch]),"READ");
-  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_17Nov17_nores_%s_2017.root", fp_files[epoch]),"READ");
+  //TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_17Nov17_nores_%s_2017.root", fp_files[epoch]),"READ");
+  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_2017_%s_V10_L2res_2017_%s_V10_L2res.root", fp_files[epoch], fp_files[epoch]),"READ");
 
   // Fall17 Closure for V5 and V6 corrections
   if (doFall17Closure){
@@ -171,9 +182,10 @@ void reprocess(string epoch="") {
   
   //assert(fp && !fp->IsZombie());
 
-  // Daniel Savoiu, 2017 Prompt reco (12 Feb 2018)
+  // Daniel Savoiu, 2017 Prompt reco JECV10 (13 June 2018)
   // https://indico.cern.ch/event/704635/ => previous 02-12 files
-  // https://indico.cern.ch/event/706518/ => current 02-18 files
+  // https://indico.cern.ch/event/706518/ => previous 02-18 files JECV4
+  // https://indico.cern.ch/event/735951/ => current  06-13 files JECV10
   map<string,const char*> fz_files;
   fz_files["B"] = "B";
   fz_files["C"] = "C";
@@ -181,8 +193,10 @@ void reprocess(string epoch="") {
   fz_files["E"] = "E";
   fz_files["F"] = "F";
   fz_files["BCDEF"] = "BCDEF";
-  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV4_Zmm_%s_2018-02-18.root",fz_files[epoch]),"READ");
-  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV4_Zee_%s_2018-02-18.root",fz_files[epoch]),"READ");
+  //TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV4_Zmm_%s_2018-02-18.root",fz_files[epoch]),"READ");
+  //TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV4_Zee_%s_2018-02-18.root",fz_files[epoch]),"READ");
+  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV10_Zmm_%s_2018-06-13.root",fz_files[epoch]),"READ");
+  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV10_Zee_%s_2018-06-13.root",fz_files[epoch]),"READ");
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
@@ -203,6 +217,7 @@ void reprocess(string epoch="") {
 
   string sr = (epoch=="L4" ? "eta_00_24" : "eta_00_13");
   const char *cr = sr.c_str();
+  /*
   TH1D *hmzee = (TH1D*)fmzee->Get(Form("Ratio_ZMass_CHS_a30_%s_L1L2L3",cr));
   TH1D *hmzmm = (TH1D*)fmzmm->Get(Form("Ratio_ZMass_CHS_a30_%s_L1L2L3",cr));
   assert(hmzee);
@@ -215,13 +230,28 @@ void reprocess(string epoch="") {
   TH1D *hmzmm_mc = (TH1D*)fmzmm->Get(Form("MC_ZMass_CHS_a30_%s_L1L2L3",cr));
   assert(hmzee_mc);
   assert(hmzmm_mc);
+  */
+  TH1D *hmzee = (TH1D*)fmzee->Get(Form("Ratio_ZMass_CHS_a30_%s_L1L2Res",cr));
+  TH1D *hmzmm = (TH1D*)fmzmm->Get(Form("Ratio_ZMass_CHS_a30_%s_L1L2Res",cr));
+  assert(hmzee);
+  assert(hmzmm);
+  TH1D *hmzee_dt = (TH1D*)fmzee->Get(Form("Data_ZMass_CHS_a30_%s_L1L2Res",cr));
+  TH1D *hmzmm_dt = (TH1D*)fmzmm->Get(Form("Data_ZMass_CHS_a30_%s_L1L2Res",cr));
+  assert(hmzee_dt);
+  assert(hmzmm_dt);
+  TH1D *hmzee_mc = (TH1D*)fmzee->Get(Form("MC_ZMass_CHS_a30_%s_L1L2Res",cr));
+  TH1D *hmzmm_mc = (TH1D*)fmzmm->Get(Form("MC_ZMass_CHS_a30_%s_L1L2Res",cr));
+  assert(hmzee_mc);
+  assert(hmzmm_mc);
 
   // Smoothen mass corrections
-  TF1 *f1mzee = new TF1("f1mzee","[0]+[1]*log(x)+[2]*log(x)*log(x)",
+  TF1 *f1mzee = new TF1("f1mzee","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
 			fzeeptmin, fzeeptmax);
-  TF1 *f1ezee = new TF1("f1ezee","sqrt([0]+pow(log(x),2)*[1]+pow(log(x),4)*[2]"
-			"+2*log(x)*[3]+2*pow(log(x),2)*[4]+2*pow(log(x),3)*[5])"
-			,fzeeptmin, fzeeptmax);
+  TF1 *f1ezee = new TF1("f1ezee","sqrt([0]+pow(log(0.01*x),2)*[1]"
+                        "+pow(log(0.01*x),4)*[2]"
+                        "+2*log(0.01*x)*[3]+2*pow(log(0.01*x),2)*[4]"
+                        "+2*pow(log(0.01*x),3)*[5])",
+			fzeeptmin, fzeeptmax);
   if (correctZeeMass || correctGamMass) {
     if (useFixedFit) {
       // BCDEFGH fit with minitools/drawZmass.C
@@ -229,19 +259,25 @@ void reprocess(string epoch="") {
       //f1ezee->SetParameters(7.54e-05, 1.41e-05, 1.63e-07,
       //		    -3.26e-05, 3.47e-06, -1.51e-06);
       // Fall17 BCDEF
-      f1mzee->SetParameters(1.02106, -0.01001, 0.00130);
-      f1ezee->SetParameters(1.02e-04, 1.83e-05, 2.01e-07,
-			    -4.31e-05, 4.48e-06, -1.91e-06);
+      //f1mzee->SetParameters(1.02106, -0.01001, 0.00130);
+      //f1ezee->SetParameters(1.02e-04, 1.83e-05, 2.01e-07,
+      //		    -4.31e-05, 4.48e-06, -1.91e-06);
+      // 17Nov17_V10 BCDEF
+      f1mzee->SetParameters(1.00246, 0.00214, 0.00116);
+      f1ezee->SetParameters(+3.73e-08, +1.17e-07, +2.02e-07,
+                             +1.5e-08, -5.07e-08, -6.39e-08);
     }
     else
       hmzee->Fit(f1mzee);
 
   }
-  TF1 *f1mzmm = new TF1("f1mzmm","[0]+[1]*log(x)+[2]*log(x)*log(x)",
+  TF1 *f1mzmm = new TF1("f1mzmm","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
 			fzmmptmin, fzmmptmax);
-  TF1 *f1ezmm = new TF1("f1ezmm","sqrt([0]+pow(log(x),2)*[1]+pow(log(x),4)*[2]"
-			"+2*log(x)*[3]+2*pow(log(x),2)*[4]+2*pow(log(x),3)*[5])"
-			,fzmmptmin, fzmmptmax);
+  TF1 *f1ezmm = new TF1("f1ezmm","sqrt([0]+pow(log(0.01*x),2)*[1]"
+                        "+pow(log(0.01*x),4)*[2]"
+                        "+2*log(0.01*x)*[3]+2*pow(log(0.01*x),2)*[4]"
+                        "+2*pow(log(0.01*x),3)*[5])",
+			fzeeptmin, fzeeptmax);
   if (correctZmmMass) {
     if (useFixedFit) {
       // BCDEFGH fit with minitools/drawZmass.C
@@ -251,8 +287,12 @@ void reprocess(string epoch="") {
       //f1mzmm->SetParameters(0.99837, 0., 0.);
       //f1ezmm->SetParameters(pow(0.00019,2),0,0, 0,0,0);
       // Fall17 BCDEF (full Zmm statistics)
-      f1mzmm->SetParameters(0.998440, 0., 0.);
-      f1ezmm->SetParameters(pow(0.00011,2),0,0, 0,0,0);
+      //f1mzmm->SetParameters(0.998440, 0., 0.);
+      //f1ezmm->SetParameters(pow(0.00011,2),0,0, 0,0,0);
+      // 17Nov17_V10 BCDEF
+      f1mzmm->SetParameters(0.99854, 0.00000, 0.00000);
+      f1ezmm->SetParameters(+1.53e-08,        +0,        +0,
+                                   +0,        +0,        +0);
     }
     else
       hmzmm->Fit(f1mzmm);
@@ -536,7 +576,8 @@ void reprocess(string epoch="") {
 		       100.*alpha, 10.*eta1, 10.*eta2);
 	    } // gamjet
 	    if (s=="zmmjet" || s=="zeejet") {
-	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2L3",
+	      //c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2L3",
+	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2Res",
 	    	       rename[s][d], rename[s][t], 100.*alpha,
 	    	       10.01*eta1, 10.01*eta2);
 	    } // Z+jet
@@ -897,45 +938,54 @@ void reprocess(string epoch="") {
     
     // New JEC for plotting on the back
     FactorizedJetCorrector *jec;
-    FactorizedJetCorrector *jec2(0), *jec3(0); // for BCDEFGH
-    double jecw1(1), jecw2(0), jecw3(0);       // for BCDEFGH
+    FactorizedJetCorrector *jecc(0), *jecd(0), *jece(0), *jecf(0); // for BCDEF
+    double jecwb(1), jecwc(0), jecwd(0), jecwe(0), jecwf(0);       // for BCDEF
     {
-      //s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_MPF_LOGLIN_%s_L2L3Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017 with L3 from V3
-      //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //s = Form("%s/Summer16_07Aug2017%s_V4_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      //       "GH");
-	       //epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : 
-	       //(epoch=="G"||epoch=="H" ? "GH" : epoch.c_str()));
-
-      //s = Form("%s/Fall17_17Nov2017%s_V4_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      //       epoch=="BCDEF" ? "B" : epoch.c_str()); // Fall17
-      s = Form("%s/Summer16_07Aug2017%s_V4_DATA_L2L3Residual_AK4PFchs.txt",cd,
-	       "BCD");
+      s = Form("%s/Fall17_17Nov2017%s_V10_DATA_L2L3Residual_AK4PFchs.txt",cd,
+	       epoch=="BCDEF" ? "B" : epoch.c_str());
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
       vpar.push_back(*par_l2l3res);
       jec = new FactorizedJetCorrector(vpar);
 
-      if (epoch=="BCDEFGH") {
+      if (epoch=="BCDEF") {
 
-	jecw1 = 12.9/36.5;
+	// luminosity from Hugues Lattaud, photon+jet 11 June 2018
+	double lumtot = 4.8+9.6+4.2+9.3+13.4; // 41.3/fb
+	jecwb = 4.8/lumtot;
 
-	s=Form("%s/Summer16_07Aug2017EF_V4_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Fall17_17Nov2017C_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
-	JetCorrectorParameters *par_ef = new JetCorrectorParameters(s);
-	vector<JetCorrectorParameters> vpar_ef;
-	vpar_ef.push_back(*par_ef);
-	jec2 = new FactorizedJetCorrector(vpar_ef);
-	jecw2 = 6.8/36.5;
+	JetCorrectorParameters *par_c = new JetCorrectorParameters(s);
+	vector<JetCorrectorParameters> vpar_c;
+	vpar_c.push_back(*par_c);
+	jecc = new FactorizedJetCorrector(vpar_c);
+	jecwc = 9.6/lumtot;
 
-	s=Form("%s/Summer16_07Aug2017GH_V4_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Fall17_17Nov2017D_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
-	JetCorrectorParameters *par_gh = new JetCorrectorParameters(s);
-	vector<JetCorrectorParameters> vpar_gh;
-	vpar_gh.push_back(*par_gh);
-	jec3 = new FactorizedJetCorrector(vpar_gh);
-	jecw3 = 16.8/36.5;
+	JetCorrectorParameters *par_d = new JetCorrectorParameters(s);
+	vector<JetCorrectorParameters> vpar_d;
+	vpar_d.push_back(*par_d);
+	jecd = new FactorizedJetCorrector(vpar_d);
+	jecwd = 4.2/lumtot;
+
+	s=Form("%s/Fall17_17Nov2017E_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	cout << s << endl;
+	JetCorrectorParameters *par_e = new JetCorrectorParameters(s);
+	vector<JetCorrectorParameters> vpar_e;
+	vpar_e.push_back(*par_e);
+	jece = new FactorizedJetCorrector(vpar_e);
+	jecwe = 9.3/lumtot;
+
+	s=Form("%s/Fall17_17Nov2017F_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	cout << s << endl;
+	JetCorrectorParameters *par_f = new JetCorrectorParameters(s);
+	vector<JetCorrectorParameters> vpar_f;
+	vpar_f.push_back(*par_f);
+	jecf = new FactorizedJetCorrector(vpar_f);
+	jecwf = 13.4/lumtot;
       }
     }
 
@@ -955,16 +1005,8 @@ void reprocess(string epoch="") {
     // But even with this pT-dependent L2Res can cause problems
     FactorizedJetCorrector *jecold;
     {
-      //s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_MPF_LOGLIN_%s_L2Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017
-      //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //s = Form("%s/Summer16_07Aug2017%s_V4_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      //       epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : 
-      //       (epoch=="G"||epoch=="H" ? "GH" : epoch.c_str()));
-
-      s = Form("%s/Fall17_17Nov2017%s_V3_DATA_L2L3Residual_AK4PFchs.txt",cd,
+      s = Form("%s/Fall17_17Nov2017%s_V10_DATA_L2L3Residual_AK4PFchs.txt",cd,
 	       epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
-      //s = Form("%s/Summer16_07Aug2017%s_V4_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      //       "BCD");
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -975,9 +1017,7 @@ void reprocess(string epoch="") {
     // Difference between pT-dependent and flat L1
     FactorizedJetCorrector *jecl1flat;
     {
-      //s = Form("%s/Summer16_03Feb2017%s_V3_DATA_L1RC_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce));
-      //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      s = Form("%s/Fall17_17Nov2017%s_V3_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
+      s = Form("%s/Fall17_17Nov2017%s_V10_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -986,9 +1026,7 @@ void reprocess(string epoch="") {
     }
     FactorizedJetCorrector *jecl1pt;
     {
-      //s = Form("%s/Summer16_03Feb2017%s_V3_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); 
-      //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      s = Form("%s/Fall17_17Nov2017%s_V3_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
+      s = Form("%s/Fall17_17Nov2017%s_V10_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1005,18 +1043,16 @@ void reprocess(string epoch="") {
     JetCorrectionUncertainty *unc_ref1 = new JetCorrectionUncertainty(*p_ref1);
 
     // Total uncertainty, excluding Flavor and Time
-    //s = Form("%s/Summer16_03Feb2017_V3_DATA_UncertaintySources_AK4PFchs.txt",cd); // Sum16
-    s = Form("%s/Summer16_03Feb2017BCD_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s =Form("%s/Fall17_17Nov2017B_V10_DATA_UncertaintySources_AK4PFchs.txt",cd);
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
     JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p_unc);
 
     // Partial uncertainties
-    //s = Form("%s/Summer16_03Feb2017_V3_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    s = Form("%s/Summer16_03Feb2017BCD_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s =Form("%s/Fall17_17Nov2017B_V10_DATA_UncertaintySources_AK4PFchs.txt",cd);
     //s2 = "TotalNoFlavorNoTime";
-    s2 = "SubTotalAbsolute"; // 07AugV4
+    s2 = "SubTotalAbsolute";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_ref = new JetCorrectorParameters(s,s2);
     JetCorrectionUncertainty *unc_ref = new JetCorrectionUncertainty(*p_ref);
@@ -1132,19 +1168,29 @@ void reprocess(string epoch="") {
 	  jec->setJetPt(pt);
 	  double val = (epoch=="L4" ? 1 : 1./jec->getCorrection());
 
-	  if (epoch=="BCDEFGH") {
-	    assert(jec2); assert(jec3);
-	    assert(fabs(jecw1+jecw2+jecw3-1)<1e-4);
+	  if (epoch=="BCDEF") {
+	    assert(jecc); assert(jecd); assert(jece); assert(jecf);
+	    assert(fabs(jecwb+jecwc+jecwd+jecwe+jecwf-1)<1e-4);
 
-	    double val1 = val;
-	    jec2->setJetEta(eta);
-	    jec2->setJetPt(pt);
-	    double val2 = 1./jec2->getCorrection();
-	    jec3->setJetEta(eta);
-	    jec3->setJetPt(pt);
-	    double val3 = 1./jec3->getCorrection();
+	    double valb = val;
 
-	    val = jecw1*val1 + jecw2*val2 + jecw3*val3;
+	    jecc->setJetEta(eta);
+	    jecc->setJetPt(pt);
+	    double valc = 1./jecc->getCorrection();
+
+	    jecd->setJetEta(eta);
+	    jecd->setJetPt(pt);
+	    double vald = 1./jecd->getCorrection();
+
+	    jece->setJetEta(eta);
+	    jece->setJetPt(pt);
+	    double vale = 1./jece->getCorrection();
+
+	    jecf->setJetEta(eta);
+	    jecf->setJetPt(pt);
+	    double valf = 1./jecf->getCorrection();
+
+	    val = jecwb*valb +jecwc*valc +jecwd*vald +jecwe*vale +jecwf*valf;
 	  }
 
 	  sumval += w*val;
@@ -1159,23 +1205,20 @@ void reprocess(string epoch="") {
 	  // old JEC
 	  jecold->setJetEta(eta);
 	  jecold->setJetPt(pt);
-	  //double jes = 1.; // 74X V7
-	  double jes = (epoch=="L4" ? 1 : 1./jecold->getCorrection()); // 76X V2
+	  double jes = (epoch=="L4" ? 1 : 1./jecold->getCorrection());
 	  sumjes += w*jes;
 
 	  jecl1flat->setJetEta(eta);
 	  jecl1flat->setJetPt(pt);
-	  //jecl1flat->setNPV(int(14.4));
 	  jecl1flat->setRho(gRho);
-	  jecl1flat->setJetA(TMath::Pi()*0.4*0.4);//0.5*0.5);
+	  jecl1flat->setJetA(TMath::Pi()*0.4*0.4);
 	  double vall1flat = 1./jecl1flat->getCorrection();
 	  sumvall1flat += w*vall1flat;
 	  //
 	  jecl1pt->setJetEta(eta);
 	  jecl1pt->setJetPt(pt);
-	  //jecl1pt->setNPV(int(14.4));
 	  jecl1pt->setRho(gRho);
-	  jecl1pt->setJetA(TMath::Pi()*0.4*0.4);//0.5*0.5);
+	  jecl1pt->setJetA(TMath::Pi()*0.4*0.4);
 	  double vall1pt = 1./jecl1pt->getCorrection();
 	  sumvall1pt += w*vall1pt;
 

@@ -98,7 +98,8 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   // Values from fitting ratio/eta00-13/hl1bias (JEC set in reprocess.C)
   if (!fl1) fl1 = new TF1("fl1","1-([0]+[1]*log(x))/x",10,3500);
   //fl1->SetParameters(2.60382e-01, 1.96664e-01); // Sum16V6G hl1bias
-  fl1->SetParameters(5.71298e-01, 1.59635e-01);
+  //fl1->SetParameters(5.71298e-01, 1.59635e-01); // Sum16_07Aug17_V4? hl1bias
+  fl1->SetParameters(5.71949e-01, 7.04769e-03); // Fall17_01Nov17BCDEF_V10
 
   // Initialize tracker inefficiency shape
   // Values from drawAvsB.C for EvsG
@@ -850,7 +851,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   texlabel["zlljet"] = "Z+jet";//"Zl^{+}l{-}+jet";
 
   TLegend *legm = tdrLeg(0.66,0.55,0.96,0.90);
-  if( (nmethods==1&&strcmp(methods[0],"mpfchs1")  ==0) || (nmethods==2 && strcmp(methods[1],"mpfchs")  ==0 )){
+  if( (nmethods==1&&strcmp(methods[0],"mpfchs1")  ==0) || (nmethods==2 && strcmp(methods[1],"mpfchs1")  ==0 )){
     legm->SetHeader("MPF");
     for (int i = 0; i != nsamples; ++i)
       legm->AddEntry(gs[i+(strcmp(methods[0],"mpfchs1")==0 ? 0 : nsamples)],texlabel[samples[i]],i==0 ? "" : "PL");
@@ -890,7 +891,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   legp->AddEntry(herr_ref," ","");
   //legm->AddEntry(herr_ref,"07AugV4","FL");
-  legm->AddEntry(herr_ref,"07AugV4EF","FL");
+  //legm->AddEntry(herr_ref,"07AugV4EF","FL");
+  if (epoch=="BCDEF") legm->AddEntry(herr_ref,"Nov17V10","FL");
+  else legm->AddEntry(herr_ref,Form("Nov17V10%s",epoch.c_str()),"FL");
 
   hrun1->SetFillStyle(kNone);
   hrun1->DrawClone("SAME E5");

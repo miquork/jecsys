@@ -22,7 +22,7 @@
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "BCDEFG";//"BCDEFGH";
+  string epoch = "BCDEF";//"BCDEFGH";
   #ifdef epochname
   std::cout << epoch.c_str()<< std::endl;
   std::cout << inputepoch.c_str()<< std::endl;
@@ -49,7 +49,7 @@
   //now do narrow bins for L2Res
   // Calculate soft radiation (ISR+FSR) corrections
   // and uncertainty eigenvectors for global fit
-
+  /*
   Bool_t dodijetsoftrad=false;
 
   softrad(0.000,0.261, dodijetsoftrad, epoch); 
@@ -96,7 +96,7 @@
   gSystem->Exec(Form("mv jecslides_FineEta_2017_BCDEFG.pdf CollectL2Output/jecslides_FineEta_2017_%s.pdf", epoch.c_str()));
   gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals.txt  CollectL2Output/Fall17_17Nov2017%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", epoch.c_str()));
   gSystem->Exec("rm txt2/*");
-  
+  */  
   /*
   //wide eta bins
    // softrad(0.0,0.8,true,epoch); // missing dijet
