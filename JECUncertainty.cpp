@@ -9,7 +9,24 @@
 #include <cmath>
 #include <map>
 
-// Fall17_17Nov2017_V11 uncertainty files
+// Fall17_17Nov2017_V27 uncertainty files
+// [Update central values]
+// Fall17_17Nov2017_V24_MC_L1RC and L1FastJet (_jecL1MCflat vs. _jecL1MCpt
+// _jec updated to V27 Data
+// [Time Dependence]:
+// - propose to extract it from residual residual correction?!
+// - don't touch it for now, keep V6 and custom BCDEF fit, but need to redo...
+// [Relative]
+// -
+
+
+
+// Central L2L3Res values for V27 are from derivedWithDiJetTrigger_withoutL1SeedCleaning
+// https://indico.cern.ch/event/759977/#30-update-of-l2residuals-for-a
+
+
+
+//Intermediate updates....
 // [Relative XX]
 // https://indico.cern.ch/event/734120/#4-l2res-for-ak4pfchs-2017-bcde (dijet nominal, JERup, JERdown):
 // (Fall17_17Nov2017BCDEF_MPF_FLAT_L2Residual_pythia8_AK4PFchs.txt)
@@ -193,7 +210,7 @@ void JECUncertainty::_InitL1() {
 
   {
     //const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1RC_%s.txt",d,a);
-    const char *s = Form("%sFall17_17Nov2017_V4_MC_L1RC_%s.txt",d,a);
+    const char *s = Form("%sFall17_17Nov2017_V24_MC_L1RC_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -202,7 +219,7 @@ void JECUncertainty::_InitL1() {
   }
   {
     //const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1FastJet_%s.txt",d,a);
-    const char *s = Form("%sFall17_17Nov2017_V4_MC_L1FastJet_%s.txt",d,a);
+    const char *s = Form("%sFall17_17Nov2017_V24_MC_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -214,7 +231,7 @@ void JECUncertainty::_InitL1() {
   {
     const char *a = "AK4PFchs"; // !! L3Res only for this
     //const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1RC_%s.txt",d,a);
-    const char *s = Form("%sFall17_17Nov2017_V4_MC_L1RC_%s.txt",d,a);
+    const char *s = Form("%sFall17_17Nov2017_V24_MC_L1RC_%s.txt",d,a);
 
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
@@ -225,7 +242,7 @@ void JECUncertainty::_InitL1() {
   {
     const char *a = "AK4PFchs"; // !! L3Res only for this
     //const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1FastJet_%s.txt",d,a);
-    const char *s = Form("%sFall17_17Nov2017_V4_MC_L1FastJet_%s.txt",d,a);
+    const char *s = Form("%sFall17_17Nov2017_V24_MC_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -258,21 +275,21 @@ void JECUncertainty::_InitJEC() {
 
   const char *s;
   //s = Form("%sSummer16_03Feb2017G_V3_DATA_L1FastJet_%s.txt",d,a);
-  s = Form("%sFall17_17Nov2017E_V6_DATA_L1FastJet_%s.txt",d,a);
+  s = Form("%sFall17_17Nov2017F_V27_DATA_L1FastJet_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
   //s = Form("%sSummer16_03Feb2017G_V3_DATA_L2Relative_%s.txt",d,a);
-  s = Form("%sFall17_17Nov2017E_V6_DATA_L2Relative_%s.txt",d,a);
+  s = Form("%sFall17_17Nov2017F_V27_DATA_L2Relative_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
   //s = Form("%sSummer16_03Feb2017G_V3_DATA_L3Absolute_%s.txt",d,a);
-  s = Form("%sFall17_17Nov2017E_V6_DATA_L3Absolute_%s.txt",d,a);
+  s = Form("%sFall17_17Nov2017F_V27_DATA_L3Absolute_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
   // Only one L3Residual derived for now for AK4PFchs
   // (although we clone this later on)
   //s = Form("%sSummer16_03Feb2017G_V3_DATA_L2L3Residual_%s.txt",d,a);
-  s = Form("%sFall17_17Nov2017E_V6_DATA_L2L3Residual_%s.txt",d,a);
+  s = Form("%sFall17_17Nov2017F_V27_DATA_L2L3Residual_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
 

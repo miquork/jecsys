@@ -34,23 +34,22 @@
 
   reprocess(epoch); // Switched off for JetMET100
 
-  //softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
-  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
-  // Run multijet analysis to store information for later global fit
-  // => multijet central values now old, but FSR still needed
-  //multijet(false,epoch);
-  //multijet(true,epoch);
-
-  // Perform final global fit (goes into GT)
-
-  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
+//  //softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
+//  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
+//  // Run multijet analysis to store information for later global fit
+//  // => multijet central values now old, but FSR still needed
+//  //multijet(false,epoch);
+//  //multijet(true,epoch);
+//
+//  // Perform final global fit (goes into GT)
+//
+//  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
 
 
   //now do narrow bins for L2Res
   // Calculate soft radiation (ISR+FSR) corrections
   // and uncertainty eigenvectors for global fit
-  /*
-  Bool_t dodijetsoftrad=false;
+  Bool_t dodijetsoftrad=true;
 
   softrad(0.000,0.261, dodijetsoftrad, epoch); 
   softrad(0.261,0.522, dodijetsoftrad, epoch); 
@@ -96,7 +95,8 @@
   gSystem->Exec(Form("mv jecslides_FineEta_2017_BCDEFG.pdf CollectL2Output/jecslides_FineEta_2017_%s.pdf", epoch.c_str()));
   gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals.txt  CollectL2Output/Fall17_17Nov2017%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", epoch.c_str()));
   gSystem->Exec("rm txt2/*");
-  */  
+  
+
   /*
   //wide eta bins
    // softrad(0.0,0.8,true,epoch); // missing dijet

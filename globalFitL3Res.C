@@ -282,7 +282,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izmm = 2;
   */
 
-  
+  /*
   // Global fit without multijets/dijets and with merged Z+jet
   const int nsamples = 2;
   const int nsample0 = 0; // first Z/gamma+jet sample
@@ -291,8 +291,20 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izll = 1;
   const int izee = -1;
   const int izmm = -1;
-  
+  */
 
+  
+  // Global fit without photon+jet, with merged Z+jet
+  const int nsamples = 2;
+  const int nsample0 = 1; // first Z/gamma+jet sample
+  const char* samples[3] = {(etamin==0 && (etamax==1.3||etamax==2.4)? "gamjet" : "dijet"),
+			    "zlljet"};
+  const int igj = -1;
+  const int izll = 0;
+  const int izee = -1;
+  const int izmm = -1;
+  
+  
   /*
   // Global fit without photon+jet
   const int nsamples = 3;
