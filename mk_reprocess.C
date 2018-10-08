@@ -22,7 +22,7 @@
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "BCDEF";//"BCDEFGH";
+  string epoch = "C";//"BCDEFGH";
   #ifdef epochname
   std::cout << epoch.c_str()<< std::endl;
   std::cout << inputepoch.c_str()<< std::endl;

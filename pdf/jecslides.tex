@@ -43,41 +43,60 @@ Github tag: \\
 \end{centering}
 \newpage
 
-These slides show global fit of Fall17\_17Nov17\_V3 inputs for 2017 prompt reco data from \url{https://indico.cern.ch/event/704635/} ($\gamma$+jet) and \url{https://indico.cern.ch/event/706518/} (Z+jet update). Settings:
+%These slides show global fit of Fall17\_17Nov17\_V10 inputs for 2017 prompt reco data from \url{https://indico.cern.ch/event/735951/} ($\gamma$+jet and Z+jet update). Settings:
+These slides show global fit of Fall17\_17Nov17\_V24 inputs for 2017 prompt reco data from \url{https://indico.cern.ch/event/758051/} ($\gamma$+jet and Z+jet update). Settings:
 \begin{itemize}
-\item Z mass corrections derived from BCDEF combined file
+\item Z mass corrections derived from BCDEF combined file (same as V10)
 \item Z scale uncertainty 0.05\% plus bin-by-bin fit uncertainty for ee and $\mu\mu$ each. Correction is quad-log (const) fit to BCDEF $\Delta m_Z$ (plot on next slide).
 \item Photon scale uncertainty 0.5\%.
-%\item Fit shape from Summer16\_07Aug2017EF, which seems by eye to with raw data best. It has large tracker dynamic inefficiency
-%\item {\bf Compared to 20180212 version, TDI fix set to 0.}
-%\item {\bf TDI fix set to 1.5, $p_{T,\gamma}>100$~GeV}
-%\item {\bf wrt v0: added $\gamma$+jet}
 \end{itemize}
 
 To be done:
 \begin{itemize}
-\item Add $\gamma$+jet BCDEF combination (now using B)
-%\item Check Zee mass stability vs time
-%\item Understand large MPF vs $p_T$ balance difference in Z+jet at low $p_T$
-%\item Understand fit shape vs $p_T$
-%\item Investigate high $\chi^2$/NDF. Bad points?
+\item Integrate new multijets, including FSR and flavor uncertainties
+%\item Decide on the fit shape(s) vs $p_T$
+%\item Decide on the IOVs
 \end{itemize}
 
 Observations so far:
 \begin{itemize}
-\item Large tracker inefficiency (similar to 2016 EF) in all of 2017 data? Matti mentioned that pixel upgrade barely compensated some large dead regions
-\item Particularly large tracker inefficiency in 2017F, as expected
-\item HCAL scale ($p_1$) drifting down with time from B to E?
+\item Slight time dependence in ECAL scale (+0.2\% in B to -0.3\% in F); not yet corrected, not so visible in MPF and $p_T$ balance
+\item Tension in $\gamma$+jet and Z+jet MPF at $p_T<200$~GeV in data and $p_T>200$~GeV in MC (s9); did somebody accidentally swap ECAL calibration constants for gain1 and gain6 between data and MC?
+\item Closure not perfect in B (low $p_T$) and E+F (flat 1\%)
+\item Z+jet and $\gamma$+jet in disagreement prior to global fit
+%\item Tracker inefficiency in F (expected)
+%\item Tracker inefficiency also in B?
+%\item Some (time-dependent) detector bias in CDE?
 \end{itemize}
 
 
 \newpage
 
-\includegraphics[width=0.49\textwidth]{drawZmass_2017BCDEF.pdf}
+%\includegraphics[width=0.49\textwidth]{drawZmass_2017BCDEF.pdf}
 %\includegraphics[width=0.49\textwidth]{drawZmass.pdf}
+\includegraphics[width=0.49\textwidth]{drawZmass_RunBCDEF.pdf}
+\includegraphics[width=0.49\textwidth]{drawZeeVsZmm_RunBCDEF.pdf}
 %\includegraphics[width=0.49\textwidth]{drawZcounts.pdf}
 
-%\newpage
+\newpage
+
+\includegraphics[width=0.30\textwidth]{drawZmass_RunB.pdf}
+\includegraphics[width=0.30\textwidth]{drawZmass_RunC.pdf}
+\includegraphics[width=0.30\textwidth]{drawZmass_RunD.pdf}\\
+\includegraphics[width=0.30\textwidth]{drawZmass_RunE.pdf}
+\includegraphics[width=0.30\textwidth]{drawZmass_RunF.pdf}
+\includegraphics[width=0.30\textwidth]{drawZmass_RunBCDEF.pdf}\\
+
+\newpage
+
+\includegraphics[width=0.30\textwidth]{drawZeeVsZmm_RunB.pdf}
+\includegraphics[width=0.30\textwidth]{drawZeeVsZmm_RunC.pdf}
+\includegraphics[width=0.30\textwidth]{drawZeeVsZmm_RunD.pdf}\\
+\includegraphics[width=0.30\textwidth]{drawZeeVsZmm_RunE.pdf}
+\includegraphics[width=0.30\textwidth]{drawZeeVsZmm_RunF.pdf}
+\includegraphics[width=0.30\textwidth]{drawZeeVsZmm_RunBCDEF.pdf}\\
+
+\newpage
 
 %\includegraphics[width=0.49\textwidth]{drawGamVsGam_RunBCD.pdf}
 %\includegraphics[width=0.49\textwidth]{drawGamVsGam_RunEF.pdf}
@@ -113,20 +132,21 @@ Observations so far:
 
 
 \newpage
-  B \\
-  \includegraphics[width=0.32\textwidth]{B/paper_softrad_data_mpfchs1_vspt.pdf}
-  \includegraphics[width=0.32\textwidth]{B/paper_softrad_mc_mpfchs1_vspt.pdf}
-  \includegraphics[width=0.32\textwidth]{B/paper_softrad_ratio_mpfchs1_vspt.pdf}\\
-  \includegraphics[width=0.32\textwidth]{B/paper_softrad_data_ptchs_vspt.pdf}
-  \includegraphics[width=0.32\textwidth]{B/paper_softrad_mc_ptchs_vspt.pdf}
-  \includegraphics[width=0.32\textwidth]{B/paper_softrad_ratio_ptchs_vspt.pdf}\\
-%\includegraphics[width=0.32\textwidth]{drawEFvsGH_mpfchs1_ptchs_nogptb.pdf}
-%\includegraphics[width=0.32\textwidth]{drawBCDpEFvsGH_mpfchs1_ptchs_nogptb.pdf}
-%\includegraphics[width=0.32\textwidth]{drawBCDvsGH_mpfchs1_ptchs_nogptb.pdf}\\
+  BCDEF \\
+  \includegraphics[width=0.32\textwidth]{BCDEF/paper_softrad_data_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.32\textwidth]{BCDEF/paper_softrad_mc_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.32\textwidth]{BCDEF/paper_softrad_ratio_mpfchs1_vspt.pdf}\\
+  \includegraphics[width=0.32\textwidth]{BCDEF/paper_softrad_data_ptchs_vspt.pdf}
+  \includegraphics[width=0.32\textwidth]{BCDEF/paper_softrad_mc_ptchs_vspt.pdf}
+  \includegraphics[width=0.32\textwidth]{BCDEF/paper_softrad_ratio_ptchs_vspt.pdf}\\
+%  \includegraphics[width=0.32\textwidth]{drawEFvsGH_mpfchs1_ptchs_nogptb.pdf}
+%  \includegraphics[width=0.32\textwidth]{drawBCDpEFvsGH_mpfchs1_ptchs_nogptb.pdf}
+%  \includegraphics[width=0.32\textwidth]{drawBCDvsGH_mpfchs1_ptchs_nogptb.pdf}\\
 
 %\foreach \n in \IOVs {
 \foreach \n in {BCDEF,B,C,D,E,F} {
   \newpage
+  \n \\
   \includegraphics[width=0.32\textwidth]{\n/globalFitL3res_raw.pdf}
   \includegraphics[width=0.32\textwidth]{\n/globalFitL3res_orig.pdf}
   \includegraphics[width=0.32\textwidth]{\n/globalFitL3res_shifted.pdf}\\
@@ -137,12 +157,19 @@ Observations so far:
 
 \foreach \n in {BCDEF,B,C,D,E,F} {
   \newpage
+  \n \\
   \includegraphics[width=0.32\textwidth]{\n/paper_softrad_data_mpfchs1_vspt.pdf}
   \includegraphics[width=0.32\textwidth]{\n/paper_softrad_mc_mpfchs1_vspt.pdf}
   \includegraphics[width=0.32\textwidth]{\n/paper_softrad_ratio_mpfchs1_vspt.pdf}\\
   \includegraphics[width=0.32\textwidth]{\n/paper_softrad_data_ptchs_vspt.pdf}
   \includegraphics[width=0.32\textwidth]{\n/paper_softrad_mc_ptchs_vspt.pdf}
   \includegraphics[width=0.32\textwidth]{\n/paper_softrad_ratio_ptchs_vspt.pdf}\\
+}
+
+\foreach \n in {BCDEF,B,C,D,E,F} {
+  \newpage
+  \n \\
+ \includegraphics[width=1.00\textwidth]{\n/softrad_2x6_vspt_eta00-13.pdf}\\
 }
 
 \foreach \n in {BCDEF,B,C,D,E,F} {

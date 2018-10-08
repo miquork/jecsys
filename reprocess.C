@@ -35,7 +35,7 @@ using namespace std;
 // rho used to calculate l1bias
 const double gRho = 15.36; // 2017-06-02 for 2016 data
 const bool _dcsonly = false;
-bool doFall17Closure = false;//true;
+bool doFall17Closure = true;
 
 // Appy mass corrections to Z+jet
 bool useFixedFit = true; // with minitools/drawZmass.C
@@ -123,69 +123,32 @@ void reprocess(string epoch="") {
 
   //assert(fmj && !fmj->IsZombie());
   
-  // Hugues Lattaud, 2016 Legacy re-reco (29 Nov 2017)
-  // https://indico.cern.ch/event/684468/
-  //  <CMS-JME-L2L3Residual-Analysts@cern.ch> (20 Dec 2017; V1 for BCDEFGH, GH)
+  // Hugues Lattaud, 2017 V24 closure, Sep 17, 2018
+  // https://indico.cern.ch/event/758051/
   map<string,const char*> fp_files;
-  /*
-  // New Jan15 EGamma corrections not working (and missing GH, BCDEFGH)...
-  fp_files["BCD"] = "V1-Jan15_BCD";//"V2_BCD";//"RunBCDEFH";//"runBCD_TESTB";
-  fp_files["EF"] = "V1-Jan15_EF";//V2_EF";//"RunEF";//"runEFearly_TESTB";
-  fp_files["G"] = "V1-Jan15_FG";//"V2_FG";//"RunFG";//"runFlateG_TESTB";
-  fp_files["H"] = "V1-Jan15_H";//"V2_H";//"RunH";//"runH_TESTB";
-  fp_files["GH"] = "V1_FGH";//"RunH";//"runH_TESTB";
-  fp_files["BCDEFGH"] = "V1_BCDEFGH";////"RunBCDEFH";//"BCDEFGH";
-  */
-  /*
-  // New Jan15 EGamma corrections not working... so back to old V2
-  fp_files["BCD"] = "V2_BCD";
-  fp_files["EF"] = "V2_EF";
-  fp_files["G"] = "V2_FG";
-  fp_files["H"] = "V2_H";
-  fp_files["GH"] = "V1_FGH";
-  fp_files["BCDEFGH"] = "V1_BCDEFGH";
-  // Fall17
-  fp_files["B"] = "V2_B";
-  fp_files["C"] = "V2_C";//"V1_C";
-  fp_files["D"] = "V1_D";
-  fp_files["E"] = "V2_E";//"V1_E";
-  fp_files["F"] = "V1_F";
-  fp_files["BCDEF"] = "V1_BCDEF";
-  */
-  // Hugues Lattaud, JERC on 11 Jun 2018: https://indico.cern.ch/event/735951/
-  // Fall17_V10, BCDEFGH file renamed from original
   fp_files["B"] = "B";
   fp_files["C"] = "C";
   fp_files["D"] = "D";
   fp_files["E"] = "E";
   fp_files["F"] = "F";
   fp_files["BCDEF"] = "BCDEF";
-
-  //TFile *fp = new TFile(Form("rootfiles/2017_10_L2ResGlobalFit/Combination_file_gammaplusjet_%s_03FeB17_nores_fixed_etabinning.root", fp_files[epoch]),"READ");
-  //TFile *fp = new TFile(Form("rootfiles/Gjet_ENDCAPS_%s_07Aug_2017noresidual_V1.root", fp_files[epoch]),"READ"); // endcap photons
-  //TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", fp_files[epoch]),"READ");
-  //TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_17Nov17_nores_%s_2017.root", fp_files[epoch]),"READ");
-  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_2017_%s_V10_L2res_2017_%s_V10_L2res.root", fp_files[epoch], fp_files[epoch]),"READ");
+  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V24_L2L3Res_%s.root", fp_files[epoch]),"READ");
 
   // Fall17 Closure for V5 and V6 corrections
   if (doFall17Closure){
-    fp_files["B"] = "B_";
-    fp_files["C"] = "C_";//"V1_C";
-    fp_files["D"] = "D_";
-    fp_files["E"] = "E_";//"V1_E";
-    fp_files["F"] = "F_";
+    fp_files["B"] = "B";
+    fp_files["C"] = "C";
+    fp_files["D"] = "D";
+    fp_files["E"] = "E";
+    fp_files["F"] = "F";
     fp_files["BCDEF"] = "BCDEF";
-    fp = new TFile(Form("rootfiles/Gjet_combinationfile_17Nov17_V6_%s_2017.root", fp_files[epoch]),"READ");
+    fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V24_L2L3Res_%s.root", fp_files[epoch]),"READ");
   }
 
+  assert(fp && !fp->IsZombie());
 
-  
-  //assert(fp && !fp->IsZombie());
-
-  // Daniel Savoiu, 2017 Prompt reco JECV10 (13 June 2018)
-  // https://indico.cern.ch/event/704635/ => previous 02-12 files
-  // https://indico.cern.ch/event/706518/ => previous 02-18 files JECV4
-  // https://indico.cern.ch/event/735951/ => current  06-13 files JECV10
+  // Daniel Savoiu, 2017 V24 closure, 17 Sep 2018
+  // https://indico.cern.ch/event/758051/
   map<string,const char*> fz_files;
   fz_files["B"] = "B";
   fz_files["C"] = "C";
@@ -193,17 +156,15 @@ void reprocess(string epoch="") {
   fz_files["E"] = "E";
   fz_files["F"] = "F";
   fz_files["BCDEF"] = "BCDEF";
-  //TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV4_Zmm_%s_2018-02-18.root",fz_files[epoch]),"READ");
-  //TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV4_Zee_%s_2018-02-18.root",fz_files[epoch]),"READ");
-  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV10_Zmm_%s_2018-06-13.root",fz_files[epoch]),"READ");
-  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV10_Zee_%s_2018-06-13.root",fz_files[epoch]),"READ");
+  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV24_Zmm_%s_2018-09-18.root",fz_files[epoch]),"READ");
+  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV24_Zee_%s_2018-09-18.root",fz_files[epoch]),"READ");
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
   // Fall17 Closure for V5 and V6 corrections
   if (doFall17Closure){
-    fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV6_Zmm_%s_2018-02-24.root",fz_files[epoch]),"READ");
-    fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV6_Zee_%s_2018-02-24.root",fz_files[epoch]),"READ");
+    fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV24_Zmm_%s_2018-09-18.root",fz_files[epoch]),"READ");
+    fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV24_Zee_%s_2018-09-18.root",fz_files[epoch]),"READ");
     assert(fzmm && !fzmm->IsZombie());
     assert(fzee && !fzee->IsZombie());
   }
@@ -419,6 +380,7 @@ void reprocess(string epoch="") {
   if (epoch!="L4") etas.push_back(make_pair<double,double>(0,1.305));
   if (epoch=="L4") etas.push_back(make_pair<double,double>(0,2.4));
   // Narrow eta bins for L2Res
+  /*
   etas.push_back(make_pair<double,double>(0.000,0.261)); 
   etas.push_back(make_pair<double,double>(0.261,0.522)); 
   etas.push_back(make_pair<double,double>(0.522,0.783)); 
@@ -437,6 +399,7 @@ void reprocess(string epoch="") {
   etas.push_back(make_pair<double,double>(3.139,3.489)); 
   etas.push_back(make_pair<double,double>(3.489,3.839)); 
   etas.push_back(make_pair<double,double>(3.839,5.191));
+  */
   // Wide eta bins for L2L3Res closure
   etas.push_back(make_pair<double,double>(1.305,1.93));
   etas.push_back(make_pair<double,double>(1.93,2.5));
@@ -580,6 +543,10 @@ void reprocess(string epoch="") {
 	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2Res",
 	    	       rename[s][d], rename[s][t], 100.*alpha,
 	    	       10.01*eta1, 10.01*eta2);
+	      if (doFall17Closure)
+		c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2L3Res",
+			 rename[s][d], rename[s][t], 100.*alpha,
+			 10.01*eta1, 10.01*eta2);
 	    } // Z+jet
 	    assert(c || s=="zlljet");
 
@@ -1193,6 +1160,7 @@ void reprocess(string epoch="") {
 	    val = jecwb*valb +jecwc*valc +jecwd*vald +jecwe*vale +jecwf*valf;
 	  }
 
+	  if (doFall17Closure) val = 1;
 	  sumval += w*val;
 	  sumw += w; // sum weights only once
 	  
@@ -1300,6 +1268,7 @@ void reprocess(string epoch="") {
 	hrun1->SetBinError(ipt, run1*err_ref1);//run1*err);
 
 	double jes = (sumjes / sumw);
+	if (doFall17Closure) jes = 1;
 	hjes->SetBinContent(ipt, jes);
 	double l1pt = (sumvall1pt / sumw);
 	double l1flat = (sumvall1flat / sumw);

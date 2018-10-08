@@ -32,7 +32,9 @@ void compareIOV() {
     assert(f && !f->IsZombie());
     
     //TGraphErrors *g = (TGraphErrors*)f->Get("data/eta29-30/ptchs_zmmjet_a30");
-    TGraphErrors *g1 = (TGraphErrors*)f->Get("data/eta26-29/ptchs_zmmjet_a30");
+    //TGraphErrors *g1 = (TGraphErrors*)f->Get("data/eta26-29/ptchs_zmmjet_a30");
+    //TGraphErrors *g1 = (TGraphErrors*)f->Get("data/eta26-29/ptchs_zeejet_a30");
+    TGraphErrors *g1 = (TGraphErrors*)f->Get("data/eta26-29/ptchs_gamjet_a30");
     assert(g1);
     if (g10==0) g10 = (TGraphErrors*)g1->Clone("g10");
     g1 = tools::ratioGraphs(g1,g10);
@@ -41,7 +43,9 @@ void compareIOV() {
     g1->SetMarkerColor(colors[i]);
     if (g1->GetN()>0) g1->Draw("SAMEPz");
 
-    TGraphErrors *g2 = (TGraphErrors*)f->Get("data/eta26-29/mpfchs1_zmmjet_a30");
+    //TGraphErrors *g2 = (TGraphErrors*)f->Get("data/eta26-29/mpfchs1_zmmjet_a30");
+    //TGraphErrors *g2 = (TGraphErrors*)f->Get("data/eta26-29/mpfchs1_zeejet_a30");
+    TGraphErrors *g2 = (TGraphErrors*)f->Get("data/eta26-29/mpfchs1_gamjet_a30");
     assert(g2);
     if (g20==0) g20 = (TGraphErrors*)g2->Clone("g10");
     g2 = tools::ratioGraphs(g2,g20);

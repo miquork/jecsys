@@ -42,6 +42,8 @@ string scalingForL2OrL3Fit = "None"; //"None" - for inpunt combination files wit
 //"PutBackL2Res" - put L2res back in for gamma/Z+jet for vs eta studies
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
+bool doClosure = true; // in reprocess.C
+
 bool verboseGF = false;
 
 unsigned int _nsamples(0);
@@ -800,6 +802,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 		     maxpt-minpt,minpt,maxpt);
   h->SetMinimum(etamin>=3 ? 0.50 : (etamin>=2.5 ? 0.70 : 0.91));
   h->SetMaximum(etamin>=3 ? 1.75 : (etamin>=2.5 ? 1.45 : 1.15));
+  if (doClosure) {
+    h->SetMinimum(etamin>=3 ? 0.75 : (etamin>=2.5 ? 0.85 : 0.95));
+    h->SetMaximum(etamin>=3 ? 1.40 : (etamin>=2.5 ? 1.20 : 1.08));
+  }
   h->GetXaxis()->SetMoreLogLabels();
   h->GetXaxis()->SetNoExponent();
   h->DrawClone("AXIS");
@@ -877,33 +883,57 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   hrun1->SetLineColor(kCyan+3);
   hrun1->SetLineStyle(kDashed);
 
+  herr->SetLineWidth(2);
+  herr->SetLineColor(kRed+1);//kCyan+3);
+  herr->SetLineStyle(kDashed);
+  herr->SetFillColor(kRed-9);//kCyan+1);
+
   herr_ref->SetLineWidth(2);
   herr_ref->SetLineColor(kYellow+3);
   herr_ref->SetLineStyle(kDashed);
 
-  hrun1->DrawClone("SAME E5");
-  (new TGraph(hrun1))->DrawClone("SAMEL");
-  herr_ref->DrawClone("SAME E5");
-  (new TGraph(herr_ref))->DrawClone("SAMEL");
+  if (doClosure) {
+    herr->DrawClone("SAME E5");
+    herr_ref->DrawClone("SAME E5");
+    (new TGraph(herr_ref))->DrawClone("SAMEL");
 
-  legp->AddEntry(hrun1," ","");
-  legm->AddEntry(hrun1,"Run I","FL");
+    legp->AddEntry(herr," ","");
+    legm->AddEntry(herr,"No flv+time","FL");
+    legp->AddEntry(herr_ref," ","");
+    legm->AddEntry(herr_ref,"Abs. unc.","FL");
 
-  legp->AddEntry(herr_ref," ","");
-  //legm->AddEntry(herr_ref,"07AugV4","FL");
-  //legm->AddEntry(herr_ref,"07AugV4EF","FL");
-  if (epoch=="BCDEF") legm->AddEntry(herr_ref,"Nov17V10","FL");
-  else legm->AddEntry(herr_ref,Form("Nov17V10%s",epoch.c_str()),"FL");
+    herr->SetFillStyle(kNone);
+    herr->DrawClone("SAME E5");
+    (new TGraph(herr))->DrawClone("SAMEL");
+    herr->SetFillStyle(1001);
+    
+    herr_ref->SetFillStyle(kNone);
+    herr_ref->DrawClone("SAME E5");
+    (new TGraph(herr_ref))->DrawClone("SAMEL");
+    herr_ref->SetFillStyle(1001);
+  }
+  else {
+    hrun1->DrawClone("SAME E5");
+    (new TGraph(hrun1))->DrawClone("SAMEL");
+    herr_ref->DrawClone("SAME E5");
+    (new TGraph(herr_ref))->DrawClone("SAMEL");
+    
+    legp->AddEntry(hrun1," ","");
+    legm->AddEntry(hrun1,"Run I","FL");
+    legp->AddEntry(herr_ref," ","");
+    if (epoch=="BCDEF") legm->AddEntry(herr_ref,"Nov17V10","FL");
+    else legm->AddEntry(herr_ref,Form("Nov17V10%s",epoch.c_str()),"FL");
 
-  hrun1->SetFillStyle(kNone);
-  hrun1->DrawClone("SAME E5");
-  (new TGraph(hrun1))->DrawClone("SAMEL");
-  hrun1->SetFillStyle(1001);
-
-  herr_ref->SetFillStyle(kNone);
-  herr_ref->DrawClone("SAME E5");
-  (new TGraph(herr_ref))->DrawClone("SAMEL");
-  herr_ref->SetFillStyle(1001);
+    hrun1->SetFillStyle(kNone);
+    hrun1->DrawClone("SAME E5");
+    (new TGraph(hrun1))->DrawClone("SAMEL");
+    hrun1->SetFillStyle(1001);
+    
+    herr_ref->SetFillStyle(kNone);
+    herr_ref->DrawClone("SAME E5");
+    (new TGraph(herr_ref))->DrawClone("SAMEL");
+    herr_ref->SetFillStyle(1001);
+  }
 
 
   for (unsigned int i = 0; i != _vdt->size(); ++i) {
@@ -947,16 +977,30 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   tex->DrawLatex(0.20, 0.22, "Before FSR correction");
 
-  hrun1->DrawClone("SAME E5");
-  (new TGraph(hrun1))->DrawClone("SAMEL");
+  if (doClosure) {
+    herr->DrawClone("SAME E5");
+    (new TGraph(herr))->DrawClone("SAMEL");
+  }
+  else {
+    hrun1->DrawClone("SAME E5");
+    (new TGraph(hrun1))->DrawClone("SAMEL");
+  }
 
   herr_ref->DrawClone("SAME E5");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
 
-  hrun1->SetFillStyle(kNone);
-  hrun1->DrawClone("SAME E5");
-  (new TGraph(hrun1))->DrawClone("SAMEL");
-  hrun1->SetFillStyle(1001);
+  if (doClosure) {
+    herr->SetFillStyle(kNone);
+    herr->DrawClone("SAME E5");
+    (new TGraph(herr))->DrawClone("SAMEL");
+    herr->SetFillStyle(1001);
+  }
+  else {
+    hrun1->SetFillStyle(kNone);
+    hrun1->DrawClone("SAME E5");
+    (new TGraph(hrun1))->DrawClone("SAMEL");
+    hrun1->SetFillStyle(1001);
+  }
 
   herr_ref->SetFillStyle(kNone);
   herr_ref->DrawClone("SAME E5");
@@ -1258,8 +1302,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 				  sqrt(emat[3][3])));
   tex->SetTextSize(0.045); tex->SetTextColor(kBlack);
 
-  hrun1->DrawClone("SAME E5");
-  (new TGraph(hrun1))->DrawClone("SAMEL");
+  if (doClosure) {
+    herr->DrawClone("SAME E5");
+    (new TGraph(herr))->DrawClone("SAMEL");
+  }
+  else {
+    hrun1->DrawClone("SAME E5");
+    (new TGraph(hrun1))->DrawClone("SAMEL");
+  }
 
   herr_ref->DrawClone("SAME E5");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
@@ -1275,10 +1325,18 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   herr_spr->SetFillColor(kCyan+1);
   herr_spr->SetFillStyle(1001);
 
-  hrun1->SetFillStyle(kNone);
-  hrun1->DrawClone("SAME E5");
-  (new TGraph(hrun1))->DrawClone("SAMEL");
-  hrun1->SetFillStyle(1001);
+  if (doClosure) {
+    herr->SetFillStyle(kNone);
+    herr->DrawClone("SAME E5");
+    (new TGraph(herr))->DrawClone("SAMEL");
+    herr->SetFillStyle(1001);
+  }
+  else {
+    hrun1->SetFillStyle(kNone);
+    hrun1->DrawClone("SAME E5");
+    (new TGraph(hrun1))->DrawClone("SAMEL");
+    hrun1->SetFillStyle(1001);
+  }
 
   herr_ref->SetFillStyle(kNone);
   herr_ref->DrawClone("SAME E5");
