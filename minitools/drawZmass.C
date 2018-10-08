@@ -6,15 +6,18 @@
 #include "TF1.h"
 #include "TMinuit.h"
 #include "TLine.h"
+#include "TMatrixD.h"
 
 bool ispr = true;
 
-void drawZmass() {
+void drawZmass(string run="BCDEFGH") {
 
   setTDRStyle();
 
-  TFile *f = new TFile("../rootfiles/jecdataBCDEFGH.root","READ");
+  TFile *f = new TFile(Form("../rootfiles/jecdata%s.root",run.c_str()),"READ");
+  //TFile *f = new TFile("../rootfiles/jecdataBCDEFGH.root","READ");
   //TFile *f = new TFile("../rootfiles/jecdataGH.root","READ");
+  //TFile *f = new TFile("../rootfiles/jecdataEF.root","READ");
   //TFile *f = new TFile("../rootfiles/jecdataBCD.root","READ");
   assert(f && !f->IsZombie());
 
@@ -47,10 +50,15 @@ void drawZmass() {
   hdw->GetXaxis()->SetNoExponent();
 
   //lumi_13TeV = "Run2016BCDEFGH 36.5 fb^{-1}";
-  lumi_13TeV = "Run2016 36.5 fb^{-1}";// Private Work";
-  extraText = "Private Work";
-  //TCanvas *c1 = tdrDiCanvas("c1",hup,4,11),kSquare);
-  //TCanvas *c1 = tdrDiCanvas("c1",hup,hdw,4,11);
+  //extraText = "Private Work";
+  map<string, const char*> lumimap;
+  lumimap["BCD"] = "Run2016BCD Legacy, 12.9 fb^{-1}";
+  lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
+  lumimap["FG"] = "Run2016fG Legacy, 8.0 fb^{-1}";
+  lumimap["H"] = "Run2016H Legacy, 8.8 fb^{-1}";
+  lumimap["GH"] = "Run2016fGH Legacy, 16.8 fb^{-1}";
+  lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
+  lumi_13TeV = lumimap[run];
   TCanvas *c1 = tdrDiCanvas("c1",hdw,hup,4,11);
 
   //c1->cd(1);
@@ -87,9 +95,10 @@ void drawZmass() {
   //			,30,ptmax);
   // BCDEFGH fit with minitools/drawZmass.C
   //f1mzee->SetParameters(1.01732, -0.00909, 0.00116, 0.99855);
-  f1jec->SetParameters(0.99885, 0.00176, 0.00135);//EGM1
+  //f1jec->SetParameters(0.99885, 0.00176, 0.00135);//EGM1
   //f1jec->SetParameters(1.00017, 0.00166, 0.00114);//EGM2
   //f1jec->SetParameters(1.00279, 0.00166, 0.00112);//EGM3
+  f1jec->SetParameters(1.00025, 0.00092, -0.00001); //V15
   //f1ezee->SetParameters(7.54e-05, 1.41e-05, 1.63e-07,
   //			-3.26e-05, 3.47e-06, -1.51e-06);
   f1jec->SetLineColor(kBlack);
@@ -155,14 +164,16 @@ void drawZmass() {
 
   // Print out corrections for reprocess.C
   cout <<
+    "  // \\BEGIN copy-paste from minitools/drawZmass.C\n"
+    "\n"
     "  // Smoothen mass corrections\n"
     "  TF1 *f1mzee = new TF1(\"f1mzee\",\"[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)\",\n"
     "			     fzeeptmin, fzeeptmax);\n"
     "  TF1 *f1ezee = new TF1(\"f1ezee\",\"sqrt([0]+pow(log(0.01*x),2)*[1]\"\n"
     "                        \"+pow(log(0.01*x),4)*[2]\"\n"
     "                        \"+2*log(0.01*x)*[3]+2*pow(log(0.01*x),2)*[4]\"\n"
-    "                        \"+2*pow(log(0.01*x),3)*[5])\"\n"
-    "			     ,fzeeptmin, fzeeptmax);\n"
+    "                        \"+2*pow(log(0.01*x),3)*[5])\",\n"
+    "			     fzeeptmin, fzeeptmax);\n"
     "  if (correctZeeMass || correctGamMass) {\n"
     "    if (useFixedFit) {\n"
     "      // BCDEFGH fit with minitools/drawZmass.C\n";
@@ -234,7 +245,9 @@ void drawZmass() {
 	       "    else\n"
 	       "      hmzmm->Fit(f1mzmm);\n"
 	       "\n"
-	       "  }\n",
+	       "  }\n"
+               "\n"
+               "  // \\END copy-paste from minitools/drawZmass.C\n",
 	       f1mzmm->GetParameter(0),f1mzmm->GetParameter(1),
 	       f1mzmm->GetParameter(2),
 	       emat2[0][0], emat2[1][1], emat2[2][2],
@@ -305,5 +318,5 @@ void drawZmass() {
   }
 
 
-  c1->SaveAs("../pdf/drawZmass.pdf");
+  c1->SaveAs(Form("../pdf/drawZmass_Run%s.pdf",run.c_str()));
 }

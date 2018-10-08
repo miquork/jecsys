@@ -43,18 +43,19 @@
   reprocess(epoch); // Switched off for JetMET100
 
   softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
+
   //softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
   // Run multijet analysis to store information for later global fit
   // => multijet central values now old, but FSR still needed
   multijet(false,epoch);
   multijet(true,epoch);
   // Perform final global fit (goes into GT)
-  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
-
+  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "gam_zll", "PtBalMPF");
+  
   //now do narrow bins for L2Res
   // Calculate soft radiation (ISR+FSR) corrections
   // and uncertainty eigenvectors for global fit
-
+  /*
   Bool_t dodijetsoftrad=true;
 
   softrad(0.000,0.261, dodijetsoftrad, epoch); 
@@ -136,5 +137,5 @@
 
    // Repeat to see parameters
   globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
-
+  */
 }

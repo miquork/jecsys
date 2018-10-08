@@ -2228,7 +2228,7 @@ double JECUncertainty::_FlavorResponse(double pt, double eta,
   // Temporary patch for s/c/b: average response difference over wider bins
   // This should reduce statistical fluctuations
   //if (flavor=="s" || flavor=="c" || flavor=="b") {
-  if (false) { // Symmetrize all flavors
+  if (true) { // Symmetrize all flavors
 
     // Wide bins used for flavor fractions
     const int netaw = 7;//6;

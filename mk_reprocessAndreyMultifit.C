@@ -64,13 +64,14 @@
   gROOT->ProcessLine(".L tools.C+g");
   gROOT->ProcessLine(".L reprocess.C+g");
   gROOT->ProcessLine(".L softrad.C+g");
-  //gROOT->ProcessLine(".L multijet.C+g");
+  gROOT->ProcessLine(".L multijet.C+g");
   gROOT->ProcessLine(".L globalFitL3Res.C+g");
 
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "EF";//"BCDEFGH";//"BCDEFGH";
+  string epoch = "BCDEFGH";//"BCDEFGH";//"BCDEFGH";
+  // also set EGM_config in reprocess.C
   #ifdef epochname
   std::cout << epoch.c_str()<< std::endl;
   std::cout << inputepoch.c_str()<< std::endl;
@@ -86,10 +87,11 @@
   softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
 //  // Run multijet analysis to store information for later global fit
 //  // => multijet central values now old, but FSR still needed
-//  multijet(false,epoch);
-//  multijet(true,epoch);
+  multijet(false,epoch);
+  multijet(true,epoch);
 //  // Perform final global fit (goes into GT)
-  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
+  //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
+  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "gam_zll"); // L3Res
 
   //now do narrow bins for L2Res
   // Calculate soft radiation (ISR+FSR) corrections

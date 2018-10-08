@@ -188,10 +188,13 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  gemap[cd][cm][cs][a] = g;
 	  
 	  // Sort points into new graphs vs alpha
-	  TH1D *hpt = (isample==0 ? hpt2 : hpt1);
-	  TProfile *ppt = (isample==0 ? ppt2 : ppt1);
+	  //TH1D *hpt = (isample==0 ? hpt2 : hpt1);
+	  //TProfile *ppt = (isample==0 ? ppt2 : ppt1);
+	  TH1D *hpt = (string(cs)=="gamjet" ? hpt2 : hpt1);
+	  TProfile *ppt = (string(cs)=="gamjet" ? ppt2 : ppt1);
 	  //if (isample==3) { hpt = hpt4; ppt = ppt4; } // pas-v6
-	  if (isample==idj) { hpt = hpt4; ppt = ppt4; } // pas-v6
+	  //if (isample==idj) { hpt = hpt4; ppt = ppt4; } // pas-v6
+	  if (string(cs)=="dijet") { hpt = hpt4; ppt = ppt4; } // pas-v6
 	  for (int i = 0; i != g->GetN(); ++i) {
 	    
 	    double pt = g->GetX()[i];

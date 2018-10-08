@@ -100,9 +100,9 @@ void drawCMSresponse() {
     JetCorrectorParameters *l2l3 = new JetCorrectorParameters(s);
 
     vector<JetCorrectorParameters> v;
-    //v.push_back(*l1);
-    v.push_back(*l2);
-    v.push_back(*l3);
+    v.push_back(*l1);
+    //v.push_back(*l2);
+    //v.push_back(*l3);
     //v.push_back(*l2l3);
     _jec = new FactorizedJetCorrector(v);
   }
@@ -128,7 +128,7 @@ void drawCMSresponse() {
   const int npt = sizeof(pts)/sizeof(pts[0]);
   //const int neta = 48;//52;
   const int jeta = TMath::Pi()*0.4*0.4;
-  const int mu = 0;
+  const int mu = 25;
 
   TGraph *gs[npt];
   //for (int ie = 0; ie != ne; ++ie) {

@@ -16,32 +16,6 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
-  /*
-  map<string,const char*> fz_files;
-  fz_files["BCD"] = "BCD_2017-12-08";
-  fz_files["EF"] = "EF_2017-12-08";
-  fz_files["G"] = "G_2017-12-08";
-  fz_files["H"] = "H_2017-12-08";
-  fz_files["GH"] = "GH_2017-12-19";
-  fz_files["BCDEFGH"] = "BCDEFGH_2017-12-08"; 
-
-  TFile *fm = new TFile(Form("../rootfiles/combination_ZJet_Zmm_%s_wide.root", fz_files[run]),"READ");
-  TFile *fe = new TFile(Form("../rootfiles/combination_ZJet_Zee_%s_wide.root",fz_files[run]),"READ");
-
-  assert(fm && !fm->IsZombie());
-  assert(fe && !fe->IsZombie());
-
-  // NB: Ratio is TH1D inoriginal files...
-  TGraphErrors *gem = (TGraphErrors*)fe->Get("Data_MPF_CHS_a30_eta_00_13_L1L2L3");
-  assert(gem);
-  TGraphErrors *gep = (TGraphErrors*)fe->Get("Data_PtBal_CHS_a30_eta_00_13_L1L2L3");
-  assert(gep);
-  TGraphErrors *gmm = (TGraphErrors*)fm->Get("Data_MPF_CHS_a30_eta_00_13_L1L2L3");
-  assert(gmm);
-  TGraphErrors *gmp = (TGraphErrors*)fm->Get("Data_PtBal_CHS_a30_eta_00_13_L1L2L3");
-  assert(gmp);
-  */
-  
   TFile *f = new TFile(Form("../rootfiles/jecdata%s.root",run.c_str()),"READ");
   assert(f && !f->IsZombie());
   gDirectory->cd("ratio");
@@ -141,7 +115,7 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
 
 
 
-  TLegend *legdw = tdrLeg(0.5,0.65,0.70,0.90);
+  TLegend *legdw = tdrLeg(0.5,0.60,0.70,0.90);
   legdw->AddEntry(grm,"MPF","PL");
   legdw->AddEntry(grp,"p_{T} balance","PL");
   legdw->AddEntry(grpm,"#gamma / Z#mu#mu MPF","PL");
@@ -210,34 +184,32 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
 
 
   // Compare to Zee mass corrections
-  /*
-  TF1 *f1mzee = new TF1("f1mzee","([3]/([0]+[1]*log(2*x)+[2]*log(2*x)*log(2*x))"
-			"-1)*100", 30, ptmax);
-  TF1 *f1ezee = new TF1("f1ezee","sqrt([0]+pow(log(2*x),2)*[1]"
-			"+pow(log(2*x),4)*[2]+2*log(2*x)*[3]"
-			"+2*pow(log(2*x),2)*[4]+2*pow(log(2*x),3)*[5])"
-			,30,ptmax);
-  */
   TF1 *f1mzee = new TF1("f1mzee","([3]/([0]+[1]*log(0.01*x)"
 			"+[2]*pow(log(0.01*x),2))"
 			"-1)*100", 30, ptmax);
-  //TF1 *f1ezee = new TF1("f1ezee","sqrt([0]+pow(log(2*x),2)*[1]"
-  //			"+pow(log(2*x),4)*[2]+2*log(2*x)*[3]"
-  //			"+2*pow(log(2*x),2)*[4]+2*pow(log(2*x),3)*[5])"
-  //			,30,ptmax);
   // BCDEFGH fit with minitools/drawZmass.C
-  //f1mzee->SetParameters(1.01732, -0.00909, 0.00116, 0.99855);
-  f1mzee->SetParameters(0.99885, 0.00176, 0.00135, 0.99868);//EGM1
+  //f1mzee->SetParameters(0.99885, 0.00176, 0.00135, 0.99868);//EGM1
   //f1mzee->SetParameters(1.00017, 0.00166, 0.00114, 0.99868);//EGM2
   //f1mzee->SetParameters(1.00279, 0.00166, 0.00112, 0.99868);//EGM3
+  f1mzee->SetParameters(1.00025, 0.00092, -0.00001, 0.99865);//V15
   //f1ezee->SetParameters(7.54e-05, 1.41e-05, 1.63e-07,
   //			-3.26e-05, 3.47e-06, -1.51e-06);
 
+  // Zee mass applied to gamma+jet at pT,Z=2*pT,gamma
+  TF1 *f1mgam = new TF1("f1mgam","([3]/([0]+[1]*log(0.01*x*2)"
+                        "+[2]*pow(log(0.01*x*2),2))"
+                        "-1)*100", 30, ptmax);
+  f1mgam->SetParameters(1.00025, 0.00092, -0.00001, 0.99865);//V15
+
   c1->cd(1);
-  f1mzee->DrawClone("SAME");
   f1mzee->SetLineStyle(kSolid);
+  f1mzee->DrawClone("SAME");
+
+  f1mgam->SetLineStyle(kDashed);
+  f1mgam->DrawClone("SAME");
 
   legdw->AddEntry(f1mzee,"#mu#mu/ee mass","L");
+  legdw->AddEntry(f1mgam,"#mu#mu/#gamma mass","L");
 
   gPad->Update();
 

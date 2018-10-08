@@ -127,12 +127,21 @@ void drawMJBunc() {
 	if (string(cm)=="MPF") leg->AddEntry(gjec,cs,"P");
 
 	TF1 *f1 = new TF1(Form("f1_%s%s",cm,cs),
-			  "[0]+[1]*log(0.01*x)+[2]*log(0.01*x)*log(0.01*x)",
+			  "[0]+[1]*log(x/200.)+[2]*log(x/200.)*log(x/200.)",
 			  200,1500);
 	f1->SetParameters(0.1,0.01,0.001);
-	gjec->Fit(f1,"RNW");
+	gjec->Fit(f1,"QRNW");
 	f1->SetLineColor(color[cm][cs]);
 	f1->Draw("SAME");
+
+	//cout << endl;
+	cout << Form("  %s_%sFunc (\"%s_%sFunc\","
+		     "\"0.01*(%+6.3f + %6.4f*log(x/200.)"
+		     " %+8.5f*log(x/200.)*log(x/200.))\",10,7000),",
+		     cm,cs,cm,cs,
+		     f1->GetParameter(0), f1->GetParameter(1),
+		     f1->GetParameter(2)) << endl;
+	//cout << endl;
       }
 
     } // for isrc                                                               
@@ -197,12 +206,28 @@ void drawMJBunc() {
 	hfsr->Add(h,-1);
 
 	TF1 *f1 = new TF1(Form("f1_%s%s",cm,cs),
-			  "[0]+[1]*pow(0.01*x,[2])",
+			  "[0]+[1]*pow(x/200.,[2])",
 			  200,3500);
 	f1->SetParameters(0.,1,-0.5);
-	hfsr->Fit(f1,"RNW");
+	hfsr->Fit(f1,"QRNW");
 	f1->SetLineColor(color[cm][cs]);
-	f1->Draw("SAME");
+	f1->DrawClone("SAME");
+
+	cout << endl;
+	cout << Form("  MPF_FSRFunc (\"MPF_FSRFunc\","
+		     "\"0.01*(%5.3f + %5.3f*pow(x/200.,%+7.4f))\",10,7000),",
+		     f1->GetParameter(0), f1->GetParameter(1),
+		     f1->GetParameter(2)) << endl;
+	cout << Form("  MJB_FSRFunc (\"MJB_FSRFunc\","
+		     "\"0.01*(%5.3f + %5.3f*pow(x/200.,%+7.4f))\",10,7000)",
+		     2.*f1->GetParameter(0), 2.*f1->GetParameter(1),
+		     f1->GetParameter(2)) << endl;
+	cout << endl;
+
+	f1->SetParameters(f1->GetParameter(0)*2,
+			  f1->GetParameter(1)*2,
+			  f1->GetParameter(2));
+	f1->DrawClone("SAME");
       }
 
     } // for imethod
@@ -215,8 +240,10 @@ void drawMJBunc() {
   TFile *fm = new TFile("../rootfiles/jecdataGH_Multijet.root");
   assert(fm && !fm->IsZombie());
 
-  TH1D *hmjb = (TH1D*)fm->Get("MJB_RatioPostFit"); assert(hmjb);
-  TH1D *hmpf = (TH1D*)fm->Get("MPF_RatioPostFit"); assert(hmpf);
+  //TH1D *hmjb = (TH1D*)fm->Get("MJB_RatioPostFit"); assert(hmjb);
+  //TH1D *hmpf = (TH1D*)fm->Get("MPF_RatioPostFit"); assert(hmpf);
+  TH1D *hmjb = (TH1D*)fm->Get("MJB_RatioRaw"); assert(hmjb);
+  TH1D *hmpf = (TH1D*)fm->Get("MPF_RatioRaw"); assert(hmpf);
 
   TH1D *h1 = (TH1D*)hmjb->Clone("h1");
   h1->Divide(hmjb);
@@ -236,4 +263,11 @@ void drawMJBunc() {
   leg->Draw();
 
   c1->SaveAs("../pdf/drawMJBunc.pdf");
+
+  // Load Andrey's new systematics
+  TFile *f = new TFile("../../jecsys/rootfiles/"
+		       "multijet_20161202_Run2016FlateG.root","READ");
+  // Data/Pt10,Pt15,Pt20,Pt30
+  // MC, MC_JER-up, MC_JER-down
+
 }
