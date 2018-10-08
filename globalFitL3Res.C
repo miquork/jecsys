@@ -365,8 +365,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   vector<const char*> samplevec;
   for(int i = 0; i < nsamples; ++i)samplevec.push_back(samplesmap[selectSample].at(i).c_str());
   const char** samples = &samplevec.front();
-  const int nsample0 = 1; // first Z/gamma+jet sample
-  //const int nsample0 = nsample0map[selectSample];
+  const int nsample0 = nsample0map[selectSample];// first Z/gamma+jet sample
   const int igj = igjmap[selectSample];
   const int izee = izeemap[selectSample];
   const int izmm = izmmmap[selectSample];
