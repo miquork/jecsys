@@ -593,10 +593,17 @@ void reprocess(string epoch="") {
 	    } // gamjet
 	    if (s=="zmmjet" || s=="zeejet") {
 	      //c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2L3",
-	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2Res",
-	    	       rename[s][d], rename[s][t], 100.*alpha,
-	    	       10.01*eta1, 10.01*eta2);
-	    } // Z+jet
+              if(doFall17Closure){
+                c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2L3Res",
+                         rename[s][d], rename[s][t], 100.*alpha,
+                         10.01*eta1, 10.01*eta2);
+              }
+              else{
+                c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2Res",
+                         rename[s][d], rename[s][t], 100.*alpha,
+                         10.01*eta1, 10.01*eta2);
+              }
+            } // Z+jet
 	    assert(c || s=="zlljet");
 
 	    TObject *obj = (s=="zlljet" ? 0 : f->Get(c));
@@ -1021,7 +1028,7 @@ void reprocess(string epoch="") {
     // But even with this pT-dependent L2Res can cause problems
     FactorizedJetCorrector *jecold;
     {
-      s = Form("%s/Fall17_17Nov2017%s_V10_DATA_L2L3Residual_AK4PFchs.txt",cd,
+      s = Form("%s/Fall17_17Nov2017%s_V27_DATA_L2L3Residual_AK4PFchs.txt",cd, //for BCDEF same as Fall17_17Nov2017_MPF_CUSTOMHYBRID_180924_L2L3Residual_pythia8_AK4PFchs.txt
 	       epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);

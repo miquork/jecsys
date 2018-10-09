@@ -583,8 +583,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	  double jes = herr->GetBinContent(herr->FindBin(pt));
 	  gf2->SetPoint(i, ptref, jes / r);
 	}
-	// For dijet, multiply by barrel JES
-	if (string(cs)=="dijet") {
+	// For dijet, multiply by barrel JES, unless scalingForL2OrL3Fit==None
+	if (string(cs)=="dijet" && scalingForL2OrL3Fit!="None") {
 	  double jesref = herr0->GetBinContent(herr0->FindBin(pt));
 	  g->SetPoint(i, pt, r*kfsr * jesref);
 	  g2->SetPoint(i, pt, r*kfsr * jesref);
@@ -949,8 +949,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   legp->AddEntry(herr_ref," ","");
   //legm->AddEntry(herr_ref,"07AugV4","FL");
   //legm->AddEntry(herr_ref,"07AugV4EF","FL");
-  if (epoch=="BCDEF") legm->AddEntry(herr_ref,"Nov17V10","FL");
-  else legm->AddEntry(herr_ref,Form("Nov17V10%s",epoch.c_str()),"FL");
+  if (epoch=="BCDEF") legm->AddEntry(herr_ref,"Nov17V27","FL");
+  else legm->AddEntry(herr_ref,Form("Nov17V27%s",epoch.c_str()),"FL");
 
   hrun1->SetFillStyle(kNone);
   hrun1->DrawClone("SAME E5");

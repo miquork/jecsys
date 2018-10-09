@@ -34,14 +34,14 @@
 
   reprocess(epoch); // Switched off for JetMET100
 
-  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
-  //softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
-  // Run multijet analysis to store information for later global fit
-  // => multijet central values now old, but FSR still needed
-  multijet(false,epoch);
-  multijet(true,epoch);
-  // Perform final global fit (goes into GT)
-  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
+//  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
+//  //softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
+//  // Run multijet analysis to store information for later global fit
+//  // => multijet central values now old, but FSR still needed
+//  multijet(false,epoch);
+//  multijet(true,epoch);
+//  // Perform final global fit (goes into GT)
+//  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
 
   //now do narrow bins for L2Res
   // Calculate soft radiation (ISR+FSR) corrections
@@ -68,7 +68,7 @@
   softrad(3.839,5.191, dodijetsoftrad, epoch);
 
 
-  std::vector <string> sampleconfigs = {"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
+  std::vector <string> sampleconfigs = {"MJDJ_zll", "zll","DJ"};//2016 Legacy: "MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
   std::vector <string> methodconfigs = {  "PtBalMPF","PtBal","MPF"};
 
   for(auto s : sampleconfigs){
@@ -93,14 +93,14 @@
       globalFitL3Res(3.839,5.191, epoch, s, m);
       
       //produce summary pdf with all plots according to era
-      gSystem->Exec(Form("pdflatex '\\def\\RunPeriod{pdf/%s}\\input{pdf/jecslides_FineEta_2016Legacy.tex}'", epoch.c_str()));
+      //      gSystem->Exec(Form("pdflatex '\\def\\RunPeriod{pdf/%s}\\input{pdf/jecslides_FineEta_2016Legacy.tex}'", epoch.c_str()));
       string FolderName = Form("CollectL2Output_%s_%s",s.c_str(),m.c_str());
       gSystem->Exec(Form("mkdir %s",FolderName.c_str()));
 
       gSystem->Exec(Form("pdflatex '\\def\\RunPeriod{pdf/%s}\\input{pdf/jecslides_FineEta_2017_BCDEFG.tex}'", epoch.c_str()));
-      gSystem->Exec(Form("mv jecslides_FineEta_2017_BCDEFG.pdf CollectL2Output_%s_%s/jecslides_FineEta_2017_%s.pdf",s.c_str(),m.c_str(), epoch.c_str()));
+      gSystem->Exec(Form("mv jecslides_FineEta_2017_BCDEFG.pdf %s/jecslides_FineEta_2017_%s.pdf",FolderName.c_str(), epoch.c_str()));
 
-      gSystem->Exec(Form("mv jecslides_FineEta_2016Legacy.pdf %s/jecslides_FineEta_2016_%s.pdf", FolderName.c_str(), epoch.c_str()));
+      //      gSystem->Exec(Form("mv jecslides_FineEta_2016Legacy.pdf %s/jecslides_FineEta_2016_%s.pdf", FolderName.c_str(), epoch.c_str()));
       gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals.txt  %s/Fall17_17Nov2017%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", FolderName.c_str(), epoch.c_str()));
       gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals_Chi2OverNDF.txt  %s/Fall17_17Nov2017%s_VXXX_DATA_L2L3Residual_Chi2OverNDF_AK4PFchs.txt", FolderName.c_str(), epoch.c_str()));
       gSystem->Exec(Form("cp  %s/Fall17_17Nov2017%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt %s_Fall17_17Nov2017%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", FolderName.c_str(), epoch.c_str(), FolderName.c_str(), epoch.c_str()));
