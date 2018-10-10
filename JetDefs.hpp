@@ -38,9 +38,10 @@ namespace jec {
   const ErrorTypes kRelativePtEC1           = ErrorTypes(0L, 1L << 14);
   const ErrorTypes kRelativePtEC2           = ErrorTypes(0L, 1L << 15);
   const ErrorTypes kRelativePtHF            = ErrorTypes(0L, 1L << 16);
-  // Additional L2Res systematics, bits 26-27
+  // Additional L2Res systematics, bits 26-28
   const ErrorTypes kRelativeBal             = ErrorTypes(0L, 1L << 26); //Sum16 
   const ErrorTypes kRelativeSample          = ErrorTypes(0L, 1L << 27);//03FebV7
+  const ErrorTypes kRelativePrefire          = ErrorTypes(0L, 1L << 28);//Fall17V27
   // Absolute scale (pT dependence) systematics, bits 17-25
   const ErrorTypes kAbsoluteScale           = ErrorTypes(0L, 1L << 17);
   const ErrorTypes kAbsoluteSPRE            = ErrorTypes(0L, 1L << 18);
@@ -99,7 +100,7 @@ namespace jec {
 
   // SubTotalPileUp, SubTotalRelative, [SubTotalAbsolute], SubTotalPt
   const ErrorTypes kPileUp              = kPileUpDataMC | kPileUpPt;
-  const ErrorTypes kRelative            = kRelativeJER | kRelativeFSR | kRelativeStat | kRelativePt | kRelativeBal | kRelativeSample;
+  const ErrorTypes kRelative            = kRelativeJER | kRelativeFSR | kRelativeStat | kRelativePt | kRelativeBal | kRelativeSample | kRelativePrefire ;
   const ErrorTypes kAbsolutePt          = kAbsoluteFrag | kAbsoluteSPR;
   const ErrorTypes kAbsoluteFlat        = kAbsoluteStat | kAbsoluteMPFBias | kAbsoluteFlavorMapping | kAbsoluteScale;
   const ErrorTypes kAbsolute            = kAbsoluteFlat | kAbsolutePt;
