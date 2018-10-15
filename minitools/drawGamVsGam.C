@@ -10,22 +10,27 @@
 #include "TF1.h"
 #include "TMultiGraph.h"
 
-void drawGamVsGam(string run = "H") {
+void drawGamVsGam(string run = "GH") {
 
   setTDRStyle();
 
   
-  string sn = Form("V6_%s",run.c_str());
-  string so = Form("V2_%s",run.c_str());
+  //string sn = Form("V6_%s",run.c_str());
+  //string so = Form("V2_%s",run.c_str());
   //string so = Form("V1-Jan15_%s",run.c_str());
 
   //TFile *fn = new TFile(Form("../rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", sn.c_str()),"READ");
-  TFile *fn = new TFile(Form("../../jecsys2016/rootfiles/Gjet_combinationfile_07Aug17_L2res_%s_2016.root", sn.c_str()),"READ");
+  //TFile *fn = new TFile(Form("../../jecsys2016/rootfiles/Gjet_combinationfile_07Aug17_L2res_%s_2016.root", sn.c_str()),"READ");
+  //
+  TFile *fn = new TFile(Form("../../jecsys2016/rootfiles/Gjet_combinationfile_07Aug17_V15_L2res_run%s.root", (run=="GH" ? "FGH" : run.c_str())),"READ");
   assert(fn && !fn->IsZombie());
 
   //TFile *fo = new TFile(Form("../rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", so.c_str()),"READ");
-  TFile *fo = new TFile(Form("../../jecsys/rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", so.c_str()),"READ");
   //TFile *fo = new TFile(Form("../../jecsys2016/rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", sn.c_str()),"READ");
+  //TFile *fo = new TFile(Form("../../jecsys/rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", so.c_str()),"READ");
+  //
+  //TFile *fo = new TFile(Form("../../jecsys/rootfiles/Gjet_combinationfile_07Aug17_nores_%s_%s.root", (run=="GH" ? "V1" : "V2"), (run=="GH" ? "FGH" : run.c_str())),"READ");
+  TFile *fo = new TFile(Form("../../jecsys2016/rootfiles/Gjet_combinationfile_07Aug17_L2Res_V6_%s_EGM2.root", (run=="GH" ? "FGH" : run.c_str())),"READ");
 assert(fo && !fo->IsZombie());  
 
   TGraphErrors *gn = (TGraphErrors*)fn->Get("resp_MPFchs_DATA_a30_eta00_13");
@@ -45,15 +50,14 @@ assert(fo && !fo->IsZombie());
 									
   double ptmax = 2.*1200.;
   TH1D *hup = new TH1D("hup",";p_{T,#gamma} (GeV);MPF",670,30,ptmax);
-  //hup->SetMinimum(0.96);
-  hup->SetMinimum(0.84);//0.85);
-  hup->SetMaximum(1.00);
+  hup->SetMinimum(0.85);//0.84);
+  hup->SetMaximum(1.05);//1.00);
   hup->GetXaxis()->SetMoreLogLabels();
   hup->GetXaxis()->SetNoExponent();
 
   TH1D *hdw = new TH1D("hdw",";p_{T} (GeV);New / Old - 1 (%)",670,30,ptmax);
-  hdw->SetMinimum((0.985+1e-5-1)*100);
-  hdw->SetMaximum((1.025+1e-5-1)*100);
+  hdw->SetMinimum(-2.5+1e-4);//(0.985+1e-5-1)*100);
+  hdw->SetMaximum(+4.5);//(1.025+1e-5-1)*100);
   hdw->GetXaxis()->SetMoreLogLabels();
   hdw->GetXaxis()->SetNoExponent();
 
@@ -96,7 +100,8 @@ assert(fo && !fo->IsZombie());
     gr2->SetPointError(i, gr2->GetEX()[i], (gr2->GetEY()[i])*100);
   }
 
-  TLegend *legdw = tdrLeg(0.5,0.70,0.70,0.90);
+  //TLegend *legdw = tdrLeg(0.5,0.70,0.70,0.90);
+  TLegend *legdw = tdrLeg(0.5,0.78,0.70,0.90);
   legdw->AddEntry(gr,"MPF","PL");
   legdw->AddEntry(gr2,"p_{T} balance","PL");
 
@@ -152,15 +157,15 @@ assert(fo && !fo->IsZombie());
 
   //f1mzee->SetParameter(0,f1mzee->GetParameter(0)-fs->GetParameter(0)/100.);
   f1mzee->SetParameter(0,f1mzee->GetParameter(0)-0.005);
-  f1mzee->DrawClone("SAME");
+  //f1mzee->DrawClone("SAME");
   f1mzee->SetLineStyle(kDotted);
   f1mzee->SetParameter(0,f1mzee->GetParameter(0)-0.005);
-  f1mzee->DrawClone("SAME");
+  //f1mzee->DrawClone("SAME");
   f1mzee->SetParameter(0,f1mzee->GetParameter(0)+0.010);
-  f1mzee->DrawClone("SAME");
+  //f1mzee->DrawClone("SAME");
 
   f1mzee->SetLineStyle(kSolid);
-  legdw->AddEntry(f1mzee,"Z#rightarrow ee mass + 0.5%","L");
+  //legdw->AddEntry(f1mzee,"Z#rightarrow ee mass + 0.5%","L");
 
   c1->SaveAs(Form("../pdf/drawGamVsGam_Run%s.pdf",run.c_str()));
 }
