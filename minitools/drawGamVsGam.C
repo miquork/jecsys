@@ -42,6 +42,22 @@ assert(fo && !fo->IsZombie());
   TGraphErrors *go2 = (TGraphErrors*)fo->Get("resp_PtBalchs_DATA_a30_eta00_13");
   assert(go2);
 
+
+  // Same for Z
+  TFile *fzn = new TFile(Form("../../jecsys2016/rootfiles/zjet_combination_07Aug2017_Summer16_JECV15_Zmm_%s_2018-09-14.root",run.c_str()),"READ");
+
+  TFile *fzo = new TFile(Form("../../jecsys2016/rootfiles/zjet_combination_07Aug2017_Summer16_JECV6_Zmm_%s_2018-03-06.root",run.c_str()),"READ");
+  //zjet_pileupSummary_07Aug2017_Summer16_JECV6_Zmm_%s_2018-03-27.root
+
+  TGraphErrors *gzn = (TGraphErrors*)fzn->Get("Data_MPF_CHS_a30_eta_00_13_L1L2Res");
+  assert(gzn);
+  TGraphErrors *gzn2 = (TGraphErrors*)fzn->Get("Data_PtBal_CHS_a30_eta_00_13_L1L2Res");
+  assert(gzn2);
+  TGraphErrors *gzo = (TGraphErrors*)fzo->Get("Data_MPF_CHS_a30_eta_00_13_L1L2L3");//Res");
+  assert(gzo);
+  TGraphErrors *gzo2 = (TGraphErrors*)fzo->Get("Data_PtBal_CHS_a30_eta_00_13_L1L2L3");//Res");
+  assert(gzo2);
+
 //gn->SetMarkerStyle(kFullCircle);
 //gn->Draw("AP");
 
@@ -49,9 +65,9 @@ assert(fo && !fo->IsZombie());
 //go->Draw("SAMEP");
 									
   double ptmax = 2.*1200.;
-  TH1D *hup = new TH1D("hup",";p_{T,#gamma} (GeV);MPF",670,30,ptmax);
-  hup->SetMinimum(0.85);//0.84);
-  hup->SetMaximum(1.05);//1.00);
+  TH1D *hup = new TH1D("hup",";p_{T,#gamma} (GeV);MPF or p_{T}^{bal}",670,30,ptmax);
+  hup->SetMinimum(0.83);//0.84);
+  hup->SetMaximum(1.03);//1.00);
   hup->GetXaxis()->SetMoreLogLabels();
   hup->GetXaxis()->SetNoExponent();
 
@@ -74,6 +90,14 @@ assert(fo && !fo->IsZombie());
   c1->cd(2);
   gPad->SetLogx();
 
+  // Z+jet 
+  tdrDraw(gzn2,"Pz",kFullSquare,kRed-9);
+  tdrDraw(gzo2,"Pz",kOpenSquare,kRed-9);
+
+  tdrDraw(gzn,"Pz",kFullCircle,kRed);
+  tdrDraw(gzo,"Pz",kOpenCircle,kRed);
+
+  // gamma+jet
   tdrDraw(gn2,"Pz",kFullSquare,kGray+1);
   tdrDraw(go2,"Pz",kOpenSquare,kGray+1);
 
@@ -90,6 +114,9 @@ assert(fo && !fo->IsZombie());
   // Ratio new/old
   TGraphErrors *gr = tools::ratioGraphs(gn,go);
   TGraphErrors *gr2 = tools::ratioGraphs(gn2,go2);
+  TGraphErrors *gzr = tools::ratioGraphs(gzn,gzo);
+  TGraphErrors *gzr2 = tools::ratioGraphs(gzn2,gzo2);
+
   // Change result to (new/old-1)*100
   for (int i = 0; i != gr->GetN(); ++i) {
     gr->SetPoint(i, gr->GetX()[i], (gr->GetY()[i]-1)*100);
@@ -99,12 +126,26 @@ assert(fo && !fo->IsZombie());
     gr2->SetPoint(i, gr2->GetX()[i], (gr2->GetY()[i]-1)*100);
     gr2->SetPointError(i, gr2->GetEX()[i], (gr2->GetEY()[i])*100);
   }
+  //
+  for (int i = 0; i != gzr->GetN(); ++i) {
+    gzr->SetPoint(i, gzr->GetX()[i], (gzr->GetY()[i]-1)*100);
+    gzr->SetPointError(i, gzr->GetEX()[i], (gzn->GetEY()[i])*100);
+  }
+  for (int i = 0; i != gzr2->GetN(); ++i) {
+    gzr2->SetPoint(i, gzr2->GetX()[i], (gzr2->GetY()[i]-1)*100);
+    gzr2->SetPointError(i, gzr2->GetEX()[i], (gzn2->GetEY()[i])*100);
+  }
 
   //TLegend *legdw = tdrLeg(0.5,0.70,0.70,0.90);
   TLegend *legdw = tdrLeg(0.5,0.78,0.70,0.90);
   legdw->AddEntry(gr,"MPF","PL");
   legdw->AddEntry(gr2,"p_{T} balance","PL");
+  TLegend *legz = tdrLeg(0.45,0.78,0.65,0.90);
+  legz->AddEntry(gzr," ","PL");
+  legz->AddEntry(gzr2," ","PL");
 
+  tdrDraw(gzr2,"Pz",kFullSquare,kRed-9);
+  tdrDraw(gzr,"Pz",kFullCircle,kRed);
   tdrDraw(gr2,"Pz",kFullSquare,kGray+1);
   tdrDraw(gr,"Pz",kFullCircle,kBlue);
 
