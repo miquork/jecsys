@@ -86,8 +86,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   TProfile *ppt1 = new TProfile("ppt1","",npt1,&ptbins1[0]);
 
   // gamma+jet bins
-  const double ptbins2[] = {40, 50, 60, 85, 105, 130, 175, 230, 300, 400,
-			    500, 700, 1000, 1500};
+  const double ptbins2[] =
+    //{40, 50, 60, 85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 1500};
+    {40, 50, 60, 85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 1500};
   const int npt2 = sizeof(ptbins2)/sizeof(ptbins2[0])-1;
   cout << Form("npt2: %i", npt2) << endl << flush;
   double ptmax2 = ptbins2[npt2];
@@ -448,7 +449,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  if (true) { // use priors
 	    int n = ga->GetN();
 	    // For response, limit to 1+/-0.02 (we've corrected for L3Res)
-	    if (mm=="ptchs") {
+	    if (false && mm=="ptchs") {
 	      // For pT balance, estimate slope of <vecpT2>/alpha from data
 	      // => 7.5%/0.30 = 25%
 	      // Approximate uncertainty on this to be
@@ -490,8 +491,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      // => 1.25%
 	      // 80X constraint, no slope in MPF
 	      ga->SetPoint(n, 2.5, dd=="mc" ? 0. : 0.00);
-	      if (dd!="mc") ga->SetPointError(n, 0, 0.0125);
-	      if (dd=="mc") ga->SetPointError(n, 0, 0.0125);
+	      if (dd!="mc") ga->SetPointError(n, 0, 0.05);//0.0125);
+	      if (dd=="mc") ga->SetPointError(n, 0, 0.05);//0.0125);
 	    } // MPF
 	  } // use priors
 
@@ -661,11 +662,18 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  // }
 	  
 	  // Set non-zero values only for points in graphs
-	  hk->Reset();
-	  for (int i = 0; i != gk->GetN(); ++i) {
+	  // hk->Reset();
+	  // for (int i = 0; i != gk->GetN(); ++i) {
 
-	    double pt = gk->GetX()[i];
-	    int ipt = hk->FindBin(pt);
+	  //   double pt = gk->GetX()[i];
+	  //   int ipt = hk->FindBin(pt);
+	  //   hk->SetBinContent(ipt, fk->Eval(pt));
+	  //   hk->SetBinError(ipt, fabs(fke->Eval(pt)-fk->Eval(pt)));
+	  // }
+	  // Set all values
+	  for (int ipt = 1; ipt != hk->GetNbinsX()+1; ++ipt) {
+
+	    double pt = hk->GetBinCenter(ipt);
 	    hk->SetBinContent(ipt, fk->Eval(pt));
 	    hk->SetBinError(ipt, fabs(fke->Eval(pt)-fk->Eval(pt)));
 	  }

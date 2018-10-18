@@ -35,7 +35,7 @@ using namespace std;
 // rho used to calculate l1bias
 const double gRho = 15.36; // 2017-06-02 for 2016 data
 const bool _dcsonly = false;
-bool doFall17Closure = true;
+bool doFall17Closure = false;//true;
 
 // Appy mass corrections to Z+jet
 bool useFixedFit = true; // with minitools/drawZmass.C
@@ -46,7 +46,7 @@ bool correctGamMass = true; // pT with ee mass at 2*pT
 bool correctUncert = true;  // ll mass uncertainty
 //
 bool correctGamScale = false;     // separate fixed scale with value below
-double valueGamScale = 1./0.989;  // drawGamVsZmm BCDEFGH
+double valueGamScale = 1.;//1./0.989;  // drawGamVsZmm BCDEFGH
 
 // Minimum pTcut for gamma+jet
 double fpmpfptmin(100.); // photon+jet MPF
@@ -123,19 +123,20 @@ void reprocess(string epoch="") {
 
   //assert(fmj && !fmj->IsZombie());
   
-  // Hugues Lattaud, 2017 V24 closure, Sep 17, 2018
-  // https://indico.cern.ch/event/758051/
+  // Hugues Lattaud, 2017 V27 inputs with L2Res (not incl. JER SF as in V28)
+  // https://indico.cern.ch/event/765393/#47-l3res-gammajets-with-fall17
   map<string,const char*> fp_files;
-  fp_files["B"] = "B";
-  fp_files["C"] = "C";
-  fp_files["D"] = "D";
-  fp_files["E"] = "E";
-  fp_files["F"] = "F";
+  fp_files["B"] = "B_B";
+  fp_files["C"] = "C_C";
+  fp_files["D"] = "D_D";
+  fp_files["E"] = "E_E";
+  fp_files["F"] = "F_F";
   fp_files["BCDEF"] = "BCDEF";
-  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V24_L2L3Res_%s.root", fp_files[epoch]),"READ");
+  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V27_L2res_%s.root", fp_files[epoch]),"READ");
 
-  // Fall17 Closure for V5 and V6 corrections
   if (doFall17Closure){
+    // Hugues Lattaud, 2017 V24 closure, Sep 17, 2018
+    // https://indico.cern.ch/event/758051/
     fp_files["B"] = "B";
     fp_files["C"] = "C";
     fp_files["D"] = "D";
@@ -147,8 +148,8 @@ void reprocess(string epoch="") {
 
   assert(fp && !fp->IsZombie());
 
-  // Daniel Savoiu, 2017 V24 closure, 17 Sep 2018
-  // https://indico.cern.ch/event/758051/
+  // Daniel Savoiu, 2017 V28 inputs with L2Res (incl. JER SF on top of V27)
+  // https://indico.cern.ch/event/763555/#31-l3res-and-closure-test-resu
   map<string,const char*> fz_files;
   fz_files["B"] = "B";
   fz_files["C"] = "C";
@@ -156,13 +157,14 @@ void reprocess(string epoch="") {
   fz_files["E"] = "E";
   fz_files["F"] = "F";
   fz_files["BCDEF"] = "BCDEF";
-  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV24_Zmm_%s_2018-09-18.root",fz_files[epoch]),"READ");
-  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV24_Zee_%s_2018-09-18.root",fz_files[epoch]),"READ");
+  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV28_Zmm_%s_2018-10-08.root",fz_files[epoch]),"READ");
+  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV28_Zee_%s_2018-10-08.root",fz_files[epoch]),"READ");
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
-  // Fall17 Closure for V5 and V6 corrections
   if (doFall17Closure){
+    // Daniel Savoiu, 2017 V24 closure, 17 Sep 2018
+    // https://indico.cern.ch/event/758051/
     fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV24_Zmm_%s_2018-09-18.root",fz_files[epoch]),"READ");
     fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV24_Zee_%s_2018-09-18.root",fz_files[epoch]),"READ");
     assert(fzmm && !fzmm->IsZombie());
@@ -908,7 +910,7 @@ void reprocess(string epoch="") {
     FactorizedJetCorrector *jecc(0), *jecd(0), *jece(0), *jecf(0); // for BCDEF
     double jecwb(1), jecwc(0), jecwd(0), jecwe(0), jecwf(0);       // for BCDEF
     {
-      s = Form("%s/Fall17_17Nov2017%s_V10_DATA_L2L3Residual_AK4PFchs.txt",cd,
+      s = Form("%s/Fall17_17Nov2017%s_V28_DATA_L2L3Residual_AK4PFchs.txt",cd,
 	       epoch=="BCDEF" ? "B" : epoch.c_str());
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
@@ -922,7 +924,7 @@ void reprocess(string epoch="") {
 	double lumtot = 4.8+9.6+4.2+9.3+13.4; // 41.3/fb
 	jecwb = 4.8/lumtot;
 
-	s=Form("%s/Fall17_17Nov2017C_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Fall17_17Nov2017C_V28_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_c = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_c;
@@ -930,7 +932,7 @@ void reprocess(string epoch="") {
 	jecc = new FactorizedJetCorrector(vpar_c);
 	jecwc = 9.6/lumtot;
 
-	s=Form("%s/Fall17_17Nov2017D_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Fall17_17Nov2017D_V28_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_d = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_d;
@@ -938,7 +940,7 @@ void reprocess(string epoch="") {
 	jecd = new FactorizedJetCorrector(vpar_d);
 	jecwd = 4.2/lumtot;
 
-	s=Form("%s/Fall17_17Nov2017E_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Fall17_17Nov2017E_V28_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_e = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_e;
@@ -972,7 +974,7 @@ void reprocess(string epoch="") {
     // But even with this pT-dependent L2Res can cause problems
     FactorizedJetCorrector *jecold;
     {
-      s = Form("%s/Fall17_17Nov2017%s_V10_DATA_L2L3Residual_AK4PFchs.txt",cd,
+      s = Form("%s/Fall17_17Nov2017%s_V28_DATA_L2L3Residual_AK4PFchs.txt",cd,
 	       epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
@@ -984,7 +986,7 @@ void reprocess(string epoch="") {
     // Difference between pT-dependent and flat L1
     FactorizedJetCorrector *jecl1flat;
     {
-      s = Form("%s/Fall17_17Nov2017%s_V10_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
+      s = Form("%s/Fall17_17Nov2017%s_V28_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -993,7 +995,7 @@ void reprocess(string epoch="") {
     }
     FactorizedJetCorrector *jecl1pt;
     {
-      s = Form("%s/Fall17_17Nov2017%s_V10_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
+      s = Form("%s/Fall17_17Nov2017%s_V28_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1010,14 +1012,14 @@ void reprocess(string epoch="") {
     JetCorrectionUncertainty *unc_ref1 = new JetCorrectionUncertainty(*p_ref1);
 
     // Total uncertainty, excluding Flavor and Time
-    s =Form("%s/Fall17_17Nov2017B_V10_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s =Form("%s/Fall17_17Nov2017B_V28_DATA_UncertaintySources_AK4PFchs.txt",cd);
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
     JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p_unc);
 
     // Partial uncertainties
-    s =Form("%s/Fall17_17Nov2017B_V10_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s =Form("%s/Fall17_17Nov2017B_V28_DATA_UncertaintySources_AK4PFchs.txt",cd);
     //s2 = "TotalNoFlavorNoTime";
     s2 = "SubTotalAbsolute";
     cout << s << ":" << s2 << endl << flush;
