@@ -30,7 +30,7 @@ using namespace std;
 // Don't plot individual bins, just keep 4x2
 bool _minimal = false;//true;
 bool _fourbytwo = false;
-bool _twobythree = false;//true; // for paper
+bool _twobythree = true; // for paper
 bool _extra = false; // single pion plots
 bool _paper = true; //  for paper
 
@@ -511,18 +511,18 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
                        kMagenta+1, kNone, 1, // line
                        kMagenta+1, kOpenDiamond, // marker
                        kNone, kNone, "LP")); // fill
-  syt.push_back(uncert("time_runc", "TimeRunG",
-                       jec::kTimeRunG,
+  syt.push_back(uncert("time_runc", "TimeRunGH",
+                       jec::kTimeRunGH,
                        "default", "default", -1, // defaults
                        kBlue, kNone, 1, // line
                        kBlue, kFullTriangleUp, // marker
                        kNone, kNone, "LP")); // fill
-  syt.push_back(uncert("time_rund", "TimeRunH",
-                       jec::kTimeRunH,
-                       "default", "default", -1, // defaults
-                       kBlack, kNone, 1, // line
-                       kBlack, kFullTriangleDown, // marker
-                       kNone, kNone, "LP")); // fill
+//  syt.push_back(uncert("time_rund", "TimeRunH",
+//                       jec::kTimeRunH,
+//                       "default", "default", -1, // defaults
+//                       kBlack, kNone, 1, // line
+//                       kBlack, kFullTriangleDown, // marker
+//                       kNone, kNone, "LP")); // fill
 
   vector<uncert> sys;
   sys.push_back(uncert("singlepion", "SinglePionHCAL",
@@ -1471,7 +1471,8 @@ void plotUncertainty(vector<uncert> const& sys,
   //lumi_13TeV = "Fall15_25nsV2 (76X) - 2.1 fb^{-1}"; // 76X
   //lumi_13TeV = "2.1 fb^{-1}"; // 76X
   //lumi_13TeV = "27 fb^{-1}"; // 80XV8
-  lumi_13TeV = "Run2016BCDEFGH re-reco, 36.5 fb^{-1}"; // Sum16
+  //lumi_13TeV = "Run2016BCDEFGH re-reco, 36.5 fb^{-1}"; // Sum16
+  lumi_13TeV = "Run2016BCDEFGH, 36.5 fb^{-1}"; // Sum16
   TCanvas *c1 = tdrCanvas(Form("c1_%s",name.c_str()),h0,4,11,kSquare);
   if (type=="fixEta") c1->SetLogx();
 
@@ -1868,7 +1869,7 @@ void plotUncertainty(vector<uncert> const& sys,
        jec::kFlavorPureGluon, //jec::kFlavorPureQuark, 
        jec::kFlavorPureUpDown, jec::kFlavorPureStrange, 
        jec::kFlavorPureCharm, jec::kFlavorPureBottom,
-       jec::kTimeRunBCD, jec::kTimeRunEF, jec::kTimeRunG, jec::kTimeRunH,
+       jec::kTimeRunBCD, jec::kTimeRunEF, jec::kTimeRunGH, //jec::kTimeRunH,
        jec::kCorrelationGroupMPFInSitu, jec::kCorrelationGroupIntercalibration, jec::kCorrelationGroupbJES,
        jec::kCorrelationGroupFlavor, jec::kCorrelationGroupUncorrelated
       };
@@ -1941,8 +1942,8 @@ void plotUncertainty(vector<uncert> const& sys,
     srcname[jec::kFlavorPureCharm] = "FlavorPureCharm";
     srcname[jec::kTimeRunBCD] = "TimeRunBCD"; 
     srcname[jec::kTimeRunEF] = "TimeRunEF"; // Sum16V2
-    srcname[jec::kTimeRunG] = "TimeRunG"; // Sum16V2
-    srcname[jec::kTimeRunH] = "TimeRunH"; // Sum16V2
+    srcname[jec::kTimeRunGH] = "TimeRunGH"; // Sum16V2
+    //srcname[jec::kTimeRunH] = "TimeRunH"; // Sum16V2
     srcname[jec::kCorrelationGroupMPFInSitu] = "CorrelationGroupMPFInSitu";
     srcname[jec::kCorrelationGroupFlavor] = "CorrelationGroupFlavor";
     srcname[jec::kCorrelationGroupIntercalibration] = "CorrelationGroupIntercalibration";
