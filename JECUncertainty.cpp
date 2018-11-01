@@ -34,7 +34,7 @@ using namespace std;
 // Turn debug mode on if the code fails with an exception from JEC packages
 // This is most likely a missing/misnamed file given to JetCorrectorParameters
 // The last file printed out before the crash in debug mode is usually the fault
-bool debug = true;//false;
+bool debug = false;
 
 
 JECUncertainty::JECUncertainty(const jec::JetAlgo& algo, 
@@ -57,7 +57,7 @@ JECUncertainty::JECUncertainty(const jec::JetAlgo& algo,
 	    _algo==jec::AK7PFchs || _algo==jec::AK8PFchs);
   _pflow = (_algo==jec::AK4PF || _algo==jec::AK5PF ||
 	    _algo==jec::AK7PF || _algo==jec::AK8PF || _pfchs);
-  _ideal = false;//(_algo==IDEAL);
+  _ideal = true;//false;//(_algo==IDEAL);
   _trkbase = (_pflow || _jpt);
 
   _ajet = 1;
@@ -934,6 +934,7 @@ double JECUncertainty::_AbsoluteStat(double pTprime) const {
   // Global fit uncertainty is used for AbsoluteScale
   //double AbsStatSys = 0;
 
+  if (_ideal) AbsStatSys *= 0.3;
   return AbsStatSys;
 }
 
@@ -965,6 +966,7 @@ double JECUncertainty::_AbsoluteScale() const {
   //double AbsScaleSys = 0.0021; // Sum16 (mu=e=0.2%, g=0.5%, EMFoot=0.5%)
   double AbsScaleSys = 0.0017; // 03FebV3 (mu=e=0.2%, g=2.0%(!!), EMFoot=0.5%)
 
+  if (_ideal) AbsScaleSys *= 0.3;
   return AbsScaleSys;
 }
 
@@ -1004,6 +1006,7 @@ double JECUncertainty::_AbsoluteMPFBias() const {
 
   double AbsMPFBiasSys = sqrt(err2);
 
+  if (_ideal) AbsMPFBiasSys *= 0.3;
   return AbsMPFBiasSys;
 }
 
@@ -1045,7 +1048,7 @@ double JECUncertainty::_AbsoluteFrag(const double pTprime) const {
     delete f1;
   }
 
-  if (_ideal) dr *= 0.5; // Use Pythia/Herwig mean for extrapolation
+  if (_ideal) dr *= 0.3; // Use Pythia/Herwig mean for extrapolation
   
   return dr;
 } // AbsoluteFrag
@@ -1079,6 +1082,7 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
   if (!(_errType & ~jec::kAbsoluteSPRE)) return errSPRE;
   if (!(_errType & ~jec::kAbsoluteSPRH)) return errSPRH;
 
+  if (_ideal) errSPR *= 0.3;
   return errSPR;
 } // AbsoluteSPR
 
@@ -1149,6 +1153,7 @@ double JECUncertainty::_AbsoluteSPRH(const double pTprime) const {
   errSPRH = (difSPRH-refSPRH);
 
   // NB: returns signed systematic
+  if (_ideal) errSPRH *= 0.3;
   return errSPRH;
 } // AbsoluteSPRH
 
@@ -1175,6 +1180,7 @@ double JECUncertainty::_AbsoluteSPRE(const double pTprime) const {
   errSPRE = (difSPRE-refSPRE);
 
   // NB: returns signed systematic
+  if (_ideal) errSPRE *= 0.3;
   return errSPRE;
 } // AbsoluteSPR
 
@@ -1231,7 +1237,7 @@ double JECUncertainty::_RelativeJER(const double pTprime,
   if ( (x>=1.5 && x<2.5 && (_errType & jec::kRelativeJEREC1)) ||
        (x>=2.5 && x<3.0 && (_errType & jec::kRelativeJEREC2)) ||
        (x>=3.0 && x<5.2 && (_errType & jec::kRelativeJERHF)) )
-    return err;
+    return (_ideal &&fabs(err)<0.005) ? err : fabs(err)/err*0.005;
 
   return 0;
 } // RelativeJER
@@ -1327,7 +1333,8 @@ double JECUncertainty::_RelativeFSR(const double pTprime, const double eta) {
   //double diff = 1.0*(hw - py);
   double kfactor = 1.0;
   double diff = kfactor * (rhw / rpy - 1);
-
+  if (_ideal) diff *= 0.5; //halve everywhere
+  if (_ideal) return fabs(diff)<0.005 ? diff : fabs(diff)/diff * 0.005;
   return diff;
 } // RelativeFSR
 
@@ -1457,6 +1464,7 @@ double JECUncertainty::_RelativeBal(const double pTprime,
   double kfactor = 1;
   double err = kfactor*(rbal / rmpf - 1);
 
+  if (_ideal) return 0.;
   return err;
 } // RelativeBal
 
@@ -1490,6 +1498,7 @@ double JECUncertainty::_RelativeSample(const double pTprime,
   if (fabs(eta)>2.5 && fabs(errb)>fabs(erra)  && fabs(errb)>fabs(errc))  err = errb;
   if (fabs(eta)>2.5 && fabs(errc)>fabs(erra)  && fabs(errc)>fabs(errb))  err = errc;
 
+  if (_ideal) return 0.;
   return err;
 } // RelativeSample
 
@@ -1517,6 +1526,7 @@ double JECUncertainty::_PileUp(const double pTprime, const double eta) {
   if (!(_errType & ~jec::kPileUpMuZero)) return spt; // OPTIONAL
   if (!(_errType & ~jec::kPileUpEnvelope)) return senv; // OPTIONAL
 
+  //  if (_ideal) return 0.5*err;
   return err;
 } // PileUp
 
@@ -1823,6 +1833,8 @@ double JECUncertainty::_Flavor(double pTprime, double eta) const {
     err2 += errFlavor*errFlavor;
   }
 
+  if (_ideal) return 0.5 * errFlavor;
+  
   return errFlavor;
 } // _Flavor
 
@@ -2309,6 +2321,8 @@ double JECUncertainty::_Time(const double pt, const double eta) {
   //double seta = (_errType & jec::kTimeEta ? _TimeEta(eta) : 0);
 
   double err = spt;//sqrt(seta*seta + spt*spt);
+
+  if (_ideal) return 0.;
 
   // signed sources
   //if (!(_errType & ~jec::kTimeEta)) return seta;
