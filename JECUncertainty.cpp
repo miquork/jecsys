@@ -10,6 +10,19 @@
 #include <map>
 
 
+
+/*
+BCDEFGH custom file: 
+Summer16_07Aug2017BCDEFGH_V18_CUSTOMFILE_DATA_L2L3Residual_AK4PFchs.txt
+assembled from:
+- L2Res_07Aug2017_JECV14_07Sep2018/RunBCDEFGH/output/kFSR_Fit/Summer16_07Aug2017_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt
+- + FLAT in eta bibns 2.964;2.853;2.65
+- global fit result from https://www.dropbox.com/s/50tgtde6hbuvxdw/jecslides_2016V16M_20180928.pdf?dl=0
+- restricted to 40-6500 GeV
+- formula cloned from Summer16_07Aug2017BCD_V18_DATA_L2L3Residual_AK4PFchs.txt
+
+*/
+
 /*
 Files still to be used for Oct uncertainty update:
 Hybrid BCDEFGHV7 txt file from JERCentral: Summer16_03Feb2017V7BCDEFGH_MPF_HYBRID_L2Residual_pythia8_AK4PFchs.txt

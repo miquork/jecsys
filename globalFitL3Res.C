@@ -259,17 +259,24 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     std::cout << "FORCING TO DEACTIVATE NEW MULTIJET: 'njesFit==1' not supported right now" << std::endl;
     useNewMultijet=false;
   }
-  if(njesFit==2)_lossFunc = new CombLossFunction(move(jetCorr2));
+  if(njesFit==2){
+    _lossFunc = new CombLossFunction(move(jetCorr2));
+    std::cout << "FORCING TO DEACTIVATE NEW MULTIJET: Before reactivation make sure that parametrization is compatible" << std::endl;
+    useNewMultijet=false;
+  }    
   //else if(njesFit==3 && useOff){
-  else if(njesFit>=3 && useOff){
+  else if(njesFit==3 && useOff){
     Double_t temp_x;
     std::vector<Double_t> temp_p = {1.0,0.0,0.0};
     jesFit(&temp_x,&temp_p[0]);
     jetCorr3->SetParamsL1({fl1->GetParameter(0),fl1->GetParameter(1)}); //fl1
     _lossFunc = new CombLossFunction(move(jetCorr3));
+    std::cout << "FORCING TO DEACTIVATE NEW MULTIJET: Before reactivation make sure that parametrization is compatible" << std::endl;
+    useNewMultijet=false;
   }
   else if (njesFit!=1) {
     cout << "not defined configuration for multijet..." << endl;
+    useNewMultijet=false;
     assert(0);
   }
   //  cout << "going to use _lossFunc" << _lossFunc << " " << _lossFunc->GetNumParams()<< endl;
