@@ -57,11 +57,11 @@ void drawAvsB() {
 
   setTDRStyle();
 
-  string epocha = "D";
-  string epochb = "C";
+  string epocha = "E";
+  string epochb = "D";
 
   // Add the rest as well
-  string epocha2 = "E";//"EF";
+  string epocha2 = "";//"EF";
   string epochb2 = "";//"G";
 
   string type = "data";
@@ -71,7 +71,7 @@ void drawAvsB() {
   methods.push_back("ptchs");
   bool nozjptb = false;
   bool nogjmpf = true;//false;
-  bool nogjptb = true;
+  bool nogjptb = true;//false;
   bool mjvsjes = false;
   
   vector<string> samples;
