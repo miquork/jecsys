@@ -10,6 +10,19 @@
 #include <map>
 
 
+
+/*
+BCDEFGH custom file: 
+Summer16_07Aug2017BCDEFGH_V18_CUSTOMFILE_DATA_L2L3Residual_AK4PFchs.txt
+assembled from:
+- L2Res_07Aug2017_JECV14_07Sep2018/RunBCDEFGH/output/kFSR_Fit/Summer16_07Aug2017_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt
+- + FLAT in eta bibns 2.964;2.853;2.65
+- global fit result from https://www.dropbox.com/s/50tgtde6hbuvxdw/jecslides_2016V16M_20180928.pdf?dl=0
+- restricted to 40-6500 GeV
+- formula cloned from Summer16_07Aug2017BCD_V18_DATA_L2L3Residual_AK4PFchs.txt
+
+*/
+
 /*
 Files still to be used for Oct uncertainty update:
 Hybrid BCDEFGHV7 txt file from JERCentral: Summer16_03Feb2017V7BCDEFGH_MPF_HYBRID_L2Residual_pythia8_AK4PFchs.txt
@@ -57,7 +70,7 @@ JECUncertainty::JECUncertainty(const jec::JetAlgo& algo,
 	    _algo==jec::AK7PFchs || _algo==jec::AK8PFchs);
   _pflow = (_algo==jec::AK4PF || _algo==jec::AK5PF ||
 	    _algo==jec::AK7PF || _algo==jec::AK8PF || _pfchs);
-  _ideal = false;//(_algo==IDEAL);
+  _ideal = true;//false;//(_algo==IDEAL);
   _trkbase = (_pflow || _jpt);
 
   _ajet = 1;
@@ -158,8 +171,7 @@ double JECUncertainty::Uncert(const double pTprime, const double eta) {
   if (!(_errType & ~jec::kPileUpEnvelope)) return errPileUp; // OPT
   if (!(_errType & ~jec::kTimeRunBCD)) return errTime;
   if (!(_errType & ~jec::kTimeRunEF)) return errTime;
-  if (!(_errType & ~jec::kTimeRunG)) return errTime;
-  if (!(_errType & ~jec::kTimeRunH)) return errTime;
+  if (!(_errType & ~jec::kTimeRunGH)) return errTime;
   if (!(_errType & ~jec::kTimePtEta))     return errTime;
   //if (!(_errType & ~jec::kTimeEta))     return errTime;
   //
@@ -288,7 +300,8 @@ void JECUncertainty::_InitJEC() {
   //s = Form("%sSpring16_25nsV8p2_DATA_L1FastJet_%s.txt",d,a); // 80XV8
   //s = Form("%sSummer16_23Sep2016GV2_DATA_L1FastJet_%s.txt",d,a); // Sum16
   //s = Form("%sSummer16_23Sep2016GV3_DATA_L1FastJet_%s.txt",d,a); // Sum16
-  s = Form("%sSummer16_03Feb2017G_V3_DATA_L1FastJet_%s.txt",d,a); // 03Feb
+  //s = Form("%sSummer16_03Feb2017G_V3_DATA_L1FastJet_%s.txt",d,a); // 03Feb
+  s = Form("%sSummer16_07Aug2017GH_V7_DATA_L1FastJet_%s.txt",d,a); //Aug17 V7 RunGH
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
   //s = Form("%sFall15_25nsV1_DATA_L2Relative_%s.txt",d,a); // 76X
@@ -296,7 +309,8 @@ void JECUncertainty::_InitJEC() {
   //s = Form("%sSpring16_25nsV8p2_DATA_L2Relative_%s.txt",d,a); // 80XV8
   //s = Form("%sSummer16_23Sep2016GV2_DATA_L2Relative_%s.txt",d,a); // Sum16
   //s = Form("%sSummer16_23Sep2016GV3_DATA_L2Relative_%s.txt",d,a); // Sum16
-  s = Form("%sSummer16_03Feb2017G_V3_DATA_L2Relative_%s.txt",d,a); // 03Feb
+  //s = Form("%sSummer16_03Feb2017G_V3_DATA_L2Relative_%s.txt",d,a); // 03Feb
+  s = Form("%sSummer16_07Aug2017GH_V7_DATA_L2Relative_%s.txt",d,a); //Aug17 V7 RunGH
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
   //s = Form("%sFall15_25nsV1_DATA_L3Absolute_%s.txt",d,a); // 76X
@@ -304,7 +318,8 @@ void JECUncertainty::_InitJEC() {
   //s = Form("%sSpring16_25nsV8p2_DATA_L3Absolute_%s.txt",d,a); // 80XV8
   //s = Form("%sSummer16_23Sep2016GV2_DATA_L3Absolute_%s.txt",d,a); // Sum16
   //s = Form("%sSummer16_23Sep2016GV3_DATA_L3Absolute_%s.txt",d,a); // Sum16
-  s = Form("%sSummer16_03Feb2017G_V3_DATA_L3Absolute_%s.txt",d,a); // 03Feb
+  //s = Form("%sSummer16_03Feb2017G_V3_DATA_L3Absolute_%s.txt",d,a); // 03Feb
+  s = Form("%sSummer16_07Aug2017GH_V7_DATA_L3Absolute_%s.txt",d,a); //Aug17 V7 RunGH
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
   // Only one L3Residual derived for now for AK4PFchs
@@ -314,7 +329,8 @@ void JECUncertainty::_InitJEC() {
   //s = Form("%sSpring16_25nsV8p2_DATA_L2L3Residual_%s.txt",d,a); // 80XV8
   //s = Form("%sSummer16_23Sep2016GV2_DATA_L2L3Residual_%s.txt",d,a); // Sum16
   //s = Form("%sSummer16_23Sep2016GV3_DATA_L2L3Residual_%s.txt",d,a); // Sum16
-  s = Form("%sSummer16_03Feb2017G_V3_DATA_L2L3Residual_%s.txt",d,a); // 03Feb
+  //  s = Form("%sSummer16_03Feb2017G_V3_DATA_L2L3Residual_%s.txt",d,a); // 03Feb
+  s = Form("%sSummer16_07Aug2017GH_V7_DATA_L2L3Residual_%s.txt",d,a); //Aug17 V7 RunGH
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
 
@@ -330,7 +346,8 @@ void JECUncertainty::_InitJEC() {
     //s = Form("%sSpring16_25nsV8BCD_DATA_L2L3Residual_%s.txt",d,a);
     //s = Form("%sSummer16_23Sep2016BCDV2_DATA_L2L3Residual_%s.txt",d,a);
     //s = Form("%sSummer16_23Sep2016BCDV3_DATA_L2L3Residual_%s.txt",d,a);
-    s = Form("%sSummer16_03Feb2017BCD_V3_DATA_L2L3Residual_%s.txt",d,a);
+    //s = Form("%sSummer16_03Feb2017BCD_V3_DATA_L2L3Residual_%s.txt",d,a);
+    s = Form("%sSummer16_07Aug2017BCD_V7_DATA_L2L3Residual_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     
@@ -345,7 +362,8 @@ void JECUncertainty::_InitJEC() {
     //s = Form("%sSpring16_25nsV8E_DATA_L2L3Residual_%s.txt",d,a);
     //s = Form("%sSummer16_23Sep2016EFV2_DATA_L2L3Residual_%s.txt",d,a);
     //s = Form("%sSummer16_23Sep2016EFV3_DATA_L2L3Residual_%s.txt",d,a);
-    s = Form("%sSummer16_03Feb2017EF_V3_DATA_L2L3Residual_%s.txt",d,a);
+    //s = Form("%sSummer16_03Feb2017EF_V3_DATA_L2L3Residual_%s.txt",d,a);
+    s = Form("%sSummer16_07Aug2017EF_V7_DATA_L2L3Residual_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     
@@ -356,11 +374,8 @@ void JECUncertainty::_InitJEC() {
     v.push_back(*l2l3res);
     _jecEF = new FactorizedJetCorrector(v);
   }
-  { // RunG
-    //s = Form("%sSpring16_25nsV8_DATA_L2L3Residual_%s.txt",d,a);
-    //s = Form("%sSummer16_23Sep2016GV2_DATA_L2L3Residual_%s.txt",d,a);
-    //s = Form("%sSummer16_23Sep2016GV3_DATA_L2L3Residual_%s.txt",d,a);
-    s = Form("%sSummer16_03Feb2017G_V3_DATA_L2L3Residual_%s.txt",d,a);
+  { // RunGH
+    s = Form("%sSummer16_07Aug2017GH_V7_DATA_L2L3Residual_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     
@@ -369,30 +384,17 @@ void JECUncertainty::_InitJEC() {
     v.push_back(*l2);
     v.push_back(*l3);
     v.push_back(*l2l3res);
-    _jecG = new FactorizedJetCorrector(v);
+    _jecGH = new FactorizedJetCorrector(v);
   }
-  { // RunH
-    //s = Form("%sSpring16_25nsV8p2_DATA_L2L3Residual_%s.txt",d,a);
-    //s = Form("%sSummer16_23Sep2016HV2_DATA_L2L3Residual_%s.txt",d,a);
-    //s = Form("%sSummer16_23Sep2016HV3_DATA_L2L3Residual_%s.txt",d,a);
-    s = Form("%sSummer16_03Feb2017H_V3_DATA_L2L3Residual_%s.txt",d,a);
-    if (debug) cout << s << endl << flush;
-    JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
-    
-    vector<JetCorrectorParameters> v;
-    v.push_back(*l1);
-    v.push_back(*l2);
-    v.push_back(*l3);
-    v.push_back(*l2l3res);
-    _jecH = new FactorizedJetCorrector(v);
-  }
+  
   { // RunBCDEFGH (all 2016)
     //s = Form("%sSpring16_25nsV8p2_DATA_L2L3Residual_%s.txt",d,a);
     //s = Form("%sSummer16_23Sep2016BCDEFGHV1_DATA_L2L3Residual_%s.txt",d,a); // custom file
     //s = Form("%sSummer16_23Sep2016BCDEFGHV3_DATA_L2L3Residual_%s.txt",d,a); // custom file Sum16V3
     //s = Form("%sSummer16_03Feb2017BCfDEFG-H_V3_DATA_L2L3Residual_%s.txt",d,a);
     // custom 03FebV3, !!MISSING!! BCDEFGH L2Res => based on H L2Res + BCDEFGH L3Res
-    s = Form("%sSummer16_03Feb2017BCDEFGH_V3_DATA_L2L3Residual_%s.txt",d,a); // custom 03FebV3
+    //s = Form("%sSummer16_03Feb2017BCDEFGH_V3_DATA_L2L3Residual_%s.txt",d,a); // custom 03FebV3
+    s = Form("%skFSR_Fit_V6woL2Res_Summer16_07Aug2017_MPF_LOGLIN_L2L3Residual_pythia8_%s.txt",d,a); //https://indico.cern.ch/event/724150/#14-dijet-with-2016-legacy-data https://indico.cern.ch/event/724150/contributions/2984626/attachments/1639901/2618518/kFSR_Fit_V6woL2Res.tar.gz
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     
@@ -637,7 +639,8 @@ void JECUncertainty::_InitL2Res() {
     //s = Form("%sSummer16_25ns_MPF_LOGLIN_L2Residual_pythia8_%s.txt.STAT",d,a); // Sum16V3
     //s = Form("%sSummer16_03Feb2017HV3_MPF_LOGLIN_L2Residual_pythia8_%s.txt.STAT",d,a); // 03Feb
     //s = Form("%sSummer16_03Feb2017BCDEFGH_MPF_LOGLIN_L2Residual_pythia8_%s.txt.STAT",d,a); // 03FebV3
-    s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_L2Residual_pythia8_%s.txt.STAT",d,a); // 03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    //s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_L2Residual_pythia8_%s.txt.STAT",d,a); // 03FebV7 from https://indico.cern.ch/event/651009/contributions/2771442/attachments/1548882/2432540/L2Res_JER_variation.tar.gz
+    s = Form("%skFSR_Fit_V6woL2Res_Summer16_07Aug2017_MPF_LOGLIN_L2L3Residual_pythia8_%s.txt.STAT",d,a); //https://indico.cern.ch/event/724150/#14-dijet-with-2016-legacy-data https://indico.cern.ch/event/724150/contributions/2984626/attachments/1639901/2618518/kFSR_Fit_V6woL2Res.tar.gz
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -992,6 +995,7 @@ double JECUncertainty::_AbsoluteStat(double pTprime) const {
   // Global fit uncertainty is used for AbsoluteScale
   //double AbsStatSys = 0;
 
+  if (_ideal) AbsStatSys *= 0.3;
   return AbsStatSys;
 }
 
@@ -1023,6 +1027,7 @@ double JECUncertainty::_AbsoluteScale() const {
   //double AbsScaleSys = 0.0021; // Sum16 (mu=e=0.2%, g=0.5%, EMFoot=0.5%)
   double AbsScaleSys = 0.0017; // 03FebV3 (mu=e=0.2%, g=2.0%(!!), EMFoot=0.5%)
 
+  if (_ideal) AbsScaleSys *= 0.3;
   return AbsScaleSys;
 }
 
@@ -1062,6 +1067,7 @@ double JECUncertainty::_AbsoluteMPFBias() const {
 
   double AbsMPFBiasSys = sqrt(err2);
 
+  if (_ideal) AbsMPFBiasSys *= 0.3;
   return AbsMPFBiasSys;
 }
 
@@ -1103,7 +1109,7 @@ double JECUncertainty::_AbsoluteFrag(const double pTprime) const {
     delete f1;
   }
 
-  if (_ideal) dr *= 0.5; // Use Pythia/Herwig mean for extrapolation
+  if (_ideal) dr *= 0.3; // Use Pythia/Herwig mean for extrapolation
   
   return dr;
 } // AbsoluteFrag
@@ -1137,6 +1143,7 @@ double JECUncertainty::_AbsoluteSPR(const double pTprime) const {
   if (!(_errType & ~jec::kAbsoluteSPRE)) return errSPRE;
   if (!(_errType & ~jec::kAbsoluteSPRH)) return errSPRH;
 
+  if (_ideal) errSPR *= 0.3;
   return errSPR;
 } // AbsoluteSPR
 
@@ -1207,6 +1214,7 @@ double JECUncertainty::_AbsoluteSPRH(const double pTprime) const {
   errSPRH = (difSPRH-refSPRH);
 
   // NB: returns signed systematic
+  if (_ideal) errSPRH *= 0.3;
   return errSPRH;
 } // AbsoluteSPRH
 
@@ -1233,6 +1241,7 @@ double JECUncertainty::_AbsoluteSPRE(const double pTprime) const {
   errSPRE = (difSPRE-refSPRE);
 
   // NB: returns signed systematic
+  if (_ideal) errSPRE *= 0.3;
   return errSPRE;
 } // AbsoluteSPR
 
@@ -1289,7 +1298,7 @@ double JECUncertainty::_RelativeJER(const double pTprime,
   if ( (x>=1.5 && x<2.5 && (_errType & jec::kRelativeJEREC1)) ||
        (x>=2.5 && x<3.0 && (_errType & jec::kRelativeJEREC2)) ||
        (x>=3.0 && x<5.2 && (_errType & jec::kRelativeJERHF)) )
-    return err;
+    return (_ideal &&fabs(err)<0.005) ? err : fabs(err)/err*0.005;
 
   return 0;
 } // RelativeJER
@@ -1385,7 +1394,8 @@ double JECUncertainty::_RelativeFSR(const double pTprime, const double eta) {
   //double diff = 1.0*(hw - py);
   double kfactor = 1.0;
   double diff = kfactor * (rhw / rpy - 1);
-
+  if (_ideal) diff *= 0.5; //halve everywhere
+  if (_ideal) return fabs(diff)<0.005 ? diff : fabs(diff)/diff * 0.005;
   return diff;
 } // RelativeFSR
 
@@ -1515,6 +1525,7 @@ double JECUncertainty::_RelativeBal(const double pTprime,
   double kfactor = 1;
   double err = kfactor*(rbal / rmpf - 1);
 
+  if (_ideal) return 0.;
   return err;
 } // RelativeBal
 
@@ -1548,6 +1559,7 @@ double JECUncertainty::_RelativeSample(const double pTprime,
   if (fabs(eta)>2.5 && fabs(errb)>fabs(erra)  && fabs(errb)>fabs(errc))  err = errb;
   if (fabs(eta)>2.5 && fabs(errc)>fabs(erra)  && fabs(errc)>fabs(errb))  err = errc;
 
+  if (_ideal) return 0.;
   return err;
 } // RelativeSample
 
@@ -1575,6 +1587,7 @@ double JECUncertainty::_PileUp(const double pTprime, const double eta) {
   if (!(_errType & ~jec::kPileUpMuZero)) return spt; // OPTIONAL
   if (!(_errType & ~jec::kPileUpEnvelope)) return senv; // OPTIONAL
 
+  //  if (_ideal) return 0.5*err;
   return err;
 } // PileUp
 
@@ -1891,6 +1904,8 @@ double JECUncertainty::_Flavor(double pTprime, double eta) const {
     err2 += errFlavor*errFlavor;
   }
 
+  if (_ideal) return 0.5 * errFlavor;
+  
   return errFlavor;
 } // _Flavor
 
@@ -2629,13 +2644,9 @@ double JECUncertainty::_Time(const double pt, const double eta) {
     assert( !(_errType & (jec::kTimePtEtaMask & ~jec::kTimeRunEF)) ); 
     spt = _TimePtEta(pt,eta,2);
   }
-  if (_errType & jec::kTimeRunG) {
-    assert( !(_errType & (jec::kTimePtEtaMask & ~jec::kTimeRunG)) ); 
+  if (_errType & jec::kTimeRunGH) {
+    assert( !(_errType & (jec::kTimePtEtaMask & ~jec::kTimeRunGH)) ); 
     spt = _TimePtEta(pt,eta,3);
-  }
-  if (_errType & jec::kTimeRunH) {
-    assert( !(_errType & (jec::kTimePtEtaMask & ~jec::kTimeRunH)) ); 
-    spt = _TimePtEta(pt,eta,4);
   }
   // Normal time uncertainties
   if (_errType & jec::kTimePtEta) {
@@ -2646,13 +2657,14 @@ double JECUncertainty::_Time(const double pt, const double eta) {
 
   double err = spt;//sqrt(seta*seta + spt*spt);
 
+  if (_ideal) return 0.;
+
   // signed sources
   //if (!(_errType & ~jec::kTimeEta)) return seta;
   if (!(_errType & ~jec::kTimePtEta))  return spt;
   if (!(_errType & ~jec::kTimeRunBCD))  return spt;
   if (!(_errType & ~jec::kTimeRunEF))  return spt;
-  if (!(_errType & ~jec::kTimeRunG))  return spt;
-  if (!(_errType & ~jec::kTimeRunH))  return spt;
+  if (!(_errType & ~jec::kTimeRunGH))  return spt;
 
   return err;
 }
@@ -2697,10 +2709,11 @@ double JECUncertainty::_TimePtEta(const double pt, const double eta,
 				  int epoch) {
 
   // epochs: 0 (runsBCDEFGH), 1 (runBCD), 2 (runEF), 3 (runG), 4 (runH)
-  assert(epoch>=0 && epoch<=4);
+  // epochs: 0 (runsBCDEFGH), 1 (runBCD), 2 (runEF), 3 (runGH)
+  assert(epoch>=0 && epoch<=3);
 
-  const int nepoch = 4;
-  double lum[nepoch] = {12.9, 6.8, 8.0, 8.8}; // BCD, EF, G, H; tot 36.5 fb-1
+  const int nepoch = 3;
+  double lum[nepoch] = {12.9, 6.8, 16.8}; // BCD, EF, GH; tot 36.5 fb-1
 
   double sumlum(0);
   for (int i = 0; i != nepoch; ++i) sumlum += lum[i];
@@ -2711,14 +2724,16 @@ double JECUncertainty::_TimePtEta(const double pt, const double eta,
 
   assert(_jecBCD);
   assert(_jecEF);
-  assert(_jecG);
-  assert(_jecH);
+  //  assert(_jecG);
+  //  assert(_jecH);
+  assert(_jecGH);
   assert(_jecBCDEFGH);
   double jecBCD = _Rjet(pt, eta, -1, -1, _jecBCD);
   double jecEF  = _Rjet(pt, eta, -1, -1, _jecEF);
-  double jecG   = _Rjet(pt, eta, -1, -1, _jecG);
-  double jecH   = _Rjet(pt, eta, -1, -1, _jecH);
-  double jecs[nepoch] = {jecBCD, jecEF, jecG, jecH};
+  //  double jecG   = _Rjet(pt, eta, -1, -1, _jecG);
+  //  double jecH   = _Rjet(pt, eta, -1, -1, _jecH);
+  double jecGH   = _Rjet(pt, eta, -1, -1, _jecGH);
+  double jecs[nepoch] = {jecBCD, jecEF, jecGH};
 
   // BCDEFGH from weighted average of IOVs
   double jecSum(0);
