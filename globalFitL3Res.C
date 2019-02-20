@@ -34,6 +34,7 @@
 //jec-fit-protype adds
 #include "FitBase.hpp"
 #include "MultijetBinnedSum.hpp"
+#include "MultijetCrawlingBins.hpp"
 #include "JetCorrDefinitions.hpp"
 #include <list>
 #include <Minuit2/Minuit2Minimizer.h>
@@ -55,7 +56,8 @@ string scalingForL2OrL3Fit = "ApplyL3ResDontScaleDijets"; //"None" - for inpunt 
 //"ApplyL3ResDontScaleDijets" - apply barrel JES (use case: check closure when only L2Res is applied to the inputs and L3Res didn't change)
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
-bool useNewMultijet = true;//false;
+bool useNewMultijet = false;//true;//false;
+bool useCrawlingBinsMultijet = true;//false;
 //int dropFirstXNewMultijetTriggerBins = 3; //3:ptlead>400GeV
 int dropFirstXNewMultijetTriggerBins = 0; //0:ptlead>190GeV
 bool verboseGF = false;
@@ -273,12 +275,17 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   fm_files["BCDEFGH"] = "All";
 
   list<unique_ptr<MeasurementBase>> measurements;//multijet_180507_2016All.root
-  MultijetBinnedSum* MPF_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180507_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF );
-  if(dropFirstXNewMultijetTriggerBins>0)MPF_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
+  
+  MultijetCrawlingBins* MPF_MJ = new MultijetCrawlingBins(Form("rootfiles/multijet_181217_2016%s.root", fm_files[cep]), MultijetCrawlingBins::Method::MPF );
+  //  if(dropFirstXNewMultijetTriggerBins>0)MPF_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
   measurements.emplace_back(MPF_MJ);
-  MultijetBinnedSum* MJB_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180507_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal );
-  if(dropFirstXNewMultijetTriggerBins>0)MJB_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
-  measurements.emplace_back(MJB_MJ);
+
+//  MultijetBinnedSum* MPF_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180507_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF );
+//  if(dropFirstXNewMultijetTriggerBins>0)MPF_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
+//  measurements.emplace_back(MPF_MJ);
+//  MultijetBinnedSum* MJB_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180507_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal );
+//  if(dropFirstXNewMultijetTriggerBins>0)MJB_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
+//  measurements.emplace_back(MJB_MJ);
   for (auto const &measurement: measurements)
     _lossFunc->AddMeasurement(measurement.get());
   nsrcnmj = _lossFunc->GetNuisances().GetNumParams();
@@ -1116,7 +1123,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   TH1D *MPF_RatioOrig = (TH1D*)MPF_RatioRaw->Clone("MPF_RatioOrig");
   TH1D *MJB_RatioOrig = (TH1D*)MJB_RatioRaw->Clone("MJB_RatioOrig");
 
-  if(useNewMultijet){
+  if(useNewMultijet && !useCrawlingBinsMultijet){
     MPF_RatioOrig->Draw("SAME");
     MJB_RatioOrig->Draw("SAME");
 
@@ -1178,7 +1185,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     g3->DrawClone("SAMEPz");
   }
 
-  if(useNewMultijet){
+  if(useNewMultijet && !useCrawlingBinsMultijet){
     MPF_RatioRaw->Draw("SAME");
     MJB_RatioRaw->Draw("SAME");
   }
@@ -1608,7 +1615,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     double mpf = MPF_RatioPostFitScaled->GetBinContent(i);
     MPF_RatioPostFitScaled->SetBinContent(i, mpf * _jesFit->Eval(ptlead));
   }
-  if(useNewMultijet)MPF_RatioPostFitScaled->Draw("SAME");
+  if(useNewMultijet && !useCrawlingBinsMultijet)MPF_RatioPostFitScaled->Draw("SAME");
 
   TH1D MJB_PostFit =  MJBMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), _lossFunc->GetNuisances(), MultijetBinnedSum::HistReturnType::recompBal);
   TH1D MJB_SimPostFit =  MJBMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), _lossFunc->GetNuisances(), MultijetBinnedSum::HistReturnType::simBal);
@@ -1626,7 +1633,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     double mjb = MJB_RatioPostFitScaled->GetBinContent(i);
     MJB_RatioPostFitScaled->SetBinContent(i, mjb * _jesFit->Eval(ptlead));
   }
-  if(useNewMultijet)MJB_RatioPostFitScaled->Draw("SAME");
+  if(useNewMultijet && !useCrawlingBinsMultijet)MJB_RatioPostFitScaled->Draw("SAME");
 
   TFile *fout = new TFile(Form("rootfiles/jecdata%s_Multijet.root",cep),"RECREATE");
   MPF_Raw      	  .SetName("MPF_Raw"       );	
