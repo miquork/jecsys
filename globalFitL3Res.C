@@ -34,6 +34,7 @@
 //jec-fit-protype adds
 #include "FitBase.hpp"
 #include "MultijetBinnedSum.hpp"
+#include "MultijetCrawlingBins.hpp"
 #include "JetCorrDefinitions.hpp"
 #include <list>
 #include <Minuit2/Minuit2Minimizer.h>
@@ -56,9 +57,7 @@ string scalingForL2OrL3Fit = "ApplyL3ResDontScaleDijets"; //"None" - for inpunt 
 //"ApplyL3ResDontScaleDijets" - apply barrel JES (use case: check closure when only L2Res is applied to the inputs and L3Res didn't change)
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
-bool useNewMultijet = false;//true;//false;
-//int dropFirstXNewMultijetTriggerBins = 3; //3:ptlead>400GeV
-int dropFirstXNewMultijetTriggerBins = 0; //0:ptlead>190GeV
+bool useNewMultijet = true; //use MultijetCrawlingBins now
 bool verboseGF = false;
 
 unsigned int _nsamples(0);
@@ -96,19 +95,23 @@ double fixTDI = 0; // do NOT fix TDI for BCD+EF and G+H
 bool useEG = false; // ECAL gain shift for 3p fit
 
 //const int njesFit = 1; // scale only
-//const int njesFit = 2; // scale(ECAL)+HB
-const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
+const int njesFit = 2; // scale(ECAL)+HB
+//const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
 //const int njesFit = 3; //useTDI=true; // scale(ECAL)+HB+tracker (switchable)
 //const int njesFit = 3; //useEG=true; // scale(ECAL)+HB+ECALgain
 //const int njesFit = 4; // scale(ECAL)+HB+offset+ECALgain
 
 std::vector<double> parTransForMultiJet(njesFit, 0.001);
-Nuisances MultijetNuisances;
+//Nuisances DummyMultijetNuisances(NuisanceDefinitions);
 //new multijet sources
-const int nsrcnmj = MultijetNuisances.MPF_NuisanceCollection.size() + MultijetNuisances.MJB_NuisanceCollection.size();
+int nsrcnmj= 10;// dummy value to be overwritten automatically
 
+//std::unique_ptr<MeasurementBase> _lossFunc;
+//MeasurementBaseCombLossFunction* _lossFunc=0;
 CombLossFunction* _lossFunc=0;
 CombLossFunction* _inputFunc=0;
+NuisanceDefinitions* nuisanceDefs_ =0;
+Nuisances* nuisances_ =0;
 const double ptminJesFit = 30;
 TF1 *fhb(0), *fl1(0), *fl1mc(0), *ftr(0), *feg(0); double _etamin(0);
 Double_t jesFit(Double_t *x, Double_t *p) {
@@ -235,7 +238,7 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 	    + p[2]*(fl1->Eval(pt)-fl1->Eval(ptref))
 	    + p[3]*(fl1mc->Eval(pt)-fl1mc->Eval(ptref)));
   } // njesFit==4 && useOff
-
+  exit(0);
 }
 
 void globalFitL3Res(double etamin = 0, double etamax = 1.3,
@@ -253,37 +256,20 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
   auto jetCorr2 = make_unique<JetCorrStd2P>();
   auto jetCorr3 = make_unique<JetCorrStd3P>();
-  
-  if(njesFit==1){
-    _lossFunc = new CombLossFunction(move(jetCorr2));
-    std::cout << "FORCING TO DEACTIVATE NEW MULTIJET: 'njesFit==1' not supported right now" << std::endl;
-    useNewMultijet=false;
+
+  //  auto nuisanceDefs = make_unique<NuisanceDefinitions>;
+  if(nuisanceDefs_!=0){
+    delete nuisanceDefs_;
   }
-  if(njesFit==2){
-    _lossFunc = new CombLossFunction(move(jetCorr2));
-    std::cout << "FORCING TO DEACTIVATE NEW MULTIJET: Before reactivation make sure that parametrization is compatible" << std::endl;
-    useNewMultijet=false;
-  }    
-  //else if(njesFit==3 && useOff){
-  else if(njesFit==3 && useOff){
-    Double_t temp_x;
-    std::vector<Double_t> temp_p = {1.0,0.0,0.0};
-    jesFit(&temp_x,&temp_p[0]);
-    jetCorr3->SetParamsL1({fl1->GetParameter(0),fl1->GetParameter(1)}); //fl1
-    _lossFunc = new CombLossFunction(move(jetCorr3));
-    std::cout << "FORCING TO DEACTIVATE NEW MULTIJET: Before reactivation make sure that parametrization is compatible" << std::endl;
-    useNewMultijet=false;
-  }
-  else if (njesFit!=1) {
-    cout << "not defined configuration for multijet..." << endl;
-    useNewMultijet=false;
-    assert(0);
-  }
+  NuisanceDefinitions nuisanceDefs;//N.B.: assign _lossFunc only once the measurements and corrsponding nuisances have been registered
+  nuisanceDefs_ = &nuisanceDefs;
+
   //  cout << "going to use _lossFunc" << _lossFunc << " " << _lossFunc->GetNumParams()<< endl;
   
   // This is for drawing multijet in _raw.pdf and _orig.pdf around input JEC,
   // to validate the global fit steps (kFSR, shifting by nuisances)
-  _inputFunc = new CombLossFunction(move(jetCorr3));
+  NuisanceDefinitions nuisanceDefsDummy;
+  _inputFunc = new CombLossFunction(move(jetCorr3),nuisanceDefsDummy);
 
   // // Andrey Popov, March 19, 2018
   // // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
@@ -297,16 +283,61 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   fm_files["GH"] = "FlateGH";
   fm_files["BCDEFGH"] = "All";
 
-  list<unique_ptr<MeasurementBase>> measurements;
-  MultijetBinnedSum* MPF_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319v2_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF );
-  if(dropFirstXNewMultijetTriggerBins>0)MPF_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
-  measurements.emplace_back(MPF_MJ);//new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF ));
-  MultijetBinnedSum* MJB_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180319v2_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal );
-  if(dropFirstXNewMultijetTriggerBins>0)MJB_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
-  measurements.emplace_back(MJB_MJ);//new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF ));
+  list<unique_ptr<MeasurementBase>> measurements;//multijet_180507_2016All.root
+  
+  MultijetCrawlingBins* MPF_MJ = new MultijetCrawlingBins(Form("rootfiles/multijet_181217b_2016%s.root", fm_files[cep]), MultijetCrawlingBins::Method::MPF, nuisanceDefs, {"JER"});
+  // JER uncertainty is not considered as the corresponding L2Res variations are buggy (from jec-fit-prototype documentation)
+  MPF_MJ->SetPtLeadRange(0.,1600.);
+  measurements.emplace_back(MPF_MJ);
+
+//  MultijetBinnedSum* MPF_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180507_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::MPF );
+//  if(dropFirstXNewMultijetTriggerBins>0)MPF_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
+//  measurements.emplace_back(MPF_MJ);
+//  MultijetBinnedSum* MJB_MJ = new MultijetBinnedSum(Form("rootfiles/multijet_180507_2016%s.root", fm_files[cep]), MultijetBinnedSum::Method::PtBal );
+//  if(dropFirstXNewMultijetTriggerBins>0)MJB_MJ->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
+//  measurements.emplace_back(MJB_MJ);
+
+
+
+  if(njesFit==1){
+    _lossFunc = new CombLossFunction(move(jetCorr2),nuisanceDefs);
+    std::cout << "FORCING TO DEACTIVATE NEW MULTIJET: 'njesFit==1' not supported right now" << std::endl;
+    useNewMultijet=false;
+  }
+  if(njesFit==2){
+    _lossFunc = new CombLossFunction(move(jetCorr2),nuisanceDefs);
+    //    std::cout << "FORCING TO DEACTIVATE NEW MULTIJET: Before reactivation make sure that parametrization is compatible" << std::endl;
+    //    useNewMultijet=false;
+  }    
+  //else if(njesFit==3 && useOff){
+  else if(njesFit==3 && useOff){
+    Double_t temp_x;
+    std::vector<Double_t> temp_p = {1.0,0.0,0.0};
+    jesFit(&temp_x,&temp_p[0]);
+    jetCorr3->SetParamsL1({fl1->GetParameter(0),fl1->GetParameter(1)}); //fl1
+    _lossFunc = new CombLossFunction(move(jetCorr3),nuisanceDefs);
+    std::cout << "FORCING TO DEACTIVATE NEW MULTIJET: Before reactivation make sure that parametrization is compatible" << std::endl;
+    useNewMultijet=false;
+    assert(0);
+  }
+  else if (njesFit!=1) {
+    cout << "not defined configuration for multijet..." << endl;
+    useNewMultijet=false;
+    assert(0);
+  }
+
+
+
   for (auto const &measurement: measurements)
     _lossFunc->AddMeasurement(measurement.get());
+  //  nsrcnmj = _lossFunc->GetNuisances().GetNumParams();
+  nsrcnmj = nuisanceDefs.GetNumParams();
 
+  std::cout << nuisanceDefs.GetNumParams() << std::endl;
+
+  for ( unsigned i=0; i!=nuisanceDefs.GetNumParams(); i++){
+    std::cout << nuisanceDefs.GetName(i).c_str() << std::endl;
+  }
   
   TDirectory *curdir = gDirectory;
   setTDRStyle();
@@ -340,7 +371,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   assert(methodsmap.find(selectMethods)!=methodsmap.end());
   const unsigned int nmethods = methodsmap[selectMethods].size();
   vector<const char*> methodsvec;
-  for(int i = 0; i < nmethods; ++i)methodsvec.push_back(methodsmap[selectMethods].at(i).c_str());
+  for(unsigned int i = 0; i < nmethods; ++i)methodsvec.push_back(methodsmap[selectMethods].at(i).c_str());
   const char** methods = &methodsvec.front();
   
   //  const int nmethods = 2;
@@ -523,7 +554,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   vector<TGraphErrors*> gs;
   vector<TGraphErrors*> gs2;
   vector<TGraphErrors*> gs3;
-  for (int imethod = 0; imethod != nmethods; ++imethod) {
+  for (unsigned int imethod = 0; imethod != nmethods; ++imethod) {
     for (int isample = 0; isample != nsamples; ++isample) {
       const char *cm = methods[imethod];
       const char *cs = samples[isample];
@@ -611,7 +642,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   
   // Load FSR (JESref) corrections, and correct data
   vector<TH1D*> hks(nsamples*nmethods,0);
-  for (int imethod = 0; imethod != nmethods; ++imethod) {
+  for (unsigned int imethod = 0; imethod != nmethods; ++imethod) {
     for (int isample = 0; isample != nsamples; ++isample) {
 
       const char *cm = methods[imethod];
@@ -705,7 +736,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   // 3x2x(3-4) (we have FSR for multijets as well?)
   const int neig = 3;
   for (int ieig = 0; ieig != neig; ++ieig) {
-    for (int imethod = 0; imethod != nmethods; ++imethod) {
+    for (unsigned int imethod = 0; imethod != nmethods; ++imethod) {
       for (int isample = 0; isample != nsamples; ++isample) {
 	
 	const char *cm = methods[imethod];
@@ -909,7 +940,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if (false && string (samples[0])=="multijet") {
 
     const int isample = 0;
-    for (int imethod = 0; imethod != nmethods; ++imethod) {
+    for (unsigned int imethod = 0; imethod != nmethods; ++imethod) {
 	
       const char *cm = methods[imethod];
       const char *cs = "multijet";
@@ -946,7 +977,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
     const int isample = 0;
     const int nsrcmj = 3;
-    for (int imethod = 0; imethod != nmethods; ++imethod) {
+    for (unsigned int imethod = 0; imethod != nmethods; ++imethod) {
       for (int isrc = 0; isrc != nsrcmj; ++isrc) {
 	
 	const char *cm = methods[imethod];
@@ -1116,38 +1147,36 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     g2->DrawClone("SAMEPz");
   }
 
+
   JetCorrStd2P  jetCorr2Dummy;
-  for (auto &i: MultijetNuisances.Multijet_NuisanceCollection){
-    *std::get<double*>(i) = 0.;
-  }
-    
-  MultijetBinnedSum* MPFMultijet = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),MultijetBinnedSum::Method::MPF );
-  MultijetBinnedSum* MJBMultijet = new MultijetBinnedSum(Form("rootfiles/multijet_180319_2016%s.root", fm_files[cep]),MultijetBinnedSum::Method::PtBal );
-  if(dropFirstXNewMultijetTriggerBins>0){
-    MPFMultijet->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
-    MJBMultijet->SetTriggerBinRange(dropFirstXNewMultijetTriggerBins);
-  }
+  Nuisances DummyMultijetNuisances(nuisanceDefsDummy); 
+  MultijetCrawlingBins* MPFMultijet = new MultijetCrawlingBins(Form("rootfiles/multijet_181217b_2016%s.root", fm_files[cep]), MultijetCrawlingBins::Method::MPF, nuisanceDefsDummy, {"JER","L1Res","L2Res"});
+  MPFMultijet->SetPtLeadRange(0.,1600.);
   // MPF
-  TH1D MPF_Raw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::bal);
-  TH1D MPF_SimRaw =  MPFMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D MPF_Raw =  MPFMultijet->RecomputeBalanceData(jetCorr2Dummy, DummyMultijetNuisances);
+  TH1D MPF_SimRaw =  MPFMultijet->RecomputeBalanceSim(jetCorr2Dummy, DummyMultijetNuisances);
   TH1D* MPF_RatioRaw = (TH1D*) MPF_SimRaw.Clone("MPF_RatioRaw");
   MPF_RatioRaw->Divide(&MPF_Raw);
   MPF_RatioRaw->SetMarkerSize(0.5);
 
+
+  MultijetCrawlingBins* MJBMultijet = new MultijetCrawlingBins(Form("rootfiles/multijet_181217b_2016%s.root", fm_files[cep]), MultijetCrawlingBins::Method::PtBal, nuisanceDefsDummy, {"JER","L1Res","L2Res"});
+  MJBMultijet->SetPtLeadRange(0.,1600.);
   // MJB
-  TH1D MJB_Raw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::bal);
-  TH1D MJB_SimRaw =  MJBMultijet->GetRecompBalance(jetCorr2Dummy, MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D MJB_Raw =  MJBMultijet->RecomputeBalanceData(jetCorr2Dummy, DummyMultijetNuisances);
+  TH1D MJB_SimRaw =  MJBMultijet->RecomputeBalanceSim(jetCorr2Dummy, DummyMultijetNuisances);
   TH1D* MJB_RatioRaw = (TH1D*) MJB_SimRaw.Clone("MJB_RatioRaw");
   MJB_RatioRaw->Divide(&MJB_Raw);
   MJB_RatioRaw->SetMarkerSize(0.5);
   MJB_RatioRaw->SetMarkerStyle(kOpenCircle);
-
+  
   // Center points around input JES
   for (int i = 1; i != MPF_RatioRaw->GetNbinsX()+1; ++i) {
     double ptlead = MPF_RatioRaw->GetBinCenter(i);
     double mpf = MPF_RatioRaw->GetBinContent(i);
     double jesfit = herr_ref->GetBinContent(herr_ref->FindBin(ptlead));
     MPF_RatioRaw->SetBinContent(i, mpf * jesfit);
+    cout << mpf << " " << ptlead << " " << jesfit << " " << mpf * jesfit << endl;
   }
   for (int i = 1; i != MJB_RatioRaw->GetNbinsX()+1; ++i) {
     double ptlead = MJB_RatioRaw->GetBinCenter(i);
@@ -1158,11 +1187,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   // Clone and correct for FSR
   TH1D *MPF_RatioOrig = (TH1D*)MPF_RatioRaw->Clone("MPF_RatioOrig");
   TH1D *MJB_RatioOrig = (TH1D*)MJB_RatioRaw->Clone("MJB_RatioOrig");
-
+  
   if(useNewMultijet){
     MPF_RatioOrig->Draw("SAME");
     MJB_RatioOrig->Draw("SAME");
-
+  
     legp->AddEntry(MJB_RatioRaw," ","PL");
     legm->AddEntry(MPF_RatioRaw,"Multijet","PL");
   }
@@ -1333,8 +1362,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   // Set parameters
   vector<string> parnames(Npar);
-  for(int i = Npar-nsrcnmj; i<Npar; ++i)
-    parnames.at(i)=std::get<std::string>(MultijetNuisances.Multijet_NuisanceCollection.at(i-(Npar-nsrcnmj)));
+  for(int i = Npar-nsrcnmj; i<Npar; ++i){
+    parnames.at(i)=nuisanceDefs.GetName(i-(Npar-nsrcnmj)).c_str();
+  }
   for (int i = 0; i != Npar; ++i)
     fitter->SetParameter(i, parnames[i].c_str(), a[i], (i<np ? 0.01 : 1),
 			 -100, 100);
@@ -1391,7 +1421,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   cout <<"New multijet:" <<endl;
   cout << "Dimensions: "<< _lossFunc->GetNDF() + _lossFunc->GetNumParams() << endl;
   if(useNewMultijet){
-    cout << "chi2(multijet) term: "<< _lossFunc->Eval(parTransForMultiJet,MultijetNuisances) << endl;
+    cout << "chi2(multijet) term: "<< _lossFunc->Eval(parTransForMultiJet,nuisanceDefs) << endl;
     cout << "mutltijet chi2 retrieved " << iMultijet << " times."<< endl;
   }
   cout << endl;
@@ -1424,7 +1454,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
 
   for (int isample = 0; isample != nsamples; ++isample) {
-    for (int imethod = 0; imethod != nmethods; ++imethod) {
+    for (unsigned int imethod = 0; imethod != nmethods; ++imethod) {
       const char *cm = methods[imethod];
       const char *cs = samples[isample];
       string s = Form("fsr/hkfsr_%s_%s",cm,cs);
@@ -1513,10 +1543,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     //    cout << i << endl;
     if (tmp_par[i]==0&&fabs(tmp_err[i]-1)<2e-2)
       cout << Form("%2d - %35s:  ----------\n",
-		   (i-np+1), std::get<std::string>(MultijetNuisances.Multijet_NuisanceCollection.at(i-(Npar-nsrcnmj))).c_str()  );  
+                   (i-np+1), nuisanceDefs.GetName(i-(Npar-nsrcnmj)).c_str()); 
     else
       cout << Form("%2d - %35s:  %5.2f+/-%4.2f\n",
-		   i-np+1, std::get<std::string>(MultijetNuisances.Multijet_NuisanceCollection.at(i-(Npar-nsrcnmj))).c_str(), //(*_vsrc)[i-np]->GetName(),
+		   i-np+1, nuisanceDefs.GetName(i-(Npar-nsrcnmj)).c_str(), 
 		   tmp_par[i],tmp_err[i]);
   }
   cout << endl;
@@ -1650,15 +1680,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   fke->SetParameter(0,+1);
   fke->DrawClone("SAME");
 
-  TH1D MPF_PostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), MultijetNuisances, MultijetBinnedSum::HistReturnType::recompBal);
-  TH1D MPF_SimPostFit =  MPFMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D MPF_PostFit =  MPFMultijet->RecomputeBalanceData(*(_lossFunc->GetCorrector()), *nuisances_);
+  TH1D MPF_SimPostFit =  MPFMultijet->RecomputeBalanceSim(*(_lossFunc->GetCorrector()), *nuisances_);
   TH1D* MPF_RatioPostFit = (TH1D*) MPF_SimPostFit.Clone("MPF_RatioPostFit");
   MPF_RatioPostFit->Divide(&MPF_PostFit);
   MPF_RatioPostFit->SetMarkerSize(0.5);
   TH1D *MPF_RatioPostFitScaled = (TH1D*)MPF_RatioPostFit->Clone("NewMultiJet_RatioPostFitScaled");
-  //MPF_RatioPostFitScaled->Scale(_jesFit->Eval(450.)/MPF_RatioPostFit->GetBinContent(MPF_RatioPostFit->FindBin(450.)));
-  //MPF_RatioPostFitScaled->Scale(_jesFit->Eval(450.));
-  //MPF_RatioPostFitScaled->Scale(_jesFit->Eval(450. * 0.4));
   for (int i = 0; i != MPF_RatioPostFitScaled->GetNbinsX()+1; ++i) {
     double ptlead = MPF_RatioPostFitScaled->GetBinCenter(i);
     double mpf = MPF_RatioPostFitScaled->GetBinContent(i);
@@ -1666,16 +1693,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
   if(useNewMultijet)MPF_RatioPostFitScaled->Draw("SAME");
 
-  TH1D MJB_PostFit =  MJBMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), MultijetNuisances, MultijetBinnedSum::HistReturnType::recompBal);
-  TH1D MJB_SimPostFit =  MJBMultijet->GetRecompBalance( *(_lossFunc->GetCorrector()), MultijetNuisances, MultijetBinnedSum::HistReturnType::simBal);
+  TH1D MJB_PostFit =  MJBMultijet->RecomputeBalanceData(*(_lossFunc->GetCorrector()), *nuisances_);
+  TH1D MJB_SimPostFit =  MJBMultijet->RecomputeBalanceSim(*(_lossFunc->GetCorrector()), *nuisances_);
   TH1D* MJB_RatioPostFit = (TH1D*) MJB_SimPostFit.Clone("MJB_RatioPostFit");
   MJB_RatioPostFit->Divide(&MJB_PostFit);
   MJB_RatioPostFit->SetMarkerSize(0.5);
   MJB_RatioPostFit->SetMarkerStyle(kOpenCircle);
   TH1D *MJB_RatioPostFitScaled = (TH1D*)MJB_RatioPostFit->Clone("NewMultiJet_RatioPostFitScaled");
-  //MJB_RatioPostFitScaled->Scale(_jesFit->Eval(450.)/MJB_RatioPostFit->GetBinContent(MJB_RatioPostFit->FindBin(450.)));
-  //MJB_RatioPostFitScaled->Scale(_jesFit->Eval(450.));
-  //MJB_RatioPostFitScaled->Scale(_jesFit->Eval(450. * 0.4));
   // Center points around fitted JES
   for (int i = 0; i != MJB_RatioPostFitScaled->GetNbinsX()+1; ++i) {
     double ptlead = MJB_RatioPostFitScaled->GetBinCenter(i);
@@ -1800,7 +1824,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   int colorsdark[4]  = {kBlack,kBlue, kGreen+2,kRed};
   int colorslight[4] = {kGray, kBlue-10, kGreen+2-10,kRed-10};
-  for (int imethod = 0; imethod != nmethods; ++imethod) {
+  for (unsigned int imethod = 0; imethod != nmethods; ++imethod) {
 
     h->SetMinimum(-0.06);
     h->SetMaximum(+0.09);
@@ -1935,7 +1959,8 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 
 //  cout << _lossFunc << endl;
   assert(_lossFunc!=0);
-  if(useNewMultijet)assert(_lossFunc->GetNumParams()==(unsigned int)_jesFit->GetNpar());
+  //cout << _lossFunc->GetNDF() << " and " << _lossFunc->GetNumParams() << " and " << (unsigned int)_jesFit->GetNpar() << endl;
+  if(useNewMultijet)assert(_lossFunc->GetNumParams() - nsrcnmj==(unsigned int)_jesFit->GetNpar());
   assert(parTransForMultiJet.size()==(unsigned int)_jesFit->GetNpar());
   parTransForMultiJet[0] = par[0]-1;
   parTransForMultiJet[1] = par[1];
@@ -2050,14 +2075,11 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
     //cout << Form("standard chi2: %2.4f  multijet chi2: %2.4f \n", chi2, _lossFunc->Eval(parTransForMultiJet));
     //simpy add multijet MPF chi2-term for now and add bining dimensionality from multijet
     if(useNewMultijet){
-      for(int i = ns-nsrcnmj; i<ns; ++i)//transfer nuisance parameters back and forth between multijet and global fit
-	{
-	  //	  cout << "i " << i << endl;
-	  //	  cout << "setting " << std::get<string>(MultijetNuisances.Multijet_NuisanceCollection.at(i-(ns-nsrcnmj))).c_str() << " to " << ps[i] << " where i " << i << endl;
-	  *(std::get<double*>(MultijetNuisances.Multijet_NuisanceCollection.at(i-(ns-nsrcnmj))))=ps[i];
-	
-	}
-      chi2 += _lossFunc->Eval(parTransForMultiJet,MultijetNuisances);
+      //      nuisanceDefs_->SetValues(&ps[ns-nsrcnmj]); // set correct index, no copy involved
+      if(nuisances_==0)nuisances_ = new Nuisances(*nuisanceDefs_);
+      nuisances_->SetValues(&ps[ns-nsrcnmj]); // set correct index, no copy involved
+      //      _lossFunc->SetParams(&ps[ns-nsrcnmj]); // set correct index, no copy involved
+      chi2 += _lossFunc->Eval(parTransForMultiJet,*nuisances_);
       iMultijet++;
       Nk += _lossFunc->GetNDF() + _lossFunc->GetNumParams();
       //does this need to be written back?
