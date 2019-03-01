@@ -130,7 +130,7 @@ void compareL3Res() {
   tex->DrawLatex(3000,0.988,"18C");
   tex->SetTextColor(kRed);
   //tex->DrawLatex(3000,0.977,"17F");
-  tex->DrawLatex(3000,0.974,"17D");
+  tex->DrawLatex(3000,0.974,"18D");
 
 
   c1->SaveAs("pdf/compareL3Res.pdf");
