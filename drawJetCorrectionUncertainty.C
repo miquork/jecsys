@@ -29,7 +29,7 @@ using namespace std;
 
 // Don't plot individual bins, just keep 4x2
 bool _minimal = false;//true;
-bool _fourbytwo = false;
+bool _fourbytwo = true;
 bool _twobythree = false;//true; // for paper
 bool _extra = false; // single pion plots
 bool _paper = true; //  for paper
@@ -194,7 +194,7 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
  		      kRed, kOpenCircle, // marker
   		      kNone, kNone, "LP")); // fill
   sy.push_back(uncert("relative", "Relative scale",
-		      jec::kRelative & ~jec::kRelativeBal & ~jec::kRelativeSample,
+		      jec::kRelative & ~jec::kRelativeBal & ~jec::kRelativeSample & ~jec::kRelativePrefire,
 		      "default", "default", -1, // defaults
 		      kBlack, kSolid, 1, // line
 		      kBlack, kFullTriangleDown, // marker
@@ -205,7 +205,7 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 		      kBlue, kFullSquare, // marker
 		      kNone, kNone, "LP")); // fill
 
-  sy.push_back(uncert("relativebugs", "Method & sample",jec::kRelativeBal|jec::kRelativeSample,
+  sy.push_back(uncert("relativebugs", "Method/Sample/Prefire",jec::kRelativeBal|jec::kRelativeSample|jec::kRelativePrefire,
 		      "default", "default", -1, // defaults
 		      kBlack, kSolid, 1, // line
 		      kBlack, kOpenTriangleDown, // marker
@@ -343,6 +343,12 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 			 kGreen+2, kNone, 1, // line
 			 kGreen+2, kOpenSquare, // marker
 			 kBlack, kNone, "LP")); // fill
+  syrel.push_back(uncert("relpref", "RelativePrefire",
+			 jec::kRelativePrefire,
+                         "default", "default", -1, // defaults
+                         kMagenta+1, kNone, 1, // line
+                         kMagenta+1, kOpenDiamond, // marker
+                         kNone, kNone, "LP")); // fill
 
   vector<uncert> sypt;
   sypt.push_back(uncert("abspt", "SubTotalAbsolute",
@@ -783,7 +789,7 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   string ssrel = Form("%s_Relative_%s",cu,names[jetAlg]);
   const char *srel = ssrel.c_str();
 
-  double ymaxrel = 12;//18.;
+  double ymaxrel = 22;//18.;
 
   // Relative scale uncertainty
   // vs pT
@@ -1543,7 +1549,7 @@ void plotUncertainty(vector<uncert> const& sys,
        jec::kRelativeJEREC1, jec::kRelativeJEREC2, jec::kRelativeJERHF,
        jec::kRelativePtBB,
        jec::kRelativePtEC1, jec::kRelativePtEC2, jec::kRelativePtHF,
-       jec::kRelativeBal, jec::kRelativeSample,
+       jec::kRelativeBal, jec::kRelativePrefire, jec::kRelativeSample,
        jec::kRelativeFSR, jec::kRelativeStatFSR, 
        jec::kRelativeStatEC, jec::kRelativeStatHF,
        jec::kPileUpDataMC, jec::kPileUpPtRef,
@@ -1581,6 +1587,7 @@ void plotUncertainty(vector<uncert> const& sys,
     srcname[jec::kRelativePtEC2] =   "RelativePtEC2";
     srcname[jec::kRelativePtHF] =    "RelativePtHF";
     srcname[jec::kRelativeBal] =     "RelativeBal";    // pT balance vs MPf
+    srcname[jec::kRelativePrefire] =  "RelativePrefire";    // L1BX filter yes/no
     srcname[jec::kRelativeSample] =  "RelativeSample"; // dijet vs Z+jet
     srcname[jec::kRelativeFSR] =     "RelativeFSR";    // Pythia vs Herwig
     srcname[jec::kRelativeStatFSR] = "RelativeStatFSR";

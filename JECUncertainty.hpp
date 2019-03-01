@@ -80,6 +80,7 @@ public:
   double _RelativeStat(double pTprime, double eta) const;
   double _RelativePt(double pTprime, double eta);
   double _RelativeBal(double pTprime, double eta);
+  double _RelativePrefire(double pTprime, double eta);
   double _RelativeSample(double pTprime, double eta);
   //
   double _PileUp(double pTprime, double eta);
@@ -156,8 +157,12 @@ private:
   FactorizedJetCorrector *_jecL2ResBal; // 80XV8
   FactorizedJetCorrector *_jecL2ResPY;
   FactorizedJetCorrector *_jecL2ResHW;
-  FactorizedJetCorrector *_jecL2L3ResDiJet; // 03FebV7
-  FactorizedJetCorrector *_jecL2L3ResZGamJet; // 03FebV7
+  FactorizedJetCorrector *_jecL2ResPrefireFilterYes; // Fall17V27
+  FactorizedJetCorrector *_jecL2ResPrefireFilterNo; // Fall17V27
+  FactorizedJetCorrector *_jecL2L3Res2ParDiJet; // 03FebV7
+  FactorizedJetCorrector *_jecL2L3Res2ParZGamJet; // 03FebV7
+  FactorizedJetCorrector *_jecL2L3ResConstDiJet; // 03FebV7
+  FactorizedJetCorrector *_jecL2L3ResConstZGamJet; // 03FebV7
   FactorizedJetCorrector *_jecL2L3ResZGamDiJet; // 03FebV7
   //JetCorrectionUncertainty *_uncL2ResStat;
   FactorizedJetCorrector *_jecL2ResStat;
