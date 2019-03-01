@@ -43,6 +43,25 @@ void compareL3Res() {
   f17de->SetParameters(0.978, 0.026, 0.0); //DE
   f17f->SetParameters (0.968, 0.031, 0.0); //F
   
+  TF1 *f18a = new TF1("f18a",s17.c_str(),10,4000);
+  TF1 *f18b = new TF1("f18b",s17.c_str(),10,4000);
+  TF1 *f18c = new TF1("f18c",s17.c_str(),10,4000);
+  TF1 *f18d = new TF1("f18d",s17.c_str(),10,4000);
+
+  // Hannu's composition plots to guess 2018 vs 2017 L3Res:
+  // http://hsiikone.web.cern.ch/hsiikone/
+  // 2018AB similar, both between 2017DE and 2017F for CH+NH, but NE 1% lower
+  // 2018C is similar to 2017DE, but NH bit lower at pT<200 GeV (-1% at 30 GeV)
+  // 2018D is again similar to AB, but bit lower CH and higher NE
+  // Guess: 18AB +1% for NH wrt 17DE
+  //        18C at similar scale to 17DE
+  //        18D -1% compared to 17 DE, or avefage of 17DE and 17F
+  // In 2016-2017 had about -1% per 15/fb
+  f18a->SetParameters(0.978+0.013, 0.026, 0.0); //17DE->18A (15/fb)
+  f18b->SetParameters(0.978+0.008, 0.026, 0.0); //17DE->18B (7/fb)
+  f18c->SetParameters(0.978+0.003, 0.026, 0.0); //17DE->18C (3->7/fb?)
+  f18d->SetParameters(0.978-0.012, 0.026, 0.0); //17DE->18D (30/fb)
+  
   lumi_13TeV = "Run II (2016-2017)";
   TH1D *h = new TH1D("h",";p_{T} (GeV);Jet response (L3Res)",399,10,4000);
   h->SetMinimum(0.96);//0.94);//0.95);
@@ -79,22 +98,40 @@ void compareL3Res() {
   f17f->SetLineColor(kRed);
   f17f->Draw("SAME");
 
+  // 2018
+  f18a->SetLineWidth(5); f18a->SetLineStyle(kSolid);
+  f18a->SetLineColor(kBlack);
+  f18a->Draw("SAME");
+  f18b->SetLineWidth(5); f18b->SetLineStyle(kSolid);
+  f18b->SetLineColor(kBlue);
+  f18b->Draw("SAME");
+  f18c->SetLineWidth(5); f18c->SetLineStyle(kSolid);
+  f18c->SetLineColor(kGreen+2);
+  f18c->Draw("SAME");
+  f18d->SetLineWidth(5); f18d->SetLineStyle(kSolid);
+  f18d->SetLineColor(kRed);
+  f18d->Draw("SAME");
+
   TLatex *tex = new TLatex();
   tex->SetTextSize(0.045);
   tex->SetTextAlign(31); // adjust right
   tex->SetTextColor(kGray);
-  tex->DrawLatex(3000,1.014,"16BCD+EF");
+  //tex->DrawLatex(3000,1.014,"16BCD+EF");
   tex->SetTextColor(kBlack);
-  tex->DrawLatex(3000,1.005,"16GH");
+  //tex->DrawLatex(3000,1.005,"16GH");
+  tex->DrawLatex(3000,0.998,"18A");
   tex->SetTextColor(kGray);
-  tex->DrawLatex(3000,0.9975,"17B");
+  //tex->DrawLatex(3000,0.9975,"17B");
   tex->SetTextColor(kBlue);
-  tex->DrawLatex(3000,0.9935,"17C");
+  //tex->DrawLatex(3000,0.9935,"17C");
+  tex->DrawLatex(3000,0.9935,"18B");
   tex->SetTextColor(kGreen+2);
-  tex->DrawLatex(3000,0.985,"17DE");
+  //tex->DrawLatex(3000,0.985,"17DE");
+  tex->DrawLatex(3000,0.988,"18C");
   tex->SetTextColor(kRed);
-  tex->DrawLatex(3000,0.977,"17F");
+  //tex->DrawLatex(3000,0.977,"17F");
+  tex->DrawLatex(3000,0.974,"17D");
 
 
-  c1->SaveAs("../pdf/compareL3Res.C");
+  c1->SaveAs("pdf/compareL3Res.pdf");
 }
