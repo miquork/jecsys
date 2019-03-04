@@ -1,4 +1,4 @@
-#include "../tdrstyle_mod15.C"
+#include "../tdrstyle_mod14.C"
 #include "../tools.C"
 
 #include "TFile.h"
@@ -52,12 +52,19 @@ void drawZmass(string run="BCDEFGH") {
   //lumi_13TeV = "Run2016BCDEFGH 36.5 fb^{-1}";
   //extraText = "Private Work";
   map<string, const char*> lumimap;
-  lumimap["BCD"] = "Run2016BCD Legacy, 12.9 fb^{-1}";
-  lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
-  lumimap["FG"] = "Run2016fG Legacy, 8.0 fb^{-1}";
-  lumimap["H"] = "Run2016H Legacy, 8.8 fb^{-1}";
-  lumimap["GH"] = "Run2016fGH Legacy, 16.8 fb^{-1}";
-  lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
+  lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["B"] = "Run2018B 7.1 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["C"] = "Run2018C 6.9 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["D"] = "Run2018D 31.9 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
+  //map<string, const char*> lumimap;
+  //lumimap["BCD"] = "Run2016BCD Legacy, 12.9 fb^{-1}";
+  //lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
+  //lumimap["FG"] = "Run2016fG Legacy, 8.0 fb^{-1}";
+  //lumimap["H"] = "Run2016H Legacy, 8.8 fb^{-1}";
+  //lumimap["GH"] = "Run2016fGH Legacy, 16.8 fb^{-1}";
+  //lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
   lumi_13TeV = lumimap[run];
   TCanvas *c1 = tdrDiCanvas("c1",hdw,hup,4,11);
 
