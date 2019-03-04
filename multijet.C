@@ -173,12 +173,18 @@ void multijet(bool usemjb = true, string epoch="") {
   TFile *f = new TFile(Form("rootfiles/multijet_20170329_Run2016%s.root",
 			    fm_files[epoch]),"READ");
   */
-  fm_files["BCD"] = "BCD";
-  fm_files["EF"] = "EFearly";
-  fm_files["G"] = "FlateG";
-  fm_files["H"] = "H";
-  fm_files["GH"] = "H"; //somewhat of a hack
-  fm_files["BCDEFGH"] = "All";
+  //dummy files, temp
+  fm_files["A"] = "All"; // also update multijet.C
+  fm_files["B"] = "All"; // also update multijet.C
+  fm_files["C"] = "All"; // also update multijet.C
+  fm_files["ABC"] = "All"; // also update multijet.C
+
+//  fm_files["BCD"] = "BCD";
+//  fm_files["EF"] = "EFearly";
+//  fm_files["G"] = "FlateG";
+//  fm_files["H"] = "H";
+//  fm_files["GH"] = "H"; //somewhat of a hack
+//  fm_files["BCDEFGH"] = "All";
   TFile *f = new TFile(Form("rootfiles/multijet_20170428_Run2016%s.root",
 			    fm_files[epoch]),"READ");
 
