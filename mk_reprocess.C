@@ -22,7 +22,7 @@
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "C";//"BCDEFGH";
+  string epoch = "BCDEF";//"BCDEFGH";
   #ifdef epochname
   std::cout << epoch.c_str()<< std::endl;
   std::cout << inputepoch.c_str()<< std::endl;
@@ -68,8 +68,8 @@
   softrad(3.839,5.191, dodijetsoftrad, epoch);
 
 
-  std::vector <string> sampleconfigs = {"MJDJ_zll", "zll","DJ"};//2016 Legacy: "MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
-  std::vector <string> methodconfigs = {  "PtBalMPF","PtBal","MPF"};
+  std::vector <string> sampleconfigs = {"gam_zll","DJ"};//V27: "MJDJ_zll", "zll","DJ"};//2016 Legacy: "MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
+  std::vector <string> methodconfigs = {  "PtBalMPF"};//,"PtBal","MPF"};
 
   for(auto s : sampleconfigs){
     for(auto m : methodconfigs){
@@ -111,27 +111,27 @@
   }
   
 
-  /*
+  
   //wide eta bins
    // softrad(0.0,0.8,true,epoch); // missing dijet
    // softrad(0.8,1.3,true,epoch); // missing dijet
-   softrad(1.3,1.9,true,epoch);
-   softrad(1.9,2.5,true,epoch);
-   softrad(2.5,3.0,true,epoch);
-   softrad(3.0,3.2,true,epoch);
-   softrad(3.2,5.2,true,epoch);
-   softrad(0.0,1.3,true,epoch);
-   //These are just checks for now:
-   // globalFitL3Res(0.0,0.8,epoch); // coarse L2Res, missing dijet
-   // globalFitL3Res(0.8,1.3,epoch); // coarse L2Res, missing dijet
-   globalFitL3Res(1.3,1.9,epoch); // coarse L2Res
-   globalFitL3Res(1.9,2.5,epoch); // coarse L2Res
-   globalFitL3Res(2.5,3.0,epoch); // coarse L2Res
-   globalFitL3Res(3.0,3.2,epoch); // coarse L2Res
-   globalFitL3Res(3.2,5.2,epoch); // coarse L2Res
-
-   // Repeat to see parameters
-  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
-  */
+//   softrad(1.3,1.9,true,epoch);
+//   softrad(1.9,2.5,true,epoch);
+//   softrad(2.5,3.0,true,epoch);
+//   softrad(3.0,3.2,true,epoch);
+//   softrad(3.2,5.2,true,epoch);
+//   softrad(0.0,1.3,true,epoch);
+//   //These are just checks for now:
+//   // globalFitL3Res(0.0,0.8,epoch); // coarse L2Res, missing dijet
+//   // globalFitL3Res(0.8,1.3,epoch); // coarse L2Res, missing dijet
+//   globalFitL3Res(1.3,1.9,epoch); // coarse L2Res
+//   globalFitL3Res(1.9,2.5,epoch); // coarse L2Res
+//   globalFitL3Res(2.5,3.0,epoch); // coarse L2Res
+//   globalFitL3Res(3.0,3.2,epoch); // coarse L2Res
+//   globalFitL3Res(3.2,5.2,epoch); // coarse L2Res
+//
+//   // Repeat to see parameters
+//  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
+//  */
 
 }

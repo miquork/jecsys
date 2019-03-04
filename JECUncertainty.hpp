@@ -137,8 +137,7 @@ private:
   //
   FactorizedJetCorrector *_jecB;
   FactorizedJetCorrector *_jecC;
-  FactorizedJetCorrector *_jecD;
-  FactorizedJetCorrector *_jecE;
+  FactorizedJetCorrector *_jecDE;
   FactorizedJetCorrector *_jecF;
   FactorizedJetCorrector *_jecBCDEF;
   //
@@ -159,6 +158,7 @@ private:
   FactorizedJetCorrector *_jecL2ResHW;
   FactorizedJetCorrector *_jecL2ResPrefireFilterYes; // Fall17V27
   FactorizedJetCorrector *_jecL2ResPrefireFilterNo; // Fall17V27
+  FactorizedJetCorrector *_jecL2L3ResCustomHybridZGamJet; // 03FebV7
   FactorizedJetCorrector *_jecL2L3Res2ParDiJet; // 03FebV7
   FactorizedJetCorrector *_jecL2L3Res2ParZGamJet; // 03FebV7
   FactorizedJetCorrector *_jecL2L3ResConstDiJet; // 03FebV7
