@@ -38,9 +38,10 @@ namespace jec {
   const ErrorTypes kRelativePtEC1           = ErrorTypes(0L, 1L << 14);
   const ErrorTypes kRelativePtEC2           = ErrorTypes(0L, 1L << 15);
   const ErrorTypes kRelativePtHF            = ErrorTypes(0L, 1L << 16);
-  // Additional L2Res systematics, bits 26-27
+  // Additional L2Res systematics, bits 26-28
   const ErrorTypes kRelativeBal             = ErrorTypes(0L, 1L << 26); //Sum16 
   const ErrorTypes kRelativeSample          = ErrorTypes(0L, 1L << 27);//03FebV7
+  const ErrorTypes kRelativePrefire          = ErrorTypes(0L, 1L << 28);//Fall17V27
   // Absolute scale (pT dependence) systematics, bits 17-25
   const ErrorTypes kAbsoluteScale           = ErrorTypes(0L, 1L << 17);
   const ErrorTypes kAbsoluteSPRE            = ErrorTypes(0L, 1L << 18);
@@ -59,22 +60,17 @@ namespace jec {
   const ErrorTypes kFlavorZJet          = ErrorTypes(0L, 1L << 37); //opt
   const ErrorTypes kFlavorPhotonJet     = ErrorTypes(0L, 1L << 38); //opt
   const ErrorTypes kFlavorPureGluon     = ErrorTypes(0L, 1L << 39); //opt
-  //const ErrorTypes kFlavorPureQuark     = ErrorTypes(0L, 1L << 40); //opt
-  const ErrorTypes kFlavorPureUpDown    = ErrorTypes(0L, 1L << 40); //opt
-  const ErrorTypes kFlavorPureStrange   = ErrorTypes(0L, 1L << 41); //opt
-  const ErrorTypes kFlavorPureCharm     = ErrorTypes(0L, 1L << 42); //opt
-  const ErrorTypes kFlavorPureBottom    = ErrorTypes(0L, 1L << 43); //opt
+  const ErrorTypes kFlavorPureQuark     = ErrorTypes(0L, 1L << 40); //opt
+  const ErrorTypes kFlavorPureCharm     = ErrorTypes(0L, 1L << 41); //opt
+  const ErrorTypes kFlavorPureBottom    = ErrorTypes(0L, 1L << 42); //opt
   // time dependence, bits 46-51
-  //const ErrorTypes kTimeEta             = ErrorTypes(0L, 1L << 46);
-  const ErrorTypes kTimePtEta           = ErrorTypes(0L, 1L << 47);
+  const ErrorTypes kTimePtEta           = ErrorTypes(0L, 1L << 46);
   // optional time bits for individual epochs (not included in total), 48-51
-  const ErrorTypes kTimeRunBCD          = ErrorTypes(0L, 1L << 48); //opt
-  //const ErrorTypes kTimeRunE            = ErrorTypes(0L, 1L << 49); //opt
-  //const ErrorTypes kTimeRunF            = ErrorTypes(0L, 1L << 50); //opt
-  const ErrorTypes kTimeRunEF           = ErrorTypes(0L, 1L << 49); //opt
-  const ErrorTypes kTimeRunGH           = ErrorTypes(0L, 1L << 51); //opt
-  //const ErrorTypes kTimeRunG            = ErrorTypes(0L, 1L << 50); //opt
-  //const ErrorTypes kTimeRunH            = ErrorTypes(0L, 1L << 51); //opt
+  const ErrorTypes kTimeRunB            = ErrorTypes(0L, 1L << 47); //opt
+  const ErrorTypes kTimeRunC            = ErrorTypes(0L, 1L << 48); //opt
+  const ErrorTypes kTimeRunDE            = ErrorTypes(0L, 1L << 49); //opt
+  //  const ErrorTypes kTimeRunE            = ErrorTypes(0L, 1L << 50); //opt
+  const ErrorTypes kTimeRunF            = ErrorTypes(0L, 1L << 51); //opt
   // optional PU term for <mu>=0 sample (bias from fitting L2Res with <mu>=20)
   const ErrorTypes kPileUpMuZero        = ErrorTypes(0L, 1L << 52); //opt
   const ErrorTypes kPileUpEnvelope      = ErrorTypes(0L, 1L << 53); //xtra
@@ -94,7 +90,7 @@ namespace jec {
 
 
   // Combinations of bits
-  const ErrorTypes kTime                = kTimePtEta;//kTimeEta | kTimePt;
+  const ErrorTypes kTime                = kTimePtEta;
   const ErrorTypes kPileUpPtEta         = kPileUpPtBB | kPileUpPtEC1 | kPileUpPtEC2 | kPileUpPtHF;
   const ErrorTypes kPileUpPt            = kPileUpPtRef | kPileUpPtEta;
   const ErrorTypes kRelativeJER         = kRelativeJEREC1 | kRelativeJEREC2 | kRelativeJERHF;
@@ -104,17 +100,14 @@ namespace jec {
 
   // SubTotalPileUp, SubTotalRelative, [SubTotalAbsolute], SubTotalPt
   const ErrorTypes kPileUp              = kPileUpDataMC | kPileUpPt;
-  const ErrorTypes kRelative            = kRelativeJER | kRelativeFSR | kRelativeStat | kRelativePt | kRelativeBal | kRelativeSample;
+  const ErrorTypes kRelative            = kRelativeJER | kRelativeFSR | kRelativeStat | kRelativePt | kRelativeBal | kRelativeSample; //| kRelativePrefire ;
   const ErrorTypes kAbsolutePt          = kAbsoluteFrag | kAbsoluteSPR;
   const ErrorTypes kAbsoluteFlat        = kAbsoluteStat | kAbsoluteMPFBias | kAbsoluteFlavorMapping | kAbsoluteScale;
   const ErrorTypes kAbsolute            = kAbsoluteFlat | kAbsolutePt;
 
   // Test mask: only one of these should be on at a time
-  const ErrorTypes kFlavorMask          = kFlavorQCD | kFlavorZJet | kFlavorPhotonJet | kFlavorPureUpDown | kFlavorPureStrange | kFlavorPureGluon | kFlavorPureCharm | kFlavorPureBottom;
-  //const ErrorTypes kTimePtMask          = kTimePt | kTimePtRunBCD | kTimePtRunE | kTimePtRunF | kTimePtRunGH;
-  //const ErrorTypes kTimePtEtaMask          = kTimePtEta | kTimeRunBCD | kTimeRunE | kTimeRunF | kTimeRunGH;
-  //const ErrorTypes kTimePtEtaMask          = kTimePtEta | kTimeRunBCD | kTimeRunEF | kTimeRunG | kTimeRunH;
-  const ErrorTypes kTimePtEtaMask          = kTimePtEta | kTimeRunBCD | kTimeRunEF | kTimeRunGH;
+  const ErrorTypes kFlavorMask          = kFlavorQCD | kFlavorZJet | kFlavorPhotonJet | kFlavorPureQuark | kFlavorPureGluon | kFlavorPureCharm | kFlavorPureBottom;
+  const ErrorTypes kTimePtEtaMask          = kTimePtEta | kTimeRunB | kTimeRunC | kTimeRunDE | kTimeRunF; //| kTimeRunE;
 
   // Total uncertainty bits
   const ErrorTypes kMC = kPileUpDataMC | kRelative | kAbsolute | kFlavorQCD | kTime; // for Data/MC comparisons (excludes kPileUpPt)

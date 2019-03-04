@@ -29,13 +29,13 @@ using namespace std;
 
 // Don't plot individual bins, just keep 4x2
 bool _minimal = false;//true;
-bool _fourbytwo = false;
+bool _fourbytwo = true;
 bool _twobythree = true; // for paper
 bool _extra = false; // single pion plots
 bool _paper = true; //  for paper
 
 // Plot uncertainty (true) or source (false)
-bool _absUncert = false;;//true;//true;//false
+bool _absUncert = true;//false;//false;
 // NB: All source files are currently printed together with AK4PFchs uncertainty
 bool _doTXT = true; // create uncertainty and source text files
 bool _didTXT = false;
@@ -43,8 +43,9 @@ bool _didTXT = false;
 // List of (hard-coded) default parameters
 jec::JetAlgo  d_algo = jec::AK4PFchs; // Replaced in function call
 const jec::DataType d_type = jec::DATA; // Uncertainties for data (or data/MC)
-//const double d_mu = 12;//11.32;//76X: ATLAS 13.7@80mb 19.81;
-const double d_mu = 24.68; // 80XV8 RunG eta0.0-1.3 jet450
+//const double d_mu = 24.68; // 80XV8 RunG eta0.0-1.3 jet450
+// from https://hypernews.cern.ch/HyperNews/CMS/get/AUX/2018/02/18/13:45:27-50622-pileup-2018-02-16.gif :
+const double d_mu = 32.5; // 2017 golden 
 const bool d_mpf = true; // L2L3Res uncertainties for MPF method
 map<jec::JetAlgo,const char*> *_algnames;
 
@@ -178,8 +179,6 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 		      kBlack, kNone, // marker
 		      kDarkGray, 1001, "LF")); // fill
   sy.push_back(uncert("notime", "Excl. flavor, time", jec::kDataNoFlavorNoTime,
-  //sy.push_back(uncert("notime", "Excl. flavor, bugs",
-  //jec::kDataNoFlavor & ~jec::kRelativeBal,
 		      "default", "default", -1, // defaults
 		      kOrange+2, kSolid, 1, // line
 		      kBlack, kNone, // marker
@@ -194,9 +193,8 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   		      kRed, kSolid, 1, // line
  		      kRed, kOpenCircle, // marker
   		      kNone, kNone, "LP")); // fill
-  //sy.push_back(uncert("relative", "Relative scale",jec::kRelative,
   sy.push_back(uncert("relative", "Relative scale",
-		      jec::kRelative & ~jec::kRelativeBal & ~jec::kRelativeSample,
+		      jec::kRelative & ~jec::kRelativeBal & ~jec::kRelativeSample,// & ~jec::kRelativePrefire,
 		      "default", "default", -1, // defaults
 		      kBlack, kSolid, 1, // line
 		      kBlack, kFullTriangleDown, // marker
@@ -207,9 +205,7 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 		      kBlue, kFullSquare, // marker
 		      kNone, kNone, "LP")); // fill
 
-  //sy.push_back(uncert("relativebugs", "Relative+bugs",jec::kRelative,
-  //sy.push_back(uncert("relativebugs", "MPF vs DB",jec::kRelativeBal,
-  sy.push_back(uncert("relativebugs", "Method & sample",jec::kRelativeBal|jec::kRelativeSample,
+  sy.push_back(uncert("relativebugs", "Method/Sample",jec::kRelativeBal|jec::kRelativeSample,//|jec::kRelativePrefire,
 		      "default", "default", -1, // defaults
 		      kBlack, kSolid, 1, // line
 		      kBlack, kOpenTriangleDown, // marker
@@ -347,6 +343,12 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 			 kGreen+2, kNone, 1, // line
 			 kGreen+2, kOpenSquare, // marker
 			 kBlack, kNone, "LP")); // fill
+//  syrel.push_back(uncert("relpref", "RelativePrefire",
+//			 jec::kRelativePrefire,
+//                         "default", "default", -1, // defaults
+//                         kMagenta+1, kNone, 1, // line
+//                         kMagenta+1, kOpenDiamond, // marker
+//                         kNone, kNone, "LP")); // fill
 
   vector<uncert> sypt;
   sypt.push_back(uncert("abspt", "SubTotalAbsolute",
@@ -355,9 +357,6 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 			kRed, kNone, 1, // line
 			kBlack, kNone, // marker
 			kRed-9, 1001, "LFP")); // fill
-  // For pas-v6
-  //sypt.push_back(uncert("absolute", "AbsoluteScale", jec::kAbsoluteScale |
-  //		jec::kAbsoluteStat,
   sypt.push_back(uncert("absscale", "AbsoluteScale", jec::kAbsoluteScale,
 			"default", "default", -1, // defaults
 			kYellow+3, kSolid, 1, // line
@@ -387,20 +386,6 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 			kBlue, kNone, 1, // line
 			kBlue, kFullSquare, // marker
 			kNone, kNone, "LP")); // fill
-  //sypt.push_back(uncert("absecal", "ECAL (off)",
-  //			jec::kAbsoluteECAL,
-  //			"default", "default", -1, // defaults
-  //			kGreen+2, kNone, 1, // line
-  //			kGreen+2, kOpenSquare, // marker
-  //			kNone, kNone, "LP")); // fill
-  //sypt.push_back(uncert("abstrack", "Tracker (off)",
-  //			jec::kAbsoluteTrack,
-  //			"default", "default", -1, // defaults
-  //			kMagenta+2, kNone, 1, // line
-  //			kMagenta+2, kOpenTriangleDown, // marker
-  //			kNone, kNone, "LP")); // fill
-  //sypt.push_back(uncert("absstat", "AbsoluteStat",
-  //		jec::kAbsoluteStat,
   sypt.push_back(uncert("absstat", "MPFBias",
 			jec::kAbsoluteMPFBias,
   			"default", "default", -1, // defaults
@@ -433,10 +418,8 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
                        kMagenta+1, kNone, 1, // line
                        kMagenta+1, kOpenDiamond, // marker
                        kNone, kNone, "LP")); // fill
-  //syf.push_back(uncert("flavor", "Light quarks",
-  //                   jec::kFlavorPureQuark,
-  syf.push_back(uncert("flavor", "Up+down quarks",
-		       jec::kFlavorPureUpDown,
+  syf.push_back(uncert("flavor", "Light quarks",
+                       jec::kFlavorPureQuark,
                        "default", "default", -1, // defaults
                        kBlue, kNone, 1, // line
                        kBlue, kFullTriangleUp, // marker
@@ -448,44 +431,6 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
                        kBlack, kFullTriangleDown, // marker
                        kNone, kNone, "LP")); // fill
 
-  vector<uncert> syfp;
-  syfp.push_back(uncert("flavor_gluon", "Gluons",
-			jec::kFlavorPureGluon,
-			"default", "default", -1, // defaults
-			kYellow+3, kSolid, 1, // line
-			kBlack, kNone, // marker
-			kYellow, 1001, "LF")); // fill
-  //syfp.push_back(uncert("flavor_b", "Bottom quarks",
-  //			jec::kFlavorPureBottom,
-  //			"default", "default", -1, // defaults
-  //			kRed, kNone, 1, // line
-  //			kRed, kOpenCircle, // marker
-  //			kNone, kNone, "LP")); // fill
-  syfp.push_back(uncert("flavor_ud", "Up+down quarks",
-			jec::kFlavorPureUpDown,
-			"default", "default", -1, // defaults
-			kBlue, kNone, 1, // line
-			kBlue, kFullTriangleUp, // marker
-			kNone, kNone, "LP")); // fill
-  syfp.push_back(uncert("flavor_s", "Strange quarks",
-			jec::kFlavorPureStrange,
-			"default", "default", -1, // defaults
-			kMagenta+1, kNone, 1, // line
-			kMagenta+1, kFullDiamond, // marker
-			kNone, kNone, "LP")); // fill
-  syfp.push_back(uncert("flavor_c", "Charm quarks",
-			jec::kFlavorPureCharm,
-			"default", "default", -1, // defaults
-			kGreen+2, kSolid, 1, // line
-			kGreen+2, kFullSquare, // marker
-			kNone, kNone, "LP")); // fill
-  syfp.push_back(uncert("flavor_b", "Bottom quarks",
-			jec::kFlavorPureBottom,
-			"default", "default", -1, // defaults
-			kBlack, kNone, 1, // line
-			kBlack, kFullTriangleDown, // marker
-			kNone, kNone, "LP")); // fill
-
   vector<uncert> syt;
   syt.push_back(uncert("time_eta", "TimePtEta",
 		       jec::kTimePtEta,
@@ -493,36 +438,36 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 		       kYellow+3, kSolid, 1, // line
 		       kBlack, kNone, // marker
 		       kYellow, 1001, "LF")); // fill
-  //syt.push_back(uncert("time_pt", "TimePt",
-  //                   jec::kTimePt,
-  //                  "default", "default", -1, // defaults
-  //                  kGreen+2, kSolid, 1, // line
-  //                  kGreen+2, kOpenSquare, // marker
-  //                  kNone, kNone, "LP")); // fill
-  syt.push_back(uncert("time_runa", "TimeRunBCD",
-                       jec::kTimeRunBCD,
+  syt.push_back(uncert("time_runa", "TimeRunB",
+                       jec::kTimeRunB,
                        "default", "default", -1, // defaults
                        kRed, kNone, 1, // line
                        kRed, kOpenCircle, // marker
                        kNone, kNone, "LP")); // fill
-  syt.push_back(uncert("flavor_runb", "TimeRunEF",
-                       jec::kTimeRunEF,
+  syt.push_back(uncert("flavor_runb", "TimeRunC",
+                       jec::kTimeRunC,
                        "default", "default", -1, // defaults
                        kMagenta+1, kNone, 1, // line
                        kMagenta+1, kOpenDiamond, // marker
                        kNone, kNone, "LP")); // fill
-  syt.push_back(uncert("time_runc", "TimeRunGH",
-                       jec::kTimeRunGH,
+  syt.push_back(uncert("time_runc", "TimeRunDE",
+                       jec::kTimeRunDE,
                        "default", "default", -1, // defaults
                        kBlue, kNone, 1, // line
                        kBlue, kFullTriangleUp, // marker
                        kNone, kNone, "LP")); // fill
-//  syt.push_back(uncert("time_rund", "TimeRunH",
-//                       jec::kTimeRunH,
+//  syt.push_back(uncert("time_runc", "TimeRunE",
+//                       jec::kTimeRunE,
 //                       "default", "default", -1, // defaults
-//                       kBlack, kNone, 1, // line
-//                       kBlack, kFullTriangleDown, // marker
+//                       kBlue+2, kNone, 1, // line
+//                       kBlue+2, kOpenTriangleUp, // marker
 //                       kNone, kNone, "LP")); // fill
+  syt.push_back(uncert("time_rund", "TimeRunF",
+                       jec::kTimeRunF,
+                       "default", "default", -1, // defaults
+                       kBlack, kNone, 1, // line
+                       kBlack, kFullTriangleDown, // marker
+                       kNone, kNone, "LP")); // fill
 
   vector<uncert> sys;
   sys.push_back(uncert("singlepion", "SinglePionHCAL",
@@ -580,8 +525,6 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 
   jec::JetAlgo jetAlg = d_algo;
 
-  //double r = (jetAlg==jec::AK7PF||jetAlg==jec::AK7PFchs||jetAlg==jec::AK7CALO ?
-  //      0.7 : 0.5);
   double r(0);
   if (jetAlg==jec::AK8PF||jetAlg==jec::AK8PFchs||jetAlg==jec::AK8CALO) r = 0.8;
   if (jetAlg==jec::AK7PF||jetAlg==jec::AK7PFchs||jetAlg==jec::AK7CALO) r = 0.7;
@@ -633,7 +576,6 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   bool minimaltmp = _minimal;
   if (algo=="AK4PFchs") _minimal = false;
 
-  //double ym =  (jetAlg==jec::AK4PF || jetAlg==jec::AK4PFchs ?  6. : 8.);
   double ym =  (jetAlg==jec::AK4PF || jetAlg==jec::AK4PFchs ?  18. : 24.);
   double ym0 =  (jetAlg==jec::AK4PF || jetAlg==jec::AK4PFchs ?  7. : 10.);
 
@@ -767,7 +709,6 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   string sspu = Form("%s_PileUp_%s",cu,names[jetAlg]);
   const char *spu = sspu.c_str();
 
-  //double ymaxpu = (jetAlg==jec::AK4PF || jetAlg==jec::AK4PFchs ?  3. : 5.);
   double ymaxpu = 18;
   double ymaxpu0 = 10;
 
@@ -848,7 +789,7 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   string ssrel = Form("%s_Relative_%s",cu,names[jetAlg]);
   const char *srel = ssrel.c_str();
 
-  double ymaxrel = 12;//18.;
+  double ymaxrel = 22;//18.;
 
   // Relative scale uncertainty
   // vs pT
@@ -1150,33 +1091,7 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   }
 
   if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",sf));
-  //_icanvas = 1;
-
-  // <PureFlavor--->
-  // Pure Flavor uncertainty
-  string ssfp = Form("%s_PureFlavor_%s",cu,names[jetAlg]);
-  const char *sfp = ssfp.c_str();
-
-  // vs pT
-  if (_paper && !_absUncert) {
-  plotUncertainty(syfp, 0, syfp.size(), jetAlg, Form("%s_Eta00",sfp),
-                  "JEC uncertainty", s,
-                  "|#eta_{jet}| = 0", 5,10,"fixEta",0.);
-  plotUncertainty(syfp, 0, syfp.size(), jetAlg, Form("%s_Eta27",sfp),
-                  "JEC uncertainty", s,
-                  "|#eta_{jet}| = 2.7", 5,10,"fixEta",2.7);
-  plotUncertainty(syfp, 0, syfp.size(), jetAlg, Form("%s_Pt30",sfp),
-                  "JEC uncertainty", s,
-                  "p_{T} = 30 GeV", 5,10,"fixPt",30.);
-  //
-  plotUncertainty(syfp, 0, syfp.size(), jetAlg, Form("%s_Pt100",sfp),
-                  "JEC uncertainty", s,
-                  "p_{T} = 100 GeV", 5,10,"fixPt",100.);
-  }
-
-  if (_canvas) _canvas->SaveAs(Form("pdf/%s.pdf",sfp));
   _icanvas = 1;
-  // <---PureFlavor>
 
   _minimal = minimaltmp;
 
@@ -1358,23 +1273,21 @@ void plotUncertainty(vector<uncert> const& sys,
   const double x_pt[] =
     {8, 10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
      97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 362, 430,
-     507, 592, 686, 790, 905, 1032, 1172, 1327, 1497, 1684, 1890,
-     1999}; // Run I
-     // //2000, 2238, 2500, 2787, 3103, 3450,
-     //2116, 2366, 2640, 2941, 3273, 3637, 
-     //4037, 4477, 4961, 5492, 6076, 7000}; // Run II
+     507, 592, 686, 790, 905, 1032, 1172, 1327, 1497, 1684, 1890, //1999};
+     //2000, 2238, 2500, 2787, 3103, 3450,
+     2116, 2366, 2640, 2941, 3273, 3637, 
+     4037, 4477, 4961, 5492, 6076, 7000};
   const int ndiv_pt = sizeof(x_pt)/sizeof(x_pt[0])-1;
-  //const double x_eta[] =
-  //{-5.4,-5.0,-4.4,-4,-3.5,-3,-2.8,-2.6,-2.4,-2.2,-2.0,
-  // -1.8,-1.6,-1.4,-1.2,-1.0, -0.8,-0.6,-0.4,-0.2,0.,
-  // 0.2,0.4,0.6,0.8,1.0,1.2,1.4,
-  // 1.6,1.8,2.0,2.2,2.4,2.6,2.8,3,3.5,4,4.4,5.0,5.4};
-  // Bins from L5Flavor, should match L2L3 and residuals
-  const double x_eta[] = 
-    {-5.191, -3.839, -3.489, -3.139, -2.964, -2.853, -2.65, -2.5, -2.322,
-     -2.172, -1.93, -1.653, -1.479, -1.305, -1.044, -0.783, -0.522, -0.261,
-     0, 0.261, 0.522, 0.783, 1.044, 1.305, 1.479, 1.653, 1.93, 2.172, 2.322,
-     2.5, 2.65, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};
+//  const double x_eta[] =
+//    {-5.4,-5.0,-4.4,-4,-3.5,-3,-2.8,-2.6,-2.4,-2.2,-2.0,
+//     -1.8,-1.6,-1.4,-1.2,-1.0, -0.8,-0.6,-0.4,-0.2,0.,
+//     0.2,0.4,0.6,0.8,1.0,1.2,1.4,
+//     1.6,1.8,2.0,2.2,2.4,2.6,2.8,3,3.5,4,4.4,5.0,5.4};
+  const double x_eta[] =
+    {-5.4,-5.0,-4.4,-4,-3.5,-3,-2.8,-2.6,-2.4,-2.2,-2.0,
+     -1.8,-1.6,-1.4,-1.2,-1.0, -0.8,-0.6,-0.4,-0.2,0.,
+     0.2,0.4,0.6,0.8,1.0,1.2,1.4,
+     1.6,1.8,2.0,2.2,2.4,2.6,2.8,3,3.5,4,4.4,5.0,5.4};
   const int ndiv_eta = sizeof(x_eta)/sizeof(x_eta[0])-1;     
 
   // Re-determine bin edges based on maxe=4000.
@@ -1444,37 +1357,29 @@ void plotUncertainty(vector<uncert> const& sys,
     c2 = gPad;
   }
 
-  // TCanvas *c1 = new TCanvas(Form("c1_%s",name.c_str()),"c1",600,600);
-  //if (type=="fixEta") c1->SetLogx();
-  if (c2) { if (type=="fixEta") c2->SetLogx(); }
+  if (c2) { if (type=="fixEta") c2->SetLogx();
+    else c2->SetLogx(0);
+  }
 
   const char *cy = ytitle.c_str();
   TH1D *h0 = new TH1D(Form("h0_%s_%d",name.c_str(),++icnt),
 		      Form(";p_{T} (GeV);%s (%%)",cy),
-		      ndiv0, &x0[0]);//ndiv-2,&x[1]);
+		      ndiv0, &x0[0]);
   if (type=="fixEta") h0->GetXaxis()->SetTitle("p_{T} (GeV)");
   if (type=="fixPt") h0->GetXaxis()->SetTitle("#eta_{jet}");
   if (type=="fixE") h0->GetXaxis()->SetTitle("#eta_{jet}");
-  //h0->SetMinimum(emax<0 ? emax : 0.);
-  //h0->SetMinimum(_absUncert ? 0 : -0.5*fabs(emax));
-  //h0->SetMaximum(_absUncert ? fabs(emax) : 1.5*fabs(emax));
   h0->SetMinimum(_absUncert ? 0 : -0.75*fabs(emax));
   h0->SetMaximum(_absUncert ? fabs(emax) : 1.5*fabs(emax));
   h0->GetXaxis()->SetMoreLogLabels();
   h0->GetXaxis()->SetNoExponent();
   h0->GetYaxis()->SetTitleOffset(1.0);
-  //h0->Draw("AXIS");
 
-  if (_paper) h0->GetXaxis()->SetRangeUser(10,3500);//1999);
-  //lumi_13TeV = "Run2015D - 25ns - 121 pb^{-1}";
-  //lumi_13TeV = "Run2015D - Oct 19 - 1.28 fb^{-1}"; // 74X?
-  //lumi_13TeV = "Fall15_25nsV2 (76X) - 2.1 fb^{-1}"; // 76X
-  //lumi_13TeV = "2.1 fb^{-1}"; // 76X
-  //lumi_13TeV = "27 fb^{-1}"; // 80XV8
+  if (_paper) h0->GetXaxis()->SetRangeUser(10,3500);
   //lumi_13TeV = "Run2016BCDEFGH re-reco, 36.5 fb^{-1}"; // Sum16
-  lumi_13TeV = "Run2016BCDEFGH, 36.5 fb^{-1}"; // Sum16
+  lumi_13TeV = "2017BCDEF re-reco, 41.4 fb^{-1}"; // Fall17
   TCanvas *c1 = tdrCanvas(Form("c1_%s",name.c_str()),h0,4,11,kSquare);
   if (type=="fixEta") c1->SetLogx();
+  else c1->SetLogx(0);
 
   if (c2) { c2->cd(); h0->DrawClone("AXIS"); c1->cd(); }
 
@@ -1485,16 +1390,14 @@ void plotUncertainty(vector<uncert> const& sys,
   leg1->SetFillStyle(kNone);
   leg1->SetBorderSize(0);
   leg1->SetTextSize(0.045);
-  const double tx = (type=="fixEta" ? 0.50 : 0.50);//0.54 : 0.40);
+  const double tx = (type=="fixEta" ? 0.50 : 0.50);
   TLegend *leg2 = new TLegend(tx,0.90-0.05*nsys2,tx+0.20,0.90,"","brNDC");
   leg2->SetFillStyle(kNone);
   leg2->SetBorderSize(0);
   leg2->SetTextSize(0.045);
-  //TLatex *tex1 = new TLatex(tx, 0.82-0.05*max(nsys1,nsys2),label1.c_str());
   TLatex *tex1 = new TLatex(0.185, 0.73, label1.c_str());
   tex1->SetNDC();
   tex1->SetTextSize(0.045);
-  //TLatex *tex2 = new TLatex(tx, 0.77-0.05*max(nsys1,nsys2),label2.c_str());
   TLatex *tex2 = new TLatex(0.185, 0.68, label2.c_str());
   tex2->SetNDC();
   tex2->SetTextSize(0.045);
@@ -1509,15 +1412,13 @@ void plotUncertainty(vector<uncert> const& sys,
 
     //cout << "...isys: " << isys << endl << flush;
     uncert const& u = sys[isys];
-    //bool mpf = (u.method=="default" ? d_mpf : u.method=="mpf");
     double mu = (u.mu==-1 ? d_mu : u.mu);
-    //L3Corr rjet(jetAlg, u.type, d_id, npu, mpf);
     JECUncertainty rjet(jetAlg, jec::DATA, u.type, mu);
-    TGraph *g = new TGraph(0);//ndiv);
+    TGraph *g = new TGraph(0);
     g->SetName(Form("L3_%s",u.name.c_str()));
-    TGraph *gup = new TGraph(0);//ndiv);
+    TGraph *gup = new TGraph(0);
     gup->SetName(Form("L3_%s_up",u.name.c_str()));
-    TGraph *gdw = new TGraph(0);//ndiv);
+    TGraph *gdw = new TGraph(0);
     gdw->SetName(Form("L3_%s_dw",u.name.c_str()));
     TH1D *h = new TH1D(Form("L3_%s_%s_%d",name.c_str(),u.name.c_str(),++icnt),
 		       "",ndiv,&x[0]);
@@ -1530,7 +1431,7 @@ void plotUncertainty(vector<uncert> const& sys,
       if (type=="fixEta") { pt = var; eta = typevar; }
       if (type=="fixPt") { eta = var; pt = typevar; }
       if (type=="fixE") { eta = var; pt = typevar/cosh(eta); }
-      //if (pt*cosh(eta) < 3500. && pt > ptmin) {
+      eta>0? eta=eta+0.0001 : eta=eta-0.0001;//to avoid assymmetric uncertainties due to thresholds of correction-files entering uncertainty calculation  
       if (pt > ptmin) { // DP note
 	double err(0);
 	double r = 1;//rjet.Rjet(pt, eta, err);
@@ -1595,27 +1496,10 @@ void plotUncertainty(vector<uncert> const& sys,
   tex1->Draw();  
   tex2->Draw();  
   if (c2) { c2->cd(); leg1->DrawClone(); leg2->DrawClone(); tex1->DrawClone(); tex2->DrawClone(); c1->cd(); }
-  /*
-  if (TString(name.c_str()).Contains("JECUncert_Flavor"))
-    {   CMS_lumi( (TPad*)gPad, 2, 11 ); }
-  else
-  if (name=="JECUncert_Offset_PFAK4" ||
-      name=="JECUncert_Offset_CALOAK4" ||
-      name=="JECUncert_MPF" ||
-      name=="JECUncert_HighPt_PFAK4" ||
-      name=="JECUncert_HighPt_JPTAK4" ||
-      name=="JECUncert_HighPt_CALOAK4" ||
-      name=="JECUncert_PFAK4_summary" ||
-      name=="JECUncert_JPTAK4_summary" ||
-      name=="JECUncert_AK4_summary")
-    {   CMS_lumi( (TPad*)gPad, 2, 11 ); }
-  else
-    {  CMS_lumi( (TPad*)gPad, 2, 11 ); }
-  */
+
   gPad->RedrawAxis();
   if (c2) {
     c2->cd();
-    //CMS_lumi( (TPad*)gPad, 2, 11 );
     gPad->RedrawAxis();
     c1->cd();
   }
@@ -1628,322 +1512,129 @@ void plotUncertainty(vector<uncert> const& sys,
   //cout << "Got here 6" << endl << flush;
 
   if (_doTXT && !_didTXT) {
-  //if (name=="JECUncert_DATA_Summary_AK4PFchs_Eta00" && _doTXT) {
-    //if (name=="JECUncert_DATA_AK4PFchs_Eta00") {
 
     JECUncertainty rjets(d_algo, jec::DATA, jec::kData, d_mu);
-    //JECUncertainty rjet5s(jec::AK4PFchs, jec::DATA, jec::kData, d_mu);
-    //JECUncertainty rjet8s(jec::AK8PFchs, jec::DATA, jec::kData, d_mu);
-
-    //JECUncertainty rjet5p(jec::AK4PF, jec::DATA, jec::kData, d_mu);
-    //JECUncertainty rjet7p(jec::AK7PF, jec::DATA, jec::kData, d_mu);
-    //JECUncertainty rjet7s(jec::AK7PFchs, jec::DATA, jec::kData, d_mu);
-    //JECUncertainty rjet5c(jec::AK4CALO, jec::DATA, jec::kData, d_mu);
-    //JECUncertainty rjet7c(jec::AK4CALO, jec::DATA, jec::kData, d_mu);
-
-    //ofstream fout5p("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK4PF.txt",ios::out);
-    //fout5p << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    //ofstream fout5s("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK4PFchs.txt",ios::out);
-
-    //ofstream fouts(Form("txt/Summer15_25nsV7M1_DATA_Uncertainty_%s.txt",
-    //ofstream fouts(Form("txt/Fall15_25nsV1M2_DATA_Uncertainty_%s.txt",
-    //ofstream fouts(Form("txt/Spring16_25nsV4M3_DATA_Uncertainty_%s.txt",
-    //ofstream fouts(Form("txt/Spring16_25nsV8M1_DATA_Uncertainty_%s.txt",
-    //ofstream fouts(Form("txt/Summer16_23Sep2016V3_DATA_Uncertainty_%s.txt",
-    //ofstream fouts(Form("txt/Summer16_03Feb2017_V3_DATA_Uncertainty_%s.txt",
-    ofstream fouts(Form("txt/Summer16_03Feb2017_V9_DATA_Uncertainty_%s.txt",
+    //ofstream fouts(Form("txt/Summer16_03Feb2017_V9_DATA_Uncertainty_%s.txt",
+    ofstream fouts(Form("txt/Fall17_07Nov2017_V31_DATA_Uncertainty_%s.txt",
 			(*_algnames)[d_algo]), ios::out);
     fouts << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    //ofstream fout5s("txt/Summer15_25nsV6M3_DATA_Uncertainty_AK4PFchs.txt",ios::out);
-    //fout5s << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    //ofstream fout8s("txt/Summer15_25nsV6M3_DATA_Uncertainty_AK8PFchs.txt",ios::out);
-    //fout8s << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-
-//     ofstream fout5c("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK4Calo.txt",ios::out);
-//     fout5c << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout7p("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK7PF.txt",ios::out);
-//     fout7p << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout7s("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK7PFchs.txt",ios::out);
-//     fout7s << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout7c("txt/Summer15_50nsV4M1_DATA_Uncertainty_AK7Calo.txt",ios::out);
-//     fout7c << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-
-
-//     JECUncertainty rjet5px(jec::AK4PF, jec::DATA, jec::kMC, d_mu);
-//     JECUncertainty rjet7px(jec::AK7PF, jec::DATA, jec::kMC, d_mu);
-    //JECUncertainty rjet5sx(jec::AK4PFchs, jec::DATA, jec::kMC, d_mu);
-//     JECUncertainty rjet7sx(jec::AK7PFchs, jec::DATA, jec::kMC, d_mu);
-//     JECUncertainty rjet5cx(jec::AK4CALO, jec::DATA, jec::kMC, d_mu);
-//     JECUncertainty rjet7cx(jec::AK7CALO, jec::DATA, jec::kMC, d_mu);
-
-//     ofstream fout5px("txt/Summer15_50nsV4M1_MC_Uncertainty_AK4PF.txt",ios::out);
-//     fout5px << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-    //ofstream fout5sx("txt/Summer15_50nsV4M1_MC_Uncertainty_AK4PFchs.txt",ios::out);
-    //ofstream fout5sx("txt/Summer15_25nsV6M3_MC_Uncertainty_AK4PFchs.txt",ios::out);
-    //fout5sx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout5cx("txt/Summer15_50nsV4M1_MC_Uncertainty_AK4Calo.txt",ios::out);
-//     fout5cx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout7px("txt/Summer15_50nsV4M1_MC_Uncertainty_AK7PF.txt",ios::out);
-//     fout7px << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout7sx("txt/Summer15_50nsV4M1_MC_Uncertainty_AK7PFchs.txt",ios::out);
-//     fout7sx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
-//     ofstream fout7cx("txt/Summer15_50nsV4M1_MC_Uncertainty_AK7Calo.txt",ios::out);
-//     fout7cx << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
     for (int ieta = 0; ieta != ndiv_eta; ++ieta) {
       
       double etamin = x_eta[ieta];
       double etamax = x_eta[ieta+1];
       double eta = 0.5*(etamin+etamax);
+      eta>0? eta=eta+0.0001 : eta=eta-0.0001;//to avoid assymmetric uncertainties due to thresholds of correction-files entering uncertainty calculation  
 
       fouts << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-      //fout5s << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-      //fout8s << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-      
-//       fout5p << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-//       fout5c << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-//       fout7p << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-//       fout7s << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-//       fout7c << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-      //
-//       fout5px << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-      //fout5sx << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-//       fout5cx << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-//       fout7px << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-//       fout7sx << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-//       fout7cx << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
       
       for (int ipt = 0; ipt != ndiv_pt; ++ipt) {
 	
 	double pt = 0.5*(x_pt[ipt]+x_pt[ipt+1]);
 
-	{
-	  double errs = rjets.Uncert(pt, eta);
-	  fouts << Form("%1.1f %1.4f %1.4f ", pt, errs, errs);
-	  //double err5s = rjet5s.Uncert(pt, eta);
-	  //fout5s << Form("%1.1f %1.4f %1.4f ", pt, err5s, err5s);
-	  //double err8s = rjet8s.Uncert(pt, eta);
-	  //fout8s << Form("%1.1f %1.4f %1.4f ", pt, err8s, err8s);
-
-// 	  double err5(0);
-// 	  double r5 = 1;//rjet5.Rjet(pt, eta, err5);
-// 	  err5 = rjet5p.Uncert(pt, eta);
-// 	  err5 /= r5; // relative uncertainty
-// 	  fout5p << Form("%1.1f %1.4f %1.4f ", pt, err5, err5);
-// 	  double err5c = rjet5c.Uncert(pt, eta);
-// 	  fout5c << Form("%1.1f %1.4f %1.4f ", pt, err5c, err5c);
-	  
-// 	  double err7(0);
-// 	  double r7 = 1.;//rjet7.Rjet(pt, eta, err7);
-// 	  err7 = rjet7p.Uncert(pt, eta);
-// 	  err7 /= r7; // relative uncertainty
-// 	  fout7p << Form("%1.1f %1.4f %1.4f ", pt, err7, err7);
-// 	  double err7s = rjet7s.Uncert(pt, eta);
-// 	  fout7s << Form("%1.1f %1.4f %1.4f ", pt, err7s, err7s);
-// 	  double err7c = rjet7c.Uncert(pt, eta);
-// 	  fout7c << Form("%1.1f %1.4f %1.4f ", pt, err7c, err7c);
-	}
-	{
-// 	  double err5x(0);
-// 	  double r5x = 1.;//rjet5x.Rjet(pt, eta, err5x);
-// 	  err5x = rjet5px.Uncert(pt, eta);
-// 	  err5x /= r5x; // relative uncertainty
-// 	  fout5px << Form("%1.1f %1.4f %1.4f ", pt, err5x, err5x);
-	  //double err5sx = rjet5sx.Uncert(pt, eta);
-	  //fout5sx << Form("%1.1f %1.4f %1.4f ", pt, err5sx, err5sx);
-// 	  double err5cx = rjet5cx.Uncert(pt, eta);
-// 	  fout5cx << Form("%1.1f %1.4f %1.4f ", pt, err5cx, err5cx);
-	  
-// 	  double err7x(0);
-// 	  double r7x = 1.;//rjet7x.Rjet(pt, eta, err7x);
-// 	  err7x = rjet7px.Uncert(pt, eta);
-// 	  err7x /= r7x; // relative uncertainty
-// 	  fout7px << Form("%1.1f %1.4f %1.4f ", pt, err7x, err7x);
-// 	  double err7sx = rjet7sx.Uncert(pt, eta);
-// 	  fout7sx << Form("%1.1f %1.4f %1.4f ", pt, err7sx, err7sx);
-// 	  double err7cx = rjet7cx.Uncert(pt, eta);
-// 	  fout7cx << Form("%1.1f %1.4f %1.4f ", pt, err7cx, err7cx);
-	}
+	double errs = rjets.Uncert(pt, eta);
+	fouts << Form("%1.1f %1.4f %1.4f ", pt, errs, errs);
       } // for ipt
 
       fouts << endl;
-      //fout5s << endl;
-      //fout8s << endl;
-
-//       fout5p << endl;
-//       fout5c << endl;
-//       fout7p << endl;
-//       fout7s << endl;
-//       fout7c << endl;
-      //
-//       fout5px << endl;
-      //fout5sx << endl;
-//       fout5cx << endl;
-//       fout7px << endl;
-//       fout7sx << endl;
-//       fout7cx << endl;
     } // for ieta
-    //} // print uncertainty
 
-  //if (name=="JECUncert_DATA_Summary_AK4PFchs_Eta00" && _doTXT) {
-  //if (_doTXT && !_didTXT) {
-    //if (name=="JECUncert_DATA_AK4PFchs_Eta00") {
-    
-    // Note: AK4PFchs is CHS, AK7PF is non-CHS (AK7PFchs on Jan 25)
-    //ofstream fout5("txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK4PFchs.txt",ios::out);
-
-
-    //ofstream fout(Form("txt/Summer15_25nsV7M1_DATA_UncertaintySources_%s.txt",
-    //ofstream fout(Form("txt/Fall15_25nsV1M2_DATA_UncertaintySources_%s.txt",
-    //ofstream fout(Form("txt/Spring16_25nsV4M3_DATA_UncertaintySources_%s.txt",
-    //ofstream fout(Form("txt/Spring16_25nsV8M1_DATA_UncertaintySources_%s.txt",
-    //ofstream fout(Form("txt/Summer16_23Sep2016V3_DATA_UncertaintySources_%s.txt",
-    //ofstream fout(Form("txt/Summer16_03Feb2017_V3_DATA_UncertaintySources_%s.txt",
-    ofstream fout(Form("txt/Summer16_03Feb2017_V9_DATA_UncertaintySources_%s.txt",
+    //ofstream fout(Form("txt/Summer16_03Feb2017_V9_DATA_UncertaintySources_%s.txt",
+    ofstream fout(Form("txt/Fall17_07Nov2017_V31_DATA_UncertaintySources_%s.txt",
 		       (*_algnames)[d_algo]), ios::out);
-    //fout << Form("#Uncertainty sources for Spring16_25nsV4M3_DATA_%s",
-    //fout << Form("#Uncertainty sources for Spring16_25nsV8M1_DATA_%s",
-    //fout << Form("#Uncertainty sources for Summer16_23Sep2016V3_DATA_%s",
-    //fout << Form("#Uncertainty sources for Summer16_03Feb2017_V3_DATA_%s",
-    fout << Form("#Uncertainty sources for Summer16_03Feb2017_V9_DATA_%s",
+    //fout << Form("#Uncertainty sources for Summer16_03Feb2017_V9_DATA_%s",
+    fout << Form("#Uncertainty sources for Fall17_07Nov2017_V31_DATA_%s",
 		 (*_algnames)[d_algo]) << endl;
     cout << "Storing uncertainties to: "
-      //<< Form("txt/Spring16_25nsV4M3_DATA_UncertaintySources_%s.txt",
-      //<< Form("txt/Spring16_25nsV8M1_DATA_UncertaintySources_%s.txt",
-      //<< Form("txt/Summer16_23Sep2016V3_DATA_UncertaintySources_%s.txt",
-      //<< Form("txt/Summer16_03Feb2017_V3_DATA_UncertaintySources_%s.txt",
-	 << Form("txt/Summer16_03Feb2017_V9_DATA_UncertaintySources_%s.txt",
+      //<< Form("txt/Summer16_03Feb2017_V9_DATA_UncertaintySources_%s.txt",
+	 << Form("txt/Fall17_07Nov2017_V31_DATA_UncertaintySources_%s.txt",
 		 (*_algnames)[d_algo]) << endl;
-    //ofstream fout5("txt/Summer15_25nsV6M3_DATA_UncertaintySources_AK4PFchs.txt",ios::out);
-    //fout5 << "#Uncertainty sources for Summer15_25nsV6M3_DATA_AK4PFchs" << endl;
-    //cout << "Storing uncertainties to: "
-    //	 << "txt/Summer15_25nsV6M3_DATA_UncertaintySources_AK4PFchs.txt" << endl;
-    //ofstream fout8("txt/Summer15_25nsV6M3_DATA_UncertaintySources_AK8PFchs.txt",ios::out);
-    //fout8 << "#Uncertainty sources for Summer15_25nsV6M3_DATA_AK8PFchs" << endl;
-    //cout << "Storing uncertainties to: "
-    //	 << "txt/Summer15_25nsV6M3_DATA_UncertaintySources_AK8PFchs.txt" << endl;
-
- //    ofstream fout5x("txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK4PF.txt",ios::out);
-//     fout5x << "#Uncertainty sources for Summer15_50nsV4M1_DATA_AK4PF" << endl;
-//     cout << "Storing uncertainties to: "
-// 	 << "txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK4PF.txt" << endl;
-//     //
-//     ofstream fout7("txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK7PFchs.txt",
-// 		   ios::out);
-//     fout7 << "#Uncertainty sources for Summer15_50nsV4M1_DATA_AK7PFchs" << endl;
-//     cout << "Storing uncertainties to: "
-// 	 << "txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK7PFchs.txt" << endl;
-//     ofstream fout7x("txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK7PF.txt",
-// 		    ios::out);
-//     fout7x << "#Uncertainty sources for Summer15_50nsV4M1_DATA_AK7PF" << endl;
-//     cout << "Storing uncertainties to: "
-// 	 << "txt/Summer15_50nsV4M1_DATA_UncertaintySources_AK7PF.txt" << endl;
 
     jec::ErrorTypes vsrc[] =
-      //{jec::kAbsolute, jec::kRelative, jec::kPtExtra};
       {jec::kAbsoluteStat, jec::kAbsoluteScale, jec::kAbsoluteFlavorMapping, jec::kAbsoluteMPFBias,
-       jec::kAbsoluteFrag, /*jec::kAbsoluteSPR,*/
+       jec::kAbsoluteFrag,
        jec::kAbsoluteSPRE, jec::kAbsoluteSPRH,
-       /*jec::kAbsoluteECAL, jec::kAbsoluteTrack,*/
-       /*jec::kFlavorMC,*/ jec::kFlavorQCD, /*jec::kTime,*/
-       /*new*/ /*jec::kTimeEta,*/ /*new*/ jec::kTimePtEta,
+       jec::kFlavorQCD,
+       jec::kTimePtEta,
        jec::kRelativeJEREC1, jec::kRelativeJEREC2, jec::kRelativeJERHF,
-       jec::kRelativePtBB, /*new*/
+       jec::kRelativePtBB,
        jec::kRelativePtEC1, jec::kRelativePtEC2, jec::kRelativePtHF,
-       jec::kRelativeBal, /*new*/ jec::kRelativeSample, /*new*/
-       jec::kRelativeFSR, /*new*/ jec::kRelativeStatFSR, 
+       jec::kRelativeBal, //jec::kRelativePrefire,
+       jec::kRelativeSample,
+       jec::kRelativeFSR, jec::kRelativeStatFSR, 
        jec::kRelativeStatEC, jec::kRelativeStatHF,
-       /*jec::kRelativeSample,*/
-       jec::kPileUpDataMC, /*jec::kPileUpOOT,*/ jec::kPileUpPtRef,
+       jec::kPileUpDataMC, jec::kPileUpPtRef,
        jec::kPileUpPtBB, jec::kPileUpPtEC1, jec::kPileUpPtEC2, jec::kPileUpPtHF,
-       /*jec::kPileUpBias,*/ /*new*/ jec::kPileUpMuZero,
-       /*jec::kPileUpJetRate,*/
-       /*new*/ jec::kPileUpEnvelope,
+       jec::kPileUpMuZero,
+       jec::kPileUpEnvelope,
        jec::kPileUp, jec::kRelative, jec::kAbsolutePt, jec::kAbsoluteFlat,
        jec::kAbsolute,
-       //jec::kPtExtra,
        jec::kMC,
-       jec::kData,//Total};
+       jec::kData,
        jec::kDataNoFlavor, jec::kDataNoTime, jec::kDataNoFlavorNoTime,
        jec::kFlavorZJet, jec::kFlavorPhotonJet,
-       jec::kFlavorPureGluon, //jec::kFlavorPureQuark, 
-       jec::kFlavorPureUpDown, jec::kFlavorPureStrange, 
+       jec::kFlavorPureGluon, jec::kFlavorPureQuark, 
        jec::kFlavorPureCharm, jec::kFlavorPureBottom,
-       jec::kTimeRunBCD, jec::kTimeRunEF, jec::kTimeRunGH, //jec::kTimeRunH,
+       jec::kTimeRunB, jec::kTimeRunC, jec::kTimeRunDE,// jec::kTimeRunE,
+       jec::kTimeRunF,
        jec::kCorrelationGroupMPFInSitu, jec::kCorrelationGroupIntercalibration, jec::kCorrelationGroupbJES,
        jec::kCorrelationGroupFlavor, jec::kCorrelationGroupUncorrelated
       };
 
     const int nsrc = sizeof(vsrc)/sizeof(vsrc[0]);
     map<jec::ErrorTypes, string> srcname;
-    //srcname[jec::kPtExtra] = "PtExtra";
-    //srcname[jec::kAbsoluteScale] = "Absolute";
-    srcname[jec::kAbsoluteStat] = "AbsoluteStat";
-    srcname[jec::kAbsoluteScale] = "AbsoluteScale";
-    srcname[jec::kAbsoluteFlavorMapping] = "AbsoluteFlavMap";
-    srcname[jec::kAbsoluteMPFBias] = "AbsoluteMPFBias";
-    //srcname[jec::kRelative] = "Relative";
-    srcname[jec::kRelativeJEREC1] = "RelativeJEREC1";
-    srcname[jec::kRelativeJEREC2] = "RelativeJEREC2";
-    srcname[jec::kRelativeJERHF] = "RelativeJERHF";
-    srcname[jec::kRelativePtBB] = "RelativePtBB"; // new in Summer13_V1
-    srcname[jec::kRelativePtEC1] = "RelativePtEC1";
-    srcname[jec::kRelativePtEC2] = "RelativePtEC2";
-    srcname[jec::kRelativePtHF] = "RelativePtHF";
-    srcname[jec::kRelativeBal] = "RelativeBal";
-    srcname[jec::kRelativeSample] = "RelativeSample"; // new in 03FebV9
-    srcname[jec::kRelativeFSR] = "RelativeFSR"; // new in Summer13_V1
-    srcname[jec::kRelativeStatFSR] = "RelativeStatFSR"; // new in Winter14_V6
-    srcname[jec::kRelativeStatEC] = "RelativeStatEC";
-    srcname[jec::kRelativeStatHF] = "RelativeStatHF";
-    //srcname[jec::kRelativeSample] = "RelativeSample";
-    //srcname[jec::kAbsoluteFrag] = "HighPtExtra"; // update uncertainty?
-    srcname[jec::kAbsoluteFrag] = "Fragmentation"; // update uncertainty?
-    //srcname[jec::kAbsoluteSPR] = "SinglePion"; // shape ok?
-    srcname[jec::kAbsoluteSPRE] = "SinglePionECAL";
-    srcname[jec::kAbsoluteSPRH] = "SinglePionHCAL";
-    //srcname[jec::kAbsoluteECAL] = "SinglePion";
-    //srcname[jec::kAbsoluteTrack] = "SinglePion";
-    //srcname[jec::kPileUp] = "PileUp";
-    srcname[jec::kPileUpDataMC] = "PileUpDataMC";
-    //srcname[jec::kPileUpOOT] = "PileUpOOT";
-    srcname[jec::kPileUpPtRef] = "PileUpPtRef"; // new in Winter14_V5
-    srcname[jec::kPileUpPtBB] = "PileUpPtBB";
-    srcname[jec::kPileUpPtEC1] = "PileUpPtEC1";
-    srcname[jec::kPileUpPtEC2] = "PileUpPtEC2";
-    srcname[jec::kPileUpPtHF] = "PileUpPtHF";
-    //srcname[jec::kPileUpBias] = "PileUpBias";
-    srcname[jec::kPileUpMuZero] = "PileUpMuZero"; // new in Winter14_V5 (opt)
-    srcname[jec::kPileUpEnvelope] = "PileUpEnvelope"; // --,,--
-    //srcname[jec::kPileUpJetRate] = "PileUpJetRate";
-    //srcname[jec::kFlavorMC] = "Flavor";
+    srcname[jec::kAbsoluteStat] =           "AbsoluteStat";    // L3Res fit
+    srcname[jec::kAbsoluteScale] =          "AbsoluteScale";   // Zll scale
+    srcname[jec::kAbsoluteFlavorMapping] =  "AbsoluteFlavMap"; // obsolete
+    srcname[jec::kAbsoluteMPFBias] =        "AbsoluteMPFBias"; // old, 0.2%
+    srcname[jec::kAbsoluteFrag] =           "Fragmentation";   // update?
+    srcname[jec::kAbsoluteSPRE] =           "SinglePionECAL";  // +/-3%
+    srcname[jec::kAbsoluteSPRH] =           "SinglePionHCAL";  // L3Res fit
+    srcname[jec::kRelativeJEREC1] =  "RelativeJEREC1";
+    srcname[jec::kRelativeJEREC2] =  "RelativeJEREC2";
+    srcname[jec::kRelativeJERHF] =   "RelativeJERHF";
+    srcname[jec::kRelativePtBB] =    "RelativePtBB";   // flat vs log-lin
+    srcname[jec::kRelativePtEC1] =   "RelativePtEC1";
+    srcname[jec::kRelativePtEC2] =   "RelativePtEC2";
+    srcname[jec::kRelativePtHF] =    "RelativePtHF";
+    srcname[jec::kRelativeBal] =     "RelativeBal";    // pT balance vs MPf
+    //    srcname[jec::kRelativePrefire] =  "RelativePrefire";    // L1BX filter yes/no
+    srcname[jec::kRelativeSample] =  "RelativeSample"; // dijet vs Z+jet
+    srcname[jec::kRelativeFSR] =     "RelativeFSR";    // Pythia vs Herwig
+    srcname[jec::kRelativeStatFSR] = "RelativeStatFSR";
+    srcname[jec::kRelativeStatEC] =  "RelativeStatEC";
+    srcname[jec::kRelativeStatHF] =  "RelativeStatHF";
+    srcname[jec::kPileUpDataMC] =   "PileUpDataMC";
+    srcname[jec::kPileUpPtRef] =    "PileUpPtRef";
+    srcname[jec::kPileUpPtBB] =     "PileUpPtBB";
+    srcname[jec::kPileUpPtEC1] =    "PileUpPtEC1";
+    srcname[jec::kPileUpPtEC2] =    "PileUpPtEC2";
+    srcname[jec::kPileUpPtHF] =     "PileUpPtHF";
+    srcname[jec::kPileUpMuZero] =   "PileUpMuZero";
+    srcname[jec::kPileUpEnvelope] = "PileUpEnvelope"; // L1Data-L1RC
     srcname[jec::kFlavorQCD] = "FlavorQCD";
-    //srcname[jec::kTime] = "Time";
-    srcname[jec::kTimePtEta] = "TimePtEta"; // 80XV8
-    //srcname[jec::kTimeEta] = "TimeEta"; // new in Winter14_V5
+    srcname[jec::kTimePtEta] = "TimePtEta";
     srcname[jec::kPileUp] = "SubTotalPileUp";
     srcname[jec::kRelative] = "SubTotalRelative";
-    //srcname[jec::kPtExtra] = "SubTotalPt";
     srcname[jec::kAbsolutePt] = "SubTotalPt";
     srcname[jec::kAbsoluteFlat] = "SubTotalScale";
     srcname[jec::kAbsolute] = "SubTotalAbsolute";
     srcname[jec::kMC] = "SubTotalMC";
     srcname[jec::kData] = "Total";
     srcname[jec::kDataNoFlavor] = "TotalNoFlavor";
-    srcname[jec::kDataNoTime] = "TotalNoTime"; // new in Winter14_V5
-    srcname[jec::kDataNoFlavorNoTime] = "TotalNoFlavorNoTime"; // new in Winter14_V5
+    srcname[jec::kDataNoTime] = "TotalNoTime";
+    srcname[jec::kDataNoFlavorNoTime] = "TotalNoFlavorNoTime";
     srcname[jec::kFlavorZJet] = "FlavorZJet";
     srcname[jec::kFlavorPhotonJet] = "FlavorPhotonJet";
     srcname[jec::kFlavorPureGluon] = "FlavorPureGluon";
-    //srcname[jec::kFlavorPureQuark] = "FlavorPureQuark";
-    srcname[jec::kFlavorPureUpDown] = "FlavorPureUpDown";
-    srcname[jec::kFlavorPureStrange] = "FlavorPureStrange";
+    srcname[jec::kFlavorPureQuark] = "FlavorPureQuark";
     srcname[jec::kFlavorPureBottom] = "FlavorPureBottom";
     srcname[jec::kFlavorPureCharm] = "FlavorPureCharm";
-    srcname[jec::kTimeRunBCD] = "TimeRunBCD"; 
-    srcname[jec::kTimeRunEF] = "TimeRunEF"; // Sum16V2
-    srcname[jec::kTimeRunGH] = "TimeRunGH"; // Sum16V2
-    //srcname[jec::kTimeRunH] = "TimeRunH"; // Sum16V2
+    srcname[jec::kTimeRunB] =  "TimeRunB"; 
+    srcname[jec::kTimeRunC] =  "TimeRunC";
+    srcname[jec::kTimeRunDE] = "TimeRunDE";
+    //    srcname[jec::kTimeRunE] = "TimeRunE";
+    srcname[jec::kTimeRunF] =  "TimeRunF";
     srcname[jec::kCorrelationGroupMPFInSitu] = "CorrelationGroupMPFInSitu";
     srcname[jec::kCorrelationGroupFlavor] = "CorrelationGroupFlavor";
     srcname[jec::kCorrelationGroupIntercalibration] = "CorrelationGroupIntercalibration";
@@ -1964,35 +1655,14 @@ void plotUncertainty(vector<uncert> const& sys,
       JECUncertainty rjet(d_algo, jec::DATA, src, d_mu);
       fout << "["<<srcname[src]<<"]" << endl;
       fout << "{1 JetEta 1 JetPt \"\" Correction JECSource}" << endl;
-      //JECUncertainty rjet5(jec::AK4PFchs, jec::DATA, src, d_mu);
-      //fout5 << "["<<srcname[src]<<"]" << endl;
-      //fout5 << "{1 JetEta 1 JetPt \"\" Correction JECSource}" << endl;
-      //JECUncertainty rjet8(jec::AK8PFchs, jec::DATA, src, d_mu);
-      //fout8 << "["<<srcname[src]<<"]" << endl;
-      //fout8 << "{1 JetEta 1 JetPt \"\" Correction JECSource}" << endl;
-
-//       JECUncertainty rjet5x(jec::AK4PF, jec::DATA, src, d_mu);
-//       fout5x << "["<<srcname[src]<<"]" << endl;
-//       fout5x << "{1 JetEta 1 JetPt \"\" Correction JECSource}" << endl;
-//       JECUncertainty rjet7(jec::AK7PFchs, jec::DATA, src, d_mu);
-//       fout7 << "["<<srcname[src]<<"]" << endl;
-//       fout7 << "{1 JetEta 1 JetPt \"\" Correction JECSource}" << endl;
-//       JECUncertainty rjet7x(jec::AK7PF, jec::DATA, src, d_mu);
-//       fout7x << "["<<srcname[src]<<"]" << endl;
-//       fout7x << "{1 JetEta 1 JetPt \"\" Correction JECSource}" << endl;
 
       for (int ieta = 0; ieta != ndiv_eta; ++ieta) {
 
 	double etamin = x_eta[ieta];
 	double etamax = x_eta[ieta+1];
 	double eta = 0.5*(etamin+etamax);
+        eta>0? eta=eta+0.0001 : eta=eta-0.0001;//to avoid assymmetric uncertainties due to thresholds of correction-files entering uncertainty calculation  
 	fout << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-	//fout5 << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-	//fout8 << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-
-// 	fout5x << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-// 	fout7 << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
-// 	fout7x << Form("%1.1f %1.1f %d ",etamin,etamax,ndiv_pt*3);
 
 	for (int ipt = 0; ipt != ndiv_pt; ++ipt) {
 	
@@ -2003,45 +1673,9 @@ void plotUncertainty(vector<uncert> const& sys,
 	  err = rjet.Uncert(pt, eta);
 	  err /= r; // relative uncertainty
 	  fout << Form("%1.1f %1.4f %1.4f ", pt, err, err);
-	  //
-	  //double err5(0);
-	  //double r5 = 1.;//rjet5.Rjet(pt, eta, err5);
-	  //err5 = rjet5.Uncert(pt, eta);
-	  //err5 /= r5; // relative uncertainty
-	  //fout5 << Form("%1.1f %1.4f %1.4f ", pt, err5, err5);
-	  //
-	  //double err8(0);
-	  //double r8 = 1.;//rjet8.Rjet(pt, eta, err8);
-	  //err8 = rjet8.Uncert(pt, eta);
-	  //err8 /= r8; // relative uncertainty
-	  //fout8 << Form("%1.1f %1.4f %1.4f ", pt, err8, err8);
-	  //
-// 	  double err5x(0);
-// 	  double r5x = 1.;//rjet5x.Rjet(pt, eta, err5x);
-// 	  err5x = rjet5x.Uncert(pt, eta);
-// 	  err5x /= r5x; // relative uncertainty
-// 	  fout5x << Form("%1.1f %1.4f %1.4f ", pt, err5x, err5x);
-// 	  //
-// 	  double err7(0);
-// 	  double r7 = 1.;//rjet7.Rjet(pt, eta, err7);
-// 	  err7 = rjet7.Uncert(pt, eta);
-// 	  err7 /= r7; // relative uncertainty
-// 	  fout7 << Form("%1.1f %1.4f %1.4f ", pt, err7, err7);
-// 	  //
-// 	  double err7x(0);
-// 	  double r7x = 1.;//rjet7x.Rjet(pt, eta, err7x);
-// 	  err7x = rjet7x.Uncert(pt, eta);
-// 	  err7x /= r7x; // relative uncertainty
-// 	  fout7x << Form("%1.1f %1.4f %1.4f ", pt, err7x, err7x);
 	} // for ipt
 
 	fout << endl;
-	//fout5 << endl;
-	//fout8 << endl;
-
-// 	fout5x << endl;
-// 	fout7 << endl;
-// 	fout7x << endl;
       } // for ieta
     } // for isrc
     

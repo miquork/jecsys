@@ -59,7 +59,6 @@ public:
   void _InitJEC();
   void _InitL2Res();
   void _InitL3Res();
-  void _InitL5();
   double _Rjet(const double pTprime, const double eta,
 	       const double ajet, const double mu,
 	       FactorizedJetCorrector *jec);
@@ -81,6 +80,7 @@ public:
   double _RelativeStat(double pTprime, double eta) const;
   double _RelativePt(double pTprime, double eta);
   double _RelativeBal(double pTprime, double eta);
+  double _RelativePrefire(double pTprime, double eta);
   double _RelativeSample(double pTprime, double eta);
   //
   double _PileUp(double pTprime, double eta);
@@ -90,18 +90,11 @@ public:
   //
   double _Flavor(double pTprime, double eta) const;
   double _FlavorMixed(double pTprime, double eta, std::string smix) const;
-  //double _FlavorMix(double pTprime, double eta, double fl, double fg, 
-  //		    double fc, double fb) const; // Run I
-  double _FlavorMix(double pTprime, double eta, double fud, double fs,
-		    double fc, double fb, double fg, double fo) const; // Run II
-  //double _FlavorResponse(double pTprime, double eta,
-  //			 int iflavor) const; // Run I
-  double _FlavorResponse(double pTprime, double eta,
-			 string flavor) const; // Run II
-  //double _FlavorFraction(double pTprime, double eta,
-  //			 int iflavor, int isample) const; // Run I
-  double _FlavorFraction(double pTptrim, double eta,
-			 string flavor, string sample) const; // Run II
+  double _FlavorMix(double pTprime, double eta, double fl, double fg, 
+		    double fc, double fb) const;
+  double _FlavorResponse(double pTprime, double eta, int iflavor) const;
+  double _FlavorFraction(double pTprime, double eta,
+			 int iflavor, int isample) const;
   //
   double _Time(double pTprime, double eta);
   //double _TimeEta(const double eta);
@@ -142,45 +135,11 @@ private:
   FactorizedJetCorrector *_jec;
   FactorizedJetCorrector *_jecDefault;
   //
-  FactorizedJetCorrector *_jecL5P8ud;
-  FactorizedJetCorrector *_jecL5P8s;
-  FactorizedJetCorrector *_jecL5P8g;
-  FactorizedJetCorrector *_jecL5P8c;
-  FactorizedJetCorrector *_jecL5P8b;
-  //
-  FactorizedJetCorrector *_jecL5HWud;
-  FactorizedJetCorrector *_jecL5HWs;
-  FactorizedJetCorrector *_jecL5HWg;
-  FactorizedJetCorrector *_jecL5HWc;
-  FactorizedJetCorrector *_jecL5HWb;
-  //
-  FactorizedJetCorrector *_flvZjetud;
-  FactorizedJetCorrector *_flvZjets;
-  FactorizedJetCorrector *_flvZjetc;
-  FactorizedJetCorrector *_flvZjetb;
-  FactorizedJetCorrector *_flvZjetg;
-  FactorizedJetCorrector *_flvZjeto;
-  //
-  FactorizedJetCorrector *_flvGjetud;
-  FactorizedJetCorrector *_flvGjets;
-  FactorizedJetCorrector *_flvGjetc;
-  FactorizedJetCorrector *_flvGjetb;
-  FactorizedJetCorrector *_flvGjetg;
-  FactorizedJetCorrector *_flvGjeto;
-  //
-  FactorizedJetCorrector *_flvDijetud;
-  FactorizedJetCorrector *_flvDijets;
-  FactorizedJetCorrector *_flvDijetc;
-  FactorizedJetCorrector *_flvDijetb;
-  FactorizedJetCorrector *_flvDijetg;
-  FactorizedJetCorrector *_flvDijeto;
-  //
-  FactorizedJetCorrector *_jecBCD;
-  FactorizedJetCorrector *_jecEF;
-  FactorizedJetCorrector *_jecG;
-  FactorizedJetCorrector *_jecH;
-  FactorizedJetCorrector *_jecGH;
-  FactorizedJetCorrector *_jecBCDEFGH;
+  FactorizedJetCorrector *_jecB;
+  FactorizedJetCorrector *_jecC;
+  FactorizedJetCorrector *_jecDE;
+  FactorizedJetCorrector *_jecF;
+  FactorizedJetCorrector *_jecBCDEF;
   //
   //FactorizedJetCorrector *_jecWithL1RC;
   //FactorizedJetCorrector *_jecL1DTflat;
@@ -197,9 +156,13 @@ private:
   FactorizedJetCorrector *_jecL2ResBal; // 80XV8
   FactorizedJetCorrector *_jecL2ResPY;
   FactorizedJetCorrector *_jecL2ResHW;
-  FactorizedJetCorrector *_jecL2L3ResDiJet; // 03FebV7
-  FactorizedJetCorrector *_jecL2L3ResZJet;
-  FactorizedJetCorrector *_jecL2L3ResZGamJet; // 03FebV7
+  FactorizedJetCorrector *_jecL2ResPrefireFilterYes; // Fall17V27
+  FactorizedJetCorrector *_jecL2ResPrefireFilterNo; // Fall17V27
+  FactorizedJetCorrector *_jecL2L3ResCustomHybridZGamJet; // 03FebV7
+  FactorizedJetCorrector *_jecL2L3Res2ParDiJet; // 03FebV7
+  FactorizedJetCorrector *_jecL2L3Res2ParZGamJet; // 03FebV7
+  FactorizedJetCorrector *_jecL2L3ResConstDiJet; // 03FebV7
+  FactorizedJetCorrector *_jecL2L3ResConstZGamJet; // 03FebV7
   FactorizedJetCorrector *_jecL2L3ResZGamDiJet; // 03FebV7
   //JetCorrectionUncertainty *_uncL2ResStat;
   FactorizedJetCorrector *_jecL2ResStat;
