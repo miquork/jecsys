@@ -30,10 +30,10 @@ const double _lumi = 2065.;//19800.;
 const double ptrec_zjet = 5.;
 const double ptrec_gjet = 15.;
 
-bool debug = false;
+bool debug = true;
 bool dodijet = false;
 
-bool verbose = false;
+bool verbose = true;
 
 using namespace std;
 
@@ -63,6 +63,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   const char* dirs[ndirs] = {"data", "mc", "ratio"};
   const int nmethods = 2;
   const char* methods[nmethods] = {"mpfchs1", "ptchs"};
+  //  const int nsamples = (dodijet ? 4 : 3);
+  //const char* samples[4] = {"zeejet", "zmmjet", "zlljet", "dijet"};
   const int nsamples = (dodijet ? 5 : 4);
   const char* samples[5] = {"gamjet","zeejet", "zmmjet", "zlljet", "dijet"};
   //const int nsamples = (dodijet ? 4 : 3);
@@ -309,17 +311,26 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  h->SetMaximum(1.08);
 	}
 	
-	map<string, const char*> lumimap;
-	lumimap["BCD"] = "Run2016BCD Legacy, 12.9 fb^{-1}";
-	lumimap["E"] = "Run2016E Legacy, 4.0 fb^{-1}";
-	lumimap["F"] = "Run2016F Legacy, 2.8 fb^{-1}";//3.1 fb^{-1}";
-	lumimap["G"] = "Run2016fG Legacy, 8.0 fb^{-1}";
-	lumimap["H"] = "Run2016H Legacy, 8.8 fb^{-1}";
-	lumimap["GH"] = "Run2016fGH Legacy, 16.8 fb^{-1}";
-	lumimap["BCDEF"] = "Run2016BCDEF Legacy, 19.7 fb^{-1}";
-	lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
-	lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
-	lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
+	//map<string, const char*> lumimap;
+	//lumimap["BCD"] = "Run2016BCD Legacy, 12.9 fb^{-1}";
+	//lumimap["E"] = "Run2016E Legacy, 4.0 fb^{-1}";
+	//lumimap["F"] = "Run2016F Legacy, 2.8 fb^{-1}";//3.1 fb^{-1}";
+	//lumimap["G"] = "Run2016fG Legacy, 8.0 fb^{-1}";
+	//lumimap["H"] = "Run2016H Legacy, 8.8 fb^{-1}";
+	//lumimap["GH"] = "Run2016fGH Legacy, 16.8 fb^{-1}";
+	//lumimap["BCDEF"] = "Run2016BCDEF Legacy, 19.7 fb^{-1}";
+	//lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
+	//lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
+	//lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
+        map<string, const char*> lumimap;
+        lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
+        lumimap["B"] = "Run2018B 7.1 fb^{-1}"; //PdmV Analysis TWiki
+        lumimap["C"] = "Run2018C 6.9 fb^{-1}"; //PdmV Analysis TWiki
+        lumimap["D"] = "Run2018D 31.9 fb^{-1}"; //PdmV Analysis TWiki
+        lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
+        lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
+
+        
 	lumi_13TeV = lumimap[epoch];
 
 	TCanvas *c0 = tdrCanvas(Form("c0_%s_%s",cm,cd), h, 4, 11, true);
