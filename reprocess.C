@@ -39,10 +39,10 @@ const bool rp_debug = false; // verbose messages
 // Appy mass corrections to Z+jet
 bool useFixedFit    =  true; // New
 double fitUncMin  = 0.00000; // Some bug if unc<0?
-bool correctZmmMass =  true; 
-bool correctZeeMass =  true; 
-bool correctGamMass =  true;//false; // V6-although inconsistent
-bool correctUncert  =  true; 
+bool correctZmmMass =  true;//deactivated for 2018v0 
+bool correctZeeMass =  true;//deactivated for 2018v0 
+bool correctGamMass =  true;//deactivated for 2018v0
+bool correctUncert  =  true;//deactivated for 2018v0 
 //set to false for [at least] EGM3 as not redone, yet
 //bool correctZmmMass =  false; 
 //bool correctZeeMass =  false; 
@@ -139,10 +139,11 @@ void reprocess(string epoch="") {
 
 
   map<string,const char*> fdj_files;
-  fdj_files["BCD"] = "BCD";
-  fdj_files["EF"] = "EFearly";
-  fdj_files["GH"] = "FlateGH";
-  fdj_files["BCDEFGH"] = "BCDEFGH";
+  //dummy files, temp
+  fdj_files["A"] = "BCDEFGH";
+  fdj_files["B"] = "BCDEFGH";
+  fdj_files["C"] = "BCDEFGH";
+  fdj_files["ABC"] = "BCDEFGH";
   // Jens Multhaup, 2016 Legacy closure test - V6 applied
   // https://indico.cern.ch/event/715277/#8-closure-test-with-dijet-for
   TFile *fdj = new TFile(Form("rootfiles/L2Res_07Aug2017_V6_ClosureTest_InputGlobalFit/Run%s/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
@@ -158,48 +159,51 @@ void reprocess(string epoch="") {
   // Andrey Popov, April, 2017 (Feb03_L2ResV2)
   // https://indico.cern.ch/event/634367/
   map<string,const char*> fm_files;
-  fm_files["BCD"] = "0428_Run2016BCD"; // also update multijet.C
-  fm_files["EF"] = "0428_Run2016EFearly"; // also update multijet.C
-  fm_files["G"] = "0428_Run2016FlateG"; // also update multijet.C
-  fm_files["H"] = "0428_Run2016H"; // also update multijet.C
-  fm_files["GH"] = "0428_Run2016All";//H"; // duplicate H
-  fm_files["BCDEFGH"] = "0428_Run2016All"; // also update multijet.C
+  //dummy files, temp
+  fm_files["A"] = "0428_Run2016All"; // also update multijet.C
+  fm_files["B"] = "0428_Run2016All"; // also update multijet.C
+  fm_files["C"] = "0428_Run2016All"; // also update multijet.C
+  fm_files["ABC"] = "0428_Run2016All"; // also update multijet.C
   TFile *fmj = new TFile(Form("rootfiles/multijet_2017%s.root",
   		      fm_files[epoch]),"READ");
 
-  // Andrey Popov, March 19, 2018
-  // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
-  //fm_files["BCD"] = "BCD";
-  //fm_files["EF"] = "EFearly";
-  //fm_files["G"] = "FlateGH"; //X
-  //fm_files["H"] = "FlateGH"; //X
-  //fm_files["GH"] = "FlateGH";
-  //fm_files["BCDEFGH"] = "All";
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_180319_2016%s.root",
-  //		      fm_files[epoch]),"READ");
-
-
+//  // Andrey Popov, March 19, 2018
+//  // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
+//  //fm_files["BCD"] = "BCD";
+//  //fm_files["EF"] = "EFearly";
+//  //fm_files["G"] = "FlateGH"; //X
+//  //fm_files["H"] = "FlateGH"; //X
+//  //fm_files["GH"] = "FlateGH";
+//  //fm_files["BCDEFGH"] = "All";
+//  //TFile *fmj = new TFile(Form("rootfiles/multijet_180319_2016%s.root",
+//  //		      fm_files[epoch]),"READ");
+//
+//
   assert(fmj && !fmj->IsZombie());
+  //TFile *fmj =0;
 
-  // Hugues Lattaud, 2016 Legacy re-reco + latest EGM corr (Sep 2018)
-  //https://indico.cern.ch/event/758051/#22-l3res-with-gammajets-based
+  
+  // L3Res GammaJet 2018 RunABC 4 March 2019
+  //Speaker: Lucas Torterotot (Centre National de la Recherche Scientifique (FR))
+  // https://indico.cern.ch/event/802822/
   map<string,const char*> fp_files;
-  fp_files["BCD"] = "BCD";
-  fp_files["EF"] = "EF";
-  fp_files["GH"] = "FGH";
-  fp_files["BCDEFGH"] = "BCDEFGH";
-  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_V15_L2res_run%s.root", fp_files[epoch]),"READ");
+  fp_files["A"] = "A";
+  fp_files["B"] = "B";
+  fp_files["C"] = "C";
+  fp_files["ABC"] = "C"; //dummy, temp
+  //  fp_files["BCDEFGH"] = "BCDEFGH";
+  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_2019-03-01_%s.root", fp_files[epoch]),"READ");
   assert(fp && !fp->IsZombie());
 
-  // Daniel Savoiu, 2016 Legacy re-reco + latest EGM corr (Sep 2018)
-  //https://indico.cern.ch/event/758051/#23-l3res-with-zjets-based-on-s
+  // Daniel Savoiu, Z+Jet  2018 RunABC 4 March 2019
+  // https://indico.cern.ch/event/802822/
   map<string,const char*> fz_files;
-  fz_files["BCD"] = "BCD_2018-09-14";
-  fz_files["EF"] = "EF_2018-09-14";
-  fz_files["GH"] = "GH_2018-09-14";
-  fz_files["BCDEFGH"] = "BCDEFGH_2018-09-14";
-  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_07Aug2017_Summer16_JECV15_Zmm_%s.root",fz_files[epoch]),"READ");
-  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_07Aug2017_Summer16_JECV15_Zee_%s.root",fz_files[epoch]),"READ");
+  fz_files["A"] = "A_2019-03-01";
+  fz_files["B"] = "B_2019-03-01";
+  fz_files["C"] = "C_2019-03-01";
+  fz_files["ABC"] = "ABC_2019-03-01";
+  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zmm_%s.root",fz_files[epoch]),"READ");
+  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zee_%s.root",fz_files[epoch]),"READ");
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
@@ -236,18 +240,18 @@ void reprocess(string epoch="") {
 
   // Smoothen mass corrections
   TF1 *f1mzee = new TF1("f1mzee","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
-                             fzeeptmin, fzeeptmax);
+			     fzeeptmin, fzeeptmax);
   TF1 *f1ezee = new TF1("f1ezee","sqrt([0]+pow(log(0.01*x),2)*[1]"
                         "+pow(log(0.01*x),4)*[2]"
                         "+2*log(0.01*x)*[3]+2*pow(log(0.01*x),2)*[4]"
                         "+2*pow(log(0.01*x),3)*[5])",
-                             fzeeptmin, fzeeptmax);
+			     fzeeptmin, fzeeptmax);
   if (correctZeeMass || correctGamMass) {
     if (useFixedFit) {
       // BCDEFGH fit with minitools/drawZmass.C
-      f1mzee->SetParameters(1.00025, 0.00092, -0.00001);
-      f1ezee->SetParameters( +3.4e-08, +8.29e-08, +1.69e-07,
-                            +1.39e-08, -4.61e-08, -1.48e-08);
+      f1mzee->SetParameters(1.00307, 0.00273, 0.00056);
+      f1ezee->SetParameters(+5.87e-08, +1.89e-07, +3.53e-07,
+			    +2.76e-08, -8.56e-08,    -1e-07);
     }
     else
       hmzee->Fit(f1mzee);
@@ -255,18 +259,18 @@ void reprocess(string epoch="") {
   }
 
   TF1 *f1mzmm = new TF1("f1mzmm","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
-                             fzmmptmin, fzmmptmax);
+			     fzmmptmin, fzmmptmax);
   TF1 *f1ezmm = new TF1("f1ezmm","sqrt([0]+pow(log(0.01*x),2)*[1]"
                         "+pow(log(0.01*x),4)*[2]"
                         "+2*log(0.01*x)*[3]+2*pow(log(0.01*x),2)*[4]"
                         "+2*pow(log(0.01*x),3)*[5])"
-                             ,fzeeptmin, fzeeptmax);
+			     ,fzeeptmin, fzeeptmax);
   if (correctZmmMass) {
     if (useFixedFit) {
       // BCDEFGH fit with minitools/drawZmass.C
-      f1mzmm->SetParameters(0.99865, 0.00000, 0.00000);
-      f1ezmm->SetParameters(+1.25e-08,        +0,        +0,
-                                   +0,        +0,        +0);
+      f1mzmm->SetParameters(0.99859, 0.00000, 0.00000);
+      f1ezmm->SetParameters(+2.23e-08,        +0,        +0,
+			           +0,        +0,        +0);
     }
     else
       hmzmm->Fit(f1mzmm);
@@ -396,29 +400,29 @@ void reprocess(string epoch="") {
   if (epoch=="L4") etas.push_back(make_pair<double,double>(0,2.4));
   // Narrow eta bins for L2Res
   
-  /*
-  //etas.push_back(make_pair<double,double>(0.000,0.261)); 
-  //etas.push_back(make_pair<double,double>(0.261,0.522)); 
-  // PATCH!! V15 gamjet combines 0-0.5 bins
-  etas.push_back(make_pair<double,double>(0.522,0.783)); 
-  //etas.push_back(make_pair<double,double>(0.783,1.044)); 
-  //etas.push_back(make_pair<double,double>(1.044,1.305)); 
-  // PATCH!! V15 gamjet has 0.8-1.1? 
-  //etas.push_back(make_pair<double,double>(1.305,1.479)); 
-  //etas.push_back(make_pair<double,double>(1.479,1.653)); 
-  // PATCH!! V15 gamjet has 1.3-1.7? 
-  etas.push_back(make_pair<double,double>(1.653,1.930)); 
-  etas.push_back(make_pair<double,double>(1.930,2.172)); 
-  etas.push_back(make_pair<double,double>(2.172,2.322)); 
-  etas.push_back(make_pair<double,double>(2.322,2.500)); 
-  etas.push_back(make_pair<double,double>(2.500,2.650)); 
-  etas.push_back(make_pair<double,double>(2.650,2.853)); 
-  etas.push_back(make_pair<double,double>(2.853,2.964)); 
-  etas.push_back(make_pair<double,double>(2.964,3.139)); 
-  etas.push_back(make_pair<double,double>(3.139,3.489)); 
-  etas.push_back(make_pair<double,double>(3.489,3.839)); 
-  etas.push_back(make_pair<double,double>(3.839,5.191));
-  */
+  
+//  etas.push_back(make_pair<double,double>(0.000,0.261)); 
+//  etas.push_back(make_pair<double,double>(0.261,0.522)); 
+//  // PATCH!! V15 gamjet combines 0-0.5 bins
+//  etas.push_back(make_pair<double,double>(0.522,0.783)); 
+//  etas.push_back(make_pair<double,double>(0.783,1.044)); 
+//  etas.push_back(make_pair<double,double>(1.044,1.305)); 
+//  // PATCH!! V15 gamjet has 0.8-1.1? 
+//  etas.push_back(make_pair<double,double>(1.305,1.479)); 
+//  etas.push_back(make_pair<double,double>(1.479,1.653)); 
+//  // PATCH!! V15 gamjet has 1.3-1.7? 
+//  etas.push_back(make_pair<double,double>(1.653,1.930)); 
+//  etas.push_back(make_pair<double,double>(1.930,2.172)); 
+//  etas.push_back(make_pair<double,double>(2.172,2.322)); 
+//  etas.push_back(make_pair<double,double>(2.322,2.500)); 
+//  etas.push_back(make_pair<double,double>(2.500,2.650)); 
+//  etas.push_back(make_pair<double,double>(2.650,2.853)); 
+//  etas.push_back(make_pair<double,double>(2.853,2.964)); 
+//  etas.push_back(make_pair<double,double>(2.964,3.139)); 
+//  etas.push_back(make_pair<double,double>(3.139,3.489)); 
+//  etas.push_back(make_pair<double,double>(3.489,3.839)); 
+//  etas.push_back(make_pair<double,double>(3.839,5.191));
+
   // Wide eta bins for L2L3Res closure
   etas.push_back(make_pair<double,double>(1.305,1.93));
   etas.push_back(make_pair<double,double>(1.93,2.5));
@@ -922,9 +926,11 @@ void reprocess(string epoch="") {
       //s = Form("%s/Summer16_07Aug2017%s_V10M_DATA_L2L3Residual_AK4PFchs.txt",cd,
       s = Form("%s/Summer16_07Aug2017%s_V16M_DATA_L2L3Residual_AK4PFchs.txt",cd,
 	       //s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L2L3Residual_AK4PFchs.txt",cd,
-	       epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : 
-	       //epoch=="L4" ? "BCD" : 
-	       (epoch=="G"||epoch=="H" ? "GH" : epoch.c_str()));
+      //temp
+               "BCDEFGH");
+//	       epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : 
+//	       //epoch=="L4" ? "BCD" : 
+//	       (epoch=="G"||epoch=="H" ? "GH" : epoch.c_str()));
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -987,8 +993,10 @@ void reprocess(string epoch="") {
       //s = Form("%s/Summer16_07Aug2017%s_V10_DATA_L2Residual_AK4PFchs.txt",cd,
       //s = Form("%s/Summer16_07Aug2017%s_V15_DATA_L2Residual_AK4PFchs.txt",cd,
       s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L2Residual_AK4PFchs.txt",cd,
-	       epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : 
-	       (epoch=="G"||epoch=="H" ? "GH" : epoch.c_str()));
+      //temp
+               "BCD");
+//	       epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : 
+//	       (epoch=="G"||epoch=="H" ? "GH" : epoch.c_str()));
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1004,7 +1012,9 @@ void reprocess(string epoch="") {
       //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
       //s = Form("%s/Summer16_07Aug2017%s_V7_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
       //s = Form("%s/Summer16_07Aug2017%s_V10_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      //      s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      //temp
+      s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L1RC_AK4PFchs.txt",cd,"BCD");
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1018,7 +1028,9 @@ void reprocess(string epoch="") {
       //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
       //s = Form("%s/Summer16_07Aug2017%s_V7_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
       //s = Form("%s/Summer16_07Aug2017%s_V10_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      //      s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
+      //temp
+      s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L1FastJet_AK4PFchs.txt",cd,"BCD");
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
