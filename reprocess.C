@@ -39,15 +39,16 @@ const bool rp_debug = false; // verbose messages
 // Appy mass corrections to Z+jet
 bool useFixedFit    =  true; // New
 double fitUncMin  = 0.00000; // Some bug if unc<0?
-bool correctZmmMass =  true;//deactivated for 2018v0 
-bool correctZeeMass =  true;//deactivated for 2018v0 
-bool correctGamMass =  true;//deactivated for 2018v0
-bool correctUncert  =  true;//deactivated for 2018v0 
-//set to false for [at least] EGM3 as not redone, yet
-//bool correctZmmMass =  false; 
-//bool correctZeeMass =  false; 
-//bool correctGamMass =  false;
-//bool correctUncert  =  false; 
+// Mass corrections switched on for V5M
+bool correctZmmMass =  true;
+bool correctZeeMass =  true;
+bool correctGamMass =  true;
+bool correctUncert  =  true;
+// Mass corrections switched off to validate them with minitools/drawZeeVsZmm.C
+// bool correctZmmMass =  false; 
+// bool correctZeeMass =  false; 
+// bool correctGamMass =  false;
+// bool correctUncert  =  false; 
 
 //string EGM_Config = "EGM3";
 //EGM1: raw Supercluster
@@ -71,22 +72,22 @@ double valueGamScale = 1.;
 /////////////////////////////////////
 
 // Minimum pTcut for gamma+jet
-double fpmpfptmin(100.);//100.);//30.);//80.); // photon+jet MPF
-double fpbalptmin(100.);//100.);//30.);//180.); // photon+jet pTbal
+double fpmpfptmin(100.); // photon+jet MPF
+double fpbalptmin(100.); // photon+jet pTbal
 double fzeeptmin(30.); // Zee+jet
 double fzmmptmin(30.); // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
 double fzmpfptmin(30.); // Z+jet MPF
-double fzbalptmin(100.);//30.);//80.); // Z+jet pTbal
+double fzbalptmin(100.); // Z+jet pTbal
 
 // Maximum pTcut for samples (to avoid bins with too large uncertainty)
 double fpmpfptmax(1500.); // photon+jet MPF
-double fpbalptmax(700.);//1500.);//700.);  // photon+jet pTbal 
+double fpbalptmax(700.);  // photon+jet pTbal 
 double fzeeptmax(700.); // Zee+jet
-double fzmmptmax(700.); // Zmm+jet 
+double fzmmptmax(700); // Zmm+jet 
 // Additional cuts to Z+jet MPF / balance methods
-double fzmpfptmax(500.);//700.);//500.); // Z+jet MPF
-double fzbalptmax(300);//700.);//400.); // Z+jet pTbal
+double fzmpfptmax(500.); // Z+jet MPF
+double fzbalptmax(300.); // Z+jet pTbal
 
 
 //for fine etabins deactivate ptbal
@@ -240,18 +241,18 @@ void reprocess(string epoch="") {
 
   // Smoothen mass corrections
   TF1 *f1mzee = new TF1("f1mzee","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
-			     fzeeptmin, fzeeptmax);
+                             fzeeptmin, fzeeptmax);
   TF1 *f1ezee = new TF1("f1ezee","sqrt([0]+pow(log(0.01*x),2)*[1]"
                         "+pow(log(0.01*x),4)*[2]"
                         "+2*log(0.01*x)*[3]+2*pow(log(0.01*x),2)*[4]"
                         "+2*pow(log(0.01*x),3)*[5])",
-			     fzeeptmin, fzeeptmax);
+                             fzeeptmin, fzeeptmax);
   if (correctZeeMass || correctGamMass) {
     if (useFixedFit) {
-      // BCDEFGH fit with minitools/drawZmass.C
+      // ABC fit with minitools/drawZmass.C
       f1mzee->SetParameters(1.00307, 0.00273, 0.00056);
       f1ezee->SetParameters(+5.87e-08, +1.89e-07, +3.53e-07,
-			    +2.76e-08, -8.56e-08,    -1e-07);
+                            +2.76e-08, -8.56e-08,    -1e-07);
     }
     else
       hmzee->Fit(f1mzee);
@@ -259,18 +260,18 @@ void reprocess(string epoch="") {
   }
 
   TF1 *f1mzmm = new TF1("f1mzmm","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
-			     fzmmptmin, fzmmptmax);
+                             fzmmptmin, fzmmptmax);
   TF1 *f1ezmm = new TF1("f1ezmm","sqrt([0]+pow(log(0.01*x),2)*[1]"
                         "+pow(log(0.01*x),4)*[2]"
                         "+2*log(0.01*x)*[3]+2*pow(log(0.01*x),2)*[4]"
                         "+2*pow(log(0.01*x),3)*[5])"
-			     ,fzeeptmin, fzeeptmax);
+                             ,fzeeptmin, fzeeptmax);
   if (correctZmmMass) {
     if (useFixedFit) {
-      // BCDEFGH fit with minitools/drawZmass.C
+      // ABC fit with minitools/drawZmass.C
       f1mzmm->SetParameters(0.99859, 0.00000, 0.00000);
       f1ezmm->SetParameters(+2.23e-08,        +0,        +0,
-			           +0,        +0,        +0);
+                                   +0,        +0,        +0);
     }
     else
       hmzmm->Fit(f1mzmm);
@@ -911,61 +912,39 @@ void reprocess(string epoch="") {
 
     const char *s, *s2;
     const char *cd = "CondFormats/JetMETObjects/data";
-    const char *ce = epoch.c_str();
+    const char *ce = (epoch=="ABC" ? "A" : epoch.c_str());
     
     // New JEC for plotting on the back
     FactorizedJetCorrector *jec;
     FactorizedJetCorrector *jec2(0), *jec3(0); // for BCDEFGH
     double jecw1(1), jecw2(0), jecw3(0);       // for BCDEFGH
     {
-      //s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_MPF_LOGLIN_%s_L2L3Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017 with L3 from V3
-      //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //s = Form("%s/Summer16_07Aug2017%s_V4_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      //s = Form("%s/Summer16_07Aug2017%s_V7_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      //s = Form("%s/Summer16_07Aug2017%s_V10M_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      s = Form("%s/Summer16_07Aug2017%s_V16M_DATA_L2L3Residual_AK4PFchs.txt",cd,
-	       //s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      //temp
-               "BCDEFGH");
-//	       epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : 
-//	       //epoch=="L4" ? "BCD" : 
-//	       (epoch=="G"||epoch=="H" ? "GH" : epoch.c_str()));
+      s = Form("%s/Autumn18_Run%s_V5M_DATA_L2L3Residual_AK4PFchs.txt",cd,ce);
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
       vpar.push_back(*par_l2l3res);
       jec = new FactorizedJetCorrector(vpar);
 
-      if (epoch=="BCDEFGH") {
+      if (epoch=="ABC") {
 
-	jecw1 = 12.9/36.5;
+	jecw1 = 14.0/28.0;
 
-	//s=Form("%s/Summer16_07Aug2017EF_V6_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s=Form("%s/Summer16_07Aug2017EF_V7_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s=Form("%s/Summer16_07Aug2017EF_V10M_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s=Form("%s/Summer16_07Aug2017EF_V16_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	s=Form("%s/Summer16_07Aug2017EF_V16M_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s=Form("%s/Summer16_07Aug2017BCDEFGH_V16M_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Autumn18_RunB_V5M_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
-	JetCorrectorParameters *par_ef = new JetCorrectorParameters(s);
-	vector<JetCorrectorParameters> vpar_ef;
-	vpar_ef.push_back(*par_ef);
-	jec2 = new FactorizedJetCorrector(vpar_ef);
-	jecw2 = 6.8/36.5;
+	JetCorrectorParameters *par_b = new JetCorrectorParameters(s);
+	vector<JetCorrectorParameters> vpar_b;
+	vpar_b.push_back(*par_b);
+	jec2 = new FactorizedJetCorrector(vpar_b);
+	jecw2 = 7.1/28.0;
 
-	//s=Form("%s/Summer16_07Aug2017GH_V6_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s=Form("%s/Summer16_07Aug2017GH_V7_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s=Form("%s/Summer16_07Aug2017GH_V10M_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s=Form("%s/Summer16_07Aug2017GH_V16_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	s=Form("%s/Summer16_07Aug2017GH_V16M_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s=Form("%s/Summer16_07Aug2017BCDEFGH_V16M_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Autumn18_RunC_V5M_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
-	JetCorrectorParameters *par_gh = new JetCorrectorParameters(s);
-	vector<JetCorrectorParameters> vpar_gh;
-	vpar_gh.push_back(*par_gh);
-	jec3 = new FactorizedJetCorrector(vpar_gh);
-	jecw3 = 16.8/36.5;
+	JetCorrectorParameters *par_c = new JetCorrectorParameters(s);
+	vector<JetCorrectorParameters> vpar_c;
+	vpar_c.push_back(*par_c);
+	jec3 = new FactorizedJetCorrector(vpar_c);
+	jecw3 = 6.9/28.0;
       }
     }
 
@@ -985,18 +964,7 @@ void reprocess(string epoch="") {
     // But even with this pT-dependent L2Res can cause problems
     FactorizedJetCorrector *jecold;
     {
-      //s = Form("%s/Summer16_03Feb2017_10Oct2017_Val_MPF_LOGLIN_%s_L2Residual_pythia8_AK4PFchs.txt",cd,epoch=="GH"||epoch=="L4" ? "G" : (epoch=="E"||epoch=="F" ? "EF" : (epoch=="BCDEF" ||epoch=="BCDEFGH" ? "BCDEFGH" : ce))); // 03Feb 10Oct2017
-      //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L2Residual_AK4PFchs.txt",cd,
-      //s = Form("%s/Summer16_07Aug2017%s_V7_DATA_L2Residual_AK4PFchs.txt",cd,
-      //s = Form("%s/Summer16_07Aug2017%s_V10_DATA_L2Residual_AK4PFchs.txt",cd,
-      //s = Form("%s/Summer16_07Aug2017%s_V15_DATA_L2Residual_AK4PFchs.txt",cd,
-      s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L2Residual_AK4PFchs.txt",cd,
-      //temp
-               "BCD");
-//	       epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : 
-//	       (epoch=="G"||epoch=="H" ? "GH" : epoch.c_str()));
+      s = Form("%s/Autumn18_Run%s_V5_DATA_L2Residual_AK4PFchs.txt",cd,ce);
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1007,14 +975,7 @@ void reprocess(string epoch="") {
     // Difference between pT-dependent and flat L1
     FactorizedJetCorrector *jecl1flat;
     {
-      //s = Form("%s/Summer16_03Feb2017%s_V3_DATA_L1RC_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce));
-      //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //s = Form("%s/Summer16_07Aug2017%s_V7_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //s = Form("%s/Summer16_07Aug2017%s_V10_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //      s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //temp
-      s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L1RC_AK4PFchs.txt",cd,"BCD");
+      s = Form("%s/Autumn18_Run%s_V5_DATA_L1RC_AK4PFchs.txt",cd,ce);
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1023,14 +984,7 @@ void reprocess(string epoch="") {
     }
     FactorizedJetCorrector *jecl1pt;
     {
-      //s = Form("%s/Summer16_03Feb2017%s_V3_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="GH"||epoch=="BCDEFGH"||epoch=="L4" ? "G" : (epoch=="BCDEF" ? "BCD" : ce)); 
-      //s = Form("%s/Summer16_03Feb2017%s_V8_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //s = Form("%s/Summer16_07Aug2017%s_V6_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //s = Form("%s/Summer16_07Aug2017%s_V7_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //s = Form("%s/Summer16_07Aug2017%s_V10_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //      s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEFGH"||epoch=="L4" ? "BCD" : epoch.c_str());
-      //temp
-      s = Form("%s/Summer16_07Aug2017%s_V16_DATA_L1FastJet_AK4PFchs.txt",cd,"BCD");
+      s = Form("%s/Autumn18_Run%s_V5_DATA_L1FastJet_AK4PFchs.txt",cd,ce);
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1039,7 +993,7 @@ void reprocess(string epoch="") {
     }
     FactorizedJetCorrector *jecl1mc;
     {
-      s = Form("%s/Summer16_07Aug2017_V15_MC_L1FastJet_AK4PFchs.txt",cd);
+      s = Form("%s/Autumn18_V5_MC_L1FastJet_AK4PFchs.txt",cd);
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1056,24 +1010,14 @@ void reprocess(string epoch="") {
     JetCorrectionUncertainty *unc_ref1 = new JetCorrectionUncertainty(*p_ref1);
 
     // Total uncertainty, excluding Flavor and Time
-    //s = Form("%s/Summer16_03Feb2017_V3_DATA_UncertaintySources_AK4PFchs.txt",cd); // Sum16
-    //s = Form("%s/Summer16_03Feb2017BCD_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer16_07Aug2017BCD_V6_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer16_07Aug2017BCD_V7_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer16_07Aug2017BCD_V10_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    s = Form("%s/Summer16_07Aug2017BCD_V16_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s = Form("%s/Autumn18_RunA_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
     JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p_unc);
 
     // Partial uncertainties
-    //s = Form("%s/Summer16_03Feb2017_V3_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer16_03Feb2017BCD_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer16_07Aug2017BCD_V6_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer16_07Aug2017BCD_V7_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s = Form("%s/Summer16_07Aug2017BCD_V10_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    s = Form("%s/Summer16_07Aug2017BCD_V16_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s = Form("%s/Autumn18_RunA_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
     //s2 = "TotalNoFlavorNoTime";
     s2 = "SubTotalAbsolute"; // 07AugV4
     cout << s << ":" << s2 << endl << flush;
@@ -1200,7 +1144,7 @@ void reprocess(string epoch="") {
 	  jec->setJetPt(pt);
 	  double val = (epoch=="L4" ? 1 : 1./jec->getCorrection());
 
-	  if (epoch=="BCDEFGH") {
+	  if (epoch=="ABC") {
 	    assert(jec2); assert(jec3);
 	    assert(fabs(jecw1+jecw2+jecw3-1)<1e-4);
 

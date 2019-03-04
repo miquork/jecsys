@@ -45,7 +45,7 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
 
   double ptmax = 2.*1200.;
   TH1D *hup = new TH1D("hup",";p_{T,Z} (GeV);Data / MC",670,30,ptmax);
-  hup->SetMinimum(0.96);
+  hup->SetMinimum(0.94);//0.96);
   hup->SetMaximum(1.01);
   hup->GetXaxis()->SetMoreLogLabels();
   hup->GetXaxis()->SetNoExponent();
@@ -57,12 +57,12 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
   hdw->GetXaxis()->SetNoExponent();
 
   map<string, const char*> lumimap;
-  lumimap["BCD"] = "Run2016BCD Legacy, 12.9 fb^{-1}";
-  lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
-  lumimap["FG"] = "Run2016fG Legacy, 8.0 fb^{-1}";
-  lumimap["H"] = "Run2016H Legacy, 8.8 fb^{-1}";
-  lumimap["GH"] = "Run2016fGH Legacy, 16.8 fb^{-1}";
-  lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
+  lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["B"] = "Run2018B 7.1 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["C"] = "Run2018C 6.9 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["D"] = "Run2018D 31.9 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
   lumi_13TeV = lumimap[run];
   TCanvas *c1 = tdrDiCanvas("c1",hdw,hup,4,11);
 
@@ -187,19 +187,14 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
   TF1 *f1mzee = new TF1("f1mzee","([3]/([0]+[1]*log(0.01*x)"
 			"+[2]*pow(log(0.01*x),2))"
 			"-1)*100", 30, ptmax);
-  // BCDEFGH fit with minitools/drawZmass.C
-  //f1mzee->SetParameters(0.99885, 0.00176, 0.00135, 0.99868);//EGM1
-  //f1mzee->SetParameters(1.00017, 0.00166, 0.00114, 0.99868);//EGM2
-  //f1mzee->SetParameters(1.00279, 0.00166, 0.00112, 0.99868);//EGM3
-  f1mzee->SetParameters(1.00025, 0.00092, -0.00001, 0.99865);//V15
-  //f1ezee->SetParameters(7.54e-05, 1.41e-05, 1.63e-07,
-  //			-3.26e-05, 3.47e-06, -1.51e-06);
+  // ABC fit with minitools/drawZmass.C (f1mzee x 3 + f1mzmm x 1)
+  f1mzee->SetParameters(1.00307, 0.00273, 0.00056, 0.99859); // V5
 
   // Zee mass applied to gamma+jet at pT,Z=2*pT,gamma
   TF1 *f1mgam = new TF1("f1mgam","([3]/([0]+[1]*log(0.01*x*2)"
                         "+[2]*pow(log(0.01*x*2),2))"
                         "-1)*100", 30, ptmax);
-  f1mgam->SetParameters(1.00025, 0.00092, -0.00001, 0.99865);//V15
+  f1mgam->SetParameters(1.00307, 0.00273, 0.00056, 0.99859); // V5
 
   c1->cd(1);
   f1mzee->SetLineStyle(kSolid);
@@ -213,5 +208,7 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
 
   gPad->Update();
 
-  c1->SaveAs(Form("../pdf/drawZeeVsZmm_Run%s.pdf",run.c_str()));
+  //c1->SaveAs(Form("../pdf/drawZeeVsZmm_Run%s.pdf",run.c_str()));
+  //c1->SaveAs(Form("../pdf/drawZeeVsZmm_Run%s_nomasscorr.pdf",run.c_str()));
+  c1->SaveAs(Form("../pdf/drawZeeVsZmm_Run%s_masscorr.pdf",run.c_str()));
 }

@@ -49,8 +49,11 @@
   // => multijet central values now old, but FSR still needed
   multijet(false,epoch);
   multijet(true,epoch);
-  // Perform final global fit (goes into GT)
-  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="B"||epoch=="ABC" ? "zee_zmm" : "gam_zee_zmm", "PtBalMPF");
+  // Perform final global fit (goes into GT) - 2018v0
+  //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="B"||epoch=="ABC" ? "zee_zmm" : "gam_zee_zmm", "PtBalMPF");
+  // Perform final global fit (goes into GT) - 2018 V5M
+  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="B"||epoch=="ABC" ? "zll" : "gam_zll", "PtBalMPF");
+
 ////  
 ////  //now do narrow bins for L2Res
 ////  // Calculate soft radiation (ISR+FSR) corrections

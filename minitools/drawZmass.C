@@ -10,15 +10,11 @@
 
 bool ispr = true;
 
-void drawZmass(string run="BCDEFGH") {
+void drawZmass(string run="ABC") {
 
   setTDRStyle();
 
   TFile *f = new TFile(Form("../rootfiles/jecdata%s.root",run.c_str()),"READ");
-  //TFile *f = new TFile("../rootfiles/jecdataBCDEFGH.root","READ");
-  //TFile *f = new TFile("../rootfiles/jecdataGH.root","READ");
-  //TFile *f = new TFile("../rootfiles/jecdataEF.root","READ");
-  //TFile *f = new TFile("../rootfiles/jecdataBCD.root","READ");
   assert(f && !f->IsZombie());
 
   TGraphErrors *gzmmd = (TGraphErrors*)f->Get("data/eta00-13/mass_zmmjet_a30");
@@ -37,19 +33,17 @@ void drawZmass(string run="BCDEFGH") {
 
   double ptmax = 1200.*2.;
   TH1D *hup = new TH1D("hup",";p_{T,Z} (GeV);m_{Z} (GeV)",670,30,ptmax);
-  hup->SetMinimum(90.5);//88.5);
-  hup->SetMaximum(92.5);//94.5);
+  hup->SetMinimum(90.0);//90.5);
+  hup->SetMaximum(93.0);//92.5);
   hup->GetXaxis()->SetMoreLogLabels();
   hup->GetXaxis()->SetNoExponent();
 
   TH1D *hdw = new TH1D("hdw",";p_{T,Z} (GeV);Data / MC - 1 (%)",670,30,ptmax);
   hdw->SetMinimum((0.990+1e-5-1)*100);
-  //hdw->SetMaximum(1.010+1e-5);
   hdw->SetMaximum((1.025+1e-5-1)*100);
   hdw->GetXaxis()->SetMoreLogLabels();
   hdw->GetXaxis()->SetNoExponent();
 
-  //lumi_13TeV = "Run2016BCDEFGH 36.5 fb^{-1}";
   //extraText = "Private Work";
   map<string, const char*> lumimap;
   lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
@@ -58,17 +52,9 @@ void drawZmass(string run="BCDEFGH") {
   lumimap["D"] = "Run2018D 31.9 fb^{-1}"; //PdmV Analysis TWiki
   lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
   lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
-  //map<string, const char*> lumimap;
-  //lumimap["BCD"] = "Run2016BCD Legacy, 12.9 fb^{-1}";
-  //lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
-  //lumimap["FG"] = "Run2016fG Legacy, 8.0 fb^{-1}";
-  //lumimap["H"] = "Run2016H Legacy, 8.8 fb^{-1}";
-  //lumimap["GH"] = "Run2016fGH Legacy, 16.8 fb^{-1}";
-  //lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
   lumi_13TeV = lumimap[run];
   TCanvas *c1 = tdrDiCanvas("c1",hdw,hup,4,11);
 
-  //c1->cd(1);
   c1->cd(2);
   gPad->SetLogx();
 
@@ -84,7 +70,6 @@ void drawZmass(string run="BCDEFGH") {
   tdrDraw(gzmmm,"Pz",kOpenCircle,kRed);
 
 
-  //c1->cd(2);
   c1->cd(1);
   gPad->SetLogx();
 
@@ -96,18 +81,7 @@ void drawZmass(string run="BCDEFGH") {
   TF1 *f1jec = new TF1("f1jec","(([0]+[1]*log(0.01*x)"
 			"+[2]*pow(log(0.01*x),2))"
 			"-1)*100", 30, ptmax);
-  //TF1 *f1ezee = new TF1("f1ezee","sqrt([0]+pow(log(2*x),2)*[1]"
-  //			"+pow(log(2*x),4)*[2]+2*log(2*x)*[3]"
-  //			"+2*pow(log(2*x),2)*[4]+2*pow(log(2*x),3)*[5])"
-  //			,30,ptmax);
-  // BCDEFGH fit with minitools/drawZmass.C
-  //f1mzee->SetParameters(1.01732, -0.00909, 0.00116, 0.99855);
-  //f1jec->SetParameters(0.99885, 0.00176, 0.00135);//EGM1
-  //f1jec->SetParameters(1.00017, 0.00166, 0.00114);//EGM2
-  //f1jec->SetParameters(1.00279, 0.00166, 0.00112);//EGM3
-  f1jec->SetParameters(1.00025, 0.00092, -0.00001); //V15
-  //f1ezee->SetParameters(7.54e-05, 1.41e-05, 1.63e-07,
-  //			-3.26e-05, 3.47e-06, -1.51e-06);
+  f1jec->SetParameters(1.00307, 0.00273, 0.00056); // V5M
   f1jec->SetLineColor(kBlack);
   f1jec->SetLineWidth(2);
   f1jec->Draw("SAME");
@@ -183,7 +157,7 @@ void drawZmass(string run="BCDEFGH") {
     "			     fzeeptmin, fzeeptmax);\n"
     "  if (correctZeeMass || correctGamMass) {\n"
     "    if (useFixedFit) {\n"
-    "      // BCDEFGH fit with minitools/drawZmass.C\n";
+    "      // ABC fit with minitools/drawZmass.C\n";
   cout << Form(""
 	       "      f1mzee->SetParameters(%1.5f, %1.5f, %1.5f);\n"
 	       "      f1ezee->SetParameters(%+9.3g, %+9.3g, %+9.3g,\n"
@@ -243,7 +217,7 @@ void drawZmass(string run="BCDEFGH") {
     "			     ,fzeeptmin, fzeeptmax);\n"
     "  if (correctZmmMass) {\n"
     "    if (useFixedFit) {\n"
-    "      // BCDEFGH fit with minitools/drawZmass.C\n";
+    "      // ABC fit with minitools/drawZmass.C\n";
   cout << Form(""
 	       "      f1mzmm->SetParameters(%1.5f, %1.5f, %1.5f);\n"
 	       "      f1ezmm->SetParameters(%+9.3g, %+9.3g, %+9.3g,\n"

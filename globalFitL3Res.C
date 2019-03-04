@@ -890,6 +890,34 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     hs.push_back(h2);
   } // for i
 
+  // *** NEW for 2018 V5M ***
+  // Additional uncertainties for pT balance shape so that
+  // it is not given more weight than MPF with footprint uncertainty
+  // (one for each sample x method, but all except two are empty)
+  for (unsigned int i = 0; i != _vdt->size(); ++i) {
+
+    string s = samples[i%nsamples]; const char *cs = s.c_str();
+    string m = methods[i/nsamples]; const char *cm = m.c_str();
+
+    double escale(0);
+    if (s=="gamjet" && m=="ptchs") { escale = 0.005; }
+    if (s=="zeejet" && m=="ptchs") { escale = 0.005; }
+    if (s=="zmmjet" && m=="ptchs") { escale = 0.005; }
+    if (s=="zlljet" && m=="ptchs") { escale = 0.005; }
+
+    TH1D *h = hs[i]; assert(h);
+    TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_%s_%02.0f_%s_%s_%d",
+				    1<<i,
+				    escale!=0 ? "ptbalscale" : "inactive",
+				    escale*1000.,cm,cs,i));
+    
+    for (int j = 1; j != h2->GetNbinsX()+1; ++j) {
+      h2->SetBinContent(j, escale);
+      h2->SetBinError(j, escale);
+    } // for j
+    hs.push_back(h2);
+  } // for i
+
   // MPF uncertainties from offset pT dependence and type-I
   /*
   for (unsigned int i = 0; i != _vdt->size(); ++i) {
@@ -1239,7 +1267,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //legm->AddEntry(herr_ref,"07AugV7","FL");
   //legm->AddEntry(herr_ref,"Run II","FL");
   //legm->AddEntry(herr_ref,"V10","FL");
-  legm->AddEntry(herr_ref,"V16M","FL");
+  //legm->AddEntry(herr_ref,"V16M","FL");
+  legm->AddEntry(herr_ref,"V5M","FL");
 
 
   ///////////////////////
