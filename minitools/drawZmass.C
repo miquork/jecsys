@@ -77,11 +77,11 @@ void drawZmass(string run="ABC") {
   //tdrDraw(gzeer,"Pz",kFullSquare,kGreen+2);
   //tdrDraw(gzmmr,"Pz",kFullCircle,kRed);
 
-  // Plot the fit used in reprocess.C
+  // Plot the fit used in reprocess.C (f1mzee)
   TF1 *f1jec = new TF1("f1jec","(([0]+[1]*log(0.01*x)"
 			"+[2]*pow(log(0.01*x),2))"
 			"-1)*100", 30, ptmax);
-  f1jec->SetParameters(1.00307, 0.00273, 0.00056); // V5M
+  f1jec->SetParameters(1.00298, 0.00260, 0.00026); // V5M2
   f1jec->SetLineColor(kBlack);
   f1jec->SetLineWidth(2);
   f1jec->Draw("SAME");
@@ -157,7 +157,7 @@ void drawZmass(string run="ABC") {
     "			     fzeeptmin, fzeeptmax);\n"
     "  if (correctZeeMass || correctGamMass) {\n"
     "    if (useFixedFit) {\n"
-    "      // ABC fit with minitools/drawZmass.C\n";
+    "      // ABCD fit with minitools/drawZmass.C\n";
   cout << Form(""
 	       "      f1mzee->SetParameters(%1.5f, %1.5f, %1.5f);\n"
 	       "      f1ezee->SetParameters(%+9.3g, %+9.3g, %+9.3g,\n"

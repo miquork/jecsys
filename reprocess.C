@@ -272,10 +272,10 @@ void reprocess(string epoch="") {
                              fzeeptmin, fzeeptmax);
   if (correctZeeMass || correctGamMass) {
     if (useFixedFit) {
-      // ABC fit with minitools/drawZmass.C
-      f1mzee->SetParameters(1.00307, 0.00273, 0.00056);
-      f1ezee->SetParameters(+5.87e-08, +1.89e-07, +3.53e-07,
-                            +2.76e-08, -8.56e-08,    -1e-07);
+      // ABCD fit with minitools/drawZmass.C
+      f1mzee->SetParameters(1.00298, 0.00260, 0.00026);
+      f1ezee->SetParameters(+4.47e-08, +1.25e-07, +2.31e-07,
+                            +2.07e-08, -6.12e-08, -5.18e-08);
     }
     else
       hmzee->Fit(f1mzee);
@@ -292,8 +292,8 @@ void reprocess(string epoch="") {
   if (correctZmmMass) {
     if (useFixedFit) {
       // ABC fit with minitools/drawZmass.C
-      f1mzmm->SetParameters(0.99859, 0.00000, 0.00000);
-      f1ezmm->SetParameters(+2.23e-08,        +0,        +0,
+      f1mzmm->SetParameters(0.99851, 0.00000, 0.00000);
+      f1ezmm->SetParameters( +1.7e-08,        +0,        +0,
                                    +0,        +0,        +0);
     }
     else
@@ -302,6 +302,7 @@ void reprocess(string epoch="") {
   }
 
   // \END copy-paste from minitools/drawZmass.C
+
 
   // Link to Z+jet 2D distribution for JEC calculations
   // This is used for correctly averaging JEC and its uncertainty
@@ -944,7 +945,7 @@ void reprocess(string epoch="") {
     double jecw1(1), jecw2(0), jecw3(0);       // for ABC
     double jecABCDw1(1), jecABCDw2(0), jecABCDw3(0), jecABCDw4(0);       // for ABCD
     {
-      s = Form("%s/Autumn18_Run%s_V5M_DATA_L2L3Residual_AK4PFchs.txt",cd,ce);
+      s = Form("%s/Autumn18_Run%s_V5M2_DATA_L2L3Residual_AK4PFchs.txt",cd,ce);
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -956,7 +957,7 @@ void reprocess(string epoch="") {
 	jecw1 = 14.0/28.0;
 	jecABCDw1 = 14.0/59.9;
 
-	s=Form("%s/Autumn18_RunB_V5M_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Autumn18_RunB_V5M2_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_b = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_b;
@@ -965,7 +966,7 @@ void reprocess(string epoch="") {
 	jecw2 = 7.1/28.0;
 	jecABCDw2 = 7.1/59.9;
 
-	s=Form("%s/Autumn18_RunC_V5M_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Autumn18_RunC_V5M2_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_c = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_c;
@@ -974,7 +975,7 @@ void reprocess(string epoch="") {
 	jecw3 = 6.9/28.0;
 	jecABCDw3 = 6.9/59.9;
 
-      	s=Form("%s/Autumn18_RunD_V5M_DATA_L2L3Residual_AK4PFchs.txt",cd);
+      	s=Form("%s/Autumn18_RunD_V5M2_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_d = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_d;

@@ -48,7 +48,7 @@ double ptreco_gjet = 15.; // min jet pT when evaluating alphamax for gamma+jet
 double ptreco_zjet = 5.; // same for Z+jet
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
 bool _paper = false;//true;
-bool _useZoom = false;
+bool _useZoom = true;
 double _cleanUncert = 0.05; // for eta>2
 //double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
@@ -890,7 +890,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     hs.push_back(h2);
   } // for i
 
-  // *** NEW for 2018 V5M ***
+  // *** NEW for 2018 V5M, V5M2 ***
   // Additional uncertainties for pT balance shape so that
   // it is not given more weight than MPF with footprint uncertainty
   // (one for each sample x method, but all except two are empty)
@@ -1268,7 +1268,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //legm->AddEntry(herr_ref,"Run II","FL");
   //legm->AddEntry(herr_ref,"V10","FL");
   //legm->AddEntry(herr_ref,"V16M","FL");
-  legm->AddEntry(herr_ref,"V5M","FL");
+  legm->AddEntry(herr_ref,"V5M2","FL");
 
 
   ///////////////////////
