@@ -144,7 +144,9 @@ void reprocess(string epoch="") {
   fdj_files["A"] = "BCDEFGH";
   fdj_files["B"] = "BCDEFGH";
   fdj_files["C"] = "BCDEFGH";
+  fdj_files["D"] = "BCDEFGH";
   fdj_files["ABC"] = "BCDEFGH";
+  fdj_files["ABCD"] = "BCDEFGH";
   // Jens Multhaup, 2016 Legacy closure test - V6 applied
   // https://indico.cern.ch/event/715277/#8-closure-test-with-dijet-for
   TFile *fdj = new TFile(Form("rootfiles/L2Res_07Aug2017_V6_ClosureTest_InputGlobalFit/Run%s/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
@@ -164,7 +166,9 @@ void reprocess(string epoch="") {
   fm_files["A"] = "0428_Run2016All"; // also update multijet.C
   fm_files["B"] = "0428_Run2016All"; // also update multijet.C
   fm_files["C"] = "0428_Run2016All"; // also update multijet.C
+  fm_files["D"] = "0428_Run2016All"; // also update multijet.C
   fm_files["ABC"] = "0428_Run2016All"; // also update multijet.C
+  fm_files["ABCD"] = "0428_Run2016All"; // also update multijet.C
   TFile *fmj = new TFile(Form("rootfiles/multijet_2017%s.root",
   		      fm_files[epoch]),"READ");
 
@@ -192,6 +196,8 @@ void reprocess(string epoch="") {
   fp_files["B"] = "B";
   fp_files["C"] = "C";
   fp_files["ABC"] = "C"; //dummy, temp
+  fp_files["ABCD"] = "C"; //dummy, temp
+  fp_files["ABCD"] = "C"; //dummy, temp
   //  fp_files["BCDEFGH"] = "BCDEFGH";
   TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_2019-03-01_%s.root", fp_files[epoch]),"READ");
   assert(fp && !fp->IsZombie());
@@ -202,7 +208,9 @@ void reprocess(string epoch="") {
   fz_files["A"] = "A_2019-03-01";
   fz_files["B"] = "B_2019-03-01";
   fz_files["C"] = "C_2019-03-01";
+  fz_files["D"] = "C_2019-03-05";
   fz_files["ABC"] = "ABC_2019-03-01";
+  fz_files["ABCD"] = "ABCD_2019-03-05";
   TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zmm_%s.root",fz_files[epoch]),"READ");
   TFile *fzee = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zee_%s.root",fz_files[epoch]),"READ");
   assert(fzmm && !fzmm->IsZombie());

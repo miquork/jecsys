@@ -177,7 +177,9 @@ void multijet(bool usemjb = true, string epoch="") {
   fm_files["A"] = "All"; // also update multijet.C
   fm_files["B"] = "All"; // also update multijet.C
   fm_files["C"] = "All"; // also update multijet.C
+  fm_files["D"] = "All"; // also update multijet.C
   fm_files["ABC"] = "All"; // also update multijet.C
+  fm_files["ABCD"] = "All"; // also update multijet.C
 
 //  fm_files["BCD"] = "BCD";
 //  fm_files["EF"] = "EFearly";
