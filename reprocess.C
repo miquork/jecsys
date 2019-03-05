@@ -196,21 +196,36 @@ void reprocess(string epoch="") {
   fp_files["B"] = "B";
   fp_files["C"] = "C";
   fp_files["ABC"] = "C"; //dummy, temp
-  fp_files["ABCD"] = "C"; //dummy, temp
+  fp_files["D"] = "C"; //dummy, temp
   fp_files["ABCD"] = "C"; //dummy, temp
   //  fp_files["BCDEFGH"] = "BCDEFGH";
   TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_2019-03-01_%s.root", fp_files[epoch]),"READ");
   assert(fp && !fp->IsZombie());
 
+  ////temporary dummy files from 2016 to get eta-binned fit to work
+  //map<string,const char*> fp_files;
+  //fp_files["A"] = "BCDEFGH";
+  //fp_files["B"] = "BCDEFGH";
+  //fp_files["C"] = "BCDEFGH";
+  //fp_files["ABC"] = "BCDEFGH"; //dummy, temp
+  //fp_files["D"] = "BCDEFGH"; //dummy, temp
+  //fp_files["ABCD"] = "BCDEFGH"; //dummy, temp
+  ////  fp_files["BCDEFGH"] = "BCDEFGH";
+  //TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_L2res_V6_%s_2016.root", fp_files[epoch]),"READ");
+  //assert(fp && !fp->IsZombie());
+
+  
   // Daniel Savoiu, Z+Jet  2018 RunABC 4 March 2019
   // https://indico.cern.ch/event/802822/
   map<string,const char*> fz_files;
   fz_files["A"] = "A_2019-03-01";
   fz_files["B"] = "B_2019-03-01";
   fz_files["C"] = "C_2019-03-01";
-  fz_files["D"] = "C_2019-03-05";
+  fz_files["D"] = "D_2019-03-05";
   fz_files["ABC"] = "ABC_2019-03-01";
   fz_files["ABCD"] = "ABCD_2019-03-05";
+  string scr = (epoch=="D"||epoch=="ABCD"? "L1L2L3" : "L1L2Res"); // need to distinguish correction levels: L1L2Res not available for D/ABCD
+  const char *ccr = scr.c_str();
   TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zmm_%s.root",fz_files[epoch]),"READ");
   TFile *fzee = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zee_%s.root",fz_files[epoch]),"READ");
   assert(fzmm && !fzmm->IsZombie());
@@ -232,16 +247,16 @@ void reprocess(string epoch="") {
 
   string sr = (epoch=="L4" ? "eta_00_24" : "eta_00_13");
   const char *cr = sr.c_str();
-  TH1D *hmzee = (TH1D*)fmzee->Get(Form("Ratio_ZMass_CHS_a30_%s_L1L2Res",cr));
-  TH1D *hmzmm = (TH1D*)fmzmm->Get(Form("Ratio_ZMass_CHS_a30_%s_L1L2Res",cr));
+  TH1D *hmzee = (TH1D*)fmzee->Get(Form("Ratio_ZMass_CHS_a30_%s_%s",cr,ccr));
+  TH1D *hmzmm = (TH1D*)fmzmm->Get(Form("Ratio_ZMass_CHS_a30_%s_%s",cr,ccr));
   assert(hmzee);
   assert(hmzmm);
-  TH1D *hmzee_dt = (TH1D*)fmzee->Get(Form("Data_ZMass_CHS_a30_%s_L1L2Res",cr));
-  TH1D *hmzmm_dt = (TH1D*)fmzmm->Get(Form("Data_ZMass_CHS_a30_%s_L1L2Res",cr));
+  TH1D *hmzee_dt = (TH1D*)fmzee->Get(Form("Data_ZMass_CHS_a30_%s_%s",cr,ccr));
+  TH1D *hmzmm_dt = (TH1D*)fmzmm->Get(Form("Data_ZMass_CHS_a30_%s_%s",cr,ccr));
   assert(hmzee_dt);
   assert(hmzmm_dt);
-  TH1D *hmzee_mc = (TH1D*)fmzee->Get(Form("MC_ZMass_CHS_a30_%s_L1L2Res",cr));
-  TH1D *hmzmm_mc = (TH1D*)fmzmm->Get(Form("MC_ZMass_CHS_a30_%s_L1L2Res",cr));
+  TH1D *hmzee_mc = (TH1D*)fmzee->Get(Form("MC_ZMass_CHS_a30_%s_%s",cr,ccr));
+  TH1D *hmzmm_mc = (TH1D*)fmzmm->Get(Form("MC_ZMass_CHS_a30_%s_%s",cr,ccr));
   assert(hmzee_mc);
   assert(hmzmm_mc);
 
@@ -410,27 +425,27 @@ void reprocess(string epoch="") {
   // Narrow eta bins for L2Res
   
   
-//  etas.push_back(make_pair<double,double>(0.000,0.261)); 
-//  etas.push_back(make_pair<double,double>(0.261,0.522)); 
-//  // PATCH!! V15 gamjet combines 0-0.5 bins
-//  etas.push_back(make_pair<double,double>(0.522,0.783)); 
-//  etas.push_back(make_pair<double,double>(0.783,1.044)); 
-//  etas.push_back(make_pair<double,double>(1.044,1.305)); 
-//  // PATCH!! V15 gamjet has 0.8-1.1? 
-//  etas.push_back(make_pair<double,double>(1.305,1.479)); 
-//  etas.push_back(make_pair<double,double>(1.479,1.653)); 
-//  // PATCH!! V15 gamjet has 1.3-1.7? 
-//  etas.push_back(make_pair<double,double>(1.653,1.930)); 
-//  etas.push_back(make_pair<double,double>(1.930,2.172)); 
-//  etas.push_back(make_pair<double,double>(2.172,2.322)); 
-//  etas.push_back(make_pair<double,double>(2.322,2.500)); 
-//  etas.push_back(make_pair<double,double>(2.500,2.650)); 
-//  etas.push_back(make_pair<double,double>(2.650,2.853)); 
-//  etas.push_back(make_pair<double,double>(2.853,2.964)); 
-//  etas.push_back(make_pair<double,double>(2.964,3.139)); 
-//  etas.push_back(make_pair<double,double>(3.139,3.489)); 
-//  etas.push_back(make_pair<double,double>(3.489,3.839)); 
-//  etas.push_back(make_pair<double,double>(3.839,5.191));
+  //etas.push_back(make_pair<double,double>(0.000,0.261)); 
+  //etas.push_back(make_pair<double,double>(0.261,0.522)); 
+  //// PATCH!! V15 gamjet combines 0-0.5 bins
+  //etas.push_back(make_pair<double,double>(0.522,0.783)); 
+  //etas.push_back(make_pair<double,double>(0.783,1.044)); 
+  //etas.push_back(make_pair<double,double>(1.044,1.305)); 
+  //// PATCH!! V15 gamjet has 0.8-1.1? 
+  //etas.push_back(make_pair<double,double>(1.305,1.479)); 
+  //etas.push_back(make_pair<double,double>(1.479,1.653)); 
+  //// PATCH!! V15 gamjet has 1.3-1.7? 
+  //etas.push_back(make_pair<double,double>(1.653,1.930)); 
+  //etas.push_back(make_pair<double,double>(1.930,2.172)); 
+  //etas.push_back(make_pair<double,double>(2.172,2.322)); 
+  //etas.push_back(make_pair<double,double>(2.322,2.500)); 
+  //etas.push_back(make_pair<double,double>(2.500,2.650)); 
+  //etas.push_back(make_pair<double,double>(2.650,2.853)); 
+  //etas.push_back(make_pair<double,double>(2.853,2.964)); 
+  //etas.push_back(make_pair<double,double>(2.964,3.139)); 
+  //etas.push_back(make_pair<double,double>(3.139,3.489)); 
+  //etas.push_back(make_pair<double,double>(3.489,3.839)); 
+  //etas.push_back(make_pair<double,double>(3.839,5.191));
 
   // Wide eta bins for L2L3Res closure
   etas.push_back(make_pair<double,double>(1.305,1.93));
@@ -564,9 +579,9 @@ void reprocess(string epoch="") {
 		       100.*alpha, 10.*eta1, 10.*eta2);
 	    } // gamjet
 	    if (s=="zmmjet" || s=="zeejet") {
-	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2Res",
+	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_%s",
 	    	       rename[s][d], rename[s][t], 100.*alpha,
-	    	       10.01*eta1, 10.01*eta2);
+	    	       10.01*eta1, 10.01*eta2,ccr); //ccr --> usually L1L2Res
 	    } // Z+jet
 	    assert(c || s=="zlljet");
 
@@ -600,6 +615,7 @@ void reprocess(string epoch="") {
               TH1D *g = (TH1D*)obj;
 
               g->SetName(Form("%s_%s_a%1.0f",tt,ss,100.*alphas[ialpha]));
+              g->Scale(g->GetEntries()/g->Integral()); // to retunr "raw number of events"
               g->UseCurrentStyle(); // Basic TDR style
               g->SetMarkerStyle(style[s][t]);
               g->SetMarkerColor(color[s]);
@@ -920,12 +936,13 @@ void reprocess(string epoch="") {
 
     const char *s, *s2;
     const char *cd = "CondFormats/JetMETObjects/data";
-    const char *ce = (epoch=="ABC" ? "A" : epoch.c_str());
+    const char *ce = (epoch=="ABC" || epoch=="ABCD" ? "A" : epoch.c_str());
     
     // New JEC for plotting on the back
     FactorizedJetCorrector *jec;
-    FactorizedJetCorrector *jec2(0), *jec3(0); // for BCDEFGH
-    double jecw1(1), jecw2(0), jecw3(0);       // for BCDEFGH
+    FactorizedJetCorrector *jec2(0), *jec3(0), *jec4(0); // for BCDEFGH
+    double jecw1(1), jecw2(0), jecw3(0);       // for ABC
+    double jecABCDw1(1), jecABCDw2(0), jecABCDw3(0), jecABCDw4(0);       // for ABCD
     {
       s = Form("%s/Autumn18_Run%s_V5M_DATA_L2L3Residual_AK4PFchs.txt",cd,ce);
       cout << s << endl;
@@ -934,9 +951,10 @@ void reprocess(string epoch="") {
       vpar.push_back(*par_l2l3res);
       jec = new FactorizedJetCorrector(vpar);
 
-      if (epoch=="ABC") {
+      if (epoch=="ABC"||epoch=="ABCD") {
 
 	jecw1 = 14.0/28.0;
+	jecABCDw1 = 14.0/59.9;
 
 	s=Form("%s/Autumn18_RunB_V5M_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
@@ -945,6 +963,7 @@ void reprocess(string epoch="") {
 	vpar_b.push_back(*par_b);
 	jec2 = new FactorizedJetCorrector(vpar_b);
 	jecw2 = 7.1/28.0;
+	jecABCDw2 = 7.1/59.9;
 
 	s=Form("%s/Autumn18_RunC_V5M_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
@@ -953,6 +972,15 @@ void reprocess(string epoch="") {
 	vpar_c.push_back(*par_c);
 	jec3 = new FactorizedJetCorrector(vpar_c);
 	jecw3 = 6.9/28.0;
+	jecABCDw3 = 6.9/59.9;
+
+      	s=Form("%s/Autumn18_RunD_V5M_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	cout << s << endl;
+	JetCorrectorParameters *par_d = new JetCorrectorParameters(s);
+	vector<JetCorrectorParameters> vpar_d;
+	vpar_d.push_back(*par_d);
+	jec4 = new FactorizedJetCorrector(vpar_d);
+	jecABCDw4 = 31.9/59.9;
       }
     }
 
@@ -1113,6 +1141,7 @@ void reprocess(string epoch="") {
 			       "JEC L1 Data (#rho) / JEC L1 Data (#rho+1);",
 			       npt, &ptbins[0]);
 
+      if(rp_debug) cout << "create reference JES bands" << endl;
       for (int ipt = 1; ipt != herr->GetNbinsX()+1; ++ipt) {
 
 	double pt = herr->GetBinCenter(ipt);
@@ -1152,9 +1181,11 @@ void reprocess(string epoch="") {
 	  jec->setJetPt(pt);
 	  double val = (epoch=="L4" ? 1 : 1./jec->getCorrection());
 
-	  if (epoch=="ABC") {
-	    assert(jec2); assert(jec3);
-	    assert(fabs(jecw1+jecw2+jecw3-1)<1e-4);
+          if(rp_debug) cout << "ABC/ABCD special treatment" << endl;
+	  if (epoch=="ABC" || epoch=="ABCD") {
+	    assert(jec2); assert(jec3); assert(jec4);
+	    if (epoch=="ABC")assert(fabs(jecw1+jecw2+jecw3-1)<1e-4);
+	    if (epoch=="ABCD")assert(fabs(jecABCDw1+jecABCDw2+jecABCDw3+jecABCDw4-1)<1e-4);
 
 	    double val1 = val;
 	    jec2->setJetEta(eta);
@@ -1163,9 +1194,14 @@ void reprocess(string epoch="") {
 	    jec3->setJetEta(eta);
 	    jec3->setJetPt(pt);
 	    double val3 = 1./jec3->getCorrection();
+	    jec4->setJetEta(eta);
+	    jec4->setJetPt(pt);
+            double val4 = 1./jec4->getCorrection();
 
-	    val = jecw1*val1 + jecw2*val2 + jecw3*val3;
+	    if (epoch=="ABC")val = jecw1*val1 + jecw2*val2 + jecw3*val3;
+            else if (epoch=="ABCD")val = jecABCDw1*val1 + jecABCDw2*val2 + jecABCDw3*val3 + jecABCDw4*val4;
 	  }
+          if(rp_debug) cout << "ABC/ABCD special treatment done" << endl;
 
 	  sumval += w*val;
 	  sumw += w; // sum weights only once
@@ -1307,6 +1343,8 @@ void reprocess(string epoch="") {
 	hl1drho->SetBinContent(ipt, l1drho);
 	hl1drho->SetBinError(ipt, 0.5*fabs(1-l1drho));
       } // ipt
+      if(rp_debug) cout << "done creating reference JES bands" << endl;
+
 
       dout2->cd();
 
