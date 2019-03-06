@@ -1,6 +1,7 @@
 \documentclass[landscape,10pt]{beamer} % use larger type; default would be 10pt
 \usepackage{graphicx}
-\usepackage{hyperref}
+%\usepackage[urlbordercolor={1 0 1}]{hyperref}
+%\usepackage[colorlinks, linkcolor = black, citecolor = black, filecolor = black, urlcolor = blue]{hyperref}
 %\usepackage{geometry} % SIVUN DIMENSION MUUTTAMISTA VARTEN
 %\geometry{a4paper} % or letterpaper (US) or a5paper or....
 %\addtolength{\topmargin}{-.5in} 
@@ -25,7 +26,7 @@
 {. }\\
 {. }\\
 {\bf JEC uncertainty status}\\
-Summer16\_03Feb2017\_V7 (BCDEFGH)\\
+Autumn18\_V4 (ABCD)\\
 .\\
 .\\
 \today\\
@@ -38,12 +39,23 @@ Henning Kirschenmann, HIP\\
 Github tag: XX
 
 \begin{itemize}
-\item BCDEFGH data set as input for uncertainties
-\item Updated \verb|RelativeJER| uncertainty (JER smearing)
-\item Updated \verb|RelativeStat| uncertainty (statistical uncertainty)
-\item Updated \verb|RelativeBal| (MPF vs $p_T$ balance uncertainty)
-\item Added new \verb|RelativeSample| uncertainty (dijet global fit vs Z/$\gamma$+jet gloabl fit); NB: dijet global fit uses 03Feb\_V3 as input L3Res
-\item ``Method \& sample'' in summary plot refers to RelativeBal + RelativeSample
+\item ABCD as input for uncertainties
+\item updated MC-corrections: Autumn18\_V5\_MC (has impact on, e.g., pileup-uncertainties)
+\item updated data corrections: take RunA for data corrections Autumn18\_RunA\_V5, but Autumn18\_RunA\_V5M2\_DATA\_L2L3Residual\_AK4PFchs.txt for L2L3 residual (global fit result + dijet L2Res)
+\item RelativeBal/Pt - pick up Run D result for MPF vs. PtBal; flat vs. loglin result
+\item AbsoluteSample: \textcolor{red}{NEW} use to illustrate ad-hoc difference between Friday's guesstimate and ZJet-only result for RunD barrel global fit
+\end{itemize}
+\textcolor{red}{MISSING}
+\begin{itemize}
+\item TimePtEta-uncertainty (no ABCD result from all channels (only ZJet without L2Res applied)) - deactivated write-out of per-run uncertainties, keep 2017 as placeholder
+\item RelativeJER/FSR updates (not crucial)
+\end{itemize}
+\newpage
+\textcolor{red}{PROBLEMATIC}
+\begin{itemize}
+  \item Dijet results in endcap unstable: A.) huge pt-dependence B.) PtBal and MPF results very different C.) fairly incompatible with Z+jet result
+  \item Slope in pt becomes larger as Run progresses [?]
+  \item \textcolor{blue}{\href{https://cernbox.cern.ch/index.php/s/KGnyHvKzA0z86gi}{RunD comparison of ZJet-only global fit vs. (global fit result + dijet L2Res)}} - \href{https://cernbox.cern.ch/index.php/s/KGnyHvKzA0z86gi}{https://cernbox.cern.ch/index.php/s/KGnyHvKzA0z86gi}
 \end{itemize}
 
 \newpage

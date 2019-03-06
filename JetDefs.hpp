@@ -47,7 +47,8 @@ namespace jec {
   const ErrorTypes kAbsoluteSPRE            = ErrorTypes(0L, 1L << 18);
   const ErrorTypes kAbsoluteSPRH            = ErrorTypes(0L, 1L << 19);
   const ErrorTypes kAbsoluteECAL            = ErrorTypes(0L, 1L << 20); //off
-  const ErrorTypes kAbsoluteTrack           = ErrorTypes(0L, 1L << 21); //off
+  //const ErrorTypes kAbsoluteTrack           = ErrorTypes(0L, 1L << 21); //off
+  const ErrorTypes kAbsoluteSample          = ErrorTypes(0L, 1L << 21); //reuse error type from AbsoluteTrack
   const ErrorTypes kAbsoluteFrag            = ErrorTypes(0L, 1L << 22);
   const ErrorTypes kAbsoluteStat            = ErrorTypes(0L, 1L << 23); //splitting for correlation groups
   const ErrorTypes kAbsoluteMPFBias         = ErrorTypes(0L, 1L << 24);	//splitting for correlation groups
@@ -101,7 +102,7 @@ namespace jec {
   // SubTotalPileUp, SubTotalRelative, [SubTotalAbsolute], SubTotalPt
   const ErrorTypes kPileUp              = kPileUpDataMC | kPileUpPt;
   const ErrorTypes kRelative            = kRelativeJER | kRelativeFSR | kRelativeStat | kRelativePt | kRelativeBal | kRelativeSample; //| kRelativePrefire ;
-  const ErrorTypes kAbsolutePt          = kAbsoluteFrag | kAbsoluteSPR;
+  const ErrorTypes kAbsolutePt          = kAbsoluteFrag | kAbsoluteSPR | kAbsoluteSample;
   const ErrorTypes kAbsoluteFlat        = kAbsoluteStat | kAbsoluteMPFBias | kAbsoluteFlavorMapping | kAbsoluteScale;
   const ErrorTypes kAbsolute            = kAbsoluteFlat | kAbsolutePt;
 

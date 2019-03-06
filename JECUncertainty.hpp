@@ -64,9 +64,10 @@ public:
 	       FactorizedJetCorrector *jec);
 
   // Statistical and systematic uncertainties
-  double _Absolute(const double pTprime) const;
+  double _Absolute(const double pTprime);
   double _AbsoluteStat(const double pTprime) const;
   double _AbsoluteScale() const;
+  double _AbsoluteSample(const double pTprime);
   double _AbsoluteMPFBias() const;
   double _AbsoluteFlavorMapping() const;
   double _AbsoluteFrag(const double pTprime) const;
@@ -159,6 +160,7 @@ private:
   FactorizedJetCorrector *_jecL2ResPrefireFilterYes; // Fall17V27
   FactorizedJetCorrector *_jecL2ResPrefireFilterNo; // Fall17V27
   FactorizedJetCorrector *_jecL2L3ResCustomHybridZGamJet; // 03FebV7
+  FactorizedJetCorrector *_jecL2L3Res2ParDiJetGuesstimate; // 03FebV7
   FactorizedJetCorrector *_jecL2L3Res2ParDiJet; // 03FebV7
   FactorizedJetCorrector *_jecL2L3Res2ParZGamJet; // 03FebV7
   FactorizedJetCorrector *_jecL2L3ResConstDiJet; // 03FebV7

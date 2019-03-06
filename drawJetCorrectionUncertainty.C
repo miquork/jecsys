@@ -35,7 +35,7 @@ bool _extra = false; // single pion plots
 bool _paper = true; //  for paper
 
 // Plot uncertainty (true) or source (false)
-bool _absUncert = true;//false;//false;
+bool _absUncert = true;//false;
 // NB: All source files are currently printed together with AK4PFchs uncertainty
 bool _doTXT = true; // create uncertainty and source text files
 bool _didTXT = false;
@@ -368,6 +368,12 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 			kGray+2, kNone, // marker
 			kGray, 1001, "LF")); // fill
   //
+  sypt.push_back(uncert("abssample", "AbsoluteSample",
+			jec::kAbsoluteSample,
+  			"default", "default", -1, // defaults
+  			kMagenta+1, kNone, 1, // line
+  			kMagenta+1, kOpenDiamond, // marker
+  			kNone, kNone, "LP")); // fill
   sypt.push_back(uncert("absfrag", "Fragmentation",
 			jec::kAbsoluteFrag,
 			"default", "default", -1, // defaults
@@ -1376,7 +1382,8 @@ void plotUncertainty(vector<uncert> const& sys,
 
   if (_paper) h0->GetXaxis()->SetRangeUser(10,3500);
   //lumi_13TeV = "Run2016BCDEFGH re-reco, 36.5 fb^{-1}"; // Sum16
-  lumi_13TeV = "2017BCDEF re-reco, 41.4 fb^{-1}"; // Fall17
+  //lumi_13TeV = "2017BCDEF re-reco, 41.4 fb^{-1}"; // Fall17
+  lumi_13TeV = "2018ABCD, 59.9 fb^{-1}"; // Autumn18
   TCanvas *c1 = tdrCanvas(Form("c1_%s",name.c_str()),h0,4,11,kSquare);
   if (type=="fixEta") c1->SetLogx();
   else c1->SetLogx(0);
@@ -1515,7 +1522,8 @@ void plotUncertainty(vector<uncert> const& sys,
 
     JECUncertainty rjets(d_algo, jec::DATA, jec::kData, d_mu);
     //ofstream fouts(Form("txt/Summer16_03Feb2017_V9_DATA_Uncertainty_%s.txt",
-    ofstream fouts(Form("txt/Fall17_07Nov2017_V31_DATA_Uncertainty_%s.txt",
+    //ofstream fouts(Form("txt/Fall17_07Nov2017_V31_DATA_Uncertainty_%s.txt",
+    ofstream fouts(Form("txt/Autumn18_V5_DATA_Uncertainty_%s.txt",
 			(*_algnames)[d_algo]), ios::out);
     fouts << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
@@ -1540,18 +1548,19 @@ void plotUncertainty(vector<uncert> const& sys,
     } // for ieta
 
     //ofstream fout(Form("txt/Summer16_03Feb2017_V9_DATA_UncertaintySources_%s.txt",
-    ofstream fout(Form("txt/Fall17_07Nov2017_V31_DATA_UncertaintySources_%s.txt",
+    //ofstream fout(Form("txt/Fall17_07Nov2017_V31_DATA_UncertaintySources_%s.txt",
+    ofstream fout(Form("txt/Autumn18_V5_DATA_UncertaintySources_%s.txt",
 		       (*_algnames)[d_algo]), ios::out);
     //fout << Form("#Uncertainty sources for Summer16_03Feb2017_V9_DATA_%s",
-    fout << Form("#Uncertainty sources for Fall17_07Nov2017_V31_DATA_%s",
+    fout << Form("#Uncertainty sources for Autumn18_V5_DATA_%s",
 		 (*_algnames)[d_algo]) << endl;
     cout << "Storing uncertainties to: "
       //<< Form("txt/Summer16_03Feb2017_V9_DATA_UncertaintySources_%s.txt",
-	 << Form("txt/Fall17_07Nov2017_V31_DATA_UncertaintySources_%s.txt",
+	 << Form("txt/Autumn18_V5_DATA_UncertaintySources_%s.txt",
 		 (*_algnames)[d_algo]) << endl;
 
     jec::ErrorTypes vsrc[] =
-      {jec::kAbsoluteStat, jec::kAbsoluteScale, jec::kAbsoluteFlavorMapping, jec::kAbsoluteMPFBias,
+      {jec::kAbsoluteStat, jec::kAbsoluteScale, jec::kAbsoluteSample, jec::kAbsoluteFlavorMapping, jec::kAbsoluteMPFBias,
        jec::kAbsoluteFrag,
        jec::kAbsoluteSPRE, jec::kAbsoluteSPRH,
        jec::kFlavorQCD,
@@ -1575,8 +1584,8 @@ void plotUncertainty(vector<uncert> const& sys,
        jec::kFlavorZJet, jec::kFlavorPhotonJet,
        jec::kFlavorPureGluon, jec::kFlavorPureQuark, 
        jec::kFlavorPureCharm, jec::kFlavorPureBottom,
-       jec::kTimeRunB, jec::kTimeRunC, jec::kTimeRunDE,// jec::kTimeRunE,
-       jec::kTimeRunF,
+       //       jec::kTimeRunB, jec::kTimeRunC, jec::kTimeRunDE,// jec::kTimeRunE, //don't write out as not updated for 2018, yet
+       //       jec::kTimeRunF,
        jec::kCorrelationGroupMPFInSitu, jec::kCorrelationGroupIntercalibration, jec::kCorrelationGroupbJES,
        jec::kCorrelationGroupFlavor, jec::kCorrelationGroupUncorrelated
       };
@@ -1585,6 +1594,7 @@ void plotUncertainty(vector<uncert> const& sys,
     map<jec::ErrorTypes, string> srcname;
     srcname[jec::kAbsoluteStat] =           "AbsoluteStat";    // L3Res fit
     srcname[jec::kAbsoluteScale] =          "AbsoluteScale";   // Zll scale
+    srcname[jec::kAbsoluteSample] =          "AbsoluteSample";   // Zll global fit vs. guesstimate
     srcname[jec::kAbsoluteFlavorMapping] =  "AbsoluteFlavMap"; // obsolete
     srcname[jec::kAbsoluteMPFBias] =        "AbsoluteMPFBias"; // old, 0.2%
     srcname[jec::kAbsoluteFrag] =           "Fragmentation";   // update?
