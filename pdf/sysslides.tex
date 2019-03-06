@@ -39,11 +39,12 @@ Henning Kirschenmann, HIP\\
 Github tag: XX
 
 \begin{itemize}
-\item ABCD as input for uncertainties
+%\item ABCD as input for uncertainties
 \item updated MC-corrections: Autumn18\_V5\_MC (has impact on, e.g., pileup-uncertainties)
 \item updated data corrections: take RunA for data corrections Autumn18\_RunA\_V5, but Autumn18\_RunA\_V5M2\_DATA\_L2L3Residual\_AK4PFchs.txt for L2L3 residual (global fit result + dijet L2Res)
 \item RelativeBal/Pt - pick up Run D result for MPF vs. PtBal; flat vs. loglin result
 \item AbsoluteSample: \textcolor{red}{NEW} use to illustrate ad-hoc difference between Friday's guesstimate and ZJet-only result for RunD barrel global fit
+\item RelativeSample: RunD results for Dijet+barrel global fit vs. zjet only (without L2 applied, so directly comparable)
 \end{itemize}
 \textcolor{red}{MISSING}
 \begin{itemize}
@@ -54,8 +55,9 @@ Github tag: XX
 \textcolor{red}{PROBLEMATIC}
 \begin{itemize}
   \item Dijet results in endcap unstable: A.) huge pt-dependence B.) PtBal and MPF results very different C.) fairly incompatible with Z+jet result
-  \item Slope in pt becomes larger as Run progresses [?]
-  \item \textcolor{blue}{\href{https://cernbox.cern.ch/index.php/s/KGnyHvKzA0z86gi}{RunD comparison of ZJet-only global fit vs. (global fit result + dijet L2Res)}} - \href{https://cernbox.cern.ch/index.php/s/KGnyHvKzA0z86gi}{https://cernbox.cern.ch/index.php/s/KGnyHvKzA0z86gi}
+  \item Slope in pt becomes larger as Run progresses [?]. If there is a large time dependence within RunD, this could also manifest as pt-slope in dijets (oberved similarly in 2016)
+  \item \textcolor{blue}{\href{https://cernbox.cern.ch/index.php/s/KGnyHvKzA0z86gi}{RunD comparison of ZJet-only global fit vs. (global fit result + dijet L2Res)}} - \href{https://cernbox.cern.ch/index.php/s/KGnyHvKzA0z86gi}{https://cernbox.cern.ch/index.php/s/KGnyHvKzA0z86gi} -- one can see the Zjet/dijet discrepancy as difference between the V5M2 reference (yellow band) and the ZJet-only global fit result
+  \item Same for ABCD looks slightly  better: \textcolor{blue}{\href{https://cernbox.cern.ch/index.php/s/3w1LhvnxmcBmTCY}{RunABCD, where V5M2 is luminosity-weighted average of A/B/C/D corrections compared to the Zjet-only global fit result. }}
 \end{itemize}
 
 \newpage
@@ -100,6 +102,7 @@ Github tag: XX
 \begin{figure}[p]
 \centering
   \includegraphics[width=0.33\textwidth]{JECUncert_AbsolutePt_AK4PFchs_Eta00}\\
+  %\includegraphics[width=0.33\textwidth]{JECSource_AbsolutePt_AK4PFchs_Eta00}\\
   %\includegraphics[width=0.33\textwidth]{JECUncert_Relative_AK4PFchs_Pt30}
   %\includegraphics[width=0.33\textwidth]{JECUncert_Relative_AK4PFchs_Pt100}
   %\includegraphics[width=0.33\textwidth]{JECUncert_Relative_AK4PFchs_Pt500}

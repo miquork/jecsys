@@ -185,9 +185,10 @@ double JECUncertainty::Uncert(const double pTprime, const double eta) {
   double err = sqrt(err2);
 
   // if requesting single source, return signed for sign-changing cases
-  if (!(_errType & ~jec::kAbsoluteFrag)) return errAbs;
-  if (!(_errType & ~jec::kAbsoluteSPRE)) return errAbs;
-  if (!(_errType & ~jec::kAbsoluteSPRH)) return errAbs;
+  if (!(_errType & ~jec::kAbsoluteFrag))   return errAbs;
+  if (!(_errType & ~jec::kAbsoluteSPRE))   return errAbs;
+  if (!(_errType & ~jec::kAbsoluteSPRH))   return errAbs;
+  if (!(_errType & ~jec::kAbsoluteSample)) return errAbs;
   if (!(_errType & ~jec::kRelativeFSR))   return errRel;
   if (!(_errType & ~jec::kRelativePtBB))  return errRel;
   if (!(_errType & ~jec::kRelativePtEC1)) return errRel;
@@ -819,7 +820,7 @@ double JECUncertainty::_AbsoluteSample(const double pTprime) {
   
   double kfactor = 1;
   double err = kfactor*(rg / rfit - 1);
-  
+  //std::cout << "_AbsoluteSample: " << err << std::endl;
   return err;
 }
 
