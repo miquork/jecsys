@@ -1268,7 +1268,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //legm->AddEntry(herr_ref,"Run II","FL");
   //legm->AddEntry(herr_ref,"V10","FL");
   //legm->AddEntry(herr_ref,"V16M","FL");
-  legm->AddEntry(herr_ref,"V5M2","FL");
+  legm->AddEntry(herr_ref,"V8","FL");
 
 
   ///////////////////////
