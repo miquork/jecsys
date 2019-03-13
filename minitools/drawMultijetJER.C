@@ -9,19 +9,27 @@ void drawMultijetJER(string mode = "EC1") {
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
-  TFile *fdt = new TFile("rootfiles/output-DATA-2b-legacy16-GH.root","READ");
+  //TFile *fdt = new TFile("rootfiles/output-DATA-2b-legacy16-GH.root","READ");
   //TFile *fdt = new TFile("rootfiles/output-DATA-2b-17nov17-DE.root","READ");
   //TFile *fdt = new TFile("rootfiles/output-DATA-2b-Fall18-RunD.root","READ");
+  //TFile *fdt = new TFile("rootfiles/output-DATA-2b-Fall18V8-A.root","READ");
+  TFile *fdt = new TFile("rootfiles/output-DATA-2b-Fall18V8-B.root","READ");
+  //TFile *fdt = new TFile("rootfiles/output-DATA-2b-Fall18V8-C.root","READ");
+  //TFile *fdt = new TFile("rootfiles/output-DATA-2b-Fall18V8-D.root","READ");
   assert(fdt && !fdt->IsZombie());
 
-  TFile *fmc = new TFile("rootfiles/output-MC-2b-legacy16-GH.root","READ");
+  //TFile *fmc = new TFile("rootfiles/output-MC-2b-legacy16-GH.root","READ");
   //TFile *fmc = new TFile("rootfiles/output-P8CP5-2b-17nov17-DE.root","READ");
   //TFile *fmc = new TFile("rootfiles/output-MC-2b-Fall18-RunD.root","READ");
+  //TFile *fmc = new TFile("rootfiles/output-MCNU-2b-Fall18V8-A.root","READ");
+  TFile *fmc = new TFile("rootfiles/output-MCNU-2b-Fall18V8-B.root","READ");
+  //TFile *fmc = new TFile("rootfiles/output-MCNU-2b-Fall18V8-C.root","READ");
+  //TFile *fmc = new TFile("rootfiles/output-MCNU-2b-Fall18V8-D.root","READ");
   assert(fmc && !fmc->IsZombie());
 
-  TFile *fhw = new TFile("rootfiles/output-HW-2b-legacy16-GH.root","READ");
+  //TFile *fhw = new TFile("rootfiles/output-HW-2b-legacy16-GH.root","READ");
   //TFile *fhw = new TFile("rootfiles/output-HW-2b-17nov17-DE.root","READ");
-  //TFile *fhw = 0;
+  TFile *fhw = 0;
   //assert(fhw && !fhw->IsZombie());
 
   TFile *fm1 = 0;
@@ -96,9 +104,13 @@ void drawMultijetJER(string mode = "EC1") {
   h->GetXaxis()->SetMoreLogLabels();
   h->GetXaxis()->SetNoExponent();
   
-  lumi_13TeV = "Run2016GH, 16.8 fb^{-1}";
-  //lumi_13TeV = "Run2018D, 29.2 fb^{-1}";
+  //lumi_13TeV = "Run2016GH, 16.8 fb^{-1}";
   //lumi_13TeV = "Run2017DE, 13.5 fb^{-1}";
+  //lumi_13TeV = "Run2018D, 29.2 fb^{-1}";
+  //lumi_13TeV = "Run2018A, 14.0 fb^{-1}";
+  lumi_13TeV = "Run2018B, 7.1 fb^{-1}";
+  //lumi_13TeV = "Run2018C, 6.9 fb^{-1}";
+  //lumi_13TeV = "Run2018D, 29.2 fb^{-1}";
   TCanvas *c1 = tdrCanvas("c1",h,4,11,kSquare);
   gPad->SetLogx();
 
@@ -155,9 +167,13 @@ void drawMultijetJER(string mode = "EC1") {
   pdtave->GetXaxis()->SetRangeUser(30,4000);
   pdtpro->GetXaxis()->SetRangeUser(30,4000);
 
-  c1->SaveAs(Form("pdf/drawMultijetJER_binvars_16GH_%s.pdf",cm));
+  //c1->SaveAs(Form("pdf/drawMultijetJER_binvars_16GH_%s.pdf",cm));
   //c1->SaveAs(Form("pdf/drawMultijetJER_binvars_17DE_%s.pdf",cm));
   //c1->SaveAs(Form("pdf/drawMultijetJER_binvars_18D_%s.pdf",cm));
+  //c1->SaveAs(Form("pdf/drawMultijetJER_binvars_18AV8_%s.pdf",cm));
+  c1->SaveAs(Form("pdf/drawMultijetJER_binvars_18BV8_%s.pdf",cm));
+  //c1->SaveAs(Form("pdf/drawMultijetJER_binvars_18CV8_%s.pdf",cm));
+  //c1->SaveAs(Form("pdf/drawMultijetJER_binvars_18DV8_%s.pdf",cm));
 
   TH1D *h2 = new TH1D("h2",";p_{T} (GeV);MPF",3900,100,4000);
   h2->SetMinimum(0.90);
@@ -203,7 +219,11 @@ void drawMultijetJER(string mode = "EC1") {
   pdt1->GetXaxis()->SetRangeUser(100,4000);
   pdt2->GetXaxis()->SetRangeUser(100,4000);
 
-  c2->SaveAs(Form("pdf/drawMultijetJER_mettypes_16GH_%s.pdf",cm));
+  //c2->SaveAs(Form("pdf/drawMultijetJER_mettypes_16GH_%s.pdf",cm));
   //c2->SaveAs(Form("pdf/drawMultijetJER_mettypes_17DE_%s.pdf",cm));
   //c2->SaveAs(Form("pdf/drawMultijetJER_mettypes_18D_%s.pdf",cm));
+  //c2->SaveAs(Form("pdf/drawMultijetJER_mettypes_18AV8_%s.pdf",cm));
+  c2->SaveAs(Form("pdf/drawMultijetJER_mettypes_18BV8_%s.pdf",cm));
+  //c2->SaveAs(Form("pdf/drawMultijetJER_mettypes_18CV8_%s.pdf",cm));
+  //c2->SaveAs(Form("pdf/drawMultijetJER_mettypes_18DV8_%s.pdf",cm));
 }

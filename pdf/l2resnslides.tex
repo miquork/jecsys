@@ -1,0 +1,229 @@
+\documentclass[landscape,10pt]{beamer} % use larger type; default would be 10pt
+\usepackage{graphicx}
+\usepackage{hyperref}
+%\usepackage{geometry} % SIVUN DIMENSION MUUTTAMISTA VARTEN
+%\geometry{a4paper} % or letterpaper (US) or a5paper or....
+%\addtolength{\topmargin}{-.5in} 
+\addtolength{\topmargin}{.2cm} 
+%\addtolength{\textheight}{1.75in}
+%\addtolength{\oddsidemargin}{.1in}
+\addtolength{\oddsidemargin}{-.3in}
+%\addtolength{\evensidemargin}{-.4in}
+\addtolength{\evensidemargin}{-.3in}
+\addtolength{\textwidth}{0.6in}
+\newcommand{\commentout}[1]{}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{centering}
+{. }\\
+{. }\\
+{. }\\
+{. }\\
+{. }\\
+{. }\\
+{. }\\
+L2Res cross-check\\
+(Narrow eta bins)\\
+\today\\
+Hannu Siikonen, HIP\\
+Mikko Voutilainen, U. Helsinki and HIP\\
+\end{centering}
+
+\newpage
+Data sets
+
+\url{https://twiki.cern.ch/twiki/bin/viewauth/CMS/InclusiveJetsLegacy}
+
+\begin{itemize}
+\item 2018 Autumn18 Samples (PF+CHS AK4, minimum jet $p_T>XX$?):
+\item Pythia MC (25ns, 14 pthat Slices) : {\small\verb|/eos/cms/store/group/phys_smp/Multijet/13TeV/MC/|}
+\item Pileup reweighing applied per trigger
+\item JEC: \verb|Autumn18[_RunX]_V8_[DATA,MC]| (with L2L3Residual)
+\end{itemize}
+
+Triggers
+\begin{itemize}
+\item PFAK4 single jet triggers:
+%\item {\tiny\verb|std::string _jp_triggers[_jp_ntrigger] =  {"jt40",    "jt60",    "jt80",   "jt140",   "jt200",   "jt260",   "jt320",   "jt400",  "jt450"};|}
+%\item {\tiny\verb|double _jp_trigranges[_jp_ntrigger][2] =  { {0,84}, {84,114}, {114,174}, {174,245}, {245,330}, {330,395}, {395,468}, {468,548}, {548,6500} }; // V[3,4], AK4|}
+%\item So (nominal/analysis): 40/60, 60/84, 80/114, 140/174, 200/245, 260/330, 320/395, 400/468, 450/548 
+\end{itemize}
+
+\newpage
+
+Analysis:
+\begin{itemize}
+\item Data stored in TH3D ($p_{T,ave}$, $|\eta|$, $MPF$ or $p_{T,bal}$) for each of $\alpha<0.10, 0.15, 0.20, 0.30$
+\item Projected and sliced from there for number of events, cross section, RMS, mean response
+%\item $\sigma(asymmetry)$ is 0.985-truncated RMS (switchable from full RMS)
+%\item Correction for JER bias calculated analytically based on JME Spring16 MC truth JER and SF (but not yet applied to results)
+\item L2res with log-linear fit (cross-check quadratic logarithmic) versus $p_{T,ave}$
+%\item {\bf known issue 1}: only raw PFMET in SMP-J root files, need raw PFchsMET
+%\item {\bf known issue 2}: only jets with pT>25 GeV in SMP-J tuples, need down to 5-15 GeV for type-I MET and proper $\alpha$ cuts
+%\item {\bf caveat}: using DB for central results, but not applying FSR+ISR correction; instead starting with $\alpha<max(0.1,25/p_{T,ave})$
+%\item {\bf to check}: do we oversmear MC for JER?
+%\item {\bf novelty:} this analysis complements $p_{T,ave}$ binning with $p_{T,probe}$ and $p_{T,tag}$ binning; these have different (anti-correlated) sensitivity to ISR+FSR and JER (in particular including non-Gaussian tails) such that the spread between these two and central $p_{T,ave}$ result is a good proxy of systematic uncertainties. Comparing MPF and DB can further factor out ISR+FSR and JER tail effects.
+\item {\bf novelty:} this analysis complements $p_{T,ave}$ binning with $p_{T,tag}$ binning; this has different (anti-correlated) sensitivity to ISR+FSR and JER (in particular including non-Gaussian tails) such that the spread between this and the central $p_{T,ave}$ result is a good proxy of systematic uncertainties. Comparing MPF and DB can further factor out ISR+FSR and JER tail effects.
+\item Hannu's phi cleaning applied
+\end{itemize}
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.50\textwidth]{deriveL2ResNarrow_Fig15_amax30}
+  \includegraphics[width=0.50\textwidth]{deriveL2ResNarrow_chi2_amax30}
+  \caption{Left: summary of the results for DB with log-lin fit, Right: $\chi^2/NDF$ of log-linear and log-quadratic fits to data/MC ratio for DB at $\alpha<max(0.1,25/p_{T,ave})$.}
+\end{figure}
+
+%\begin{figure}[p]
+%\centering
+%  \includegraphics[width=0.50\textwidth]{dataquality_significance_mc.pdf}
+%  \includegraphics[width=0.50\textwidth]{dataquality_significance_jt400.pdf}
+%\caption{Left: hot and cold regions in MC, Right: RunH Data.}
+%\end{figure}
+
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_00-03_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_03-05_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_05-08_amax30}
+\\
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_08-10_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_10-13_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_13-15_amax30}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_15-17_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_17-19_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_19-22_amax30}
+\\
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_22-23_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_23-25_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_25-26_amax30}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_26-29_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_29-30_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_30-31_amax30}
+\\
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_31-35_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_35-38_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Eta_38-52_amax30}
+\end{figure}
+
+\commentout{
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_00-03_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_03-05_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_05-08_amax30}
+\\
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_08-10_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_10-13_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_13-15_amax30}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_15-17_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_17-19_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_19-22_amax30}
+\\
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_22-23_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_23-25_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_25-26_amax30}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_26-29_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_29-30_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_30-31_amax30}
+\\
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_31-35_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_35-38_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_RMS_Eta_38-52_amax30}
+\end{figure}
+} % commentout
+
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_00-03_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_03-05_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_05-08_amax30}
+\\
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_08-10_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_10-13_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_13-15_amax30}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_15-17_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_17-19_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_19-22_amax30}
+\\
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_22-23_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_23-25_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_25-26_amax30}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_26-29_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_29-30_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_30-31_amax30}
+\\
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_31-35_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_35-38_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Nev_Eta_38-52_amax30}
+\end{figure}
+
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_00-03_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_03-05_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_05-08_amax30}
+\\
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_08-10_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_10-13_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_13-15_amax30}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_15-17_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_17-19_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_19-22_amax30}
+\\
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_22-23_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_23-25_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_25-26_amax30}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_26-29_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_29-30_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_30-31_amax30}
+\\
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_31-35_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_35-38_amax30}
+  \includegraphics[width=0.30\textwidth]{deriveL2ResNarrow_Xsec_Eta_38-52_amax30}
+\end{figure}
+
+
+
+\end{document}
