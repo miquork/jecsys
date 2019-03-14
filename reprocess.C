@@ -56,6 +56,13 @@ bool correctUncert  =  true;
 //EGM3: 80X regression + 80X Scale and Smearing
 //for latest inputs
 
+bool confirmWarnings=true; //if active, deficiencies in input files are patched after confirmation via pushing "any key to continue"
+bool confirmedGamJet=false; // to avoid too many confirmations
+string CorLevel="L1L2";
+//"L1L2": "MCTruth corrections" applied, in reality L1Data/MC,L2
+//"L1L2Res": MCTruth + L2Res applied
+//"L1L2L3Res": MCTruth + L2L3Res applied
+
 bool correctGamScale = false; 
 double valueGamScale = 1.;
 // Legacy 2016: all false 0.990/0.006, 84.4/56, 0.8781
@@ -151,6 +158,24 @@ void reprocess(string epoch="") {
   // https://indico.cern.ch/event/715277/#8-closure-test-with-dijet-for
   TFile *fdj = new TFile(Form("rootfiles/L2Res_07Aug2017_V6_ClosureTest_InputGlobalFit/Run%s/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
 
+
+  // ONLY NARROW BINS AVAILABLE SO FAR
+  // Jindrich Lidrych - Autumn18v4 applied - only narrow bins 2019-03-04
+  // https://indico.cern.ch/event/802822/#7-l2res-run-d-virtual
+  fdj_files["A"] = "A";
+  fdj_files["B"] = "B";
+  fdj_files["C"] = "C";
+  fdj_files["D"] = "D";
+  fdj_files["ABC"] = "ABCD";
+  fdj_files["ABCD"] = "ABCD";
+  TFile *fdj2 = new TFile(Form("rootfiles/L2Res-Autumn18-V4-Run%s.root",fdj_files[epoch]),"READ");
+  assert(fdj2 && !fdj2->IsZombie());
+
+  //  if(CorLevel!="L1L2")
+  cout << Form("Dijet files are only available for Autumn18-V4 (L1L2) and narrow bins, rest is dummy 2016 results. Please confirm by pushing any key.") << endl;
+  if(confirmWarnings)cin.ignore();
+  
+
   // Anastasia Karavdina, 2016 Legacy re-reco (8 Dec 2017) :
   // https://indico.cern.ch/event/682570/
   //TFile *fdj = new TFile("rootfiles/JEC_L2_Dijet_AK4PFchs_pythia8_07122017hcalCleaning_wideEtabins.root"); // BCDEFGH only?
@@ -188,31 +213,25 @@ void reprocess(string epoch="") {
   //TFile *fmj =0;
 
   
-  // L3Res GammaJet 2018 RunABC 4 March 2019
+  // L3Res GammaJet 2018 with L1L2, L1L2Res, L1L2L3Res variants A/B/C/D/ABC/ABCD
   //Speaker: Lucas Torterotot (Centre National de la Recherche Scientifique (FR))
-  // https://indico.cern.ch/event/802822/
+  //------ Forwarded Message --------
+  //Subject: 	Re: Photon+jet for RunD
+  //Date: 	Tue, 12 Mar 2019 14:54:29 +0100
+  //From: 	Lucas Torterotot <lucas.torterotot@cern.ch>
   map<string,const char*> fp_files;
   fp_files["A"] = "A";
   fp_files["B"] = "B";
   fp_files["C"] = "C";
-  fp_files["ABC"] = "C"; //dummy, temp
-  fp_files["D"] = "C"; //dummy, temp
-  fp_files["ABCD"] = "C"; //dummy, temp
-  //  fp_files["BCDEFGH"] = "BCDEFGH";
-  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_2019-03-01_%s.root", fp_files[epoch]),"READ");
+  fp_files["ABC"] = "ABC"; 
+  fp_files["D"] = "D"; 
+  fp_files["ABCD"] = "ABCD";
+  string sgcl = (CorLevel=="L1L2" ? "wo_L2Res" : CorLevel=="L1L2Res" ? "only_L2Res" : CorLevel=="L1L2L3Res" ? "L2L3Res" : "NotSupported");
+  const char *cgcl = sgcl.c_str();
+  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_2019-03-11_%s_%s_%s.root", cgcl, fp_files[epoch], cgcl),"READ");
   assert(fp && !fp->IsZombie());
 
-  ////temporary dummy files from 2016 to get eta-binned fit to work
-  //map<string,const char*> fp_files;
-  //fp_files["A"] = "BCDEFGH";
-  //fp_files["B"] = "BCDEFGH";
-  //fp_files["C"] = "BCDEFGH";
-  //fp_files["ABC"] = "BCDEFGH"; //dummy, temp
-  //fp_files["D"] = "BCDEFGH"; //dummy, temp
-  //fp_files["ABCD"] = "BCDEFGH"; //dummy, temp
-  ////  fp_files["BCDEFGH"] = "BCDEFGH";
-  //TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_07Aug17_L2res_V6_%s_2016.root", fp_files[epoch]),"READ");
-  //assert(fp && !fp->IsZombie());
+
 
   
   // Daniel Savoiu, Z+Jet  2018 RunABC 4 March 2019
@@ -224,7 +243,20 @@ void reprocess(string epoch="") {
   fz_files["D"] = "D_2019-03-05";
   fz_files["ABC"] = "ABC_2019-03-01";
   fz_files["ABCD"] = "ABCD_2019-03-05";
-  string scr = (epoch=="D"||epoch=="ABCD"? "L1L2L3" : "L1L2Res"); // need to distinguish correction levels: L1L2Res not available for D/ABCD
+  
+  string scr = "L1L2L3"; // need to distinguish correction levels: L1L2Res not available for D/ABCD
+  if(CorLevel=="L1L2")
+    scr = "L1L2L3";
+  else if(CorLevel=="L1L2Res"){
+    scr = (epoch=="D"||epoch=="ABCD"? "L1L2L3" : "L1L2Res"); // need to distinguish correction levels: L1L2Res not available for D/ABCD
+    cout << Form("%s is only available for A/B/C, not for D/ABCD. Please confirm by pushing any key.",CorLevel.c_str()) << endl;
+    if(confirmWarnings)cin.ignore();
+  }
+  else if(CorLevel=="L1L2L3Res")
+    scr = "CheckOldFiles";
+  else
+    scr = "NotSupported";
+    
   const char *ccr = scr.c_str();
   TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zmm_%s.root",fz_files[epoch]),"READ");
   TFile *fzee = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zee_%s.root",fz_files[epoch]),"READ");
@@ -426,27 +458,27 @@ void reprocess(string epoch="") {
   // Narrow eta bins for L2Res
   
   
-  //etas.push_back(make_pair<double,double>(0.000,0.261)); 
-  //etas.push_back(make_pair<double,double>(0.261,0.522)); 
-  //// PATCH!! V15 gamjet combines 0-0.5 bins
-  //etas.push_back(make_pair<double,double>(0.522,0.783)); 
-  //etas.push_back(make_pair<double,double>(0.783,1.044)); 
-  //etas.push_back(make_pair<double,double>(1.044,1.305)); 
-  //// PATCH!! V15 gamjet has 0.8-1.1? 
-  //etas.push_back(make_pair<double,double>(1.305,1.479)); 
-  //etas.push_back(make_pair<double,double>(1.479,1.653)); 
-  //// PATCH!! V15 gamjet has 1.3-1.7? 
-  //etas.push_back(make_pair<double,double>(1.653,1.930)); 
-  //etas.push_back(make_pair<double,double>(1.930,2.172)); 
-  //etas.push_back(make_pair<double,double>(2.172,2.322)); 
-  //etas.push_back(make_pair<double,double>(2.322,2.500)); 
-  //etas.push_back(make_pair<double,double>(2.500,2.650)); 
-  //etas.push_back(make_pair<double,double>(2.650,2.853)); 
-  //etas.push_back(make_pair<double,double>(2.853,2.964)); 
-  //etas.push_back(make_pair<double,double>(2.964,3.139)); 
-  //etas.push_back(make_pair<double,double>(3.139,3.489)); 
-  //etas.push_back(make_pair<double,double>(3.489,3.839)); 
-  //etas.push_back(make_pair<double,double>(3.839,5.191));
+  etas.push_back(make_pair<double,double>(0.000,0.261)); 
+  etas.push_back(make_pair<double,double>(0.261,0.522)); 
+  // PATCH!! V15 gamjet combines 0-0.5 bins
+  etas.push_back(make_pair<double,double>(0.522,0.783)); 
+  etas.push_back(make_pair<double,double>(0.783,1.044)); 
+  etas.push_back(make_pair<double,double>(1.044,1.305)); 
+  // PATCH!! V15 gamjet has 0.8-1.1? 
+  etas.push_back(make_pair<double,double>(1.305,1.479)); 
+  etas.push_back(make_pair<double,double>(1.479,1.653)); 
+  // PATCH!! V15 gamjet has 1.3-1.7? 
+  etas.push_back(make_pair<double,double>(1.653,1.930)); 
+  etas.push_back(make_pair<double,double>(1.930,2.172)); 
+  etas.push_back(make_pair<double,double>(2.172,2.322)); 
+  etas.push_back(make_pair<double,double>(2.322,2.500)); 
+  etas.push_back(make_pair<double,double>(2.500,2.650)); 
+  etas.push_back(make_pair<double,double>(2.650,2.853)); 
+  etas.push_back(make_pair<double,double>(2.853,2.964)); 
+  etas.push_back(make_pair<double,double>(2.964,3.139)); 
+  etas.push_back(make_pair<double,double>(3.139,3.489)); 
+  etas.push_back(make_pair<double,double>(3.489,3.839)); 
+  etas.push_back(make_pair<double,double>(3.839,5.191));
 
   // Wide eta bins for L2L3Res closure
   etas.push_back(make_pair<double,double>(1.305,1.93));
@@ -545,11 +577,11 @@ void reprocess(string epoch="") {
 	    bool narrowBin = ((fabs(eta2-eta1)<0.4 && 
 	    		       !(fabs(eta1-3.0)<0.05 && fabs(eta2-3.2)<0.05)) ||
 	    		      fabs(eta1)>3.8);
-	    //if (narrowBin) {
-	    //if (s=="dijet")  f = fdj2;  // BCDEFGH only
+	    if (narrowBin) {
+	    if (s=="dijet")  f = fdj2;
 	    //if (s=="zeejet") f = fzee2; // GH only
 	    //if (s=="zmmjet") f = fzmm2; // GH only
-	    //}
+	    }
 	    assert(f || s=="zlljet");
 
 
@@ -578,6 +610,16 @@ void reprocess(string epoch="") {
 	      c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f",
 		       rename[s][t], rename[s][d],
 		       100.*alpha, 10.*eta1, 10.*eta2);
+              if((eta1==2.5&&eta2 == 2.650) || (eta1 == 2.650&& eta2==2.853)){
+                c = Form("%s%s_a%1.0f_eta_unknown",
+                         rename[s][t], rename[s][d],
+                         100.*alpha);
+                cout << Form("eta bins [2.5,2.650] and [2.650,2.853] not available for gamma+jet, eta_unknown seems to be closest. Please confirm by pushing any key.") << endl;
+                if(confirmWarnings&&!confirmedGamJet){
+                  cin.ignore();
+                  confirmedGamJet=true;
+                }
+              }
 	    } // gamjet
 	    if (s=="zmmjet" || s=="zeejet") {
 	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_%s",
