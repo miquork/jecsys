@@ -1,0 +1,144 @@
+\documentclass[landscape,10pt]{beamer} % use larger type; default would be 10pt
+\usepackage{graphicx}
+\usepackage{hyperref}
+%\usepackage{geometry} % SIVUN DIMENSION MUUTTAMISTA VARTEN
+%\geometry{a4paper} % or letterpaper (US) or a5paper or....
+%\addtolength{\topmargin}{-.5in} 
+\addtolength{\topmargin}{.2cm} 
+%\addtolength{\textheight}{1.75in}
+%\addtolength{\oddsidemargin}{.1in}
+\addtolength{\oddsidemargin}{-.3in}
+%\addtolength{\evensidemargin}{-.4in}
+\addtolength{\evensidemargin}{-.3in}
+\addtolength{\textwidth}{0.6in}
+\newcommand{\commentout}[1]{}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{centering}
+{. }\\
+{. }\\
+{. }\\
+{. }\\
+{. }\\
+{. }\\
+{. }\\
+Checks of L2Res with inclusive jets and dijets\\
+\today\\
+Mikko Voutilainen, U. Helsinki and HIP\\
+Hannu Siikonen, HIP\\
+%Henning Kirschenmann, HIP\\
+{. }\\
+{. }\\
+{\bf Results for 2016GH, 2017DE and 2018A,B,C,D}\\
+\end{centering}
+
+\newpage
+
+Code for these plots is in\\ 
+{\small
+\url{https://github.com/miquork/jetphys/blob/master/HistosFill.C#L1559-L1570}\\
+for histograms and in\\
+{\small
+\url{https://github.com/miquork/jecsys/blob/2018_Moriond19/minitools/drawMultijetJER.C}\\
+for plotting. Relevant code from \verb|HistosFill.C|:
+\begin{verbatim}
+  double metstuff = met1 * cos(DPhi(metphi1, phiprobe));
+  h->pmpfx->Fill(pttag, 1 + metstuff / pttag, _w);
+  h->pmpfy->Fill(ptprobe, 1 + metstuff / ptprobe, _w);
+  h->pmpfz->Fill(ptave, 1 + metstuff / ptave, _w);
+\end{verbatim}
+
+The MC used in these plots does not have JER SF applied so only ``vs tag'' results are expected to agree reasonably well with data (barrel JER SF only about 10\%).
+
+Observations: 2018D JEC V8/V7 is missing JER SF, and therefore calibrates EC2 to ``vs average'' instead of ``vs tag'' which traditionally agrees better between data and MC. Spread of ``vs tag'' versus ``vs probe'' in data has grown in data in all eta bins, suggesting larger JER SF than before are needed for MC.
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_16GH_BB.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_16GH_EC0.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_16GH_EC1.pdf}\\
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_16GH_EC2.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_16GH_HF.pdf}
+\caption{Summer16\_07Aug2017: Data JEC V18 and MC JEC V15.}
+\end{figure}
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_17DE_BB.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_17DE_EC0.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_17DE_EC1.pdf}\\
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_17DE_EC2.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_17DE_HF.pdf}
+\caption{rereco17\_17nov17\_fall18 (INFO missing).}
+\end{figure}
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18AV8_BB.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18AV8_EC0.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18AV8_EC1.pdf}\\
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18AV8_EC2.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18AV8_HF.pdf}
+\caption{rereco18\_autumn18 (INFO missing, but JEC V8/V7).}
+\end{figure}
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18BV8_BB.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18BV8_EC0.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18BV8_EC1.pdf}\\
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18BV8_EC2.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18BV8_HF.pdf}
+\caption{rereco18\_autumn18 (INFO missing, but JEC V8/V7).}
+\end{figure}
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18CV8_BB.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18CV8_EC0.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18CV8_EC1.pdf}\\
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18CV8_EC2.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18CV8_HF.pdf}
+\caption{rereco18\_autumn18 (INFO missing, but JEC V8/V7).}
+\end{figure}
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18DV8_BB.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18DV8_EC0.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18DV8_EC1.pdf}\\
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18DV8_EC2.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18DV8_HF.pdf}
+\caption{rereco18\_autumn18 (INFO missing, but JEC V8/V7).}
+\end{figure}
+
+\commentout{
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18D_BB.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18D_EC0.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18D_EC1.pdf}\\
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18D_EC2.pdf}
+  \includegraphics[width=0.33\textwidth]{drawMultijetJER_binvars_18D_HF.pdf}
+\caption{rereco-promptreco18\_fall18 (INFO missing, JEC from 2017F?).}
+\end{figure}
+} % commentout
+
+\end{document}

@@ -52,7 +52,8 @@
   // Perform final global fit (goes into GT) - 2018v0
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="B"||epoch=="ABC" ? "zee_zmm" : "gam_zee_zmm", "PtBalMPF");
   // Perform final global fit (goes into GT) - 2018 V5M
-  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="B"||epoch=="ABC"||epoch=="D"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
+  //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="B"||epoch=="ABC"||epoch=="D"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
+  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
 
 ////  
 ////  //now do narrow bins for L2Res
@@ -81,7 +82,8 @@
   softrad(3.839,5.191, dodijetsoftrad, epoch);
 
 
-  std::vector <string> sampleconfigs = {epoch=="B"||epoch=="ABC"||epoch=="ABCD" ? "zee_zmm" : "gam_zee_zmm"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
+  //std::vector <string> sampleconfigs = {epoch=="B"||epoch=="ABC"||epoch=="ABCD" ? "zee_zmm" : "gam_zee_zmm"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
+  std::vector <string> sampleconfigs = {epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll"};
   //std::vector <string> sampleconfigs = {"zmm"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
   //  std::vector <string> sampleconfigs = {"zll"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
   std::vector <string> methodconfigs = {  "PtBalMPF"};//,"PtBal","MPF"};

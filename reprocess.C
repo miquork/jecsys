@@ -219,6 +219,7 @@ void reprocess(string epoch="") {
   //Subject: 	Re: Photon+jet for RunD
   //Date: 	Tue, 12 Mar 2019 14:54:29 +0100
   //From: 	Lucas Torterotot <lucas.torterotot@cern.ch>
+  // Updated files on AFS on March 13 (previous set 2019-03-01)
   map<string,const char*> fp_files;
   fp_files["A"] = "A";
   fp_files["B"] = "B";
@@ -987,7 +988,7 @@ void reprocess(string epoch="") {
     double jecw1(1), jecw2(0), jecw3(0);       // for ABC
     double jecABCDw1(1), jecABCDw2(0), jecABCDw3(0), jecABCDw4(0);       // for ABCD
     {
-      s = Form("%s/Autumn18_Run%s_V5M2_DATA_L2L3Residual_AK4PFchs.txt",cd,ce);
+      s = Form("%s/Autumn18_Run%s_V8_DATA_L2L3Residual_AK4PFchs.txt",cd,ce);
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -999,7 +1000,7 @@ void reprocess(string epoch="") {
 	jecw1 = 14.0/28.0;
 	jecABCDw1 = 14.0/59.9;
 
-	s=Form("%s/Autumn18_RunB_V5M2_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Autumn18_RunB_V8_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_b = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_b;
@@ -1008,7 +1009,7 @@ void reprocess(string epoch="") {
 	jecw2 = 7.1/28.0;
 	jecABCDw2 = 7.1/59.9;
 
-	s=Form("%s/Autumn18_RunC_V5M2_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Autumn18_RunC_V8_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_c = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_c;
@@ -1017,7 +1018,7 @@ void reprocess(string epoch="") {
 	jecw3 = 6.9/28.0;
 	jecABCDw3 = 6.9/59.9;
 
-      	s=Form("%s/Autumn18_RunD_V5M2_DATA_L2L3Residual_AK4PFchs.txt",cd);
+      	s=Form("%s/Autumn18_RunD_V8_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_d = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_d;
@@ -1043,7 +1044,7 @@ void reprocess(string epoch="") {
     // But even with this pT-dependent L2Res can cause problems
     FactorizedJetCorrector *jecold;
     {
-      s = Form("%s/Autumn18_Run%s_V5_DATA_L2Residual_AK4PFchs.txt",cd,ce);
+      s = Form("%s/Autumn18_Run%s_V8_DATA_L2Residual_AK4PFchs.txt",cd,ce);
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1054,7 +1055,7 @@ void reprocess(string epoch="") {
     // Difference between pT-dependent and flat L1
     FactorizedJetCorrector *jecl1flat;
     {
-      s = Form("%s/Autumn18_Run%s_V5_DATA_L1RC_AK4PFchs.txt",cd,ce);
+      s = Form("%s/Autumn18_Run%s_V8_DATA_L1RC_AK4PFchs.txt",cd,ce);
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1063,7 +1064,7 @@ void reprocess(string epoch="") {
     }
     FactorizedJetCorrector *jecl1pt;
     {
-      s = Form("%s/Autumn18_Run%s_V5_DATA_L1FastJet_AK4PFchs.txt",cd,ce);
+      s = Form("%s/Autumn18_Run%s_V8_DATA_L1FastJet_AK4PFchs.txt",cd,ce);
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1072,7 +1073,7 @@ void reprocess(string epoch="") {
     }
     FactorizedJetCorrector *jecl1mc;
     {
-      s = Form("%s/Autumn18_V5_MC_L1FastJet_AK4PFchs.txt",cd);
+      s = Form("%s/Autumn18_V8_MC_L1FastJet_AK4PFchs.txt",cd);
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1089,14 +1090,14 @@ void reprocess(string epoch="") {
     JetCorrectionUncertainty *unc_ref1 = new JetCorrectionUncertainty(*p_ref1);
 
     // Total uncertainty, excluding Flavor and Time
-    s = Form("%s/Autumn18_RunA_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s = Form("%s/Autumn18_RunA_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
     JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p_unc);
 
     // Partial uncertainties
-    s = Form("%s/Autumn18_RunA_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s = Form("%s/Autumn18_RunA_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
     //s2 = "TotalNoFlavorNoTime";
     s2 = "SubTotalAbsolute"; // 07AugV4
     cout << s << ":" << s2 << endl << flush;
