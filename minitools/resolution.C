@@ -228,9 +228,11 @@ void resolution() {
 
     const double etamin = 0.5*iy;
     const double etamax = 0.5*(iy+1);
-    const double ptmin = 20;
-    const double fitxmin = 37.;
-    const double ptmax = 3000./cosh(etamin);
+    const double etamid = 0.5*(etamin+etamax);
+    const double ptmin = 15.;//20;
+    const double fitxmin = 20;//37.;
+    const double emax = 3000.;
+    const double ptmax = emax/cosh(etamin);
 
     assert(din5->cd(Form("Eta_%1.1f-%1.1f", etamin, etamax)));
     assert(gDirectory->cd("mc"));
@@ -261,7 +263,8 @@ void resolution() {
     TGraphErrors *gs5 = new TGraphErrors();
     TGraphErrors *gs5a = new TGraphErrors();
 
-    const int nskip = h2r5->GetXaxis()->FindBin(21.)-1;
+    //const int nskip = h2r5->GetXaxis()->FindBin(21.)-1;
+    const int nskip = h2r5->GetXaxis()->FindBin(ptmin)-1;
     assert(nskip<=h2r5->GetNbinsX());
     for (int ibin = 1+nskip; ibin != h2r5->GetNbinsX()+1 && ibin-nskip<nmax+1;
 	 ++ibin) {
@@ -452,22 +455,26 @@ void resolution() {
     c2->Divide(1,3);
 
     TH1D *h2 = new TH1D(Form("h2_%d",iy),";p_{T} (GeV);Response",
-			int(ptmax-ptmin),ptmin,ptmax);
+			//int(ptmax-ptmin),ptmin,ptmax);
+			int(emax-ptmin),ptmin,emax);
 
     c2->cd(1);
     gPad->SetLogx();
-    h2->SetMinimum(0.98);
-    h2->SetMaximum(1.02);
+    h2->SetMinimum(0.98);//0.98);
+    h2->SetMaximum(1.05);//1.02);
     h2->GetXaxis()->SetMoreLogLabels();
     h2->GetXaxis()->SetNoExponent();
     h2->DrawClone("AXIS");
 
     TLine *l = new TLine();
     l->SetLineStyle(kDashed);
-    l->DrawLine(ptmin,1,ptmax,1);
+    //l->DrawLine(ptmin,1,ptmax,1);
+    l->DrawLine(ptmin,1,emax,1);
     l->SetLineStyle(kDotted);
-    l->DrawLine(ptmin,1.005,ptmax,1.005);
-    l->DrawLine(ptmin,0.995,ptmax,0.995);
+    //l->DrawLine(ptmin,1.005,ptmax,1.005);
+    //l->DrawLine(ptmin,0.995,ptmax,0.995);
+    l->DrawLine(ptmin,1.005,emax,1.005);
+    l->DrawLine(ptmin,0.995,emax,0.995);
 
     gr5->SetMarkerColor(kBlue);
     gr5->Draw("SAMEP");
@@ -505,23 +512,39 @@ void resolution() {
     gs5a->SetMarkerStyle(kOpenCircle);
     gs5a->Draw("SAMEP");
 
-    //TF1 *fs = new TF1("fs",ptreso_bora,ptmin,ptmax,2);
-    //fs->SetParameters(etamin,1.);
-    //fs->SetLineColor(kGreen+2);
-    //fs->SetLineStyle(kDashed);
-    //fs->SetLineWidth(2);
-    //fs->Draw("SAME");
+    //TF1 *fs = new TF1("fs",ptreso,ptmin,ptmax,2);
+    _usejme = false;
+    TF1 *fs = new TF1("fs",ptreso,ptmin,emax,2);
+    fs->SetNpx(int(emax-ptmin));
+    fs->SetParameters(etamin,1.);
+    fs->SetLineColor(kGreen+2);
+    fs->SetLineStyle(kDashed);
+    fs->SetLineWidth(2);
+    fs->DrawClone("SAME");
 
-    TF1 *fs5 = new TF1(Form("fs5_%d",iy),"sqrt([0]*[0]/(x*x)"
+    _usejme = true;
+    TF1 *fsjme = new TF1("fsjme",ptreso,ptmin,emax,2);
+    //fsjme->SetNpx(int(emax-ptmin));
+    fsjme->SetParameters(etamid,1.);
+    fsjme->SetLineColor(kRed+2);
+    fsjme->SetLineStyle(kDotted);
+    fsjme->SetLineWidth(2);
+    //fsjme->DrawClone("SAME");
+    fsjme->Draw("SAME");
+
+    //TF1 *fs5 = new TF1(Form("fs5_%d",iy),"sqrt([0]*[0]/(x*x)"
+    TF1 *fs5 = new TF1(Form("fs5_%d",iy),"sqrt(abs([0])*[0]/(x*x)"
 		       "+ [1]*[1]/x*pow(x,[2])"
 		       "+ [3]*[3])",
-		       fitxmin, ptmax);
+		       //fitxmin, ptmax);
+		       fitxmin, emax);
     fs5->SetParameters(1,0.8,0.2,0.04);
     fs5->FixParameter(2,0.);
     gs5->Fit(fs5,"QRN");
     fs5->SetLineColor(kBlue);
     fs5->DrawClone("SAME");
-    fs5->SetRange(ptmin,ptmax);
+    //fs5->SetRange(ptmin,ptmax);
+    fs5->SetRange(ptmin,emax);
     fs5->SetLineStyle(kDashed);
     fs5->DrawClone("SAME");
 
@@ -534,6 +557,11 @@ void resolution() {
     leg2->AddEntry(gs5,Form("#sigma(%s)",c5),"P");
     leg2->Draw();
 
+    tex->SetTextColor(kRed+2);
+    tex->DrawLatex(0.50,0.81,Form("JME official JER for #LT#rho#GT=18,"
+				  " |#eta|=%1.2f",etamid));
+    tex->SetTextColor(kGreen+2);
+    tex->DrawLatex(0.50,0.73,"Run 1 AK5 JER scaled to AK4");
     tex->SetTextColor(kBlue);
     tex->DrawLatex(0.50,0.65,Form("#chi^{2}/ndf = %1.1f/%d (%s)",
 				  fs5->GetChisquare(),
@@ -562,10 +590,13 @@ void resolution() {
     h2->SetMaximum(1.20);
     h2->GetYaxis()->SetTitle("Resolution / Fit");
     h2->DrawClone("AXIS");
-    l->DrawLine(ptmin,1,ptmax,1);
+    //l->DrawLine(ptmin,1,ptmax,1);
+    l->DrawLine(ptmin,1,emax,1);
     l->SetLineStyle(kDotted);
-    l->DrawLine(ptmin,1.05,ptmax,1.05);
-    l->DrawLine(ptmin,0.95,ptmax,0.95);
+    //l->DrawLine(ptmin,1.05,ptmax,1.05);
+    //l->DrawLine(ptmin,0.95,ptmax,0.95);
+    l->DrawLine(ptmin,1.05,emax,1.05);
+    l->DrawLine(ptmin,0.95,emax,0.95);
 
     TGraphErrors *gs5r = (TGraphErrors*)gs5->Clone();
     for (int i = 0; i != gs5->GetN(); ++i) {

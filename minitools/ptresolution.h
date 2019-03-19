@@ -3,10 +3,20 @@
 
 #include "TMath.h"
 
+#include <string>
+
+#include "JetMETCorrections/Modules/interface/JetResolution.h"
+
+using std::string;
+
 // Switch MC truth or data resolutions
 bool _ismcjer = true;
+// Use official JME resolutions
+bool _usejme = true;
 //bool _jerkscale = true;//false;
-bool _ak7 = true;
+// Define cone size (default Run I AK5)
+bool _ak7 = false;
+bool _ak4 = true;
 
 // This is needed by drawRunHistos to unfold JER from rate vs NPV
 //const double _spu = 1.5; // sigma_PU/PV = 1.5 GeV
@@ -282,13 +292,44 @@ double ptresolution(double pt, double eta) {
   //int iy = min(5, ieta);
   int iy = min(5, int(fabs(eta) / 0.5 + 0.5));
   double res = 0;
-  if (_ak7)
+  if (_ak7) {
+    assert(!_ak4);
     res = sqrt(pow(vpar7[iy][0]/pt,2) + pow(vpar7[iy][1],2)/pt + 
 	       pow(vpar7[iy][2],2));
+  }
+  else if (_ak4) {
+    double kn = pow(0.4/0.5,2); //  scale noise term down by jet area
+    res = sqrt(pow(kn*vpar5[iy][0]/pt,2) + pow(vpar5[iy][1],2)/pt + 
+	       pow(vpar5[iy][2],2));
+  }
   else
     res = sqrt(pow(vpar5[iy][0]/pt,2) + pow(vpar5[iy][1],2)/pt + 
 	       pow(vpar5[iy][2],2));
   if (!_ismcjer) res *= kpar[iy][0];
+
+  // replace with JME resolutions
+  if (_usejme) {
+    // Example code from:
+    // https://github.com/cms-sw/cmssw/blob/CMSSW_8_0_25/PhysicsTools/PatUtils/interface/SmearedJetProducerT.h
+
+    string resolutionFile = "../JRDatabase/textFiles/Autumn18_V1_MC/"
+      "Autumn18_V1_MC_PtResolution_AK4PFchs.txt";
+    string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_V1_MC/"
+      "Autumn18_V1_MC_SF_AK4PFchs.txt";
+    
+    //m_resolution_from_file.reset(new JME::JetREsolution(resolutionFile));
+    //m_scale_factor_from_file.reset(new JME::JetResolutionScaleFactor(scaleFactorFile));
+
+    JME::JetResolution *resolution = new JME::JetResolution(resolutionFile);
+    JME::JetResolutionScaleFactor *resolution_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);
+  
+    double rho = 18.;
+    double jet_resolution = resolution->getResolution({{JME::Binning::JetPt, pt}, {JME::Binning::JetEta, eta}, {JME::Binning::Rho, rho}});
+    double jer_sf = resolution_sf->getScaleFactor({{JME::Binning::JetEta, eta}}, Variation::NOMINAL);//m_systematic_variation);
+
+    res = jet_resolution;
+    if (!_ismcjer) res *= jer_sf;
+  }
 
   // extra smearing from PU
   //double cpu2 = (_npv - _npv0) * pow(_spu/pt,2);
