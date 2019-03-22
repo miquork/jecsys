@@ -79,36 +79,40 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
 
   // Common format ROOT tuple from Engin Eren
   // https://gitlab.cern.ch/CMS-SMP-J/InclusiveJetsLegacy/blob/master/
-  // => common2016.root
+  // => common2016.root (JEC V8?)
+  // => common2016_October2018_V17.root (corrected for lumi?)
   // https://gitlab.cern.ch/lamartik/combinationfiles
+  // => common17_V11.root
   // => common2018_V7.root
   TFile *fin1 = new TFile("rootfiles/common2018_V7.root","READ");
   assert(fin1 && !fin1->IsZombie());
   
-  TFile *fin2 = 0;//new TFile("rootfiles/common2016_LegacyIOVs_v3.root","READ");
-  //assert(fin2 && !fin2->IsZombie());
+  TFile *fin2 = new TFile("rootfiles/common2017_V11.root","READ");
+  //new TFile("rootfiles/common2016_LegacyIOVs_v3.root","READ");
+  assert(fin2 && !fin2->IsZombie());
 
-  TFile *fin3 = 0;//new TFile("rootfiles/common2017_V11.root","READ");
-  //assert(fin3 && !fin3->IsZombie());
+  TFile *fin3 = new TFile("rootfiles/common2016_October2018_V17.root","READ");
+  //new TFile("rootfiles/common2017_V11.root","READ");
+  assert(fin3 && !fin3->IsZombie());
 
   TFile *fu = new TFile("rootfiles/unfold.root","READ");
   assert(fu && !fu->IsZombie());
 
   // Current uncertainty
   const char *p = "CondFormats/JetMETObjects/data/";
-  const char *t = "Autumn18_RunD_V8_DATA";
-  const char *a = "AK4";
-  const char *s = Form("%s%s_Uncertainty_%sPFchs.txt",p,t,a);
-  cout<<"**"<<s<<endl<<flush;
-  JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(s);
+  const char *t18 = "Autumn18_RunD_V8_DATA";
+  const char *a18 = "AK4";
+  const char *s18 = Form("%s%s_Uncertainty_%sPFchs.txt",p,t18,a18);
+  cout<<"**"<<s18<<endl<<flush;
+  JetCorrectionUncertainty *unc18 = new JetCorrectionUncertainty(s18);
 
-  const char *ss1 = Form("%s%s_UncertaintySources_%sPFchs.txt",p,t,a);
+  const char *ss1 = Form("%s%s_UncertaintySources_%sPFchs.txt",p,t18,a18);
   const char *sss1 = "RelativeBal";//Sample";
   cout<<"**"<<ss1<<":"<<sss1<<endl<<flush;
   JetCorrectorParameters *ps1 = new JetCorrectorParameters(ss1,sss1);
   JetCorrectionUncertainty *uncs1 = new JetCorrectionUncertainty(*ps1);
 
-  const char *ss2 = Form("%s%s_UncertaintySources_%sPFchs.txt",p,t,a);
+  const char *ss2 = Form("%s%s_UncertaintySources_%sPFchs.txt",p,t18,a18);
   const char *sss2a = "RelativePtEC1";
   cout<<"**"<<ss2<<":"<<sss2a<<endl<<flush;
   JetCorrectorParameters *ps2a = new JetCorrectorParameters(ss2,sss2a);
@@ -118,25 +122,51 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   JetCorrectorParameters *ps2b = new JetCorrectorParameters(ss2,sss2b);
   JetCorrectionUncertainty *uncs2b = new JetCorrectionUncertainty(*ps2b);
 
+  // 2017 uncertainty
+  const char *t17 = "Fall17_17Nov2017B_V11_DATA";
+  const char *a17 = "AK4";
+  const char *s17 = Form("%s%s_Uncertainty_%sPFchs.txt",p,t17,a17);
+  cout<<"**"<<s17<<endl<<flush;
+  JetCorrectionUncertainty *unc17 = new JetCorrectionUncertainty(s17);
+
+  // 2016 uncertainty
+  const char *t16 = "Summer16_07Aug2017GH_V17_DATA";
+  const char *a16 = "AK4";
+  const char *s16 = Form("%s%s_Uncertainty_%sPFchs.txt",p,t16,a16);
+  cout<<"**"<<s16<<endl<<flush;
+  JetCorrectionUncertainty *unc16 = new JetCorrectionUncertainty(s16);
+
   // 2015 uncertainty (50 ns)
-  const char *t0 = "Summer15_50nsV5_DATA";
-  const char *a0 = "AK4";
-  const char *s0 = Form("%s%s_Uncertainty_%sPFchs.txt",p,t0,a0);
-  cout<<"**"<<s0<<endl<<flush;
-  JetCorrectionUncertainty *unc0 = new JetCorrectionUncertainty(s0);
+  const char *t15 = "Summer15_50nsV5_DATA";
+  const char *a15 = "AK4";
+  const char *s15 = Form("%s%s_Uncertainty_%sPFchs.txt",p,t15,a15);
+  cout<<"**"<<s15<<endl<<flush;
+  JetCorrectionUncertainty *unc15 = new JetCorrectionUncertainty(s15);
 
   // 2012 uncertainty (8 TeV)
-  const char *t1 = "Winter14_V8_DATA";
-  const char *a1 = "AK5";
-  const char *s1 = Form("%s%s_Uncertainty_%sPFchs.txt",p,t1,a1);
-  cout<<"**"<<s1<<endl<<flush;
-  JetCorrectionUncertainty *unc1 = new JetCorrectionUncertainty(s1);
+  const char *t12 = "Winter14_V8_DATA";
+  const char *a12 = "AK5";
+  const char *s12 = Form("%s%s_Uncertainty_%sPFchs.txt",p,t12,a12);
+  cout<<"**"<<s12<<endl<<flush;
+  JetCorrectionUncertainty *unc12 = new JetCorrectionUncertainty(s12);
 
-  const int nera = 4;
-  TFile *fins[nera] = {fin1, fin1, fin1, fin1};
-  string eras[nera] = {"A","B","C", "D"};
+  const int nera = 12;
+  TFile *fins[nera] =
+    {fin1, fin1, fin1, fin1,
+     fin2, fin2, fin2, fin2, fin2,
+     fin3, fin3, fin3};
+  string eras[nera] =
+    //{"A","B","C", "D",
+    {"2018_A","2018_B","2018_C", "2018_D",
+     "2017_B","2017_C","2017_D","2017_E","2017_F",
+     "BCD2016","EF2016","GH2016"};
   // luminosity re-normalization, if any needed
-  double lumi[nera] = {14.0/59.9, 7.1/59.9, 6.9/59.9, 31.9/59.9};
+  double k17 = 1e5;
+  double lumi[nera] =
+    {14.0/59.9, 7.1/59.9, 6.9/59.9, 31.9/59.9,
+     4800, 9600, 4200, 9300, 13400,
+     1, 1, 1};
+     //4.8*k17/41.4, 9.6*k17/41.4, 4.2*k17/41.4, 9.3*k17/41.4, 13.4*k17/41.4};
   //lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
   //lumimap["B"] = "Run2018B 7.1 fb^{-1}"; //PdmV Analysis TWiki
   //lumimap["C"] = "Run2018C 6.9 fb^{-1}"; //PdmV Analysis TWiki
@@ -144,24 +174,22 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   //lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
   //lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
 
-  int color[nera] = {kRed+2, kOrange+2, kBlue+1, kBlack};
-  int marker[nera] = {kFullCircle, kFullDiamond,
-  		      kFullStar, kFullSquare};
-  const char* label[nera] = {"RunA","RunB","RunC","RunD"};
+  int color[nera] =
+    {kRed+2, kOrange+2, kBlue+1, kBlack,
+     kRed+2, kOrange+2, kBlue+1, kGreen+2, kBlack,
+     kMagenta+2, kCyan+2, kGray+2};
+  int marker[nera] =
+    {kFullCircle, kFullDiamond, kFullStar, kFullSquare,
+     kOpenCircle, kOpenDiamond, kOpenStar, kOpenSquare, kOpenTriangleDown,
+     kFullCircle, kFullDiamond, kFullSquare};
+  const char* label[nera] =
+    //{"RunA","RunB","RunC","RunD"};
+    {"18A","18B","18C","18D",
+     "17B","17C","17D","17E","17F",
+     "16BCD","16EF","16GH"};
 
   // Settings for the spectrum fit and JEC-equivalent plot y-axis range
   double eta(0.), ymin(-4), ymax(+6);
-  //double emax(6500.);
-  // double ptmax(2600.);
-  /*
-  if (sy=="0.0-0.5") { eta = 0; ymin = -4; ymax = +6; }
-  if (sy=="0.5-1.0") { eta = 0.5; ymin = -4; ymax = +6; }
-  if (sy=="1.0-1.5") { eta = 1.0; ymin = -4; ymax = +6; }
-  if (sy=="1.5-2.0") { eta = 1.5; ymin = -6; ymax = +9; }
-  if (sy=="2.0-2.5") { eta = 2.0; ymin = -6; ymax = +9; }
-  if (sy=="2.5-3.0") { eta = 2.5; ymin = -15; ymax = +30; }
-  if (sy=="3.2-4.7") { eta = 3.2; ymin = -12; ymax = +18; }
-  */
   if (sy=="0.0-0.5") { eta = 0;   ymin = -6; ymax = +9; }
   if (sy=="0.5-1.0") { eta = 0.5; ymin = -6; ymax = +9; }
   if (sy=="1.0-1.5") { eta = 1.0; ymin = -6; ymax = +9; }
@@ -177,9 +205,17 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   for (int iera = 0; iera != nera; ++iera) {
 
     const char *cera = eras[iera].c_str(); 
-    string hname = Form("ak4/Eta_%s/hpt_data_2018_%s_det",cy,cera);
-    
+    string hname = Form("ak4/Eta_%s/hpt_data_%s_det",cy,cera);
     TH1F *hera = (TH1F*)fins[iera]->Get(hname.c_str());
+
+    // Engin's file has different naming scheme
+    if (!hera) {
+      int iy = int((eta+0.25)/0.5)+1;
+      hname = Form("ak4/y_%s/hptData_%s_detector_%dbin",cy,cera,iy);
+      hera = (TH1F*)fins[iera]->Get(hname.c_str());
+    }
+    if (!hera) cout << "Histogram " << hname << " not found!" << endl << flush;
+    assert(hera);
 
     // Apply ad-hoc unfolding to det-level data
     if (true) {
@@ -260,21 +296,25 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
     }
     //h50ns4 = hhepdy4;
     
-    // Copy AK4 over to new binning, and set 30<pT<40 GeV from RunA
+    // Copy AK4 over to new binning, and set 30<pT<40 GeV from Run18D (was 18A) 
+    // Also set/replace emax>2000 from Run18D to constrain very high pT
+    // Constraints set at 30% level (xerr)
     h50ns4 = new TH1F("h50ns4",";p_{T} (GeV);Cross section",nptb,ptbins);
     for (int i = 1; i != h50ns4->GetNbinsX()+1; ++i) {
       int x = h50ns4->GetBinCenter(i);
       int j = hhepdy4->FindBin(x);
-      int k = h1s[0]->FindBin(x);
-      if (hhepdy4->GetBinContent(j)!=0) {
+      int irund = 3; // Index of 2018D
+      const double emax = 2000;
+      const double xerr = 0.3; // 50%
+      int k = h1s[irund]->FindBin(x);
+      if (hhepdy4->GetBinContent(j)!=0 && (x*cosh(eta)<emax)) {
 	h50ns4->SetBinContent(i, hhepdy4->GetBinContent(j));
 	h50ns4->SetBinError(i, hhepdy4->GetBinError(j));
       }
-      //else if (x>=20 && x<=30) {
-      else if (x>=30 && x<=40) {
-	h50ns4->SetBinContent(i, h1s[0]->GetBinContent(k));
-	h50ns4->SetBinError(i, sqrt(pow(h1s[0]->GetBinError(k),2)
-				    +pow(h1s[0]->GetBinContent(k)*0.5,2)));
+      else if ((x>=30 && x<=40) || (x*cosh(eta)>=emax)) {
+	h50ns4->SetBinContent(i, h1s[irund]->GetBinContent(k));
+	h50ns4->SetBinError(i, sqrt(pow(h1s[irund]->GetBinError(k),2)
+				    +pow(h1s[irund]->GetBinContent(k)*xerr,2)));
       }
     }
 
@@ -382,8 +422,11 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   h2->GetXaxis()->SetNoExponent();
   h2->GetXaxis()->SetMoreLogLabels();
 
-  //lumi_13TeV = "Run2016, 35 fb^{-1}";
-  lumi_13TeV = "Run2018ABCD 59.9 fb^{-1}";
+  //lumi_13TeV = "Run2018ABCD 59.9 fb^{-1}";
+  //lumi_13TeV = "Run2017BCDEF 41.4 fb^{-1}";
+  //lumi_13TeV = "Run2016BCDEFGH 36.5 fb^{-1}";
+  //lumi_13TeV = "Run2015 71 pb^{-1}";
+  lumi_13TeV = "Run2 137.8 fb^{-1}";
   TCanvas *c1 = tdrDiCanvas("c1",h,h2,4,11);
 
   c1->cd(1);
@@ -395,11 +438,19 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   gPad->SetLogx();
   gPad->SetLogy();
   
-  TLegend *leg = tdrLeg(0.50,0.90-0.06*nera,0.80,0.90);
+  //TLegend *leg = tdrLeg(0.50,0.90-0.06*nera,0.80,0.90);
+  //for (int iera = 0; iera != nera; ++iera) {
+  //leg->AddEntry(h1s[iera],label[iera],"PL");
+  //}
+  const int nmax = 6;
+  TLegend *leg1 = tdrLeg(0.50,0.90-0.06*min(nmax,nera),0.80,0.90);
+  TLegend *leg2 = tdrLeg(0.65,0.90-0.06*max(1,min(nmax,nera-nmax)+1),0.95,0.90);
   for (int iera = 0; iera != nera; ++iera) {
-    leg->AddEntry(h1s[iera],label[iera],"PL");
+    if (iera<nmax)  leg1->AddEntry(h1s[iera],label[iera],"PL");
+    if (iera>=nmax) leg2->AddEntry(h1s[iera],label[iera],"PL");
   }
-  leg->AddEntry(h50ns4,"2015 pub.","PL");
+  if (nera<nmax)  leg1->AddEntry(h50ns4,"2015 pub.","PL");
+  if (nera>=nmax) leg2->AddEntry(h50ns4,"2015 pub.","PL");
   //leg->AddEntry(h50ns4,"74X 50 ns AK4","PL");
   //leg->AddEntry(h50ns7,"74X 50 ns AK7","PL");
 
@@ -451,19 +502,41 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   h3->GetXaxis()->SetNoExponent();
   
   // Calculate reference uncertainty
-  TH1F *hunc = (TH1F*)h50ns4->Clone("hunc");
+  TH1F *hunc18 = (TH1F*)h50ns4->Clone("hunc18");
+  TH1F *hunc17 = (TH1F*)h50ns4->Clone("hunc17");
+  TH1F *hunc16 = (TH1F*)h50ns4->Clone("hunc16");
   TH1F *huncs1 = (TH1F*)h50ns4->Clone("huncs1");
   TH1F *huncs2 = (TH1F*)h50ns4->Clone("huncs2");
-  TH1F *hunc0 = (TH1F*)h50ns4->Clone("hunc0");
-  TH1F *hunc1 = (TH1F*)h50ns4->Clone("hunc1");
-  for (int i = 1; i != hunc->GetNbinsX()+1; ++i) {
+  TH1F *hunc15 = (TH1F*)h50ns4->Clone("hunc15");
+  TH1F *hunc12 = (TH1F*)h50ns4->Clone("hunc12");
+  for (int i = 1; i != hunc18->GetNbinsX()+1; ++i) {
     
-    double pt = hunc->GetBinCenter(i);
+    double pt = hunc18->GetBinCenter(i);
 
-    unc->setJetEta(eta+0.25);
-    unc->setJetPt(pt);
-    hunc->SetBinContent(i, 0);//-1.5);
-    hunc->SetBinError(i, 100.*unc->getUncertainty(true));
+    unc18->setJetEta(eta+0.25);
+    unc18->setJetPt(pt);
+    hunc18->SetBinContent(i, 0);
+    hunc18->SetBinError(i, 100.*unc18->getUncertainty(true));
+
+    unc17->setJetEta(eta+0.25);
+    unc17->setJetPt(pt);
+    hunc17->SetBinContent(i, 0);
+    hunc17->SetBinError(i, 100.*unc17->getUncertainty(true));
+
+    unc16->setJetEta(eta+0.25);
+    unc16->setJetPt(pt);
+    hunc16->SetBinContent(i, 0);
+    hunc16->SetBinError(i, 100.*unc16->getUncertainty(true));
+
+    unc15->setJetEta(eta+0.25);
+    unc15->setJetPt(pt);
+    hunc15->SetBinContent(i, 0);
+    hunc15->SetBinError(i, 100.*unc15->getUncertainty(true));
+
+    unc12->setJetEta(eta+0.25);
+    unc12->setJetPt(pt);
+    hunc12->SetBinContent(i, 0);
+    hunc12->SetBinError(i, 100.*unc12->getUncertainty(true));
 
     uncs1->setJetEta(eta+0.25);
     uncs1->setJetPt(pt);
@@ -478,15 +551,6 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
 			  100.*2.*uncs2b->getUncertainty(true));
     huncs2->SetBinError(i, 0.);
     
-    unc0->setJetEta(eta+0.25);
-    unc0->setJetPt(pt);
-    hunc0->SetBinContent(i, 0.0);
-    hunc0->SetBinError(i, 100.*unc0->getUncertainty(true));
-
-    unc1->setJetEta(eta+0.25);
-    unc1->setJetPt(pt);
-    hunc1->SetBinContent(i, 0.0);
-    hunc1->SetBinError(i, 100.*unc1->getUncertainty(true));
   }
 
   TH1F *hds[nera];
@@ -527,11 +591,18 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
 
   TCanvas *c2 = tdrCanvas("c2",h3,4,11,kSquare);
 
-  tdrDraw(hunc,"E3", kSolid, kBlack,kSolid,-1,1001,kYellow+1); // 2018
-  tdrDraw(hunc0,"E3", kNone, kBlack,kSolid,-1,1001,kOrange-9); // 2015
-  hunc0->SetFillColorAlpha(kOrange-9,0.70);
-  tdrDraw(hunc1,"E3", kNone, kBlack,kSolid,-1,1001,kRed-9); // 2012
-  hunc1->SetFillColorAlpha(kRed-9,0.70);
+  tdrDraw(hunc18,"E3", kSolid, kBlack,kSolid,-1,1001,kYellow+1); // 2018
+  tdrDraw(hunc17,"E3", kSolid, kBlack,kSolid,-1,1001,kCyan-6); // 2017
+  hunc17->SetFillColorAlpha(kCyan-6,0.70);
+  //tdrDraw(hunc16,"E3", kSolid, kBlack,kSolid,-1,1001,kGreen-6); // 2016
+  //hunc16->SetFillColorAlpha(kGreen-6,0.70);
+  tdrDraw(hunc16,"E3", kSolid, kBlack,kSolid,-1,1001,kViolet-8); // 2016
+  hunc16->SetFillColorAlpha(kViolet-8,0.70);
+
+  tdrDraw(hunc15,"E3", kNone, kBlack,kSolid,-1,1001,kOrange-9); // 2015
+  hunc15->SetFillColorAlpha(kOrange-9,0.70);
+  tdrDraw(hunc12,"E3", kNone, kBlack,kSolid,-1,1001,kRed-9); // 2012
+  hunc12->SetFillColorAlpha(kRed-9,0.70);
   //tdrDraw(huncl,"E3", kNone, kBlack,kSolid,-1,1001,kBlue-9);
   //tdrDraw(hunc,"E3", kSolid, kBlack,kSolid,-1,3001,kYellow+1);
   tdrDraw(huncs1,"HIST][",kSolid,kBlack,kSolid,-1,kNone,kOrange-9); //RelPtBal
@@ -543,25 +614,36 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   }
   gPad->SetLogx();
 
-  TLegend *legd = tdrLeg(0.50,0.90-0.04*(nera+3),0.80,0.90);
+  //TLegend *legd = tdrLeg(0.50,0.90-0.04*(nera+3),0.80,0.90);
+  //for  (int iera = 0; iera != nera; ++iera) {
+  //legd->AddEntry(hrs[iera],label[iera],"PL");
+  //}
+  const int nmaxd = 6;
+  TLegend *legd1 = tdrLeg(0.50,0.9-0.04*min(nmaxd,nera),0.80,0.9);
+  TLegend *legd2 = tdrLeg(0.65,0.9-0.04*max(0,min(nmaxd,nera-nmaxd)),0.95,0.9);
   for  (int iera = 0; iera != nera; ++iera) {
-    legd->AddEntry(hrs[iera],label[iera],"PL");
+    if (iera<nmaxd)  legd1->AddEntry(hrs[iera],label[iera],"PL");
+    if (iera>=nmaxd) legd2->AddEntry(hrs[iera],label[iera],"PL");
   }
-
-  TLegend *legu = tdrLeg(0.50,0.15,0.80,0.23);
-  legd->AddEntry(hunc1,"2012 unc.","F");
-  legd->AddEntry(hunc0,"2015 unc.","F");
-  legd->AddEntry(hunc,"2018 unc.","F");
+  
+  //TLegend *legu = tdrLeg(0.50,0.15,0.80,0.23);
+  const int nmaxu1 = 3;
+  const int nmaxu2 = 3;
+  TLegend *legu1 = tdrLeg(0.20,0.15,0.50,0.15+0.04*nmaxu1);
+  TLegend *legu2 = tdrLeg(0.60,0.15,0.90,0.15+0.04*nmaxu2);
+  legu1->AddEntry(hunc18,"2018 Aut18_V8","F");
+  legu1->AddEntry(hunc17,"2017 17Nov_V11","F");
+  legu1->AddEntry(hunc16,"2016 07Aug_V17","F");
+  legu2->AddEntry(hunc15,"2015 unc.","F");
+  legu2->AddEntry(hunc12,"2012 unc.","F");
   //legd->AddEntry(huncl,"2.6% lum.","F");
   
   tex->SetTextColor(kBlack); tex->SetTextSize(0.040);
-  tex->DrawLatex(0.19,0.74,Form("Anti-k_{T} R=0.4"));
-  //tex->DrawLatex(0.19,0.74,Form("Anti-k_{T} R=0.7 (0.4)"));
-  //tex->DrawLatex(0.19,0.69,Form("PF+CHS"));
-  tex->DrawLatex(0.19,0.69,Form("PF+CHS unf."));
-  tex->DrawLatex(0.19,0.64,Form("|y|#in %s",cy));
+  tex->DrawLatex(0.19,0.75,Form("Anti-k_{T} R=0.4"));
+  tex->DrawLatex(0.19,0.71,Form("PF+CHS unf."));
+  tex->DrawLatex(0.19,0.67,Form("|y|#in %s",cy));
   tex->SetTextSize(0.025);
-  tex->DrawLatex(0.19,0.59,Form("vs HEPData-ins1459051-v1"));
+  tex->DrawLatex(0.19,0.64,Form("vs HEPData-ins1459051-v1"));
   tex->SetTextSize(0.040);
   TLine *l = new TLine();
   l->SetLineStyle(kDashed);
