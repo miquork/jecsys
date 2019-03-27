@@ -17,12 +17,13 @@ bool _usejme = true;
 // Define cone size (default Run I AK5)
 //bool _ak7 = false;
 //bool _ak4 = true;
-bool _run2012 = false;
-bool _run2018 = true;
+enum jer_iov { none, run1, run2016, run2017, run2018};
+jer_iov _jer_iov = none;
 
-const int _nres = 7;
+const int _nres = 8;
 
 // Define as global variables to make code faster
+double _rho = 19.31; // Data-Fall17V8-D, jt500 hrho
 JME::JetResolution *_jer(0);
 JME::JetResolutionScaleFactor *_jer_sf(0);
 
@@ -36,6 +37,31 @@ const double kpar2012[_nres][2] = {
   {1.208, 0.053},
   {1.395, 0.062},
   {1.395, 0.062}, // copy
+  {1.395, 0.062}, // copy
+};
+
+// Placeholder
+const double kpar2016[_nres][2] = {
+  {1.079, 0.026},
+  {1.099, 0.028},
+  {1.121, 0.029},
+  {1.208, 0.039},
+  {1.208, 0.053},
+  {1.395, 0.062},
+  {1.395, 0.062}, // copy
+  {1.395, 0.062}, // copy
+};
+
+// Placeholder
+const double kpar2017[_nres][2] = {
+  {1.079, 0.026},
+  {1.099, 0.028},
+  {1.121, 0.029},
+  {1.208, 0.039},
+  {1.208, 0.053},
+  {1.395, 0.062},
+  {1.395, 0.062}, // copy
+  {1.395, 0.062}, // copy
 };
 
 // Placeholder
@@ -46,6 +72,7 @@ const double kpar2018[_nres][2] = {
   {1.208, 0.039},
   {1.208, 0.053},
   {1.395, 0.062},
+  {1.395, 0.062}, // copy
   {1.395, 0.062}, // copy
 };
 
@@ -61,17 +88,47 @@ const double vpar2012[_nres][3] =
    {5.36, 0.745, 0.0265},  // y 1.5-2.0, chi2 14.5/32
    {4.45, 0.680, 0.0253},  // y 2.0-2.5, chi2 10.5/25
    {2.86, 0.874, 0.0000}, // y 2.5-3.0, chi2 10.8/19
+   {2.86, 0.874, 0.0000}, // copy
    {2.86, 0.874, 0.0000}}; // copy
 
+//////////////////////////////////////////////////////////
+// NB: resolution.C uses JER to set Gaussian fit range so
+//     iterating on the fit may change the fitted values.
+//     Here we have started from 2012 JER and iterated once,
+//     only updating fits that had improved chi2.
+/////////////////////////////////////////////////////////
+const double vpar2016[_nres][3] = 
+// Fit of JER for R=0.4, 13 TeV file MC-Legacy16-GH
+  {{-2.37, 0.948, 0.0350},  // y 0.0-0.5, chi2 68.7/35
+   {-2.62, 0.982, 0.0365},  // y 0.5-1.0, chi2 109.9/35
+   {-2.39, 1.086, 0.0485},  // y 1.0-1.5, chi2 111.8/35
+   {-1.20, 1.070, 0.0311},  // y 1.5-2.0, chi2 92.5/35
+   {1.58, 1.003, 0.0248},  // y 2.0-2.5, chi2 31.8/35
+   {3.33, 0.964, 0.0242},  // y 2.5-3.0, chi2 53.6/33
+   {3.86, 0.829, 0.1233},  // y 3.0-3.2, chi2 33.8/33
+   {2.16, 0.779, 0.0892}}; // y 3.2-4.7, chi2 50.5/33
+
+const double vpar2017[_nres][3] = 
+// Fit of JER for R=0.4, 13 TeV file P8CP5-17nov17-DE
+  {{-2.73, 0.997, 0.0344},  // y 0.0-0.5, chi2 25.0/35
+   {-2.73, 1.007, 0.0396},  // y 0.5-1.0, chi2 23.3/35
+   {-2.98, 1.159, 0.0527},  // y 1.0-1.5, chi2 24.5/35
+   {-1.16, 1.134, 0.0283},  // y 1.5-2.0, chi2 18.6/35
+   {2.40, 1.082, 0.0210},  // y 2.0-2.5, chi2 26.9/35
+   {5.24, 1.037, -0.0000},  // y 2.5-3.0, chi2 43.8/33
+   {-2.57, 1.379, 0.1106},  // y 3.0-3.2, chi2 166.3/33
+   {2.83, 0.772, 0.0967}}; // y 3.2-4.7, chi2 8.8/33
+
 const double vpar2018[_nres][3] = 
-// Fit of JER for R=0.4, 13 TeV file Fall18V8-D
+// Fit of JER for R=0.4, 13 TeV file MC-Fall18V8-D
   {{-2.67, 0.991, 0.0330},  // y 0.0-0.5, chi2 33.5/35
-   {-2.64, 1.009, 0.0374},  // y 0.5-1.0, chi2 34.4/35
-   {-3.01, 1.155, 0.0514},  // y 1.0-1.5, chi2 31.3/35
-   {1.08, 1.035, 0.0452},  // y 1.5-2.0, chi2 114.7/35
-   {1.78, 1.054, 0.0419},  // y 2.0-2.5, chi2 72.8/35
-   {1.01, 1.237, 0.0000}, // y 2.5-3.0, chi2 130.6/33
-   {1.01, 1.237, 0.0000}}; // copy
+   {-2.76, 1.009, 0.0374},  // y 0.5-1.0, chi2 24.0/35
+   {-3.04, 1.156, 0.0516},  // y 1.0-1.5, chi2 41.9/35
+   {1.56, 1.027, 0.0445},  // y 1.5-2.0, chi2 70.7/35
+   {1.92, 1.052, 0.0422},  // y 2.0-2.5, chi2 39.6/35
+   {3.49, 1.209, 0.0073},  // y 2.5-3.0, chi2 29.8/33
+   {1.84, 0.965, 0.1333},  // y 3.0-3.2, chi2 615.9/33 (pretty bad)
+   {2.24, 0.750, 0.0901}}; // y 3.2-4.7, chi2 76.2/33
 
 double ptresolution(double pt, double eta) {
 
@@ -83,14 +140,30 @@ double ptresolution(double pt, double eta) {
 
   // Own parameterized JER
   if (!_usejme) {
-    if (_run2012) {
+    if (_jer_iov==none) {
+      assert(false); // not initialized
+    }
+    if (_jer_iov==run1) {
       double kn = pow(0.4/0.5,2); //  scale noise term down by jet area
       res = sqrt(pow(kn*vpar2012[iy][0]/pt,2) + pow(vpar2012[iy][1],2)/pt + 
 		 pow(vpar2012[iy][2],2));
       if (!_ismcjer) res *= kpar2012[iy][0];
     }
-    if (_run2018) {
-      res = sqrt(pow(vpar2018[iy][0]/pt,2) + pow(vpar2018[iy][1],2)/pt + 
+    if (_jer_iov==run2016) {
+      res = sqrt(vpar2016[iy][0]*fabs(vpar2016[iy][0])/(pt*pt) +
+		 pow(vpar2016[iy][1],2)/pt + 
+		 pow(vpar2016[iy][2],2));
+      if (!_ismcjer) res *= kpar2016[iy][0];
+    }
+    if (_jer_iov==run2017) {
+      res = sqrt(vpar2017[iy][0]*fabs(vpar2017[iy][0])/(pt*pt) +
+		 pow(vpar2017[iy][1],2)/pt + 
+		 pow(vpar2017[iy][2],2));
+      if (!_ismcjer) res *= kpar2017[iy][0];
+    }
+    if (_jer_iov==run2018) {
+      res = sqrt(vpar2018[iy][0]*fabs(vpar2018[iy][0])/(pt*pt) +
+		 pow(vpar2018[iy][1],2)/pt + 
 		 pow(vpar2018[iy][2],2));
       if (!_ismcjer) res *= kpar2018[iy][0];
     }
@@ -101,7 +174,33 @@ double ptresolution(double pt, double eta) {
     // Example code from:
     // https://github.com/cms-sw/cmssw/blob/CMSSW_8_0_25/PhysicsTools/PatUtils/interface/SmearedJetProducerT.h
 
-    if (_run2018 && !_jer && !_jer_sf) {
+    if (_jer_iov==none) {
+      assert(false); // not initialized
+    }
+    if (_jer_iov==run1 && !_jer && !_jer_sf) {
+      assert(false); // Run 1 not supported
+    }
+    if (_jer_iov==run2016 && !_jer && !_jer_sf) {
+      string resolutionFile = "../JRDatabase/textFiles/Summer16_25nsV1_MC/"
+	"Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt";
+      string scaleFactorFile = "../JRDatabase/textFiles/Summer16_25nsV1_MC/"
+	"Summer16_25nsV1_MC_SF_AK4PFchs.txt";
+      string weightFile = "rootfiles/jerweights.root";
+
+      _jer = new JME::JetResolution(resolutionFile);
+      _jer_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);
+    }
+    if (_jer_iov==run2017 && !_jer && !_jer_sf) {
+      string resolutionFile = "../JRDatabase/textFiles/Fall17_V3_MC/"
+	"Fall17_V3_MC_PtResolution_AK4PFchs.txt";
+      string scaleFactorFile = "../JRDatabase/textFiles/Fall17_V3_MC/"
+	"Fall17_V3_MC_SF_AK4PFchs.txt";
+      string weightFile = "rootfiles/jerweights.root";
+
+      _jer = new JME::JetResolution(resolutionFile);
+      _jer_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);
+    }
+    if (_jer_iov==run2018 && !_jer && !_jer_sf) {
       string resolutionFile = "../JRDatabase/textFiles/Autumn18_V1_MC/"
 	"Autumn18_V1_MC_PtResolution_AK4PFchs.txt";
       string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_V1_MC/"
@@ -124,8 +223,8 @@ double ptresolution(double pt, double eta) {
     //const double vrho[nrho+1] =
     //{rho,rho}
 
-    double rho = 19.31; // Data-Fall17V8-D, jt500 hrho
-    double jet_resolution = _jer->getResolution({{JME::Binning::JetPt, pt}, {JME::Binning::JetEta, eta}, {JME::Binning::Rho, rho}});
+    //double rho = 19.31; // Data-Fall17V8-D, jt500 hrho
+    double jet_resolution = _jer->getResolution({{JME::Binning::JetPt, pt}, {JME::Binning::JetEta, eta}, {JME::Binning::Rho, _rho}});
     double jer_sf = _jer_sf->getScaleFactor({{JME::Binning::JetEta, eta}}, Variation::NOMINAL);//m_systematic_variation);
 
     res = jet_resolution;

@@ -160,15 +160,27 @@ Double_t ptresPlusNSC(Double_t *x, Double_t *p) {
 	      + p[1]*p[1]/x[0] + p[2]*p[2])/res;
 }
 
-void resolution() {
+void resolution(string type="MC",string file="") {
 
   //_ismcjer = true;
+  _jer_iov = run1;
+  if (TString(file.c_str()).Contains("Fall18")) _jer_iov = run2018;
+  if (TString(file.c_str()).Contains("17nov17")) _jer_iov = run2017;
+  if (TString(file.c_str()).Contains("Legacy16")) _jer_iov = run2016;
+  jer_iov jer_ref = _jer_iov;
 
   TDirectory *curdir = gDirectory;
   setTDRStyle();
 
+  string filename = type + "-1-" + file;
+  const char *cff = filename.c_str();
+  string idname = type + "-" + file;
+  const char *cf = idname.c_str();
+
   const char *c5 = "R=0.4, 13 TeV";
-  TFile *fin5 = new TFile("rootfiles/output-MC-1-Fall18V8-D.root", "READ");
+  //TFile *fin5 = new TFile("rootfiles/output-MC-1-Fall18V8-D.root", "READ");
+  //TFile *fin5 = new TFile(Form("rootfiles/output-MC-1-%s.root",cf),"READ");
+  TFile *fin5 = new TFile(Form("rootfiles/output-%s.root",cff),"READ");
   assert(fin5 && !fin5->IsZombie());
   assert(fin5->cd("Standard"));
   TDirectory *din5 = gDirectory;
@@ -178,7 +190,8 @@ void resolution() {
   t->SetTextSize(0.045);
 
   const int ny0 = 0;
-  const int ny = 6;
+  const int ny = 8;//6;
+  const double ybins[ny+1] = {0,0.5,1,1.5,2,2.5,3,3.2,4.7};
 
   double vpar5[ny][3];
   double vchi5[ny];
@@ -191,7 +204,7 @@ void resolution() {
   TCanvas *c3 = new TCanvas("c3","c3",600,600);
   gPad->SetLogx();
 
-  TH1D *h3 = new TH1D("h3",";p_{T} (GeV);Resolution",2480,20,2500);
+  TH1D *h3 = new TH1D("h3",";p_{T}^{ptcl} (GeV);Resolution",2480,20,2500);
   h3->SetMinimum(0);
   h3->SetMaximum(0.25);
   h3->GetXaxis()->SetMoreLogLabels();
@@ -220,14 +233,18 @@ void resolution() {
   leg3e->SetTextSize(0.045);
   leg3e->Draw();
 
-  int colors[6] = {kBlack, kGray+1, kRed, kRed+1, kBlue, kBlue+1};
-  int styles[6] = {kSolid, kSolid, kSolid, kDashed, kDashed, kDotted};
+  int colors[8] = {kBlack, kGray+1, kRed, kRed+1, kBlue, kBlue+1,
+		   kOrange+1, kOrange+3};
+  int styles[8] = {kSolid, kSolid, kSolid, kDashed, kDashed, kDotted,
+		   kDashDotted, kDashDotted};
 
   for (int iy = ny0; iy != ny; ++iy) {
 
 
-    const double etamin = 0.5*iy;
-    const double etamax = 0.5*(iy+1);
+    //const double etamin = 0.5*iy;
+    //const double etamax = 0.5*(iy+1);
+    const double etamin = ybins[iy];
+    const double etamax = ybins[iy+1];
     const double etamid = 0.5*(etamin+etamax);
     const double ptmin = 15.;//20;
     const double fitxmin = 20;//37.;
@@ -290,20 +307,44 @@ void resolution() {
       double pt = h2r5->GetXaxis()->GetBinLowEdge(ibin);
       double ptave = 0.5*(pt + h2r5->GetXaxis()->GetBinLowEdge(ibin+1));
       double errpt = 0.5*0.5*(h2r5->GetXaxis()->GetBinLowEdge(ibin+1) - pt);
-      double minx = ptmin*1.02/pt;
+      //double minx = ptmin*1.02/pt;
+      double minx = max(0.66, ptmin*1.02/pt);
+      double maxx = 1.5;
 
+      // Two-sided Crystal Ball fit
+      TF1 *fcb2 = new TF1("fcb2",fCrystalBall2,
+			  //0.35, 1.65, 7);
+			  minx, maxx, 7);
+      //fcb2->SetParameters(1., 1.7, 30, 1.5, 30, 1.008, 0.108);
+      fcb2->SetParameters(1., 2.0, 30, 3.0, 30, 1., ptresolution(pt,etamin));
+      fcb2->SetParLimits(1, 0.5, 5);//3);
+      fcb2->SetParLimits(3, 0.5, 5);//3);
+      fcb2->SetLineStyle(kSolid);
+      fcb2->SetLineWidth(2);
+      fcb2->SetLineColor(kBlack);
+      hpr5->Fit(fcb2,"QRN");
+
+      fcb2->SetLineStyle(kSolid);
+      fcb2->SetLineWidth(1);
+      fcb2->DrawClone("SAME");
+      fcb2->SetRange(0.2,1.8);
+      fcb2->SetLineStyle(kDotted);
+      fcb2->DrawClone("SAME");
 
       const double srange_up = 2.0;//3.0;
       const double srange_dw = 2.0;
       TF1 *fg5 = new TF1(Form("fg5_%d_%d",iy,ibin),"gaus",
 			 max(minx,1-srange_dw*ptresolution(pt,etamin)),
-			 min(1.6,1+srange_up*ptresolution(pt,etamin)));
+			 min(maxx,1+srange_up*ptresolution(pt,etamin)));
       //fg5->SetParLimits(1,0.98,1.02);
       hpr5->Fit(fg5,"QRN");
       fg5->SetLineWidth(1);
-      fg5->SetLineColor(kMagenta);
+      fg5->SetLineColor(kRed+1);
       fg5->SetLineStyle(kSolid);
-      fg5->Draw("SAME");
+      fg5->DrawClone("SAME");
+      fg5->SetRange(minx,maxx);
+      fg5->SetLineStyle(kDotted);
+      fg5->DrawClone("SAME");
 
       int n = gr5->GetN();
       double k5 = max(1.,sqrt(fg5->GetChisquare()/fg5->GetNDF()));
@@ -353,25 +394,17 @@ void resolution() {
 	double mu = fg5->GetParameter(1);
 	double sigma = fg5->GetParameter(2);
 	TF1 *fcb = new TF1("fcb",fCrystalBall,
-			   0.35, mu+2*sigma, 5);
+			   //0.35, mu+2*sigma, 5);
+			   minx, min(maxx,mu+2*sigma), 5);
         // f(x; alpha, n, xbar, sigma)
 	fcb->SetParameters(1, 1.8, 30, 1.008, 0.107);
 	fcb->SetParLimits(1, 0.5, 3);
 	fcb->SetLineColor(kBlack);
 	hpr5->Fit(fcb,"QRN");
 
-	TF1 *fcb2 = new TF1("fcb2",fCrystalBall2,
-			   0.35, 1.65, 7);
-	fcb2->SetParameters(1., 1.7, 30, 1.5, 30, 1.008, 0.108);
-	fcb2->SetParLimits(1, 0.5, 3);
-	fcb2->SetParLimits(3, 0.5, 3);
-	//fcb2->SetLineStyle(kDashDotted);
-	fcb2->SetLineStyle(kSolid);
-	fcb2->SetLineWidth(2);
-	//fcb2->SetLineColor(kBlue);
-	fcb2->SetLineColor(kBlack);
-	hpr5->Fit(fcb2,"QRN");
+	// Two-sided Crystal Ball fit moved earlier
 
+	// D0 function fit
 	TF1 *fd02 =  new TF1("fd0",fD0Jet2,0.35,1.65, 7);
 	// f(x; N, mu, sigma, P, lambda, P2, lambda2)
 	if ( b1) fd02->SetParameters(1, 1.014, 0.107, 0.044, 9.5, 0.06, 9.5);
@@ -395,13 +428,14 @@ void resolution() {
 	fcb->SetRange(0.2,1.6);
 	fcb->SetLineStyle(kSolid);
 
+	fcb2->SetLineStyle(kSolid);
+	fcb2->SetLineWidth(2);
+	fcb2->SetRange(minx,maxx);
 	fcb2->DrawClone("SAME");
 	fcb2->SetRange(0.2,1.8);
 	fcb2->SetLineStyle(kDotted);
 	fcb2->SetLineWidth(1);
 	fcb2->DrawClone("SAME");
-	fcb2->SetLineWidth(2);
-	fcb2->SetLineStyle(kSolid);
 
 	//fd02->DrawClone("SAME");
 	fd02->SetRange(0.2,1.8);
@@ -409,6 +443,7 @@ void resolution() {
 	//fd02->DrawClone("SAME");
 	fd02->SetLineStyle(kSolid);
 	
+	fg5->SetLineStyle(kSolid);
 	fg5->SetLineColor(kRed+1);
 	fg5->SetLineWidth(2);
 	fg5->DrawClone("SAME");
@@ -443,18 +478,23 @@ void resolution() {
 
 	//cmsPrel(0);
 	gPad->RedrawAxis();
-	if ( b1) c0->SaveAs("pdf/resolution_jertails_97-114GeV.pdf");
-	if (!b1) c0->SaveAs("pdf/resolution_jertails_967-1032GeV.pdf");
+	//if ( b1) c0->SaveAs("pdf/resolution_jertails_97-114GeV.pdf");
+	//if (!b1) c0->SaveAs("pdf/resolution_jertails_967-1032GeV.pdf");
+	if ( b1) c0->SaveAs(Form("pdf/resolution_jertails_97-114GeV_%s.pdf",
+				 cf));
+	if (!b1) c0->SaveAs(Form("pdf/resolution_jertails_967-1032GeV_%s.pdf",
+				 cf));
       }
 
     } // for ibin
-
-    c1->SaveAs(Form("pdf/resolution_Rap%d_gausfits.pdf",iy));
+    
+    //c1->SaveAs(Form("pdf/resolution_Rap%d_gausfits.pdf",iy));
+    c1->SaveAs(Form("pdf/resolution_Rap%d_gausfits_%s.pdf",iy,cf));
 
     TCanvas *c2 = new TCanvas(Form("c2_%d",iy),Form("c2_%d",iy),500,750);
     c2->Divide(1,3);
 
-    TH1D *h2 = new TH1D(Form("h2_%d",iy),";p_{T} (GeV);Response",
+    TH1D *h2 = new TH1D(Form("h2_%d",iy),";p_{T,ptcl} (GeV);Response",
 			//int(ptmax-ptmin),ptmin,ptmax);
 			int(emax-ptmin),ptmin,emax);
 
@@ -495,7 +535,8 @@ void resolution() {
     TLatex *tex = new TLatex();
     tex->SetNDC();
     tex->DrawLatex(0.50,0.85,Form("%1.1f < |#eta| < %1.1f",etamin,etamax));
-
+    tex->SetTextColor(kBlue);
+    tex->DrawLatex(0.75,0.85,cf);
 
     c2->cd(2);
     gPad->SetLogx();
@@ -514,23 +555,67 @@ void resolution() {
 
     //TF1 *fs = new TF1("fs",ptreso,ptmin,ptmax,2);
     _usejme = false;
+    //_run2012 = true; _run2018 = false;
+    _jer_iov = run1;
     TF1 *fs = new TF1("fs",ptreso,ptmin,emax,2);
-    fs->SetNpx(int(emax-ptmin));
+    //fs->SetNpx(int(emax-ptmin));
+    fs->SetNpx(int((emax-ptmin)/5.));
     fs->SetParameters(etamin,1.);
     fs->SetLineColor(kGreen+2);
     fs->SetLineStyle(kDashed);
     fs->SetLineWidth(2);
     fs->DrawClone("SAME");
 
+    // Save into TGraph for plotting ratio
+    TGraph *gsrun1 = new TGraph(0);
+    gsrun1->SetLineColor(fs->GetLineColor());
+    gsrun1->SetLineStyle(fs->GetLineStyle());
+    gsrun1->SetLineWidth(fs->GetLineWidth());
+    for (int i = 0; i != gs5->GetN(); ++i) {
+      gsrun1->SetPoint(i, gs5->GetX()[i], fs->Eval(gs5->GetX()[i]));
+    }
+
     _usejme = true;
+    //_run2012 = false; _run2018 = true;
+    _jer_iov = jer_ref;//run2016;
     TF1 *fsjme = new TF1("fsjme",ptreso,ptmin,emax,2);
     //fsjme->SetNpx(int(emax-ptmin));
+    fsjme->SetNpx(int((emax-ptmin)/5.));
     fsjme->SetParameters(etamid,1.);
     fsjme->SetLineColor(kRed+2);
     fsjme->SetLineStyle(kDotted);
     fsjme->SetLineWidth(2);
-    //fsjme->DrawClone("SAME");
-    fsjme->Draw("SAME");
+    fsjme->DrawClone("SAME");
+    //fsjme->Draw("SAME");
+
+    // Save into TGraph for plotting ratio
+    TGraph *gsjme = new TGraph(0);
+    gsjme->SetLineColor(fsjme->GetLineColor());
+    gsjme->SetLineStyle(fsjme->GetLineStyle());
+    gsjme->SetLineWidth(fsjme->GetLineWidth());
+    for (int i = 0; i != gs5->GetN(); ++i) {
+      gsjme->SetPoint(i, gs5->GetX()[i], fsjme->Eval(gs5->GetX()[i]));
+    }
+
+    _usejme = false;
+    //_run2012 = false; _run2018 = true;
+    _jer_iov = jer_ref;//run2016;
+    TF1 *fsjer = new TF1("fsjer",ptreso,ptmin,emax,2);
+    fsjer->SetNpx(int((emax-ptmin)/5.));
+    fsjer->SetParameters(etamid,1.);
+    fsjer->SetLineColor(kBlue+2);
+    fsjer->SetLineStyle(kDashDotted);
+    fsjer->SetLineWidth(2);
+    fsjer->DrawClone("SAME");
+
+    // Save into TGraph for plotting ratio
+    TGraph *gsjer = new TGraph(0);
+    gsjer->SetLineColor(fsjer->GetLineColor());
+    gsjer->SetLineStyle(fsjer->GetLineStyle());
+    gsjer->SetLineWidth(fsjer->GetLineWidth());
+    for (int i = 0; i != gs5->GetN(); ++i) {
+      gsjer->SetPoint(i, gs5->GetX()[i], fsjer->Eval(gs5->GetX()[i]));
+    }
 
     //TF1 *fs5 = new TF1(Form("fs5_%d",iy),"sqrt([0]*[0]/(x*x)"
     TF1 *fs5 = new TF1(Form("fs5_%d",iy),"sqrt(abs([0])*[0]/(x*x)"
@@ -553,19 +638,19 @@ void resolution() {
     leg2->SetFillStyle(kNone);
     leg2->SetTextSize(0.045);
     //leg2->AddEntry(fs,"QCD-11-004","L");
-    leg2->AddEntry(gs5a,Form("RMS(%s)",c5),"P");
     leg2->AddEntry(gs5,Form("#sigma(%s)",c5),"P");
+    leg2->AddEntry(gs5a,Form("RMS(%s)",c5),"P");
     leg2->Draw();
 
     tex->SetTextColor(kRed+2);
-    tex->DrawLatex(0.50,0.81,Form("JME official JER for #LT#rho#GT=18,"
-				  " |#eta|=%1.2f",etamid));
+    tex->DrawLatex(0.50,0.81,Form("JME official JER for #LT#rho#GT=%1.2f,"
+				  " |#eta|=%1.2f",_rho,etamid));
     tex->SetTextColor(kGreen+2);
     tex->DrawLatex(0.50,0.73,"Run 1 AK5 JER scaled to AK4");
     tex->SetTextColor(kBlue);
-    tex->DrawLatex(0.50,0.65,Form("#chi^{2}/ndf = %1.1f/%d (%s)",
+    tex->DrawLatex(0.50,0.65,Form("#chi^{2}/ndf = %1.1f/%d (%s) %s",
 				  fs5->GetChisquare(),
-				  fs5->GetNDF(), c5));
+				  fs5->GetNDF(), "R=0.4", cf));
     tex->DrawLatex(0.50,0.57,Form("N=%1.2f, S=%1.3f, C=%1.4f",
 				  fs5->GetParameter(0),
 				  fs5->GetParameter(1),
@@ -587,7 +672,7 @@ void resolution() {
     c2->cd(3);
     gPad->SetLogx();
     h2->SetMinimum(0.80);
-    h2->SetMaximum(1.20);
+    h2->SetMaximum(1.30);//1.20);
     h2->GetYaxis()->SetTitle("Resolution / Fit");
     h2->DrawClone("AXIS");
     //l->DrawLine(ptmin,1,ptmax,1);
@@ -598,6 +683,36 @@ void resolution() {
     l->DrawLine(ptmin,1.05,emax,1.05);
     l->DrawLine(ptmin,0.95,emax,0.95);
 
+    TGraphErrors *gs5ar = (TGraphErrors*)gs5a->Clone();
+    for (int i = 0; i != gs5a->GetN(); ++i) {
+      double sfit = fs5->Eval(gs5a->GetX()[i]);
+      gs5ar->SetPoint(i, gs5a->GetX()[i], gs5a->GetY()[i]/sfit);
+      gs5ar->SetPointError(i, gs5a->GetEX()[i], gs5a->GetEY()[i]/sfit);
+    }
+    gs5ar->Draw("SAMEP");
+
+    TGraph *gsrun1r = (TGraph*)gsrun1->Clone();
+    for (int i = 0; i != gsrun1->GetN(); ++i) {
+      double sfit = fs5->Eval(gsrun1->GetX()[i]);
+      gsrun1r->SetPoint(i, gsrun1->GetX()[i], gsrun1->GetY()[i]/sfit);
+    }
+    gsrun1r->Draw("SAMEL");
+
+    TGraph *gsjmer = (TGraph*)gsjme->Clone();
+    for (int i = 0; i != gsjme->GetN(); ++i) {
+      double sfit = fs5->Eval(gsjme->GetX()[i]);
+      gsjmer->SetPoint(i, gsjme->GetX()[i], gsjme->GetY()[i]/sfit);
+    }
+    gsjmer->Draw("SAMEL");
+
+    TGraph *gsjerr = (TGraph*)gsjer->Clone();
+    for (int i = 0; i != gsjer->GetN(); ++i) {
+      double sfit = fs5->Eval(gsjer->GetX()[i]);
+      gsjerr->SetPoint(i, gsjer->GetX()[i], gsjer->GetY()[i]/sfit);
+    }
+    gsjerr->Draw("SAMEL");
+
+
     TGraphErrors *gs5r = (TGraphErrors*)gs5->Clone();
     for (int i = 0; i != gs5->GetN(); ++i) {
       double sfit = fs5->Eval(gs5->GetX()[i]);
@@ -606,7 +721,10 @@ void resolution() {
     }
     gs5r->Draw("SAMEP");
 
-    c2->SaveAs(Form("pdf/resolution_Rap%d.pdf",iy));
+    tex->DrawLatex(0.75,0.85,cf);
+
+    //c2->SaveAs(Form("pdf/resolution_Rap%d.pdf",iy));
+    c2->SaveAs(Form("pdf/resolution_Rap%d_%s.pdf",iy,cf));
 
 
     c3->cd();
@@ -642,15 +760,17 @@ void resolution() {
     leg3e->AddEntry(fs5e, Form("%1.1f<|#eta|<%1.1f",0.5*iy,0.5*(iy+1)),"L");
   }
   
-  c0b->SaveAs("pdf/resolution_summary.pdf");
+  //c0b->SaveAs("pdf/resolution_summary.pdf");
+  c0b->SaveAs(Form("pdf/resolution_summary_%s.pdf",cf));
 
   // Print out fit parameters
-  cout << "// Fit of JER for " << c5 << endl;
+  cout << "// Fit of JER for " << c5 << " file " << cf << endl;
   for (int iy = 0; iy != ny; ++iy) {
     cout << Form("  %s{%1.2f, %1.3f, %1.4f}%s // y %1.1f-%1.1f, chi2 %1.1f/%d",
 		 iy==0 ? "{" : " ",
 		 vpar5[iy][0], vpar5[iy][1], vpar5[iy][2],
-		 iy==ny-1 ? "};" : ", ", 0.5*iy, 0.5*(iy+1),
+		 iy==ny-1 ? "};" : ", ", ybins[iy],ybins[iy+1],
+		 //0.5*iy, 0.5*(iy+1),
 		 vchi5[iy], vndf5[iy]) << endl;
   }
 }
