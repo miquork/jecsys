@@ -29,6 +29,7 @@ JME::JetResolutionScaleFactor *_jer_sf(0);
 
 // From Sanmay by email 30 Mar 2015
 // (direct recommendations from different eta bins => not ideal?)
+/*
 const double kpar2012[_nres][2] = {
   {1.079, 0.026},
   {1.099, 0.028},
@@ -38,42 +39,59 @@ const double kpar2012[_nres][2] = {
   {1.395, 0.062},
   {1.395, 0.062}, // copy
   {1.395, 0.062}, // copy
+  };*/
+const double kpar2012[_nres][2] = {
+// JER SF produced with minitools/resolution.C:redoJER("Run1")
+ {1.079, 0.026}, // 0.0-0.5
+ {1.098, 0.028}, // 0.5-1.0
+ {1.114, 0.029}, // 1.0-1.5
+ {1.163, 0.037}, // 1.5-2.0
+ {1.222, 0.051}, // 2.0-2.5
+ {1.283, 0.062}, // 2.5-3.0
+ {1.324, 0.088}, // 3.0-3.2
+ {1.056, 0.191}, // 3.2-4.7
 };
+
+
+// ptresolution.h has Data/MC ratio produced with ak7ak5ratio.C:redoJER()
 
 // Placeholder
 const double kpar2016[_nres][2] = {
-  {1.079, 0.026},
-  {1.099, 0.028},
-  {1.121, 0.029},
-  {1.208, 0.039},
-  {1.208, 0.053},
-  {1.395, 0.062},
-  {1.395, 0.062}, // copy
-  {1.395, 0.062}, // copy
+// JER SF produced with minitools/resolution.C:redoJER("Run2016")
+ {1.159, 0.064}, // 0.0-0.5
+ {1.173, 0.064}, // 0.5-1.0
+ {1.145, 0.089}, // 1.0-1.5
+ {1.119, 0.104}, // 1.5-2.0
+ {1.197, 0.157}, // 2.0-2.5
+ {1.421, 0.204}, // 2.5-3.0
+ {1.188, 0.128}, // 3.0-3.2
+ {1.192, 0.149}, // 3.2-4.7
 };
 
 // Placeholder
 const double kpar2017[_nres][2] = {
-  {1.079, 0.026},
-  {1.099, 0.028},
-  {1.121, 0.029},
-  {1.208, 0.039},
-  {1.208, 0.053},
-  {1.395, 0.062},
-  {1.395, 0.062}, // copy
-  {1.395, 0.062}, // copy
+// JER SF produced with minitools/resolution.C:redoJER("Run2017")
+ {1.143, 0.022}, // 0.0-0.5
+ {1.145, 0.046}, // 0.5-1.0
+ {1.115, 0.114}, // 1.0-1.5
+ {1.153, 0.134}, // 1.5-2.0
+ {1.305, 0.173}, // 2.0-2.5
+ {2.011, 0.511}, // 2.5-3.0
+ {1.254, 0.114}, // 3.0-3.2
+ {1.154, 0.152}, // 3.2-4.7
 };
 
 // Placeholder
 const double kpar2018[_nres][2] = {
-  {1.079, 0.026},
-  {1.099, 0.028},
-  {1.121, 0.029},
-  {1.208, 0.039},
-  {1.208, 0.053},
-  {1.395, 0.062},
-  {1.395, 0.062}, // copy
-  {1.395, 0.062}, // copy
+// JER SF produced with minitools/resolution.C:redoJER("Run2018")
+ {1.150, 0.043}, // 0.0-0.5
+ {1.121, 0.066}, // 0.5-1.0
+ {1.114, 0.127}, // 1.0-1.5
+ {1.125, 0.192}, // 1.5-2.0
+ {1.196, 0.222}, // 2.0-2.5
+ {2.020, 0.579}, // 2.5-3.0
+ {1.206, 0.194}, // 3.0-3.2
+ {1.082, 0.198}, // 3.2-4.7
 };
 
 
@@ -136,6 +154,7 @@ double ptresolution(double pt, double eta) {
   //int iy = min(5, ieta);
   //int iy = min(_nres-1, int(fabs(eta) / 0.5 + 0.5));
   int iy = min(_nres-1, int(fabs(eta) / 0.5));
+  if (fabs(eta)>3.2) iy = _nres-1; // 3.2-4.7 bin instead of 3.5-4.7
   double res = 0;
 
   // Own parameterized JER

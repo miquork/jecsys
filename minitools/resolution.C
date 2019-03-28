@@ -1,3 +1,17 @@
+// Purpose: Set of tools to derive MC truth JER and JER SF from SMP-J tuples
+//          to be used for inclusive jet analysis (d|y|=0.5 binning)
+// Related: ptresolution.h stores results and interfaces JME official JER
+//          mk_resolution.C runs this code and interfaces with JER packages
+//          ../pdf/resolutionslides.tex to plot results
+// author: mikko.voutilainen at cern.ch
+
+// Specific tools:
+// - resolution(): derive MC truth JER and compare own JER to JME official
+// - redoJER(): average JME JER SF over eta for inclusive jet rapidity bins
+// - resolution_datamc(): derive JER SF (to be maintained)
+//
+// run with 'root -l -b -q minitools/mk_resolution.C'
+
 #include "TFile.h"
 #include "TH1D.h"
 #include "TH2D.h"
@@ -52,7 +66,7 @@ Double_t fCrystalBall(Double_t *xx, Double_t *p) {
   //assert(false);
   return 0;
 }
-// Double-sided version
+// Double-sided version of fCrystalBall (see above)
 Double_t fCrystalBall2(Double_t *xx, Double_t *p) {
   
   double x = xx[0];
@@ -775,7 +789,270 @@ void resolution(string type="MC",string file="") {
   }
 }
 
+// redoJER() is copied from qcdjet/ak7ak5resolution.C (24 April 2015 version)
+// Assumes JER SF are independent of pT, and symmetric over +/-eta
+void redoJER(string run="") {
 
+  TDirectory *curdir = gDirectory;
+  setTDRStyle();
+
+  const char *cf = run.c_str();
+
+  // Run I
+  //const int nbins1 = 6;
+  //const double bins1[nbins1+1] = {0,0.5,1.1,1.7,2.3,3.0,5.0};
+  //const double vals1[nbins1] = {1.052, 1.057, 1.096, 1.134, 1.288, 1.288};
+  //const double errs1[nbins1] = {0.063, 0.057, 0.065, 0.094, 0.200, 0.200};
+  // https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution#JER_Scaling_factors_and_Unce_AN1
+  const int nbins1 = 7;
+  const double bins1[nbins1+1] = {0.0,0.5,1.1,1.7,2.3,2.8,3.2,5.0};
+  const double vals1[nbins1] = {1.079,1.099,1.121,1.208,1.254,1.395,1.056};
+  const double errs1[nbins1] =
+    {1.105-1.053,1.127-1.071,1.150-1.092,1.254-1.162,1.316-1.192,1.458-1.332,
+     1.247-0.865};
+  //const int nbins = 6;
+  //const double bins[nbins+1] = {0,0.5,1,1.5,2,2.5,3};
+
+  // Reference binning and scale factors manually copied using
+  // [cat file.txt | awk '{print $2","}'] and $4, and $6"-"$5 from
+  // Autumn18_V1_MC_SF_AK4PFchs.txt
+  const int nbins18 = 13;
+  const double bins18[nbins18+1] =
+    {0, 0.522, 0.783, 1.131, 1.305, 1.74, 1.93, 2.043, 2.322,
+     2.5, 2.853, 2.964, 3.139, 5.191};
+  const double vals18[nbins18+1] = 
+    {1.15, 1.134, 1.102, 1.134, 1.104, 1.149, 1.148, 1.114, 1.347,
+     2.137, 1.65, 1.225, 1.082};
+  const double errs18[nbins18+1] =
+    {1.193-1.107, 1.214-1.054, 1.154-1.05, 1.246-1.022, 1.315-0.893,
+     1.308-0.99, 1.357-0.939, 1.305-0.923, 1.621-1.073,
+     2.661-1.613, 2.591-0.709, 1.419-1.031, 1.28-0.884};
+
+  // Fall17_V3_MC_SF_AK4PFchs.txt
+  const double vals17[nbins18+1] =
+    {1.1432, 1.1815, 1.0989, 1.1137, 1.1307, 1.1600, 1.2393, 1.2604,
+     1.4085, 1.9909, 2.2923, 1.2696, 1.1542};
+  const double errs17[nbins18+1] =
+    {1.1654-1.1210, 1.2299-1.1332, 1.1444-1.0533, 1.2533-0.9740, 1.2778-0.9837,
+     1.2576-1.0623, 1.4301-1.0484, 1.4105-1.1103, 1.6105-1.2066,
+     2.5593-1.4225, 2.6665-1.9180, 1.3785-1.1607, 1.3066-1.0019};
+
+  // Summer16_25nsV1_MC_SF_AK4PFchs.txt
+  const double vals16[nbins18+1] =
+    {1.1595, 1.1948, 1.1464, 1.1609, 1.1278, 1.1000, 1.1426, 1.1512,
+     1.2963, 1.3418, 1.7788, 1.1869, 1.1922};
+  const double errs16[nbins18+1] =
+    {1.224-1.095, 1.26-1.1296, 1.2096-1.0832, 1.2634-1.0584, 1.2264-1.0292,
+     1.2079-0.9921, 1.264-1.0212, 1.2652-1.0372, 1.5334-1.0592,
+     1.5509-1.1327, 1.9796-1.578, 1.3112-1.0626, 1.341-1.0434};
+
+  // Inclusive jet analysis bins
+  const int nbins = 8;
+  const double bins[nbins+1] = {0,0.5,1,1.5,2,2.5,3,3.2,4.7};
+
+  int nbins0(0);
+  const double *bins0(0), *vals0(0), *errs0(0);
+  //jer_iov jer_ref(none);
+  _ismcjer = true;
+  _usejme = false;
+  if (run=="Run2018") {
+    _jer_iov = run2018;
+    nbins0 = nbins18;
+    bins0 = &bins18[0];
+    vals0 = &vals18[0];
+    errs0 = &errs18[0];
+  }
+  if (run=="Run2017") {
+    _jer_iov = run2017;
+    nbins0 = nbins18;
+    bins0 = &bins18[0];
+    vals0 = &vals17[0];
+    errs0 = &errs17[0];
+  }
+  if (run=="Run2016") {
+    _jer_iov = run2016;
+    nbins0 = nbins18;
+    bins0 = &bins18[0];
+    vals0 = &vals16[0];
+    errs0 = &errs16[0];
+  }
+  if (run=="Run1") {
+    _jer_iov = run1;
+    nbins0 = nbins1;
+    bins0 = &bins1[0];
+    vals0 = &vals1[0];
+    errs0 = &errs1[0];
+  }
+  assert(bins0);
+
+  //const double refpt = 50;
+  const double refpt = 95.5; // Eta_0.0-1.3 jt60 hselpt->GetMean()
+
+  TGraphErrors *gk = new TGraphErrors(0);
+  for (int i = 0; i != nbins0; ++i) {
+    gk->SetPoint(i, 0.5*(bins0[i]+bins0[i+1]), vals0[i]);
+    //gk->SetPointError(i, 0.5*(bins0[i+1]-bins0[i]), errs0[i]);
+    gk->SetPointError(i, 0.5*(bins0[i+1]-bins0[i]), 0.5*errs0[i]);
+  }
+
+  // Take y histogram from data and average JER SF over y bin using that
+  TFile *f = new TFile("rootfiles/output-DATA-1-Fall18V8-D.root","READ");
+  assert(f && !f->IsZombie());
+  TH1D *heta(0);
+  TGraphErrors *gjer2 = new TGraphErrors(0);
+  TGraphErrors *gjer20 = new TGraphErrors(0);
+  TGraphErrors *gjer3 = new TGraphErrors(0);
+  TGraphErrors *gk2 = new TGraphErrors(0);
+  TGraphErrors *gk20 = new TGraphErrors(0);
+  for (int i = 0; i != nbins; ++i) {
+    double y1 = bins[i]; double y2 = bins[i+1];
+    TH1D *hy = (TH1D*)f->Get(Form("Standard/Eta_%1.1f-%1.1f/jt40/hy",y1,y2));
+    assert(hy);
+    curdir->cd();
+    if (!heta) heta = (TH1D*)hy->Clone("heta");
+    else heta->Add(hy);
+
+    double sumv2(0), sumw2(0), sumu2(0), sumw(0);
+    for (int j = 1; j != hy->GetNbinsX()+1; ++j) {
+      double y = hy->GetBinCenter(j);
+      double nj = hy->GetBinContent(j); 
+      //if (y>0 && nj>0) {
+      if (nj>0) {
+	//_ak7 = false;
+	//_ismcjer = true;
+	//_usejme = false;
+	//_jer_iov = jer_ref;
+	double jermc = ptresolution(refpt, y);
+	sumv2 += nj*pow(jermc,2);
+	//int jj = TMath::BinarySearch(nbins0, bins0, y);
+	int jj = TMath::BinarySearch(nbins0, bins0, fabs(y));
+	double k = vals0[jj];
+	double jerdt = k * jermc;
+	sumw2 += nj*pow(jerdt,2);
+	sumu2 += nj*pow(jermc*(k+0.5*errs0[jj]),2);
+	sumw += nj;
+      }
+    }
+    double jermc = sqrt(sumv2)/sqrt(sumw);
+    double jerdt = sqrt(sumw2)/sqrt(sumw);
+    double jerdtu = sqrt(sumu2)/sqrt(sumw);
+    double errdt = jerdtu - jerdt;
+    gjer2->SetPoint(i, 0.5*(y1+y2), jerdt);
+    gjer2->SetPointError(i, 0.5*(y2-y1), errdt);
+    gjer20->SetPoint(i, 0.5*(y1+y2), jerdt);
+    gjer20->SetPointError(i, 0.5*(y2-y1), 0);
+    gjer3->SetPoint(i, 0.5*(y1+y2), jermc);
+    gjer3->SetPointError(i, 0.5*(y2-y1), 0.);
+    gk2->SetPoint(i, 0.5*(y1+y2), jerdt / jermc);
+    gk2->SetPointError(i, 0.5*(y2-y1), errdt / jermc);
+    gk20->SetPoint(i, 0.5*(y1+y2), jerdt / jermc);
+    gk20->SetPointError(i, 0.5*(y2-y1), 0);
+  } // for i
+
+  heta->Scale(10./heta->Integral());
+  heta->GetXaxis()->SetRangeUser(0.,3.0);
+  heta->SetMaximum(0.30);//0.50);
+  heta->SetMinimum(0.00);//-0.10);
+
+  TGraphErrors *gjer = new TGraphErrors(0);
+  TGraphErrors *gjer1 = new TGraphErrors(0);
+  for (int i = 1; i != heta->GetNbinsX()+1; ++i) {
+    double x = heta->GetBinCenter(i);
+    if (i>0.) {
+      int n = gjer->GetN();
+      //_ak7 = false;
+      //_ismcjer = true;
+      //_usejme = false;
+      //_jer_iov = jer_ref;
+      double jermc = ptresolution(refpt, x);
+      gjer->SetPoint(n, x, jermc);
+      gjer->SetPointError(n, 0.5*heta->GetBinWidth(i), 0.);
+      int j = TMath::BinarySearch(nbins0, bins0, x);
+      double k = vals0[j];
+      double jerdt = k*jermc;
+      gjer1->SetPoint(n, x, jerdt);
+      gjer1->SetPointError(n, 0.5*heta->GetBinWidth(i), jermc*0.5*errs0[j]);
+    }
+  }
+  gjer1->SetFillStyle(1001);
+  gjer1->SetFillColor(kYellow+1);
+
+  TH1D *h = new TH1D("h",";Jet |#eta|;Resolution (#sigma_{p_{T}} / p_{T})",
+		     47,0,4.7);
+  h->SetMaximum(0.3);
+  h->SetMinimum(0.0);
+
+  lumi_13TeV = run;
+  lumi_8TeV = "Run1";
+  TCanvas *c1 = tdrCanvas("c1", h, run=="Run1" ? 2: 4, 11, kSquare);
+
+  tdrDraw(gjer2,"E2");
+  tdrDraw(gjer20,"PZ",kNone,kYellow+3,kSolid,kYellow+3);
+  gjer20->SetLineWidth(3);
+  tdrDraw(gjer,"PZ",kNone);
+  gjer->SetLineWidth(3);
+
+  TLegend *leg = tdrLeg(0.18,0.65,0.48,0.77);
+  leg->AddEntry(gjer20,"Data","FL");
+  leg->AddEntry(gjer,"MC","L");
+  leg->Draw();
+
+  gPad->RedrawAxis();
+
+  cout << "// JER SF produced with minitools/resolution.C:redoJER"
+       << "(\""<<run<<"\")" << endl;
+  for (int i = 0; i != gk2->GetN(); ++i) {
+
+    double y1 = gk2->GetX()[i] - gk2->GetEX()[i];
+    double y2 = gk2->GetX()[i] + gk2->GetEX()[i];
+    double val =  gk2->GetY()[i];
+    double eval = gk2->GetEY()[i];
+    cout << Form(" {%1.3f, %1.3f}, // %1.1f-%1.1f",
+		 val, eval, y1, y2) << endl;
+  }
+
+  TLatex *tex = new TLatex();
+  tex->SetNDC();
+  tex->SetTextSize(0.045);
+  tex->DrawLatex(0.20,0.59,Form("p_{T} = %1.1f GeV",refpt));
+
+  c1->SaveAs(Form("pdf/resolution_interpol_%s.pdf",cf));
+
+
+  TH1D *h2 = new TH1D("h2",";Jet |#eta|;JER data/MC scale factor",47,0,4.7);
+  h2->SetMaximum(2.5);
+  h2->SetMinimum(0.7);
+
+  TCanvas *c2 = tdrCanvas("c2", h2, run=="Run1" ? 2 : 4, 11, kSquare);
+
+  tdrDraw(gk2,"E2");
+  tdrDraw(gk20,"PZ",kNone,kYellow+3,kSolid,kYellow+3);
+  gk20->SetLineWidth(3);
+  tdrDraw(gk,"Pz");
+
+  TLine *l = new TLine();
+  l->SetLineStyle(kSolid);
+  l->DrawLine(0,1,4.7,1);
+  l->SetLineStyle(kDotted);
+  l->DrawLine(0,1.15,4.7,1.15);
+  //l->DrawLine(0,0.85,4.7,0.85);
+
+  TLegend *leg2 = tdrLeg(0.18,0.65,0.48,0.77);
+  leg2->AddEntry(gk20,"Interpolated SF","FL");
+  leg2->AddEntry(gk,"Original SF","PL");
+  leg2->Draw();
+
+
+  //cmsPrel(800);
+
+  gPad->RedrawAxis();
+
+  c2->SaveAs(Form("pdf/resolution_interpol_datamc_%s.pdf",cf));
+} // redoJER
+
+// (resolution_datamc has not yet been maintained, is a copy from qcdjet)
+// Purpose is to derive JER data/MC SF from SMP-J tuples,
+// to compare to JME official results and double-check them 
 void resolution_datamc() {
 
   //_ismcjer = true;
