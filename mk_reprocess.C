@@ -53,15 +53,16 @@
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="B"||epoch=="ABC" ? "zee_zmm" : "gam_zee_zmm", "PtBalMPF");
   // Perform final global fit (goes into GT) - 2018 V5M
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="B"||epoch=="ABC"||epoch=="D"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
-  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
+  //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
+  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "gam_zll", "PtBalMPF");
 
+  /*
 ////  
 ////  //now do narrow bins for L2Res
 ////  // Calculate soft radiation (ISR+FSR) corrections
 ////  // and uncertainty eigenvectors for global fit
 ////
   Bool_t dodijetsoftrad=false;
-  
   softrad(0.000,0.261, dodijetsoftrad, epoch); 
   softrad(0.261,0.522, dodijetsoftrad, epoch); 
   softrad(0.522,0.783, dodijetsoftrad, epoch); 
@@ -84,6 +85,7 @@
 
   //std::vector <string> sampleconfigs = {epoch=="B"||epoch=="ABC"||epoch=="ABCD" ? "zee_zmm" : "gam_zee_zmm"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
   std::vector <string> sampleconfigs = {epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll"};
+  //std::vector <string> sampleconfigs = {"gam_zll"};
   //std::vector <string> sampleconfigs = {"zmm"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
   //  std::vector <string> sampleconfigs = {"zll"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
   std::vector <string> methodconfigs = {  "PtBalMPF"};//,"PtBal","MPF"};
@@ -122,7 +124,7 @@
       
     }
   }
-
+  */
   
 //  //wide eta bins
 //   // softrad(0.0,0.8,true,epoch); // missing dijet

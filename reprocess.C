@@ -58,7 +58,8 @@ bool correctUncert  =  true;
 
 bool confirmWarnings=true; //if active, deficiencies in input files are patched after confirmation via pushing "any key to continue"
 bool confirmedGamJet=false; // to avoid too many confirmations
-string CorLevel="L1L2";
+//string CorLevel="L1L2"; // same for gamma+jet and Z+jet on RunD
+string CorLevel="L1L2Res";
 //"L1L2": "MCTruth corrections" applied, in reality L1Data/MC,L2
 //"L1L2Res": MCTruth + L2Res applied
 //"L1L2L3Res": MCTruth + L2L3Res applied
@@ -237,32 +238,53 @@ void reprocess(string epoch="") {
   
   // Daniel Savoiu, Z+Jet  2018 RunABC 4 March 2019
   // https://indico.cern.ch/event/802822/
-  map<string,const char*> fz_files;
-  fz_files["A"] = "A_2019-03-01";
-  fz_files["B"] = "B_2019-03-01";
-  fz_files["C"] = "C_2019-03-01";
-  fz_files["D"] = "D_2019-03-05";
-  fz_files["ABC"] = "ABC_2019-03-01";
-  fz_files["ABCD"] = "ABCD_2019-03-05";
-  
-  string scr = "L1L2L3"; // need to distinguish correction levels: L1L2Res not available for D/ABCD
+  //map<string,const char*> fz_files;
+  //fz_files["A"] = "A_2019-03-01";
+  //fz_files["B"] = "B_2019-03-01";
+  //fz_files["C"] = "C_2019-03-01";
+  //fz_files["D"] = "D_2019-03-05";
+  //fz_files["ABC"] = "ABC_2019-03-01";
+  //fz_files["ABCD"] = "ABCD_2019-03-05";
+  // Daniel Savoiy, Z+jet 2018 RunABCD 28 March 2019 (updated files)
+  // https://indico.cern.ch/event/802822/#2-l3res-zjet-2018-runabc  
+  map<string,const char*> fz_dirs;
+  fz_dirs["A"] = "Run2018A";
+  fz_dirs["B"] = "Run2018B";
+  fz_dirs["C"] = "Run2018C";
+  fz_dirs["ABC"] = "Run2018ABC";
+  fz_dirs["D"] = "Run2018D";
+  fz_dirs["ABCD"] = "Run2018ABCD";
+  //fz_files["ABCD"] = "ABCD_2019-03-05";
+
+  string scr = "";//L1L2L3"; // need to distinguish correction levels: L1L2Res not available for D/ABCD
   if(CorLevel=="L1L2")
     scr = "L1L2L3";
   else if(CorLevel=="L1L2Res"){
-    scr = (epoch=="D"||epoch=="ABCD"? "L1L2L3" : "L1L2Res"); // need to distinguish correction levels: L1L2Res not available for D/ABCD
-    cout << Form("%s is only available for A/B/C, not for D/ABCD. Please confirm by pushing any key.",CorLevel.c_str()) << endl;
-    if(confirmWarnings)cin.ignore();
+    //scr = (epoch=="D"||epoch=="ABCD"? "L1L2L3" : "L1L2Res"); // need to distinguish correction levels: L1L2Res not available for D/ABCD
+    scr = "L1L2Res";
+    //cout << Form("%s is only available for A/B/C, not for D/ABCD. Please confirm by pushing any key.",CorLevel.c_str()) << endl;
+    //if(confirmWarnings)cin.ignore();
   }
   else if(CorLevel=="L1L2L3Res")
-    scr = "CheckOldFiles";
+    //scr = "CheckOldFiles";
+    scr = "L1L2L3Res";
   else
     scr = "NotSupported";
     
   const char *ccr = scr.c_str();
-  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zmm_%s.root",fz_files[epoch]),"READ");
-  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zee_%s.root",fz_files[epoch]),"READ");
+  //TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zmm_%s.root",fz_files[epoch]),"READ");
+  //TFile *fzee = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zee_%s.root",fz_files[epoch]),"READ");
+  TFile *fzmm = new TFile("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV8_Zmm_2019-03-28.root","READ");
+  TFile *fzee = new TFile("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV8_Zee_2019-03-28.root","READ");
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
+
+  // Redirection
+  TDirectory *dzmm = fzmm->GetDirectory(fz_dirs[epoch],true);
+  TDirectory *dzee = fzee->GetDirectory(fz_dirs[epoch],true);
+  // Hack to avoid rewriting rest of code for dzmm, dzee. Get() still works
+  fzmm = (TFile*)dzmm;
+  fzee = (TFile*)dzee;
 
   // Add Z+jet narrow files
   //TFile *fzmm2 = new TFile(Form("rootfiles/combination_ZJet_Zmm_%s_narrow.root", fz_files[epoch]),"READ");
