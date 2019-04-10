@@ -1,3 +1,4 @@
+
 // Purpose: Estimate effective bias in JEC (deltaJEC) from inclusive jet
 //          cross section relative to published 2015 data (50 ns collisions).
 //          Useful for estimating time stability of JEC throughout Run 2.
@@ -13,6 +14,7 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 
+#include "ptresolution.h"
 #include "../tdrstyle_mod15.C"
 
 // "Rebin(2)"
@@ -59,6 +61,7 @@ TH1F *rebinXsec(TH1F *h) {
 }
 
 
+const bool correctECALprefire = true;
 const double ptmin(15);//114;//64;
 const double ptmax(3500.);
 const double emax(6500.);
@@ -87,12 +90,13 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   TFile *fin1 = new TFile("rootfiles/common2018_V7.root","READ");
   assert(fin1 && !fin1->IsZombie());
   
-  TFile *fin2 = new TFile("rootfiles/common2017_V11.root","READ");
-  //new TFile("rootfiles/common2016_LegacyIOVs_v3.root","READ");
+  //TFile *fin2 = new TFile("rootfiles/common2016_LegacyIOVs_v3.root","READ");
+  //TFile *fin2 = new TFile("rootfiles/common2017_V11.root","READ");
+  TFile *fin2 = new TFile("rootfiles/common2017_V32.root","READ");
   assert(fin2 && !fin2->IsZombie());
 
-  TFile *fin3 = new TFile("rootfiles/common2016_October2018_V17.root","READ");
-  //new TFile("rootfiles/common2017_V11.root","READ");
+  //TFile *fin3 = new TFile("rootfiles/common2016_October2018_V17.root","READ");
+  TFile *fin3 = new TFile("rootfiles/common2016_V11.root","READ");
   assert(fin3 && !fin3->IsZombie());
 
   TFile *fu = new TFile("rootfiles/unfold.root","READ");
@@ -123,14 +127,16 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   JetCorrectionUncertainty *uncs2b = new JetCorrectionUncertainty(*ps2b);
 
   // 2017 uncertainty
-  const char *t17 = "Fall17_17Nov2017B_V11_DATA";
+  //const char *t17 = "Fall17_17Nov2017B_V11_DATA";
+  const char *t17 = "Fall17_17Nov2017B_V32_DATA";
   const char *a17 = "AK4";
   const char *s17 = Form("%s%s_Uncertainty_%sPFchs.txt",p,t17,a17);
   cout<<"**"<<s17<<endl<<flush;
   JetCorrectionUncertainty *unc17 = new JetCorrectionUncertainty(s17);
 
   // 2016 uncertainty
-  const char *t16 = "Summer16_07Aug2017GH_V17_DATA";
+  //const char *t16 = "Summer16_07Aug2017GH_V17_DATA";
+  const char *t16 = "Summer16_07Aug2017GH_V11_DATA";
   const char *a16 = "AK4";
   const char *s16 = Form("%s%s_Uncertainty_%sPFchs.txt",p,t16,a16);
   cout<<"**"<<s16<<endl<<flush;
@@ -150,21 +156,27 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   cout<<"**"<<s12<<endl<<flush;
   JetCorrectionUncertainty *unc12 = new JetCorrectionUncertainty(s12);
 
-  const int nera = 12;
+  const int nera = 11;
   TFile *fins[nera] =
     {fin1, fin1, fin1, fin1,
-     fin2, fin2, fin2, fin2, fin2,
+     fin2, fin2, fin2, fin2, //fin2,
      fin3, fin3, fin3};
   string eras[nera] =
     //{"A","B","C", "D",
     {"2018_A","2018_B","2018_C", "2018_D",
-     "2017_B","2017_C","2017_D","2017_E","2017_F",
-     "BCD2016","EF2016","GH2016"};
+     //"2017_B","2017_C","2017_D","2017_E","2017_F",
+     "2017_B","2017_C","2017_DE","2017_F",
+     //"BCD2016","EF2016","GH2016"};
+     //"2016_B","2016_Fe","2016_G"};
+     "2016_BCD","2016_EF","2016_GH"};
   // luminosity re-normalization, if any needed
   double k17 = 1e5;
+  double k16 = 0.5;
   double lumi[nera] =
-    {14.0/59.9, 7.1/59.9, 6.9/59.9, 31.9/59.9,
-     4800, 9600, 4200, 9300, 13400,
+    //{14.0/59.9, 7.1/59.9, 6.9/59.9, 31.9/59.9,
+    {1, 1, 6.9/3.0, 1,
+     //4800, 9600, 4200, 9300, 13400,
+     1, 1, 1, 1, //4800, 9600, 13500, 13400,
      1, 1, 1};
      //4.8*k17/41.4, 9.6*k17/41.4, 4.2*k17/41.4, 9.3*k17/41.4, 13.4*k17/41.4};
   //lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
@@ -176,16 +188,17 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
 
   int color[nera] =
     {kRed+2, kOrange+2, kBlue+1, kBlack,
-     kRed+2, kOrange+2, kBlue+1, kGreen+2, kBlack,
+     kRed+2, kOrange+2, kBlue+1, /*kGreen+2,*/ kBlack,
      kMagenta+2, kCyan+2, kGray+2};
   int marker[nera] =
     {kFullCircle, kFullDiamond, kFullStar, kFullSquare,
-     kOpenCircle, kOpenDiamond, kOpenStar, kOpenSquare, kOpenTriangleDown,
-     kFullCircle, kFullDiamond, kFullSquare};
+     kOpenCircle, kOpenDiamond, kOpenStar, kOpenSquare, /*kOpenTriangleDown,*/
+     kFullCircle, kFullDiamond, kFullStar};//kFullSquare};
   const char* label[nera] =
     //{"RunA","RunB","RunC","RunD"};
     {"18A","18B","18C","18D",
-     "17B","17C","17D","17E","17F",
+     //"17B","17C","17D","17E","17F",
+     "17B","17C","17DE","17F",
      "16BCD","16EF","16GH"};
 
   // Settings for the spectrum fit and JEC-equivalent plot y-axis range
@@ -217,15 +230,59 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
     if (!hera) cout << "Histogram " << hname << " not found!" << endl << flush;
     assert(hera);
 
+    // fix a strange normalization bug for 16BCD, 16EF and 16GH
+    string se = label[iera];
+    if (se=="16BCD"||se=="16EF"||se=="16GH"||se=="17DE") {
+      for (int i = 1; i != hera->GetNbinsX()+1; ++i) {
+	double k = int((eta+0.25)/0.5)+1;
+	hera->SetBinContent(i, hera->GetBinContent(i)*k);
+	hera->SetBinError(i, hera->GetBinError(i)*k);
+      }
+    }
+
+    // Correct ECAL prefire for 2016 and 2017 data at 2<|eta|<3
+    if (correctECALprefire) {
+
+      jer_iov run(run2018);
+      //if (se=="16BCD"||se=="16EF"||se=="16GH")         run = run2016;
+      //if (se=="17B"||se=="17C"||se=="17DE"||se=="17F") run = run2017;
+      if (se=="16BCD") run = run2016bcd;
+      if (se=="16EF")  run = run2016ef;
+      if (se=="16GH")  run = run2016gh;
+      if (se=="17B")   run = run2017b;
+      if (se=="17C")   run = run2017c;
+      if (se=="17DE")  run = run2017de;
+      if (se=="17F")   run = run2017f;
+
+      for (int i = 1; i != hera->GetNbinsX()+1; ++i) {
+
+	double pt = hera->GetBinCenter(i);
+	double ineff = ecalprefire(pt, eta+0.1, run);
+	double eff = 1 - ineff;
+	double corr = 1./eff;
+	hera->SetBinContent(i, hera->GetBinContent(i)*corr);
+	hera->SetBinError(i, hera->GetBinError(i)*corr);
+      }
+    } // correctECALprefire
+
     // Apply ad-hoc unfolding to det-level data
     if (true) {
-      TF1 *f1 = (TF1*)fu->Get(Form("fr_%s",cy)); assert(f1);
+      //TF1 *f1 = (TF1*)fu->Get(Form("fr_%s",cy)); assert(f1);
+      //TH1D *hr = (TH1D*)fu->Get(Form("hr_%s",cy)); assert(hr);
+      int year(0);
+      if (TString(se.c_str()).Contains("16")) year = 2016;
+      if (TString(se.c_str()).Contains("17")) year = 2017;
+      if (TString(se.c_str()).Contains("18")) year = 2018;
+      // special case for 2018 2.5-3.0 bin
+      if (TString(se.c_str()).Contains("18") && sy=="2.5-3.0") year = 2016;
+      TH1D *hr = (TH1D*)fu->Get(Form("hr_%s_%d",cy,year)); assert(hr);
       for (int i = 1; i != hera->GetNbinsX()+1; ++i) {
 	if (hera->GetBinContent(i)!=0) {
 	  double pt = hera->GetBinCenter(i);
-	  double rdu = f1->Eval(pt);
-	  hera->SetBinContent(i, hera->GetBinContent(i)/rdu);
-	  hera->SetBinError(i, hera->GetBinError(i)/rdu);
+	  //double rdu = f1->Eval(pt);
+	  double rdu = hr->GetBinContent(hr->FindBin(pt));
+	  hera->SetBinContent(i, rdu ? hera->GetBinContent(i)/rdu : 0);
+	  hera->SetBinError(i, rdu ? hera->GetBinError(i)/rdu : 0);
 	}
       }
     } // ad-hoc unfolding
@@ -299,22 +356,27 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
     // Copy AK4 over to new binning, and set 30<pT<40 GeV from Run18D (was 18A) 
     // Also set/replace emax>2000 from Run18D to constrain very high pT
     // Constraints set at 30% level (xerr)
+    // => replace Run2018D with Run2016BCD at low pT to reduce ZB bias
     h50ns4 = new TH1F("h50ns4",";p_{T} (GeV);Cross section",nptb,ptbins);
     for (int i = 1; i != h50ns4->GetNbinsX()+1; ++i) {
       int x = h50ns4->GetBinCenter(i);
       int j = hhepdy4->FindBin(x);
       int irund = 3; // Index of 2018D
+      int irunbcd = 8; // Index of 2016BCD
       const double emax = 2000;
       const double xerr = 0.3; // 50%
-      int k = h1s[irund]->FindBin(x);
+      int k1 = h1s[irunbcd]->FindBin(x);
+      int k2 = h1s[irund]->FindBin(x);
       if (hhepdy4->GetBinContent(j)!=0 && (x*cosh(eta)<emax)) {
 	h50ns4->SetBinContent(i, hhepdy4->GetBinContent(j));
 	h50ns4->SetBinError(i, hhepdy4->GetBinError(j));
       }
       else if ((x>=30 && x<=40) || (x*cosh(eta)>=emax)) {
-	h50ns4->SetBinContent(i, h1s[irund]->GetBinContent(k));
-	h50ns4->SetBinError(i, sqrt(pow(h1s[irund]->GetBinError(k),2)
-				    +pow(h1s[irund]->GetBinContent(k)*xerr,2)));
+	int irun =  (x<=40 ? irunbcd : irund);
+	int k = (x<=40 ? k1 : k2);
+	h50ns4->SetBinContent(i, h1s[irun]->GetBinContent(k));
+	h50ns4->SetBinError(i, sqrt(pow(h1s[irun]->GetBinError(k),2)
+				    +pow(h1s[irun]->GetBinContent(k)*xerr,2)));
       }
     }
 
@@ -431,10 +493,10 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
 
   c1->cd(1);
   //tdrDraw(h50ns7,"Pz",kOpenSquare,kGreen+2,kSolid,kGreen+2);
-  tdrDraw(h50ns4,"Pz",kOpenDiamond,kGreen+2,kSolid,kGreen+2);
   for (int iera = 0; iera != nera; ++iera) {
     tdrDraw(h1s[iera],"Pz",marker[iera],color[iera],kSolid,color[iera]);
   }
+  tdrDraw(h50ns4,"Pz",kOpenDiamond,kGreen+2,kSolid,kGreen+2);
   gPad->SetLogx();
   gPad->SetLogy();
   
@@ -456,11 +518,11 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
 
   c1->cd(2);
   //tdrDraw(hr50ns7,"Pz",kOpenSquare,kGreen+2,kSolid,kGreen+2);
-  tdrDraw(hr50ns4,"Pz",kOpenDiamond,kGreen+2,kSolid,kGreen+2);
   for (int iera = 0; iera != nera; ++iera) {
     tdrDraw(hrs[iera],"Pz",marker[iera],color[iera],kSolid,color[iera]);
     hrs[iera]->GetXaxis()->SetRangeUser(ptmin,ptmax);
   }
+  tdrDraw(hr50ns4,"Pz",kOpenDiamond,kGreen+2,kSolid,kGreen+2);
   gPad->SetLogx();
 
   c1->cd(1);
@@ -632,10 +694,12 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   TLegend *legu1 = tdrLeg(0.20,0.15,0.50,0.15+0.04*nmaxu1);
   TLegend *legu2 = tdrLeg(0.60,0.15,0.90,0.15+0.04*nmaxu2);
   legu1->AddEntry(hunc18,"2018 Aut18_V8","F");
-  legu1->AddEntry(hunc17,"2017 17Nov_V11","F");
-  legu1->AddEntry(hunc16,"2016 07Aug_V17","F");
-  legu2->AddEntry(hunc15,"2015 unc.","F");
-  legu2->AddEntry(hunc12,"2012 unc.","F");
+  //legu1->AddEntry(hunc17,"2017 17Nov_V11","F");
+  legu1->AddEntry(hunc17,"2017 17Nov_V32","F");
+  //legu1->AddEntry(hunc16,"2016 07Aug_V17","F");
+  legu1->AddEntry(hunc16,"2016 07Aug_V11","F");
+  legu2->AddEntry(hunc15,"2015 Sum16_50nsV5","F");
+  legu2->AddEntry(hunc12,"2012 Win14_V8","F");
   //legd->AddEntry(huncl,"2.6% lum.","F");
   
   tex->SetTextColor(kBlack); tex->SetTextSize(0.040);
@@ -657,50 +721,153 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
 }
 
 
+// Ansatz Kernel
+//const double emax = 6500.;
+int cnt_a = 0;
+const int nk = 3; // number of kernel parameters (excluding pt, eta)
+Double_t smearedAnsatzKernel(Double_t *x, Double_t *p) {
+
+  if (++cnt_a%1000000==0) {
+    cout << "+" << flush;
+  }
+
+  const double pt = x[0]; // true pT
+  const double ptmeas = p[0]; // measured pT
+  const double eta = p[4]; // rapidity
+
+  double res = ptresolution(pt, eta+1e-3) * pt;
+  const double s = TMath::Gaus(ptmeas, pt, res, kTRUE);
+  const double f = p[1] * pow(pt, p[2])
+    * pow(1 - pt*cosh(eta) / emax, p[3]);
+
+  return (f * s);
+}
+
+// Smeared Ansatzz
+double _epsilon = 1e-12;
+TF1 *_kernel = 0; // global variable, not pretty but works
+Double_t smearedAnsatz(Double_t *x, Double_t *p) {
+
+  const double pt = x[0];
+  const double eta = p[3];
+
+  if (!_kernel) _kernel = new TF1("_kernel", smearedAnsatzKernel,
+				  1., emax/cosh(eta), nk+2);
+
+  double res = ptresolution(pt, eta+1e-3) * pt;
+  const double sigma = max(0.10, min(res/pt, 0.30));
+  double ptmin = pt / (1. + 4.*sigma); // xmin*(1+4*sigma)=x
+  ptmin = max(1.,ptmin); // safety check
+  double ptmax = pt / (1. - 3.*sigma); // xmax*(1-3*sigma)=x
+  //cout << Form("1pt %10.5f sigma %10.5f ptmin %10.5f ptmax %10.5f eta %10.5f",pt, sigma, ptmin, ptmax, eta) << endl << flush;
+  ptmax = min(emax/cosh(eta), ptmax); // safety check
+  //cout << Form("2pt %10.5f sigma %10.5f ptmin %10.5f ptmax %10.5f eta %10.5f",pt, sigma, ptmin, ptmax, eta) << endl << flush;
+
+  const double par[nk+2] = {pt, p[0], p[1], p[2], p[3]};
+  _kernel->SetParameters(&par[0]);
+
+  // Set pT bin limits needed in smearing matrix generation
+  //if (p[5]>0 && p[5]<emax/cosh(eta)) ptmin = p[5];
+  //if (p[6]>0 && p[6]<emax/cosh(eta)) ptmax = p[6];
+
+  return ( _kernel->Integral(ptmin, ptmax, _epsilon) );
+}
+
 // Tool to estimate unfolding corrections
 void unfold(string sy = "0.0-0.5", int ieta = 1) {
 
-  TFile *f = new TFile("rootfiles/common2016_LegacyIOVs_v3.root","READ");
+
+  TFile *f = new TFile("rootfiles/common2018_V7.root","READ");
+  //TFile *f = new TFile("rootfiles/common2016_LegacyIOVs_v3.root","READ");
   //TFile *f = new TFile("rootfiles/common2016_October2018_V17.root","READ");
   assert(f && !f->IsZombie());
   TFile *fout = new TFile("rootfiles/unfold.root",
 			  ieta==1 ? "RECREATE" : "UPDATE");
 
   const char *cy = sy.c_str();
-  TH1D *hd = (TH1D*)f->Get(Form("ak4/y_%s/hptData_full2016_detector_%dbin",
-				cy,ieta));
+  //TH1D *hd = (TH1D*)f->Get(Form("ak4/y_%s/hptData_full2016_detector_%dbin",
+  //cy,ieta));
+  TH1D *hd = (TH1D*)f->Get(Form("ak4/Eta_%s/hpt_data_2018_D_det",cy));
+
   assert(hd);
-  TH1D *hu = (TH1D*)f->Get(Form("ak4/y_%s/hptData_full2016_particle_%dbin",
-				cy,ieta));
+  //TH1D *hu = (TH1D*)f->Get(Form("ak4/y_%s/hptData_full2016_particle_%dbin",
+  //				cy,ieta));
+  TH1D *hu = (TH1D*)f->Get(Form("ak4/Eta_%s/hpt_data_2018_D_det",cy));
   assert(hu);
 
-  fout->cd();
-  TH1D *hr = (TH1D*)hu->Clone(Form("hr_%s",cy));
-  for (int i = 1; i != hr->GetNbinsX()+1; ++i) {
-    int i1 = hd->FindBin(hr->GetBinLowEdge(i));
-    int i2 = hd->FindBin(hr->GetBinLowEdge(i+1)-0.5);
-    double yd = (hd->GetBinContent(i1)*hd->GetBinWidth(i1) +
-		 hd->GetBinContent(i2)*hd->GetBinWidth(i2)) /
-      (hd->GetBinWidth(i1) + hd->GetBinWidth(i2));
-    double yu = hu->GetBinContent(i);
-    if (yu!=0 && yd!=0) {
-      hr->SetBinContent(i, yd/yu);
-      hr->SetBinError(i, hu->GetBinError(i)/hu->GetBinContent(i)
-		      * hr->GetBinContent(i));
-    }
-    else {
-      hr->SetBinContent(i, 0);
-      hr->SetBinError(i, 0);
-    }
-  }
-
+  /*
   //TF1 *f1 = new TF1(Form("fr_%d",ieta),"[0]+[1]*log(x)+[2]*log(x)*log(x)",
   TF1 *f1 = new TF1(Form("fr_%s",cy),"[0]+[1]*log(x)+[2]*log(x)*log(x)",
 		    114,3000);
   f1->SetParameters(1,0.01,-0.001);
   hr->Fit(f1,"QRN");
   f1->Write();
+  */
+
+  // Values of NLO fits done by hand
+  const int neta = 7;
+  const double p[neta][nk+1] =
+    {{1,-4.8332,12.101,0.0},
+     {1,-4.8219,11.4926,0.5},
+     {1,-4.84815,9.46945,1.0},
+     {1,-4.77036,8.65309,1.5},
+     {1,-4.6652,8.09749,2},
+     {1,-4.97904,6.4373,2.5},
+     {1,-5.72102,4.34217,3.2}};
+  int i = ieta-1;
+  double eta = p[i][nk];
+  double maxpt = emax/cosh(eta);
+
+  _ismcjer = false;
+  _usejme = false;
+  _jer_iov = run2016;
+  
+  // Initial fit of the NLO curve to a histogram
+  TF1 *fus = new TF1(Form("fus%s",cy),
+		     "[0]*pow(x,[1])"
+		     "*pow(1-x*cosh([3])/6500.,[2])",
+		     5,maxpt);
+  fus->SetParameters(p[i][0], p[i][1], p[i][2], p[i][3]);
+  
+  // Smeared spectrum
+  TF1 *fs = new TF1(Form("fs%s",cy),smearedAnsatz,5.,maxpt,nk+1);
+  fs->SetParameters(fus->GetParameter(0), fus->GetParameter(1),
+		    fus->GetParameter(2), fus->GetParameter(3));
+  
+
+  fout->cd();
+
+  const int niov = 4;
+  jer_iov iovs[niov] = {run1, run2016, run2017, run2018};
+  for (int iov = 0; iov != niov; ++iov) {
+
+    _jer_iov = iovs[iov]; // use by ptresolution in fs and fus
+    TH1D *hr = (TH1D*)hu->Clone(Form("hr_%s_%d",cy,2015+iov));
+    for (int i = 1; i != hr->GetNbinsX()+1; ++i) {
+      int i1 = hd->FindBin(hr->GetBinLowEdge(i));
+      int i2 = hd->FindBin(hr->GetBinLowEdge(i+1)-0.5);
+      double yd = (hd->GetBinContent(i1)*hd->GetBinWidth(i1) +
+		   hd->GetBinContent(i2)*hd->GetBinWidth(i2)) /
+	(hd->GetBinWidth(i1) + hd->GetBinWidth(i2));
+      double yu = hu->GetBinContent(i);
+      double pt = hr->GetBinCenter(i);
+      if (yu!=0 && yd!=0 && pt*cosh(eta)<emax) {
+	
+	double nd = fs->Eval(pt);
+	double nu = fus->Eval(pt);
+	hr->SetBinContent(i, nd/nu);//yd/yu);
+	hr->SetBinError(i, 0);//hu->GetBinError(i)/hu->GetBinContent(i)
+	//* hr->GetBinContent(i));
+      }
+      else {
+	hr->SetBinContent(i, 0);
+	hr->SetBinError(i, 0);
+      }
+    }
+    //hr->Write(hr->GetName(),TObject::kOverwrite);
+  } // for iov
 
   fout->Write();
   fout->Close();
+
 } // unfold
