@@ -17,7 +17,7 @@
   //gROOT->ProcessLine(".L minitools/ptresolution.h+g");
   gROOT->ProcessLine(".L minitools/drawDeltaJEC.C+g");
 
-  /*
+
   unfold("0.0-0.5",1);
   unfold("0.5-1.0",2);
   unfold("1.0-1.5",3);
@@ -25,7 +25,7 @@
   unfold("2.0-2.5",5);
   unfold("2.5-3.0",6);
   unfold("3.2-4.7",7);
-  */
+
 
   drawDeltaJEC("0.0-0.5");
   drawDeltaJEC("0.5-1.0");

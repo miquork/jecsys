@@ -19,6 +19,7 @@
 #include "TProfile2D.h"
 #include "TGraphErrors.h"
 #include "TF1.h"
+#include "TF2.h"
 #include "TCanvas.h"
 #include "TLine.h"
 #include "TLegend.h"
@@ -816,6 +817,7 @@ void redoJER(string run="") {
   // Reference binning and scale factors manually copied using
   // [cat file.txt | awk '{print $2","}'] and $4, and $6"-"$5 from
   // Autumn18_V1_MC_SF_AK4PFchs.txt
+  /*
   const int nbins18 = 13;
   const double bins18[nbins18+1] =
     {0, 0.522, 0.783, 1.131, 1.305, 1.74, 1.93, 2.043, 2.322,
@@ -827,6 +829,38 @@ void redoJER(string run="") {
     {1.193-1.107, 1.214-1.054, 1.154-1.05, 1.246-1.022, 1.315-0.893,
      1.308-0.99, 1.357-0.939, 1.305-0.923, 1.621-1.073,
      2.661-1.613, 2.591-0.709, 1.419-1.031, 1.28-0.884};
+  */
+
+  // Add Autumn18_RunABC_V4_MC_SF_AK4PFchs.txt
+  const int nbins18 = 13;
+  const double bins18[nbins18+1] =
+    {0, 0.522, 0.783, 1.131, 1.305, 1.74, 1.93, 2.043, 2.322,
+     2.5, 2.853, 2.964, 3.139, 5.191};
+  const double vals18abc[nbins18+1] = 
+    {1.1677, 1.1475, 1.1029, 1.0781, 1.1006, 1.1019, 1.0459, 1.1612, 1.2299, 
+     1.6736, 1.7292, 1.2257, 1.0733};
+  const double errs18abc[nbins18+1] =
+    {1.2154-1.1200, 1.1995-1.0954, 1.1339-1.0719, 1.1731-0.9830, 1.1852-1.0161,
+     1.1405-1.0633, 1.2036-0.8881, 1.2258-1.0966, 1.3386-1.1212, 2.0528-1.2944,
+     1.9300-1.5285, 1.2709-1.1805, 1.1409-1.0057};
+  
+  // Add Autumn18_RunD_V4_MC_SF_AK4PFchs.txt
+  const double vals18d[nbins18+1] = 
+    {1.1588, 1.1504, 1.1253, 1.1217, 1.1069, 1.0916, 1.0977, 1.1177, 1.4494,
+     2.3588, 2.2520, 1.1759, 1.0777};
+  const double errs18d[nbins18+1] =
+    {1.1980-1.1196, 1.2231-1.0776, 1.1596-1.0910, 1.2043-1.0390, 1.1959-1.0179, 
+     1.1346-1.0486, 1.1927-1.0026, 1.1898-1.0456, 1.5997-1.2992, 2.9999-1.7177,
+     2.6062-1.8978, 1.2298-1.1219, 1.1319-1.0235};
+
+  // Add Autumn18_V4_MC_SF_AK4PFchs.txt
+  const double vals18[nbins18+1] = 
+    {1.1545, 1.1481, 1.0998, 1.0929, 1.1093, 1.1005, 1.0603, 1.1287, 1.3397, 
+     2.0325, 2.0567, 1.1868, 1.0922};
+  const double errs18[nbins18+1] =
+    {1.1853-1.1236, 1.1996-1.0966, 1.1384-1.0613, 1.1785-1.0072, 1.1811-1.0375, 
+     1.1520-1.0490, 1.1904-0.9302, 1.1818-1.0756, 1.4544-1.2250, 2.5686-1.4964, 
+     2.3627-1.7507, 1.2244-1.1492, 1.1411-1.0433};
 
   // Fall17_V3_MC_SF_AK4PFchs.txt
   const double vals17[nbins18+1] =
@@ -855,6 +889,20 @@ void redoJER(string run="") {
   //jer_iov jer_ref(none);
   _ismcjer = true;
   _usejme = false;
+  if (run=="Run2018ABC") {
+    _jer_iov = run2018abc;
+    nbins0 = nbins18;
+    bins0 = &bins18[0];
+    vals0 = &vals18abc[0];
+    errs0 = &errs18abc[0];
+  }
+  if (run=="Run2018D") {
+    _jer_iov = run2018d;
+    nbins0 = nbins18;
+    bins0 = &bins18[0];
+    vals0 = &vals18d[0];
+    errs0 = &errs18d[0];
+  }
   if (run=="Run2018") {
     _jer_iov = run2018;
     nbins0 = nbins18;
@@ -955,6 +1003,7 @@ void redoJER(string run="") {
   heta->SetMinimum(0.00);//-0.10);
 
   TGraphErrors *gjer = new TGraphErrors(0);
+  TGraphErrors *gjer0 = new TGraphErrors(0);
   TGraphErrors *gjer1 = new TGraphErrors(0);
   for (int i = 1; i != heta->GetNbinsX()+1; ++i) {
     double x = heta->GetBinCenter(i);
@@ -972,10 +1021,18 @@ void redoJER(string run="") {
       double jerdt = k*jermc;
       gjer1->SetPoint(n, x, jerdt);
       gjer1->SetPointError(n, 0.5*heta->GetBinWidth(i), jermc*0.5*errs0[j]);
+
+      bool tmp_usejme = _usejme;
+      _usejme = true;
+      double jerjme = ptresolution(refpt, x);
+      _usejme = tmp_usejme;
+      gjer0->SetPoint(n, x, jerjme);
+      gjer0->SetPointError(n, 0.5*heta->GetBinWidth(i), 0.);
     }
   }
   gjer1->SetFillStyle(1001);
   gjer1->SetFillColor(kYellow+1);
+
 
   TH1D *h = new TH1D("h",";Jet |#eta|;Resolution (#sigma_{p_{T}} / p_{T})",
 		     47,0,4.7);
@@ -991,10 +1048,14 @@ void redoJER(string run="") {
   gjer20->SetLineWidth(3);
   tdrDraw(gjer,"PZ",kNone);
   gjer->SetLineWidth(3);
+  tdrDraw(gjer0,"PZ",kNone);
+  gjer0->SetLineWidth(2);
+  gjer0->SetLineColor(kRed);
 
-  TLegend *leg = tdrLeg(0.18,0.65,0.48,0.77);
+  TLegend *leg = tdrLeg(0.18,0.59,0.48,0.77);
   leg->AddEntry(gjer20,"Data","FL");
-  leg->AddEntry(gjer,"MC","L");
+  leg->AddEntry(gjer,"MC (SMP-J)","L");
+  leg->AddEntry(gjer0,run=="Run1" ? "MC (2016)" : "MC (JME)","L");
   leg->Draw();
 
   gPad->RedrawAxis();
@@ -1014,7 +1075,7 @@ void redoJER(string run="") {
   TLatex *tex = new TLatex();
   tex->SetNDC();
   tex->SetTextSize(0.045);
-  tex->DrawLatex(0.20,0.59,Form("p_{T} = %1.1f GeV",refpt));
+  tex->DrawLatex(0.20,0.53,Form("p_{T} = %1.1f GeV",refpt));
 
   c1->SaveAs(Form("pdf/resolution_interpol_%s.pdf",cf));
 
@@ -1038,7 +1099,7 @@ void redoJER(string run="") {
   //l->DrawLine(0,0.85,4.7,0.85);
 
   TLegend *leg2 = tdrLeg(0.18,0.65,0.48,0.77);
-  leg2->AddEntry(gk20,"Interpolated SF","FL");
+  leg2->AddEntry(gk20,"Rebinned SF","FL");
   leg2->AddEntry(gk,"Original SF","PL");
   leg2->Draw();
 
@@ -1049,6 +1110,366 @@ void redoJER(string run="") {
 
   c2->SaveAs(Form("pdf/resolution_interpol_datamc_%s.pdf",cf));
 } // redoJER
+
+// Copied and modified from jetphys/drawECALprefire.C
+// Purpose is to rebin JME ECAL prefire corrections to match inclusive jets
+void redoECALprefire(double eta = 2.0, jer_iov run = run2016) {
+
+  setTDRStyle();
+
+  string sy = Form("%02d-%02d",int(10*eta+0.5),int(10*(eta+0.5)+0.5));
+  const char *cy2 = sy.c_str();
+
+  /*
+  // Original ECAL prefire efficiency file:
+  // fine eta bins, only some triggers and only AllEras
+  TFile *fe = new TFile("rootfiles/ECALprefireEff.root");
+  assert(fe && !fe->IsZombie());
+  TH2D *heff = (TH2D*)fe->Get("h_JetHT_AllEras_inclusive"); assert(heff);
+
+  // New ECAL prefire efficiency file:
+  // wide eta bins, all triggers, and BCD, EF, GH separately
+  TFile *fe2 = new TFile("rootfiles/ECALprefireEffRebinned.root");
+  assert(fe2 && !fe2->IsZombie());
+  TH2D *heff2bcd = (TH2D*)fe2->Get("h_JetHT_Run2016BCD_spike_finor_pteta");
+  assert(heff2bcd);
+  TH2D *heff2ef = (TH2D*)fe2->Get("h_JetHT_Run2016EF_spike_finor_pteta");
+  assert(heff2ef);
+  TH2D *heff2gh = (TH2D*)fe2->Get("h_JetHT_Run2016GH_spike_finor_pteta");
+  assert(heff2gh);
+  // Calculate combined efficiency using _unprescaled luminosities_
+  // => fix later using per-trigger weights for each pT bin
+  TH2D *heff2 = (TH2D*)heff2bcd->Clone("heff2");
+  heff2->Scale(12.9/36.5);
+  heff2->Add(heff2ef,6.8/36.5);
+  heff2->Add(heff2gh,16.8/36.5);
+  */
+
+  // Latest JME official ECAL prefire files from Laurent Thomas at:
+  //   https://lathomas.web.cern.ch/lathomas/TSGStuff/L1Prefiring/
+  //   PrefiringMaps_2016and2017/
+  // Fine eta bins, unknown data set (JetHT or SingleMuon?)
+  TFile *fe3(0); string srun("");
+  TFile *fe3_2016 = new TFile("rootfiles/L1prefiring_jetpt_2016BtoH.root");
+  TFile *fe3_2017 = new TFile("rootfiles/L1prefiring_jetpt_2017BtoF.root");
+  TFile *fe3_iovs = new TFile("rootfiles/prefiringmaps_Mikko.root");
+  if (run==run2016) { fe3 = fe3_2016; srun = "2016BtoH"; }
+  if (run==run2017) { fe3 = fe3_2017; srun = "2017BtoF"; }
+  if (run==run2016bcd) { fe3 = fe3_iovs; srun = "2016BCD"; }
+  if (run==run2016ef)  { fe3 = fe3_iovs; srun = "2016EF"; }
+  if (run==run2016gh)  { fe3 = fe3_iovs; srun = "2016FGH"; }
+  if (run==run2017b) { fe3 = fe3_iovs; srun = "2017B"; }
+  if (run==run2017c) { fe3 = fe3_iovs; srun = "2017C"; }
+  if (run==run2017c) { fe3 = fe3_iovs; srun = "2017C"; }
+  if (run==run2017d) { fe3 = fe3_iovs; srun = "2017D"; }
+  if (run==run2017e) { fe3 = fe3_iovs; srun = "2017E"; }
+  if (run==run2017f) { fe3 = fe3_iovs; srun = "2017F"; }
+  if (run==run2017de) { fe3 = fe3_iovs; srun = "2017DE"; }
+  assert(fe3 && !fe3->IsZombie());
+  const char *crun = srun.c_str();
+  //TH2D *heff3 = (TH2D*)fe3->Get("L1prefiring_jetpt_2016BtoH");
+  //TH2D *heff3 = (TH2D*)fe3->Get("L1prefiring_jetpt_2017BtoF");
+  TH2D *heff3 = (TH2D*)fe3->Get(Form("L1prefiring_jetpt_%s",crun));
+  if (run==run2017de && !heff3) { // patch missing DE
+    TH2D *heff3_d = (TH2D*)fe3->Get("L1prefiring_jetpt_2017D");
+    TH2D *heff3_e = (TH2D*)fe3->Get("L1prefiring_jetpt_2017E");
+    heff3 = (TH2D*)heff3_d->Clone("L1prefiting_jetpt_2017DE");
+    double lumd(4.2), lume(9.3);
+    double lumde = lumd + lume;
+    heff3->Add(heff3_d, heff3_e, lumd/lumde, lume/lumde);
+  }
+  assert(heff3);
+
+
+
+
+  // Plot ECAL prefire inefficiency
+  TH1D *h0 = new TH1D("h0",Form(";Jet p_{T} (GeV);ECAL prefire fraction (%s)",
+				crun),3445,55,3500);
+  h0->SetMinimum(0.);
+  h0->SetMaximum(1.);
+  h0->GetXaxis()->SetNoExponent();
+  h0->GetXaxis()->SetMoreLogLabels();
+
+  TH1D *h02 = new TH1D("h02",";Jet p_{T} (GeV);"
+		       "Ratio to fit",3445,55,3500);
+  h02->SetMinimum(0.);
+  h02->SetMaximum(2.0);
+  h02->GetXaxis()->SetNoExponent();
+  h02->GetXaxis()->SetMoreLogLabels();
+
+  //lumi_13TeV = "Run2016, 35 fb^{-1}";
+  //lumi_13TeV = "Run2017 vs Run2016, 35 fb^{-1}";
+  std::map<string,string> lumimap;
+  lumimap["2016BtoH"] = "Run2016 36.5 fb^{-1}";
+  lumimap["2017BtoF"] = "Run2017 41.4 fb^{-1}";
+  TCanvas *c0 = tdrCanvas(Form("c0_%s_%s",crun,cy2),h0,4,11,kSquare);
+
+  gPad->SetLogx();
+
+  /*
+  int ieta1 = heff->GetYaxis()->FindBin(eta+0.1);
+  int ieta2 = heff->GetYaxis()->FindBin(eta+0.4);
+  TH1D *heffeta1 = heff->ProjectionX("heffeta1",ieta1,ieta1,"e");
+  TH1D *heffeta2 = heff->ProjectionX("heffeta2",ieta2,ieta2,"e");
+  TH1D *heffeta12 = heff->ProjectionX("heffeta12",ieta1,ieta2,"e");
+  heffeta12->Scale(1./(ieta2+1-ieta1));
+  //
+  int ietaRB = heff2->GetYaxis()->FindBin(eta+0.1);
+  TH1D *heffetaRB = heff2->ProjectionX("heffetaRB",ietaRB,ietaRB,"e");
+  TH1D *heffetaBCD = heff2bcd->ProjectionX("heffetaBCD",ietaRB,ietaRB,"e");
+  TH1D *heffetaEF = heff2ef->ProjectionX("heffetaEF",ietaRB,ietaRB,"e");
+  TH1D *heffetaGH = heff2gh->ProjectionX("heffetaGH",ietaRB,ietaRB,"e");
+  */
+  //
+  int ieta31m = heff3->GetXaxis()->FindBin(-eta-0.5+0.01);
+  int ieta32m = heff3->GetXaxis()->FindBin(-eta-0.01);
+  int ieta31p = heff3->GetXaxis()->FindBin(eta+0.01);
+  int ieta32p = heff3->GetXaxis()->FindBin(eta+0.5-0.01);
+  assert(ieta32p-ieta31p<=1); // Just two bins (or one)
+  assert(ieta32m-ieta31m<=1); // Just two bins (or one)
+  assert(ieta32p-ieta31p==ieta32m-ieta31m); // Same on both sides
+  TH1D *heffeta31m = heff3->ProjectionY("heffeta31m",ieta31m,ieta31m,"e");
+  TH1D *heffeta32m = heff3->ProjectionY("heffeta32m",ieta32m,ieta32m,"e");
+  TH1D *heffeta31p = heff3->ProjectionY("heffeta31p",ieta31p,ieta31p,"e");
+  TH1D *heffeta32p = heff3->ProjectionY("heffeta32p",ieta32p,ieta32p,"e");
+  TH1D *heffeta31 = (TH1D*)heffeta31m->Clone("heffeteta31");
+  heffeta31->Add(heffeta31p); heffeta31->Scale(0.5);
+  TH1D *heffeta32 = (TH1D*)heffeta32m->Clone("heffeteta32");
+  heffeta32->Add(heffeta32p); heffeta32->Scale(0.5);
+  TH1D *heffeta312m = heff3->ProjectionY("heffeta312m",ieta31m,ieta32m,"e");
+  TH1D *heffeta312p = heff3->ProjectionY("heffeta312p",ieta31p,ieta32p,"e");
+  TH1D *heffeta312 = (TH1D*)heffeta312m->Clone("heffeteta312");
+  heffeta312->Add(heffeta312p);
+  heffeta312->Scale(0.5/(ieta32p+1-ieta31p));
+
+  // Attempt to properly weight the two eta bins using d2sigma/dpt/dy
+  TF2 *f2 = new TF2("f2","[0]*pow(x,[1])"
+                    "*pow(1-min(2*x*cosh(y),12998.)/13000.,[2]-2*y)"
+                    "*(2*x*cosh(y)<12998.)",
+                    60,4000.,0,5.2);
+  f2->SetParameters(1.15e14,-5,10);
+  /*
+  TH1D *heffeta = (TH1D*)heffeta12->Clone("heffeta"); heffeta->Clear();
+  TGraphErrors *geffeta = new TGraphErrors(0);
+  TGraphErrors *geffetaRB = new TGraphErrors(0);
+  TGraphErrors *geffetaBCD = new TGraphErrors(0);
+  TGraphErrors *geffetaEF = new TGraphErrors(0);
+  TGraphErrors *geffetaGH = new TGraphErrors(0);
+  for (int i = 1; i != heffeta->GetNbinsX()+1; ++i) {
+    double pt1 = heffeta->GetBinLowEdge(i);
+    double pt2 = heffeta->GetBinLowEdge(i+1);
+    double lumi = 35000*0.002; // /pb x unpre-fireable efficiency (0.2%)
+    double n1 = f2->Integral(pt1, pt2, eta, eta+0.25)*lumi;
+    double n2 = f2->Integral(pt1, pt2, eta+0.25, eta+0.5)*lumi;
+    double eff1 = heffeta1->GetBinContent(i);
+    double eff2 = heffeta2->GetBinContent(i);
+
+    double eff = (n1+n2!=0 ? (eff1*n1 + eff2*n2)/(n1+n2) : 0);
+    double eff_e = (n1+n2!=0 ? eff*(1-eff)/sqrt(n1+n2) : 0);
+    heffeta->SetBinContent(i, eff);
+    heffeta->SetBinError(i, eff_e);
+
+    //heff2->Scale(12.9/36.5);
+    //heff2->Add(heff2ef,6.8/36.5);
+    //heff2->Add(heff2gh,16.8/36.5);
+    double effrb = heffetaRB->GetBinContent(i);
+    double nrb = f2->Integral(pt1, pt2, eta, eta+0.5)*36500*0.002;
+    double effrb_e = (nrb != 0 ? effrb*(1-effrb)/sqrt(nrb) : 0);
+    //
+    double effbcd = heffetaBCD->GetBinContent(i);
+    double nbcd = f2->Integral(pt1, pt2, eta, eta+0.5)*12900*0.002;
+    double effbcd_e = (nbcd != 0 ? effbcd*(1-effbcd)/sqrt(nbcd) : 0);
+    //
+    double effef = heffetaEF->GetBinContent(i);
+    double nef = f2->Integral(pt1, pt2, eta, eta+0.5)*6800*0.002;
+    double effef_e = (nef != 0 ? effef*(1-effef)/sqrt(nef) : 0);
+    //
+    double effgh = heffetaGH->GetBinContent(i);
+    double ngh = f2->Integral(pt1, pt2, eta, eta+0.5)*16800*0.002;
+    double effgh_e = (ngh != 0 ? effgh*(1-effgh)/sqrt(ngh) : 0);
+
+    if (eff!=0 && eff_e!=0) {
+      int n = geffeta->GetN();
+      double mine = (eta<2.5 ? 0.003 : 0.01);
+      geffeta->SetPoint(n, 0.5*(pt1+pt2), eff);
+      geffeta->SetPointError(n, 0.5*(pt2-pt1)/sqrt(n1+n2),
+			     sqrt(mine*mine+eff_e*eff_e));
+      //
+      geffetaRB->SetPoint(n, 0.5*(pt1+pt2), heffetaRB->GetBinContent(i));
+      geffetaRB->SetPointError(n, 0.5*(pt2-pt1)/sqrt(nrb),
+			       sqrt(mine*mine+effrb_e*effrb_e));
+      //
+      geffetaBCD->SetPoint(n, 0.5*(pt1+pt2), heffetaBCD->GetBinContent(i));
+      geffetaBCD->SetPointError(n, 0.5*(pt2-pt1)/sqrt(nbcd),
+				sqrt(mine*mine+effbcd_e*effbcd_e));
+      //
+      geffetaEF->SetPoint(n, 0.5*(pt1+pt2), heffetaEF->GetBinContent(i));
+      geffetaEF->SetPointError(n, 0.5*(pt2-pt1)/sqrt(nef),
+			       sqrt(mine*mine+effef_e*effef_e));
+      //
+      geffetaGH->SetPoint(n, 0.5*(pt1+pt2), heffetaGH->GetBinContent(i));
+      geffetaGH->SetPointError(n, 0.5*(pt2-pt1)/sqrt(ngh),
+			       sqrt(mine*mine+effgh_e*effgh_e));
+    }
+  }
+  */
+  //
+  TH1D *heffeta3 = (TH1D*)heffeta312m->Clone("heffeta3"); heffeta3->Clear();
+  TGraphErrors *geffeta3 = new TGraphErrors(0);
+  for (int i = 1; i != heffeta3->GetNbinsX()+1; ++i) {
+    double pt1 = heffeta3->GetBinLowEdge(i);
+    double pt2 = heffeta3->GetBinLowEdge(i+1);
+    double lumi = 35000*0.002; // /pb x unpre-fireable efficiency (0.2%)
+    double n1 = f2->Integral(pt1, pt2, eta, eta+0.25)*lumi;
+    double n2 = f2->Integral(pt1, pt2, eta+0.25, eta+0.5)*lumi;
+    double eff1m = heffeta31m->GetBinContent(i);
+    double eff2m = heffeta32m->GetBinContent(i);
+    double eff1p = heffeta31p->GetBinContent(i);
+    double eff2p = heffeta32p->GetBinContent(i);
+    double eff1 = 0.5*(eff1m+eff1p);
+    double eff2 = 0.5*(eff2m+eff2p);
+
+    double eff = (n1+n2!=0 ? (eff1*n1 + eff2*n2)/(n1+n2) : 0);
+    double eff_e = (n1+n2!=0 ? eff*(1-eff)/sqrt(n1+n2) : 0);
+    heffeta3->SetBinContent(i, eff);
+    heffeta3->SetBinError(i, eff_e);
+
+    if (eff!=0 && eff_e!=0) {
+      int n = geffeta3->GetN();
+      double mine = (eta<2.5 ? 0.003 : 0.01);
+      geffeta3->SetPoint(n, 0.5*(pt1+pt2), heffeta3->GetBinContent(i));
+      geffeta3->SetPointError(n, 0.5*(pt2-pt1)/sqrt(n1+n2),
+			     sqrt(mine*mine+eff_e*eff_e));
+    }
+  }
+
+  /*
+  TF1 *feff = new TF1("feff","[0]*0.5*(1+erf((x-[1])/([2]*sqrt(x))))",
+		      55,4000./cosh(eta));
+  TF1 *feffBCD = new TF1("feffBCD","[0]*0.5*(1+erf((x-[1])/([2]*sqrt(x))))",
+                         55,4000./cosh(eta));
+  TF1 *feffEF = new TF1("feffEF","[0]*0.5*(1+erf((x-[1])/([2]*sqrt(x))))",
+		      55,4000./cosh(eta));
+  TF1 *feffGH = new TF1("feffGH","[0]*0.5*(1+erf((x-[1])/([2]*sqrt(x))))",
+		      55,4000./cosh(eta));
+  feff->SetParameters(eta<2.5 ? 0.1 : 0.6, 180, 6);
+  geffetaRB->Fit(feff,"QRN"); feff->SetLineColor(kBlue);
+  */
+
+  TF1 *feff3 = new TF1("feff3","[0]*0.5*(1+erf((x-[1])/([2]*sqrt(x))))",
+		       55,4000./cosh(eta));
+  feff3->SetParameters(eta<2.5 ? 0.1 : 0.6, 180, 6);
+  // Constrain fit parameters
+  if (run==run2017 || run==run2017b || run==run2017c ||
+      run==run2017de || run==run2017f) {
+    if (eta<2.5) {
+      feff3->FixParameter(2, 13.4); // from DE free fit
+      feff3->FixParameter(1, 175.); // estimate from B,C,DE,F w/ p2 fix
+    }
+    if (eta>=2.5)
+      feff3->FixParameter(2, 9.4); // from C,DE,F free fit
+  }
+  if (run==run2016 || run==run2016bcd || run==run2016ef || run==run2016gh) {
+    if (eta<2.5) {
+      feff3->FixParameter(2, 17.1); // from GH free fit
+      feff3->FixParameter(1, 205.); // from GH w/ p2 fix
+    }
+    if (eta>=2.5)
+      feff3->FixParameter(2, 12.1); // from GH fit
+  }
+
+  geffeta3->Fit(feff3,"QRN");
+  feff3->SetLineColor(kBlack);
+  feff3->SetLineWidth(3);
+
+  /*
+  // Use combined fit as starting point for others, for better convergence
+  feffBCD->SetParameters(feff->GetParameter(0),feff->GetParameter(1),feff->GetParameter(2));
+  feffEF->SetParameters(feff->GetParameter(0),feff->GetParameter(1),feff->GetParameter(2));
+  feffGH->SetParameters(feff->GetParameter(0),feff->GetParameter(1),feff->GetParameter(2));
+  // Reduce low stat EF freedom a bit to better match the shape of others
+  // And while at it, can could the others as well
+  //feffBCD->FixParameter(2,feff->GetParameter(2));
+  //if (eta<2.5) 
+  feffEF->FixParameter(2,feff->GetParameter(2));
+  //feffGH->FixParameter(2,feff->GetParameter(2));
+
+  geffetaBCD->Fit(feffBCD,"QRN"); feffBCD->SetLineColor(kGreen+2);
+  geffetaEF->Fit(feffEF,"QRN"); feffEF->SetLineColor(kOrange+2);
+  geffetaGH->Fit(feffGH,"QRN"); feffGH->SetLineColor(kRed);
+  */
+
+  heffeta3->GetXaxis()->SetRangeUser(55,3500.);
+  heffeta31->GetXaxis()->SetRangeUser(55,3500.);
+  heffeta32->GetXaxis()->SetRangeUser(55,3500.);;
+  tdrDraw(heffeta31,"z",kOpenSquare,kBlue,kSolid,kBlue);
+  tdrDraw(heffeta32,"z",kOpenSquare,kRed,kSolid,kRed);
+  tdrDraw(heffeta3,"z",kFullSquare,kBlack,kSolid,kBlack);
+  heffeta3->SetLineWidth(2);
+  heffeta31->SetLineWidth(2);
+  heffeta32->SetLineWidth(2);
+
+  /*
+  //tdrDraw(heffeta,"z",kFullSquare,kBlack,kSolid,kBlack);
+  //tdrDraw(geffeta,"Pz",kFullSquare,kBlack,kSolid,kBlack);
+  tdrDraw(heffetaRB,"HIST Pz",kFullDiamond,kBlue,kSolid,kBlue);
+  tdrDraw(geffetaRB,"Pz",kFullDiamond,kBlue,kSolid,kBlue);
+  //tdrDraw(heffeta12,"HIST Pz",kOpenSquare,kBlack,kSolid,kBlack);
+  //tdrDraw(heffeta1,"HIST PLz",kOpenTriangleUp,kBlack,kSolid,kBlack,kNone);
+  //tdrDraw(heffeta2,"HIST PLz",kOpenTriangleDown,kBlack,kSolid,kBlack,kNone);
+  feff->Draw("SAME");
+  feffBCD->Draw("SAME");
+  feffEF->Draw("SAME");
+  feffGH->Draw("SAME");
+  */
+  feff3->Draw("SAME");
+
+  /*
+  tdrDraw(heffetaBCD,"HIST Pz",kOpenDiamond,kGreen+2,kSolid,kGreen+2);
+  tdrDraw(geffetaBCD,"Pz",kOpenDiamond,kGreen+2,kSolid,kGreen+2);
+  tdrDraw(heffetaEF,"HIST Pz",kOpenDiamond,kOrange+2,kSolid,kOrange+2);
+  tdrDraw(geffetaEF,"Pz",kOpenDiamond,kOrange+2,kSolid,kOrange+2);
+  tdrDraw(heffetaGH,"HIST Pz",kOpenDiamond,kRed,kSolid,kRed);
+  tdrDraw(geffetaGH,"Pz",kOpenDiamond,kRed,kSolid,kRed);
+  */
+
+  /*
+  TLegend *leg0 = tdrLeg(0.62,0.70,0.82,0.90);
+  leg0->AddEntry(heffetaRB,"Weighted avg.","PL");
+  leg0->AddEntry(heffetaGH,"GH","PL");
+  leg0->AddEntry(heffetaEF,"EF","PL");
+  leg0->AddEntry(heffetaBCD,"BCD","PL");
+  */
+
+  TLegend *leg3 = tdrLeg(0.47,eta==2.0 ? 0.45 : 0.15,
+			 0.67,eta==2.0 ? 0.60 : 0.30);
+  //leg3->AddEntry(heffeta3,Form("Weighted avg. %1.1f<|#eta|<%1.1f",
+  //		       eta, eta+0.5),"PL");
+  leg3->AddEntry(heffeta3,"Weighted avg.","PL");
+  //leg3->AddEntry(heffetaRB,"Weighted avg. 2017","PL");
+  leg3->AddEntry(heffeta32,Form("L.T.'s %1.2f<|#eta|<%1.2f",
+				eta+0.25, eta+0.5),"PL");
+  leg3->AddEntry(heffeta31,Form("L.T.'s %1.2f<|#eta|<%1.2f",
+				eta, eta+0.25),"PL");
+
+  cout << "// resolution.C:redoECALprefire("<<eta<<","<<srun<<")" << endl;
+  cout << Form("  {%1.3f, %1.1f, %1.1f}, // %s, eta %1.1f-%1.1f",
+	       feff3->GetParameter(0), feff3->GetParameter(1),
+	       feff3->GetParameter(2), crun, eta, eta+0.5) << endl;
+  cout << Form("eff=%1.3f+/-%1.3f, ",
+	       feff3->GetParameter(0),feff3->GetParError(0));
+  cout << Form("mean=%1.0f+/-%1.0f GeV, ",
+	       feff3->GetParameter(1),feff3->GetParError(1));
+  cout << Form("width=%1.1f+/-%1.1f GeV, ",
+	       feff3->GetParameter(2),feff3->GetParError(2));
+  cout << Form("chi2/ndf=%1.1f/%d\n",
+	       feff3->GetChisquare(),feff3->GetNDF());
+	       
+  c0->SaveAs(Form("pdf/resolution_redoECALprefire_%s_%s.pdf",cy2,crun));
+
+} // redoECALprefire
+
 
 // (resolution_datamc has not yet been maintained, is a copy from qcdjet)
 // Purpose is to derive JER data/MC SF from SMP-J tuples,

@@ -17,7 +17,9 @@ bool _usejme = true;
 // Define cone size (default Run I AK5)
 //bool _ak7 = false;
 //bool _ak4 = true;
-enum jer_iov { none, run1, run2016, run2017, run2018};
+enum jer_iov { none, run1, run2016, run2017, run2018, run2018abc, run2018d,
+	       run2016bcd, run2016ef, run2016gh,
+	       run2017b, run2017c, run2017d, run2017e, run2017f, run2017de};
 jer_iov _jer_iov = none;
 
 const int _nres = 8;
@@ -82,6 +84,7 @@ const double kpar2017[_nres][2] = {
 };
 
 // Placeholder
+/*
 const double kpar2018[_nres][2] = {
 // JER SF produced with minitools/resolution.C:redoJER("Run2018")
  {1.150, 0.043}, // 0.0-0.5
@@ -93,7 +96,40 @@ const double kpar2018[_nres][2] = {
  {1.206, 0.194}, // 3.0-3.2
  {1.082, 0.198}, // 3.2-4.7
 };
-
+*/
+const double kpar2018[_nres][2] = {
+// JER SF produced with minitools/resolution.C:redoJER("Run2018")
+ {1.155, 0.031}, // 0.0-0.5
+ {1.128, 0.045}, // 0.5-1.0
+ {1.101, 0.066}, // 1.0-1.5
+ {1.101, 0.070}, // 1.5-2.0
+ {1.191, 0.083}, // 2.0-2.5
+ {2.002, 0.479}, // 2.5-3.0
+ {1.174, 0.039}, // 3.0-3.2
+ {1.092, 0.049}, // 3.2-4.7
+};
+const double kpar2018abc[_nres][2] = {
+// JER SF produced with minitools/resolution.C:redoJER("Run2018ABC")
+ {1.168, 0.048}, // 0.0-0.5
+ {1.130, 0.043}, // 0.5-1.0
+ {1.093, 0.071}, // 1.0-1.5
+ {1.096, 0.075}, // 1.5-2.0
+ {1.170, 0.090}, // 2.0-2.5
+ {1.663, 0.335}, // 2.5-3.0
+ {1.206, 0.048}, // 3.0-3.2
+ {1.073, 0.068}, // 3.2-4.7
+};
+const double kpar2018d[_nres][2] = {
+// JER SF produced with minitools/resolution.C:redoJER("Run2018D")
+ {1.159, 0.039}, // 0.0-0.5
+ {1.140, 0.055}, // 0.5-1.0
+ {1.118, 0.070}, // 1.0-1.5
+ {1.100, 0.073}, // 1.5-2.0
+ {1.229, 0.103}, // 2.0-2.5
+ {2.295, 0.573}, // 2.5-3.0
+ {1.163, 0.054}, // 3.0-3.2
+ {1.078, 0.054}, // 3.2-4.7
+};
 
 // Resolutions with Pythia Z2* + ak5ak7resolution12.C
 // (produced on iMac desktop, with ROOT 5.30/00, iterating with AK5+2sigma)
@@ -186,6 +222,18 @@ double ptresolution(double pt, double eta) {
 		 pow(vpar2018[iy][2],2));
       if (!_ismcjer) res *= kpar2018[iy][0];
     }
+    if (_jer_iov==run2018abc) {
+      res = sqrt(vpar2018[iy][0]*fabs(vpar2018[iy][0])/(pt*pt) +
+		 pow(vpar2018[iy][1],2)/pt + 
+		 pow(vpar2018[iy][2],2));
+      if (!_ismcjer) res *= kpar2018abc[iy][0];
+    }
+    if (_jer_iov==run2018d) {
+      res = sqrt(vpar2018[iy][0]*fabs(vpar2018[iy][0])/(pt*pt) +
+		 pow(vpar2018[iy][1],2)/pt + 
+		 pow(vpar2018[iy][2],2));
+      if (!_ismcjer) res *= kpar2018d[iy][0];
+    }
   }
 
   // Official JME resolutions
@@ -220,10 +268,30 @@ double ptresolution(double pt, double eta) {
       _jer_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);
     }
     if (_jer_iov==run2018 && !_jer && !_jer_sf) {
-      string resolutionFile = "../JRDatabase/textFiles/Autumn18_V1_MC/"
-	"Autumn18_V1_MC_PtResolution_AK4PFchs.txt";
-      string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_V1_MC/"
-	"Autumn18_V1_MC_SF_AK4PFchs.txt";
+      string resolutionFile = "../JRDatabase/textFiles/Autumn18_V4_MC/"
+      "Autumn18_V4_MC_PtResolution_AK4PFchs.txt";
+      string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_V4_MC/"
+	"Autumn18_V4_MC_SF_AK4PFchs.txt";
+      string weightFile = "rootfiles/jerweights.root";
+
+      _jer = new JME::JetResolution(resolutionFile);
+      _jer_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);
+    }
+    if (_jer_iov==run2018abc && !_jer && !_jer_sf) {
+      string resolutionFile = "../JRDatabase/textFiles/Autumn18_RunABC_V4_MC/"
+      "Autumn18_RunABC_V4_MC_PtResolution_AK4PFchs.txt";
+      string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_RunABC_V4_MC/"
+	"Autumn18_RunABC_V4_MC_SF_AK4PFchs.txt";
+      string weightFile = "rootfiles/jerweights.root";
+
+      _jer = new JME::JetResolution(resolutionFile);
+      _jer_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);
+    }
+    if (_jer_iov==run2018d && !_jer && !_jer_sf) {
+      string resolutionFile = "../JRDatabase/textFiles/Autumn18_RunD_V4_MC/"
+      "Autumn18_RunD_V4_MC_PtResolution_AK4PFchs.txt";
+      string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_RunD_V4_MC/"
+	"Autumn18_RunD_V4_MC_SF_AK4PFchs.txt";
       string weightFile = "rootfiles/jerweights.root";
 
       _jer = new JME::JetResolution(resolutionFile);
@@ -251,6 +319,99 @@ double ptresolution(double pt, double eta) {
   }
 
   return res;
+}
+
+// retun ECAL prefire fraction
+//enum ecal_iov {run2016, run2017, run2018};
+TF1 *_fecalpf(0);
+double ecalprefire(double pt, double eta, jer_iov run) {
+
+  if (!_fecalpf) {
+    _fecalpf = new TF1("feff3","[0]*0.5*(1+erf((x-[1])/([2]*sqrt(x))))",
+		       55,4000./cosh(eta));
+    _fecalpf->SetParameters(0,0,1);
+  }
+
+  // fits done with jecsys/minitools/resolution.C:redoECALprefire()
+  const int neta = 2;
+  const int npar = 3;
+  const double pars16[neta][npar] = {
+    //{0.205, 324.0, 31.4}, // 2016BtoH, eta 2.0-2.5
+    {0.148, 205.0, 17.1}, // 2016BtoH, eta 2.0-2.5
+    //{0.588, 227.7, 12.3}, // 2016BtoH, eta 2.5-3.0
+    {0.582, 225.5, 12.1}, // 2016BtoH, eta 2.5-3.0
+  };
+  const double pars16bcd[neta][npar] = {
+  //{0.091, 233.4, 22.9}, // 2016BCD, eta 2.0-2.5
+    {0.082, 205.0, 17.1}, // 2016BCD, eta 2.0-2.5
+    //{0.522, 261.5, 15.7}, // 2016BCD, eta 2.5-3.0
+    {0.447, 225.8, 12.1}, // 2016BCD, eta 2.5-3.0
+  };
+  const double pars16ef[neta][npar] = {
+    //{0.120, 154.8, 8.6}, // 2016EF, eta 2.0-2.5
+    {0.156, 205.0, 17.1}, // 2016EF, eta 2.0-2.5
+    //{0.534, 237.7, 11.8}, // 2016EF, eta 2.5-3.0
+    {0.541, 240.3, 12.1}, // 2016EF, eta 2.5-3.0
+  };
+  const double pars16gh[neta][npar] = {
+    //{0.162, 204.2, 17.1}, // 2016FGH, eta 2.0-2.5
+    {0.163, 205.0, 17.1}, // 2016FGH, eta 2.0-2.5
+    //{0.699, 196.4, 12.1}, // 2016FGH, eta 2.5-3.0
+    {0.699, 196.3, 12.1}, // 2016FGH, eta 2.5-3.0
+  };
+  //
+  const double pars17[neta][npar] = {
+    //{0.521, 543.5, 52.0}, // 2017BtoF, eta 2.0-2.5
+    {0.243, 175.0, 13.4}, // 2017BtoF, eta 2.0-2.5
+    //{0.837, 191.6, 11.3}, // 2017BtoF, eta 2.5-3.0
+    {0.780, 179.5, 9.4}, // 2017BtoF, eta 2.5-3.0
+
+  };
+  const double pars17b[neta][npar] = {
+    //{0.110, 164.7, 11.0}, // 2017B, eta 2.0-2.5
+    {0.117, 175.0, 13.4}, // 2017B, eta 2.0-2.5
+    //{0.770, 219.0, 13.2}, // 2017B, eta 2.5-3.0
+    {0.664, 191.2, 9.4}, // 2017B, eta 2.5-3.0
+  };
+  const double pars17c[neta][npar] = {
+    //{0.391, 556.8, 49.4}, // 2017C, eta 2.0-2.5
+    {0.172, 175.0, 13.4}, // 2017C, eta 2.0-2.5
+    //{0.729, 166.2, 9.3}, // 2017C, eta 2.5-3.0
+    {0.733, 166.9, 9.4}, // 2017C, eta 2.5-3.0
+  };
+  const double pars17de[neta][npar] = {
+    //{0.230, 172.2, 13.4}, // 2017DE, eta 2.0-2.5
+    {0.232, 175.0, 13.4}, // 2017DE, eta 2.0-2.5
+    //{0.767, 160.1, 9.4}, // 2017DE, eta 2.5-3.0
+    {0.768, 160.3, 9.4}, // 2017DE, eta 2.5-3.0
+  };
+  const double pars17f[neta][npar] = {
+    //{0.615, 442.8, 41.7}, // 2017F, eta 2.0-2.5
+    {0.316, 175.0, 13.4}, // 2017F, eta 2.0-2.5
+    //{0.850, 164.1, 9.5}, // 2017F, eta 2.5-3.0
+    {0.846, 163.4, 9.4}, // 2017F, eta 2.5-3.0
+  };
+  
+  if (fabs(eta)<2.0 || fabs(eta)>3.0) return 0;
+  if (run==run2018) return 0;
+  if (run==run2018d) return 0;
+  if (run==run2018abc) return 0;
+
+  int iy = (fabs(eta)<2.5 ? 0 : 1);
+  const double (*pars)[neta][npar](0);// = (run==run2016 ? pars16 : pars17);
+  if (run==run2016)    pars = &pars16;
+  if (run==run2016bcd) pars = &pars16bcd;
+  if (run==run2016ef)  pars = &pars16ef;
+  if (run==run2016gh)  pars = &pars16gh;
+  if (run==run2017)    pars = &pars17;
+  if (run==run2017b)   pars = &pars17b;
+  if (run==run2017c)   pars = &pars17c;
+  if (run==run2017de)  pars = &pars17de;
+  if (run==run2017f)   pars = &pars17f;
+  assert(pars);
+  _fecalpf->SetParameters((*pars)[iy][0],(*pars)[iy][1],(*pars)[iy][2]);
+
+  return (_fecalpf->Eval(pt));
 }
 
 #endif // __ptresolution_h__

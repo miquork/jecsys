@@ -87,12 +87,16 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   // https://gitlab.cern.ch/lamartik/combinationfiles
   // => common17_V11.root
   // => common2018_V7.root
-  TFile *fin1 = new TFile("rootfiles/common2018_V7.root","READ");
+  // => common2018_V10.root
+  //TFile *fin1 = new TFile("rootfiles/common2018_V7.root","READ");
+  TFile *fin1 = new TFile("rootfiles/common2018_V10.root","READ");
   assert(fin1 && !fin1->IsZombie());
   
   //TFile *fin2 = new TFile("rootfiles/common2016_LegacyIOVs_v3.root","READ");
   //TFile *fin2 = new TFile("rootfiles/common2017_V11.root","READ");
-  TFile *fin2 = new TFile("rootfiles/common2017_V32.root","READ");
+  //TFile *fin2 = new TFile("rootfiles/common2017_V32.root","READ");
+  //TFile *fin2 = new TFile("rootfiles/common2017_V32_tight.root","READ");
+  TFile *fin2 = new TFile("rootfiles/common2017_V32_hotzone.root","READ");
   assert(fin2 && !fin2->IsZombie());
 
   //TFile *fin3 = new TFile("rootfiles/common2016_October2018_V17.root","READ");
@@ -104,6 +108,7 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
 
   // Current uncertainty
   const char *p = "CondFormats/JetMETObjects/data/";
+  //const char *t18 = "Autumn18_RunD_V8_DATA";
   const char *t18 = "Autumn18_RunD_V8_DATA";
   const char *a18 = "AK4";
   const char *s18 = Form("%s%s_Uncertainty_%sPFchs.txt",p,t18,a18);
@@ -174,7 +179,7 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   double k16 = 0.5;
   double lumi[nera] =
     //{14.0/59.9, 7.1/59.9, 6.9/59.9, 31.9/59.9,
-    {1, 1, 6.9/3.0, 1,
+    {1, 1, 1, /*6.9/3.0,*/ 1,
      //4800, 9600, 4200, 9300, 13400,
      1, 1, 1, 1, //4800, 9600, 13500, 13400,
      1, 1, 1};
@@ -188,12 +193,12 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
 
   int color[nera] =
     {kRed+2, kOrange+2, kBlue+1, kBlack,
-     kRed+2, kOrange+2, kBlue+1, /*kGreen+2,*/ kBlack,
+     kRed+2, kOrange+2, kBlue+1, kBlack,
      kMagenta+2, kCyan+2, kGray+2};
   int marker[nera] =
     {kFullCircle, kFullDiamond, kFullStar, kFullSquare,
-     kOpenCircle, kOpenDiamond, kOpenStar, kOpenSquare, /*kOpenTriangleDown,*/
-     kFullCircle, kFullDiamond, kFullStar};//kFullSquare};
+     kOpenCircle, kOpenDiamond, kOpenStar, kOpenSquare,
+     kFullCircle, kFullDiamond, kFullStar};
   const char* label[nera] =
     //{"RunA","RunB","RunC","RunD"};
     {"18A","18B","18C","18D",
@@ -222,17 +227,17 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
     TH1F *hera = (TH1F*)fins[iera]->Get(hname.c_str());
 
     // Engin's file has different naming scheme
-    if (!hera) {
-      int iy = int((eta+0.25)/0.5)+1;
-      hname = Form("ak4/y_%s/hptData_%s_detector_%dbin",cy,cera,iy);
-      hera = (TH1F*)fins[iera]->Get(hname.c_str());
-    }
+//     if (!hera) {
+//       int iy = int((eta+0.25)/0.5)+1;
+//       hname = Form("ak4/y_%s/hptData_%s_detector_%dbin",cy,cera,iy);
+//       hera = (TH1F*)fins[iera]->Get(hname.c_str());
+//     }
     if (!hera) cout << "Histogram " << hname << " not found!" << endl << flush;
     assert(hera);
 
-    // fix a strange normalization bug for 16BCD, 16EF and 16GH
+    // patch/fix a strange normalization bug for 16BCD, 16EF and 16GH
     string se = label[iera];
-    if (se=="16BCD"||se=="16EF"||se=="16GH"||se=="17DE") {
+    if (se=="16BCD"||se=="16EF"||se=="16GH") {//||se=="17DE") {
       for (int i = 1; i != hera->GetNbinsX()+1; ++i) {
 	double k = int((eta+0.25)/0.5)+1;
 	hera->SetBinContent(i, hera->GetBinContent(i)*k);
@@ -253,6 +258,10 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
       if (se=="17C")   run = run2017c;
       if (se=="17DE")  run = run2017de;
       if (se=="17F")   run = run2017f;
+      if (se=="18A")   run = run2018abc;
+      if (se=="18B")   run = run2018abc;
+      if (se=="18C")   run = run2018abc;
+      if (se=="18D")   run = run2018d;
 
       for (int i = 1; i != hera->GetNbinsX()+1; ++i) {
 
@@ -272,9 +281,14 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
       int year(0);
       if (TString(se.c_str()).Contains("16")) year = 2016;
       if (TString(se.c_str()).Contains("17")) year = 2017;
-      if (TString(se.c_str()).Contains("18")) year = 2018;
+      //if (TString(se.c_str()).Contains("18")) year = 2018;
+      if (se=="18A") year = 2018;//abc;
+      if (se=="18B") year = 2018;//abc;
+      if (se=="18C") year = 2018;//abc;
+      if (se=="18D") year = 2019;//2018d;
       // special case for 2018 2.5-3.0 bin
-      if (TString(se.c_str()).Contains("18") && sy=="2.5-3.0") year = 2016;
+      //if (TString(se.c_str()).Contains("18") && sy=="2.5-3.0") year = 2016;
+      //if (se=="18D" && sy=="2.5-3.0") year = 2016;
       TH1D *hr = (TH1D*)fu->Get(Form("hr_%s_%d",cy,year)); assert(hr);
       for (int i = 1; i != hera->GetNbinsX()+1; ++i) {
 	if (hera->GetBinContent(i)!=0) {
@@ -363,6 +377,8 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
       int j = hhepdy4->FindBin(x);
       int irund = 3; // Index of 2018D
       int irunbcd = 8; // Index of 2016BCD
+      assert(string(label[irunbcd])=="16BCD");
+      assert(string(label[irund])=="18D");
       const double emax = 2000;
       const double xerr = 0.3; // 50%
       int k1 = h1s[irunbcd]->FindBin(x);
@@ -693,7 +709,8 @@ void drawDeltaJEC(string sy = "0.0-0.5") {
   const int nmaxu2 = 3;
   TLegend *legu1 = tdrLeg(0.20,0.15,0.50,0.15+0.04*nmaxu1);
   TLegend *legu2 = tdrLeg(0.60,0.15,0.90,0.15+0.04*nmaxu2);
-  legu1->AddEntry(hunc18,"2018 Aut18_V8","F");
+  legu1->AddEntry(hunc18,"2018 Aut18_V10+unc","F");
+  //legu1->AddEntry(hunc18,"2018 Aut18_V8","F");
   //legu1->AddEntry(hunc17,"2017 17Nov_V11","F");
   legu1->AddEntry(hunc17,"2017 17Nov_V32","F");
   //legu1->AddEntry(hunc16,"2016 07Aug_V17","F");
@@ -777,7 +794,8 @@ Double_t smearedAnsatz(Double_t *x, Double_t *p) {
 void unfold(string sy = "0.0-0.5", int ieta = 1) {
 
 
-  TFile *f = new TFile("rootfiles/common2018_V7.root","READ");
+  //TFile *f = new TFile("rootfiles/common2018_V7.root","READ");
+  TFile *f = new TFile("rootfiles/common2018_V10.root","READ");
   //TFile *f = new TFile("rootfiles/common2016_LegacyIOVs_v3.root","READ");
   //TFile *f = new TFile("rootfiles/common2016_October2018_V17.root","READ");
   assert(f && !f->IsZombie());
@@ -837,8 +855,8 @@ void unfold(string sy = "0.0-0.5", int ieta = 1) {
 
   fout->cd();
 
-  const int niov = 4;
-  jer_iov iovs[niov] = {run1, run2016, run2017, run2018};
+  const int niov = 5;
+  jer_iov iovs[niov] = {run1, run2016, run2017, run2018abc, run2018d};
   for (int iov = 0; iov != niov; ++iov) {
 
     _jer_iov = iovs[iov]; // use by ptresolution in fs and fus
