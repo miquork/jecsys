@@ -32,10 +32,10 @@
 #include <iterator>
 
 //jec-fit-protype adds
-#include "FitBase.hpp"
+//#include "FitBase.hpp"
 //#include "MultijetBinnedSum.hpp"
 //#include "MultijetCrawlingBins.hpp"
-#include "JetCorrDefinitions.hpp"
+//#include "JetCorrDefinitions.hpp"
 #include <list>
 #include <Minuit2/Minuit2Minimizer.h>
 #include <Math/Functor.h>
@@ -48,7 +48,7 @@ double ptreco_gjet = 15.; // min jet pT when evaluating alphamax for gamma+jet
 double ptreco_zjet = 5.; // same for Z+jet
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
 bool _paper = false;//true;
-bool _useZoom = true;
+bool _useZoom = false;
 double _cleanUncert = 0.05; // for eta>2
 //double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
@@ -59,7 +59,7 @@ string scalingForL2OrL3Fit = "None";// was "ApplyL3ResDontScaleDijets";
 //N.B.: Barrel JES from input text file is always applied to dijet results
 
 bool useNewMultijet = false;//true; //use MultijetCrawlingBins now
-bool verboseGF = false;
+bool verboseGF = true;
 
 unsigned int _nsamples(0);
 unsigned int _nmethods(0);
@@ -500,6 +500,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       std::cout << i << ", ";
     cout << "... choose key: \"" <<elem.first << "\"\n";
   }
+  cout << "Selected sample config: " << selectSample << endl;
   const int nsamples = samplesmap[selectSample].size();
   vector<const char*> samplevec;
   for(int i = 0; i < nsamples; ++i)samplevec.push_back(samplesmap[selectSample].at(i).c_str());
@@ -1268,7 +1269,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //legm->AddEntry(herr_ref,"Run II","FL");
   //legm->AddEntry(herr_ref,"V10","FL");
   //legm->AddEntry(herr_ref,"V16M","FL");
-  legm->AddEntry(herr_ref,"V8","FL");
+  legm->AddEntry(herr_ref,"V16","FL");
 
 
   ///////////////////////
