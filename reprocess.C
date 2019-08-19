@@ -76,6 +76,7 @@ double valueGamScale = 1.;
 // Legacy 2016: all+nosys 0.990/0.026, 88.9/56, 0.9648
 
 
+
 // Settings for cleaned up global fit
 /////////////////////////////////////
 
@@ -162,15 +163,16 @@ void reprocess(string epoch="") {
   // Date: 	Wed, 14 Aug 2019 11:22:41 +0200
   // From: 	Jindrich Lidrych <jindrich.lidrych@desy.de>
   // so far: only "L1L2 available, no closure with L2Res and/or L2L3res"  
-  // https://indico.cern.ch/event/835064/contributions/3499545/attachments/1880873/3122628/Autumn18_V16_L2Res-14082019.zip
-  TFile *fdj = new TFile(Form("rootfiles/Autumn18_V16_L2Res-14082019_Autumn18_V16_L2Res/Run%s/InputForFit-WideEtabinning.root",fdj_files[epoch]),"READ");
+  // https://indico.cern.ch/event/835064/contributions/3499545/attachments/1880873/3122628/Autumn18_V16_L2Res-14082019.zip --> for L1L2
+  //   https://indico.cern.ch/event/835064/contributions/3499545/attachments/1880873/3124644/ClosureTest.zip --> JERNominal for L2L3Res
+  TFile *fdj = new TFile(Form("rootfiles/Autumn18_V16_%s-14082019/Run%s/InputForFit-WideEtabinning.root",CorLevel.c_str(),fdj_files[epoch]),"READ");
 
 
-  TFile *fdj2 = new TFile(Form("rootfiles/Autumn18_V16_L2Res-14082019_Autumn18_V16_L2Res/Run%s/InputForFit-standardEtabinning.root",fdj_files[epoch]),"READ");
+  TFile *fdj2 = new TFile(Form("rootfiles/Autumn18_V16_%s-14082019/Run%s/InputForFit-standardEtabinning.root",CorLevel.c_str(),fdj_files[epoch]),"READ");
   assert(fdj2 && !fdj2->IsZombie());
 
-  if(CorLevel!="L1L2"){
-    cout << Form("Dijet files are only available for Autumn18-V16 (L1L2) narrow/wide bins, Please confirm by pushing any key.") << endl;
+  if(CorLevel!="L1L2"&&CorLevel!="L1L2L3Res"){
+    cout << Form("Dijet files are only available for Autumn18-V16 (L1L2+L2L3Res) narrow/wide bins, Please confirm by pushing any key.") << endl;
     if(confirmWarnings)cin.ignore();
   }
 
@@ -212,9 +214,9 @@ void reprocess(string epoch="") {
   fp_files["A"] = "A";
   fp_files["B"] = "B";
   fp_files["C"] = "C";
-  fp_files["ABC"] = "D"; 
+  fp_files["ABC"] = "ABC"; 
   fp_files["D"] = "D"; 
-  fp_files["ABCD"] = "D";
+  fp_files["ABCD"] = "ABCD";
   string sgcl = (CorLevel=="L1L2" ? "wo_L2Res" : CorLevel=="L1L2Res" ? "only_L2Res" : CorLevel=="L1L2L3Res" ? "L2L3Res" : "NotSupported");
   const char *cgcl = sgcl.c_str();
   TFile *fp = new TFile(Form("rootfiles/gamjet_JEC_Autumn18_V16-JER_Autumn18_V5_2019-07-25/%s/Gjet_combinationfile_%s_%s_%s.root", cgcl, cgcl, fp_files[epoch], cgcl),"READ");
@@ -225,6 +227,7 @@ void reprocess(string epoch="") {
   
   // Daniel Savoiu,Z-Jet L3Res for 2018 v16, 29 July 2019
   //  https://indico.cern.ch/event/837707/contributions/3512864/attachments/1887357/3111688/zjet_combination_Autumn18_JECV16_2018-07-24.tar.gz
+  // update: https://indico.cern.ch/event/837707/contributions/3512864/attachments/1887357/3125236/zjet_combination_Autumn18_JECV16_2019-08-19.tar.gz
   map<string,const char*> fz_dirs;
   fz_dirs["A"] = "Run2018A";
   fz_dirs["B"] = "Run2018B";
@@ -243,22 +246,19 @@ void reprocess(string epoch="") {
     //cout << Form("%s is only available for A/B/C, not for D/ABCD. Please confirm by pushing any key.",CorLevel.c_str()) << endl;
     //if(confirmWarnings)cin.ignore();
   }
-  else if(CorLevel=="L1L2L3Res")
+  else if(CorLevel=="L1L2L3Res"){
     //scr = "CheckOldFiles";
-    scr = "L1L2L3Res";
+    scr = "L1L2Res";
+ }
   else
     scr = "NotSupported";
 
-  if(CorLevel=="L1L2L3Res"){
-    cout << Form("Z+jet files not available with V16 closure test. Please confirm by pushing any key.") << endl;
-    if(confirmWarnings)cin.ignore();
-  }
 
 
     
   const char *ccr = scr.c_str();
-  TFile *fzmm = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zmm_2019-07-24.root","READ");
-  TFile *fzee = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zee_2019-07-24.root","READ");
+  TFile *fzmm = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zmm_2019-08-19.root","READ");
+  TFile *fzee = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zee_2019-08-19.root","READ");
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
@@ -925,6 +925,7 @@ void reprocess(string epoch="") {
 				   sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
 	      }
 	    }
+
 	    // Photon scale correction (from drawGamVsZmm)
 	    // No separate unceratinty added, is already in global fit
 	    if (correctGamScale && s=="gamjet" && (d=="data" || d=="ratio")) {
