@@ -58,11 +58,12 @@ bool correctUncert  =  true;
 
 bool confirmWarnings=true; //if active, deficiencies in input files are patched after confirmation via pushing "any key to continue"
 bool confirmedGamJet=false; // to avoid too many confirmations
-string CorLevel="L1L2"; // same for gamma+jet and Z+jet on RunD
-//string CorLevel="L1L2Res";
+string CorLevel="L1L2L3Res"; // same for gamma+jet and Z+jet on RunD
+//string CorLevel="L1L2L3Res"; // same for gamma+jet and Z+jet on RunD
+//string CorLevel="L1L2";
 //"L1L2": "MCTruth corrections" applied, in reality L1Data/MC,L2
 //"L1L2Res": MCTruth + L2Res applied
-//"L1L2L3Res": MCTruth + L2L3Res applied
+//"L1L2L3Res": MCTruth + L2L3Res applied; reference JES central values set to 1.0 (affects pliotting as well)
 
 bool correctGamScale = false; 
 double valueGamScale = 1.;
@@ -165,14 +166,16 @@ void reprocess(string epoch="") {
   // so far: only "L1L2 available, no closure with L2Res and/or L2L3res"  
   // https://indico.cern.ch/event/835064/contributions/3499545/attachments/1880873/3122628/Autumn18_V16_L2Res-14082019.zip --> for L1L2
   //   https://indico.cern.ch/event/835064/contributions/3499545/attachments/1880873/3124644/ClosureTest.zip --> JERNominal for L2L3Res
-  TFile *fdj = new TFile(Form("rootfiles/Autumn18_V16_%s-14082019/Run%s/InputForFit-WideEtabinning.root",CorLevel.c_str(),fdj_files[epoch]),"READ");
+  string DijetCorLevel = (CorLevel=="L1L2Res" ? "L1L2L3Res" : CorLevel);
+  //choose Func3/Func1/"" here
+  TFile *fdj = new TFile(Form("rootfiles/Autumn18_V16_%s-14082019_Func3/Run%s/InputForFit-WideEtabinning.root",DijetCorLevel.c_str(),fdj_files[epoch]),"READ");
 
 
-  TFile *fdj2 = new TFile(Form("rootfiles/Autumn18_V16_%s-14082019/Run%s/InputForFit-standardEtabinning.root",CorLevel.c_str(),fdj_files[epoch]),"READ");
+  TFile *fdj2 = new TFile(Form("rootfiles/Autumn18_V16_%s-14082019_Func3/Run%s/InputForFit-standardEtabinning.root",DijetCorLevel.c_str(),fdj_files[epoch]),"READ");
   assert(fdj2 && !fdj2->IsZombie());
 
   if(CorLevel!="L1L2"&&CorLevel!="L1L2L3Res"){
-    cout << Form("Dijet files are only available for Autumn18-V16 (L1L2+L2L3Res) narrow/wide bins, Please confirm by pushing any key.") << endl;
+    cout << Form("Dijet files are only available for Autumn18-V16 (L1L2+L2L3Res) narrow/wide bins. L1L2L3Res used for L1L2Res as placeholder. Please confirm by pushing any key.") << endl;
     if(confirmWarnings)cin.ignore();
   }
 
@@ -248,7 +251,7 @@ void reprocess(string epoch="") {
   }
   else if(CorLevel=="L1L2L3Res"){
     //scr = "CheckOldFiles";
-    scr = "L1L2Res";
+    scr = "L1L2L3Res";
  }
   else
     scr = "NotSupported";
@@ -1097,14 +1100,14 @@ void reprocess(string epoch="") {
     JetCorrectionUncertainty *unc_ref1 = new JetCorrectionUncertainty(*p_ref1);
 
     // Total uncertainty, excluding Flavor and Time
-    s = Form("%s/Autumn18_V16_MC_UncertaintySources_AK4PFchs.txt",cd);
+    s = Form("%s/Autumn18_V17WithClosureInputsPtDepRelativeSampleFunc3_DATA_UncertaintySources_AK4PFchs.txt",cd);
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
     JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p_unc);
 
     // Partial uncertainties
-    s = Form("%s/Autumn18_V16_MC_UncertaintySources_AK4PFchs.txt",cd);
+    s = Form("%s/Autumn18_V17WithClosureInputsPtDepRelativeSampleFunc3_DATA_UncertaintySources_AK4PFchs.txt",cd);
     //s2 = "TotalNoFlavorNoTime";
     s2 = "SubTotalAbsolute"; // 07AugV4
     cout << s << ":" << s2 << endl << flush;
@@ -1253,7 +1256,7 @@ void reprocess(string epoch="") {
             else if (epoch=="ABCD")val = jecABCDw1*val1 + jecABCDw2*val2 + jecABCDw3*val3 + jecABCDw4*val4;
 	  }
           if(rp_debug) cout << "ABC/ABCD special treatment done" << endl;
-
+          if(CorLevel=="L1L2L3Res")val = 1.0; //to get proper bands during closure test
 	  sumval += w*val;
 	  sumw += w; // sum weights only once
 	  
@@ -1345,6 +1348,7 @@ void reprocess(string epoch="") {
 
 	// normalize by total weight for correct average
 	double val = sumval / sumw;
+        if(CorLevel=="L1L2L3Res")val = 1.0; //to get proper bands during closure test -- should already be 1.0 ... TESTING
 
 	// normalize uncertainties (quadratic instead of linear addition)
 	double err = sqrt(sumerr2 / sumw);
@@ -1375,10 +1379,12 @@ void reprocess(string epoch="") {
 	herr_pt->SetBinError(ipt, val*sqrt(err_pt*err_pt+err_pu*err_pu));
 
 	double run1 = (sumrun1 / sumw);
+        if(CorLevel=="L1L2L3Res") run1 = 1.0;  //to get proper bands during closure test
 	hrun1->SetBinContent(ipt, run1);
 	hrun1->SetBinError(ipt, run1*err_ref1);//run1*err);
 
 	double jes = (sumjes / sumw);
+        if(CorLevel=="L1L2L3Res") jes = 1.0;  //to get proper bands during closure test
 	hjes->SetBinContent(ipt, jes);
 	double l1pt = (sumvall1pt / sumw);
 	double l1mc = (sumvall1mc / sumw);
@@ -1401,42 +1407,42 @@ void reprocess(string epoch="") {
 
       herr->SetMarkerSize(0);
       herr->SetFillStyle(1001);
-      herr->SetFillColor(kYellow+1);
+      herr->SetFillColorAlpha(kYellow+1,0.5);
       herr->Write();
 
       herr_ref->SetMarkerSize(0);
       herr_ref->SetFillStyle(1001);
-      herr_ref->SetFillColor(kYellow+1);
+      herr_ref->SetFillColorAlpha(kYellow+1,0.5);
       herr_ref->Write();
 
       herr_spr->SetMarkerSize(0);
       herr_spr->SetFillStyle(1001);
-      herr_spr->SetFillColor(kYellow);
+      herr_spr->SetFillColorAlpha(kYellow,0.5);
       herr_spr->Write();
 
       herr_pu->SetMarkerSize(0);
       herr_pu->SetFillStyle(1001);
-      herr_pu->SetFillColor(kYellow+1);
+      herr_pu->SetFillColorAlpha(kYellow+1,0.5);
       herr_pu->Write();
 
       herr_noflv->SetMarkerSize(0);
       herr_noflv->SetFillStyle(1001);
-      herr_noflv->SetFillColor(kYellow+1);
+      herr_noflv->SetFillColorAlpha(kYellow+1,0.5);
       herr_noflv->Write();
 
       herr_mpf->SetMarkerSize(0);
       herr_mpf->SetFillStyle(1001);
-      herr_mpf->SetFillColor(kYellow+1);
+      herr_mpf->SetFillColorAlpha(kYellow+1,0.5);
       herr_mpf->Write();
 
       herr_pt->SetMarkerSize(0);
       herr_pt->SetFillStyle(1001);
-      herr_pt->SetFillColor(kYellow+1);
+      herr_pt->SetFillColorAlpha(kYellow+1,0.5);
       herr_pt->Write();
 
       hrun1->SetMarkerSize(0);
       hrun1->SetFillStyle(1001);
-      hrun1->SetFillColor(kCyan+1);
+      hrun1->SetFillColorAlpha(kCyan+1,0.5);
       hrun1->Write();
 
       hjes->Write();
