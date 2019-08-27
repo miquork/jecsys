@@ -136,11 +136,11 @@ private:
   FactorizedJetCorrector *_jec;
   FactorizedJetCorrector *_jecDefault;
   //
+  FactorizedJetCorrector *_jecA;
   FactorizedJetCorrector *_jecB;
   FactorizedJetCorrector *_jecC;
-  FactorizedJetCorrector *_jecDE;
-  FactorizedJetCorrector *_jecF;
-  FactorizedJetCorrector *_jecBCDEF;
+  FactorizedJetCorrector *_jecD;
+  FactorizedJetCorrector *_jecABCD;
   //
   //FactorizedJetCorrector *_jecWithL1RC;
   //FactorizedJetCorrector *_jecL1DTflat;
