@@ -29,6 +29,9 @@ double _rho = 19.31; // Data-Fall17V8-D, jt500 hrho
 JME::JetResolution *_jer(0);
 JME::JetResolutionScaleFactor *_jer_sf(0);
 
+bool _usenewsf = false;
+TF1 *_newsf(0);
+
 // From Sanmay by email 30 Mar 2015
 // (direct recommendations from different eta bins => not ideal?)
 /*
@@ -193,6 +196,12 @@ double ptresolution(double pt, double eta) {
   if (fabs(eta)>3.2) iy = _nres-1; // 3.2-4.7 bin instead of 3.5-4.7
   double res = 0;
 
+  // New scaling for 2018 JER SF
+  if (!_newsf) {
+    _newsf = new TF1("SFnew3","sqrt(pow([0],2)/(x*x)+pow(sqrt([3])*[1],2)/x+pow([3]*[2],2)) / sqrt(pow([3]*[0],2)/(x*x)+pow([3]*[1],2)/x+pow([3]*[2],2)) * [3]",10,3000);
+    _newsf->SetParameters(5*2, 0, 0.05*sqrt(2), 2.020);
+  } // newsf
+
   // Own parameterized JER
   if (!_usejme) {
     if (_jer_iov==none) {
@@ -220,19 +229,31 @@ double ptresolution(double pt, double eta) {
       res = sqrt(vpar2018[iy][0]*fabs(vpar2018[iy][0])/(pt*pt) +
 		 pow(vpar2018[iy][1],2)/pt + 
 		 pow(vpar2018[iy][2],2));
-      if (!_ismcjer) res *= kpar2018[iy][0];
+      double jer_sf = kpar2018[iy][0];
+      if (_usenewsf) {
+	_newsf->SetParameter(3, jer_sf); jer_sf = _newsf->Eval(pt);
+      }
+      if (!_ismcjer) res *= jer_sf;
     }
     if (_jer_iov==run2018abc) {
       res = sqrt(vpar2018[iy][0]*fabs(vpar2018[iy][0])/(pt*pt) +
 		 pow(vpar2018[iy][1],2)/pt + 
 		 pow(vpar2018[iy][2],2));
-      if (!_ismcjer) res *= kpar2018abc[iy][0];
+      double jer_sf = kpar2018abc[iy][0];
+      if (_usenewsf) {
+	_newsf->SetParameter(3, jer_sf); jer_sf = _newsf->Eval(pt);
+      }
+      if (!_ismcjer) res *= jer_sf;
     }
     if (_jer_iov==run2018d) {
       res = sqrt(vpar2018[iy][0]*fabs(vpar2018[iy][0])/(pt*pt) +
 		 pow(vpar2018[iy][1],2)/pt + 
 		 pow(vpar2018[iy][2],2));
-      if (!_ismcjer) res *= kpar2018d[iy][0];
+      double jer_sf = kpar2018d[iy][0];
+      if (_usenewsf) {
+	_newsf->SetParameter(3, jer_sf); jer_sf = _newsf->Eval(pt);
+      }
+      if (!_ismcjer) res *= jer_sf;
     }
   }
 
@@ -313,6 +334,12 @@ double ptresolution(double pt, double eta) {
     //double rho = 19.31; // Data-Fall17V8-D, jt500 hrho
     double jet_resolution = _jer->getResolution({{JME::Binning::JetPt, pt}, {JME::Binning::JetEta, eta}, {JME::Binning::Rho, _rho}});
     double jer_sf = _jer_sf->getScaleFactor({{JME::Binning::JetEta, eta}}, Variation::NOMINAL);//m_systematic_variation);
+    
+    if (_jer_iov==run2018 || _jer_iov==run2018abc || _jer_iov==run2018d) {
+      if (_usenewsf) {
+	_newsf->SetParameter(3, jer_sf); jer_sf = _newsf->Eval(pt);
+      }
+    }
 
     res = jet_resolution;
     if (!_ismcjer) res *= jer_sf;
