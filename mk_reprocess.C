@@ -42,9 +42,9 @@
 
   reprocess(epoch); // Switched off for JetMET100
 
-  //softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
+  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
 
-  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
+  //  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
   // Run multijet analysis to store information for later global fit
   // => multijet central values now old, but FSR still needed
   multijet(false,epoch);
@@ -56,13 +56,13 @@
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
   globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "gam_zll", "PtBalMPF");
 
-  /*
+  
 ////  
 ////  //now do narrow bins for L2Res
 ////  // Calculate soft radiation (ISR+FSR) corrections
 ////  // and uncertainty eigenvectors for global fit
 ////
-  Bool_t dodijetsoftrad=false;
+  Bool_t dodijetsoftrad=true;
   softrad(0.000,0.261, dodijetsoftrad, epoch); 
   softrad(0.261,0.522, dodijetsoftrad, epoch); 
   softrad(0.522,0.783, dodijetsoftrad, epoch); 
@@ -84,13 +84,15 @@
 
 
   //std::vector <string> sampleconfigs = {epoch=="B"||epoch=="ABC"||epoch=="ABCD" ? "zee_zmm" : "gam_zee_zmm"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
-  std::vector <string> sampleconfigs = {epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll"};
-  //std::vector <string> sampleconfigs = {"gam_zll"};
+  //  std::vector <string> sampleconfigs = {epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll"};
+  //  std::vector <string> sampleconfigs = {epoch=="D"||epoch=="ABCD" ? "zll" : "gam_zll"};
+  //  std::vector <string> sampleconfigs = {"gam_zll"};
   //std::vector <string> sampleconfigs = {"zmm"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
-  //  std::vector <string> sampleconfigs = {"zll"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
+  std::vector <string> sampleconfigs = {"gam_zll","MJDJ_gam_zll","DJ"};//,"gam","zll","gam_zll"};
+  //std::vector <string> sampleconfigs = {"MJDJ_gam_zll"};//,"DJ"};//,"gam","zll","gam_zll"};
   std::vector <string> methodconfigs = {  "PtBalMPF"};//,"PtBal","MPF"};
 
-  for(auto s : sampleconfigs){
+    for(auto s : sampleconfigs){
     for(auto m : methodconfigs){
       globalFitL3Res(0.000,0.261, epoch, s, m); //default: Standard_MJDJ_gam_zee_zmm; PtBalMPF
       globalFitL3Res(0.261,0.522, epoch, s, m); 
@@ -115,7 +117,7 @@
       gSystem->Exec(Form("pdflatex '\\def\\RunPeriod{pdf/%s}\\input{pdf/jecslides_FineEta_2016Legacy.tex}'", epoch.c_str()));
       string FolderName = Form("CollectL2Output_%s_%s",s.c_str(),m.c_str());
       gSystem->Exec(Form("mkdir %s",FolderName.c_str()));
-      gSystem->Exec(Form("mv jecslides_FineEta_2016Legacy.pdf %s/jecslides_FineEta_2016_%s.pdf", FolderName.c_str(), epoch.c_str()));
+      gSystem->Exec(Form("mv jecslides_FineEta_2016Legacy.pdf %s/jecslides_FineEta_Autumn18_V16_%s.pdf", FolderName.c_str(), epoch.c_str()));
       gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals.txt  %s/Summer16Legacy%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", FolderName.c_str(), epoch.c_str()));
       gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals_Chi2OverNDF.txt  %s/Summer16Legacy%s_VXXX_DATA_L2L3Residual_Chi2OverNDF_AK4PFchs.txt", FolderName.c_str(), epoch.c_str()));
       gSystem->Exec(Form("cp  %s/Summer16Legacy%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt %s_Summer16Legacy%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", FolderName.c_str(), epoch.c_str(), FolderName.c_str(), epoch.c_str()));
@@ -124,7 +126,7 @@
       
     }
   }
-  */
+
   
 //  //wide eta bins
 //   // softrad(0.0,0.8,true,epoch); // missing dijet
@@ -143,8 +145,8 @@
 //   globalFitL3Res(2.5,3.0,epoch); // coarse L2Res
 //   globalFitL3Res(3.0,3.2,epoch); // coarse L2Res
 //   globalFitL3Res(3.2,5.2,epoch); // coarse L2Res
-
-   // Repeat to see parameters
-  //  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
+//
+//   // Repeat to see parameters
+//  //  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
   
 }

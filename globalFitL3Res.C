@@ -32,10 +32,10 @@
 #include <iterator>
 
 //jec-fit-protype adds
-#include "FitBase.hpp"
+//#include "FitBase.hpp"
 //#include "MultijetBinnedSum.hpp"
 //#include "MultijetCrawlingBins.hpp"
-#include "JetCorrDefinitions.hpp"
+//#include "JetCorrDefinitions.hpp"
 #include <list>
 #include <Minuit2/Minuit2Minimizer.h>
 #include <Math/Functor.h>
@@ -48,18 +48,21 @@ double ptreco_gjet = 15.; // min jet pT when evaluating alphamax for gamma+jet
 double ptreco_zjet = 5.; // same for Z+jet
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
 bool _paper = false;//true;
-bool _useZoom = true;
+bool _useZoom = true;//false; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
 double _cleanUncert = 0.05; // for eta>2
 //double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
-string scalingForL2OrL3Fit = "None";// was "ApplyL3ResDontScaleDijets";
-//"None" - for inpunt combination files without any residual applied
+//string scalingForL2OrL3Fit = "None";// was "ApplyL3ResDontScaleDijets";
+string scalingForL2OrL3Fit = "DontScaleDijets";// was "ApplyL3ResDontScaleDijets";
+//string scalingForL2OrL3Fit = "DontScaleDijets";// was "ApplyL3ResDontScaleDijets";
+//"None" - for inpunt combination files without any residual applied (dijets are still scaled, see below)
 //"PutBackL2Res" - put L2res back in for gamma/Z+jet for vs eta studies
+//"DontScaleDijets" - don't modify inputs at all (good for full closure tests with L2L3Res applied)  -- not needed in case all the reference JEC bands are moved to 1.0 in reprocess.C 
 //"ApplyL3ResDontScaleDijets" - apply barrel JES (use case: check closure when only L2Res is applied to the inputs and L3Res didn't change)
-//N.B.: Barrel JES from input text file is always applied to dijet results
+//N.B.: Barrel JES from input text file is always applied to dijet results (unless "ApplyL3ResDontScaleDijets" or "DontScaleDijets" is chosen)
 
 bool useNewMultijet = false;//true; //use MultijetCrawlingBins now
-bool verboseGF = false;
+bool verboseGF = true;
 
 unsigned int _nsamples(0);
 unsigned int _nmethods(0);
@@ -500,6 +503,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       std::cout << i << ", ";
     cout << "... choose key: \"" <<elem.first << "\"\n";
   }
+  cout << "Selected sample config: " << selectSample << endl;
   const int nsamples = samplesmap[selectSample].size();
   vector<const char*> samplevec;
   for(int i = 0; i < nsamples; ++i)samplevec.push_back(samplesmap[selectSample].at(i).c_str());
@@ -697,10 +701,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	  double jes = hjes->GetBinContent(hjes->FindBin(pt)); // L2Res only
 	  double jesref = hjes0->GetBinContent(hjes0->FindBin(pt)); // barrel
 	  // divide by jesref(=1) in case hjes had L2L3Res instead of L2Res
-          if(scalingForL2OrL3Fit=="None")scale= 1.0;//no residual input
+          if(scalingForL2OrL3Fit=="None"||scalingForL2OrL3Fit=="DontScaleDijets")scale= 1.0;//no residual input
           else if(scalingForL2OrL3Fit=="PutBackL2Res")scale = jes / jesref;
           else if(scalingForL2OrL3Fit=="ApplyL3ResDontScaleDijets")scale = 1 / jesref;
           else assert(false);
+          cout << "scale..." << scale << endl;
 	}
 	g->SetPoint(i, pt, scale*l1*r*kfsr);
 	g2->SetPoint(i, pt, scale*l1*r*kfsr);
@@ -725,7 +730,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	  gf2->SetPoint(i, ptref, jes / r);
 	}
 	// For dijet, multiply by barrel JES
-	if (string(cs)=="dijet" && scalingForL2OrL3Fit!="ApplyL3ResDontScaleDijets") {
+	if (string(cs)=="dijet" && !(scalingForL2OrL3Fit=="ApplyL3ResDontScaleDijets"||scalingForL2OrL3Fit=="DontScaleDijets")) {
 	  double jesref = herr0->GetBinContent(herr0->FindBin(pt));
 	  g->SetPoint(i, pt, r*kfsr * jesref);
 	  g2->SetPoint(i, pt, r*kfsr * jesref);
@@ -1050,10 +1055,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   h->SetMinimum(etamin>=3 ? 0.50 : (etamin>=2.5 ? 0.70 : 0.91));
   h->SetMaximum(etamin>=3 ? 1.75 : (etamin>=2.5 ? 1.45 : 1.15));
   if (_useZoom) {
-    //h->SetMinimum(0.97); // GH
-    //h->SetMaximum(1.03); // GH
-    h->SetMinimum(0.9501); // GH
-    h->SetMaximum(1.045); // GH
+    //    h->SetMinimum(0.9501); // GH
+    //    h->SetMaximum(1.045); // GH
+    //less aggressive zoom, depending on detector region
+    h->SetMinimum(etamin>=3 ? 0.80 : (etamin>=2.5 ? 0.80 : 0.9501));
+    h->SetMaximum(etamin>=3 ? 1.3 : (etamin>=2.5 ? 1.3 : 1.045));
   }
   h->GetXaxis()->SetMoreLogLabels();
   h->GetXaxis()->SetNoExponent();
@@ -1136,15 +1142,18 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   hrun1->SetLineWidth(2);
   hrun1->SetLineColor(kCyan+3);
   hrun1->SetLineStyle(kDashed);
+  hrun1->SetFillColorAlpha(hrun1->GetFillColor(),0.8);
 
   herr->SetLineWidth(2);
   herr->SetLineColor(kCyan+3);//kGray+2);//kRed+1);
   herr->SetLineStyle(kDashed);
   herr->SetFillColor(kCyan+1);//kGray);//kRed-9);
+  herr->SetFillColorAlpha(herr->GetFillColor(),0.8);
 
   herr_ref->SetLineWidth(2);
   herr_ref->SetLineColor(kYellow+3);
   herr_ref->SetLineStyle(kDashed);
+  herr_ref->SetFillColorAlpha(herr_ref->GetFillColor(),0.8);
 
   if (!_useZoom) {
     hrun1->DrawClone("SAME E5");
@@ -1268,7 +1277,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //legm->AddEntry(herr_ref,"Run II","FL");
   //legm->AddEntry(herr_ref,"V10","FL");
   //legm->AddEntry(herr_ref,"V16M","FL");
-  legm->AddEntry(herr_ref,"V8","FL");
+  legm->AddEntry(herr_ref,"V17 (func3)","FL");
 
 
   ///////////////////////

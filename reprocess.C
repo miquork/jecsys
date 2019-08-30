@@ -58,11 +58,12 @@ bool correctUncert  =  true;
 
 bool confirmWarnings=true; //if active, deficiencies in input files are patched after confirmation via pushing "any key to continue"
 bool confirmedGamJet=false; // to avoid too many confirmations
-//string CorLevel="L1L2"; // same for gamma+jet and Z+jet on RunD
-string CorLevel="L1L2Res";
+string CorLevel="L1L2L3Res"; // same for gamma+jet and Z+jet on RunD
+//string CorLevel="L1L2L3Res"; // same for gamma+jet and Z+jet on RunD
+//string CorLevel="L1L2";
 //"L1L2": "MCTruth corrections" applied, in reality L1Data/MC,L2
 //"L1L2Res": MCTruth + L2Res applied
-//"L1L2L3Res": MCTruth + L2L3Res applied
+//"L1L2L3Res": MCTruth + L2L3Res applied; reference JES central values set to 1.0 (affects pliotting as well)
 
 bool correctGamScale = false; 
 double valueGamScale = 1.;
@@ -74,6 +75,7 @@ double valueGamScale = 1.;
 // Legacy 2016: Zee+Gam   0.991/0.018, 66.3/56, 0.8098
 // Legacy 2016: all true  0.990/0.017, 60.7/56, 0.7341
 // Legacy 2016: all+nosys 0.990/0.026, 88.9/56, 0.9648
+
 
 
 // Settings for cleaned up global fit
@@ -149,41 +151,34 @@ void reprocess(string epoch="") {
 
   map<string,const char*> fdj_files;
   //dummy files, temp
-  fdj_files["A"] = "BCDEFGH";
-  fdj_files["B"] = "BCDEFGH";
-  fdj_files["C"] = "BCDEFGH";
-  fdj_files["D"] = "BCDEFGH";
-  fdj_files["ABC"] = "BCDEFGH";
-  fdj_files["ABCD"] = "BCDEFGH";
-  // Jens Multhaup, 2016 Legacy closure test - V6 applied
-  // https://indico.cern.ch/event/715277/#8-closure-test-with-dijet-for
-  TFile *fdj = new TFile(Form("rootfiles/L2Res_07Aug2017_V6_ClosureTest_InputGlobalFit/Run%s/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
-
-
-  // ONLY NARROW BINS AVAILABLE SO FAR
-  // Jindrich Lidrych - Autumn18v4 applied - only narrow bins 2019-03-04
-  // https://indico.cern.ch/event/802822/#7-l2res-run-d-virtual
   fdj_files["A"] = "A";
   fdj_files["B"] = "B";
   fdj_files["C"] = "C";
   fdj_files["D"] = "D";
   fdj_files["ABC"] = "ABCD";
   fdj_files["ABCD"] = "ABCD";
-  TFile *fdj2 = new TFile(Form("rootfiles/L2Res-Autumn18-V4-Run%s.root",fdj_files[epoch]),"READ");
+
+
+  // -------- Forwarded Message --------
+  // Subject: 	Re: Dijet combination files for Autumn18 - JEC V16: Closure test and uncertainties
+  // Date: 	Wed, 14 Aug 2019 11:22:41 +0200
+  // From: 	Jindrich Lidrych <jindrich.lidrych@desy.de>
+  // so far: only "L1L2 available, no closure with L2Res and/or L2L3res"  
+  // https://indico.cern.ch/event/835064/contributions/3499545/attachments/1880873/3122628/Autumn18_V16_L2Res-14082019.zip --> for L1L2
+  //   https://indico.cern.ch/event/835064/contributions/3499545/attachments/1880873/3124644/ClosureTest.zip --> JERNominal for L2L3Res
+  string DijetCorLevel = (CorLevel=="L1L2Res" ? "L1L2L3Res" : CorLevel);
+  //choose Func3/Func1/"" here
+  TFile *fdj = new TFile(Form("rootfiles/Autumn18_V16_%s-14082019_Func3/Run%s/InputForFit-WideEtabinning.root",DijetCorLevel.c_str(),fdj_files[epoch]),"READ");
+
+
+  TFile *fdj2 = new TFile(Form("rootfiles/Autumn18_V16_%s-14082019_Func3/Run%s/InputForFit-standardEtabinning.root",DijetCorLevel.c_str(),fdj_files[epoch]),"READ");
   assert(fdj2 && !fdj2->IsZombie());
 
-  //  if(CorLevel!="L1L2")
-  cout << Form("Dijet files are only available for Autumn18-V4 (L1L2) and narrow bins, rest is dummy 2016 results. Please confirm by pushing any key.") << endl;
-  if(confirmWarnings)cin.ignore();
-  
+  if(CorLevel!="L1L2"&&CorLevel!="L1L2L3Res"){
+    cout << Form("Dijet files are only available for Autumn18-V16 (L1L2+L2L3Res) narrow/wide bins. L1L2L3Res used for L1L2Res as placeholder. Please confirm by pushing any key.") << endl;
+    if(confirmWarnings)cin.ignore();
+  }
 
-  // Anastasia Karavdina, 2016 Legacy re-reco (8 Dec 2017) :
-  // https://indico.cern.ch/event/682570/
-  //TFile *fdj = new TFile("rootfiles/JEC_L2_Dijet_AK4PFchs_pythia8_07122017hcalCleaning_wideEtabins.root"); // BCDEFGH only?
-  //assert(fdj && !fdj->IsZombie());
-
-  //TFile *fdj2 = new TFile("rootfiles/JEC_L2_Dijet_AK4PFchs_pythia8_07122017hcalCleaning.root"); // narrow bins to complement above wide ones
-  //assert(fdj2 && !fdj2->IsZombie());
 
   // Andrey Popov, April, 2017 (Feb03_L2ResV2)
   // https://indico.cern.ch/event/634367/
@@ -214,13 +209,10 @@ void reprocess(string epoch="") {
   //TFile *fmj =0;
 
   
-  // L3Res GammaJet 2018 with L1L2, L1L2Res, L1L2L3Res variants A/B/C/D/ABC/ABCD
+  // L3Res GammaJet 2018 with L1L2, L1L2Res, L1L2L3Res variants A/B/C/D
   //Speaker: Lucas Torterotot (Centre National de la Recherche Scientifique (FR))
-  //------ Forwarded Message --------
-  //Subject: 	Re: Photon+jet for RunD
-  //Date: 	Tue, 12 Mar 2019 14:54:29 +0100
-  //From: 	Lucas Torterotot <lucas.torterotot@cern.ch>
-  // Updated files on AFS on March 13 (previous set 2019-03-01)
+  // 25 July; ABC/ABCD missing
+  // /afs/cern.ch/work/l/ltortero/public/JEC-task/2018/combinationfiles/JEC_Autumn18_V16-JER_Autumn18_V5/2019-07-25
   map<string,const char*> fp_files;
   fp_files["A"] = "A";
   fp_files["B"] = "B";
@@ -230,23 +222,15 @@ void reprocess(string epoch="") {
   fp_files["ABCD"] = "ABCD";
   string sgcl = (CorLevel=="L1L2" ? "wo_L2Res" : CorLevel=="L1L2Res" ? "only_L2Res" : CorLevel=="L1L2L3Res" ? "L2L3Res" : "NotSupported");
   const char *cgcl = sgcl.c_str();
-  TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_2019-03-11_%s_%s_%s.root", cgcl, fp_files[epoch], cgcl),"READ");
+  TFile *fp = new TFile(Form("rootfiles/gamjet_JEC_Autumn18_V16-JER_Autumn18_V5_2019-07-25/%s/Gjet_combinationfile_%s_%s_%s.root", cgcl, cgcl, fp_files[epoch], cgcl),"READ");
   assert(fp && !fp->IsZombie());
 
 
 
   
-  // Daniel Savoiu, Z+Jet  2018 RunABC 4 March 2019
-  // https://indico.cern.ch/event/802822/
-  //map<string,const char*> fz_files;
-  //fz_files["A"] = "A_2019-03-01";
-  //fz_files["B"] = "B_2019-03-01";
-  //fz_files["C"] = "C_2019-03-01";
-  //fz_files["D"] = "D_2019-03-05";
-  //fz_files["ABC"] = "ABC_2019-03-01";
-  //fz_files["ABCD"] = "ABCD_2019-03-05";
-  // Daniel Savoiy, Z+jet 2018 RunABCD 28 March 2019 (updated files)
-  // https://indico.cern.ch/event/802822/#2-l3res-zjet-2018-runabc  
+  // Daniel Savoiu,Z-Jet L3Res for 2018 v16, 29 July 2019
+  //  https://indico.cern.ch/event/837707/contributions/3512864/attachments/1887357/3111688/zjet_combination_Autumn18_JECV16_2018-07-24.tar.gz
+  // update: https://indico.cern.ch/event/837707/contributions/3512864/attachments/1887357/3125236/zjet_combination_Autumn18_JECV16_2019-08-19.tar.gz
   map<string,const char*> fz_dirs;
   fz_dirs["A"] = "Run2018A";
   fz_dirs["B"] = "Run2018B";
@@ -265,17 +249,19 @@ void reprocess(string epoch="") {
     //cout << Form("%s is only available for A/B/C, not for D/ABCD. Please confirm by pushing any key.",CorLevel.c_str()) << endl;
     //if(confirmWarnings)cin.ignore();
   }
-  else if(CorLevel=="L1L2L3Res")
+  else if(CorLevel=="L1L2L3Res"){
     //scr = "CheckOldFiles";
     scr = "L1L2L3Res";
+ }
   else
     scr = "NotSupported";
+
+
+
     
   const char *ccr = scr.c_str();
-  //TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zmm_%s.root",fz_files[epoch]),"READ");
-  //TFile *fzee = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zee_%s.root",fz_files[epoch]),"READ");
-  TFile *fzmm = new TFile("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV8_Zmm_2019-03-28.root","READ");
-  TFile *fzee = new TFile("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV8_Zee_2019-03-28.root","READ");
+  TFile *fzmm = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zmm_2019-08-19.root","READ");
+  TFile *fzee = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zee_2019-08-19.root","READ");
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
@@ -632,17 +618,18 @@ void reprocess(string epoch="") {
 	    if (s=="gamjet") {
 	      c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f",
 		       rename[s][t], rename[s][d],
-		       100.*alpha, 10.*eta1, 10.*eta2);
-              if((eta1==2.5&&eta2 == 2.650) || (eta1 == 2.650&& eta2==2.853)){
-                c = Form("%s%s_a%1.0f_eta_unknown",
-                         rename[s][t], rename[s][d],
-                         100.*alpha);
-                cout << Form("eta bins [2.5,2.650] and [2.650,2.853] not available for gamma+jet, eta_unknown seems to be closest. Please confirm by pushing any key.") << endl;
-                if(confirmWarnings&&!confirmedGamJet){
-                  cin.ignore();
-                  confirmedGamJet=true;
-                }
-              }
+		       100.*alpha, 10.000001*eta1, 10.0000001*eta2);
+              cout << c << endl;
+              //if((eta1==2.5&&eta2 == 2.650) || (eta1 == 2.650&& eta2==2.853)){
+              //  c = Form("%s%s_a%1.0f_eta_unknown",
+              //           rename[s][t], rename[s][d],
+              //           100.*alpha);
+              //  cout << Form("eta bins [2.5,2.650] and [2.650,2.853] not available for gamma+jet, eta_unknown seems to be closest. Please confirm by pushing any key.") << endl;
+              //  if(confirmWarnings&&!confirmedGamJet){
+              //    cin.ignore();
+              //    confirmedGamJet=true;
+              //  }
+              //}
 	    } // gamjet
 	    if (s=="zmmjet" || s=="zeejet") {
 	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_%s",
@@ -758,18 +745,18 @@ void reprocess(string epoch="") {
               //else if (i>0 && i==g->GetN()-1 && fabs(g->GetY()[i]-g->GetY()[i-1])>g->GetEY()[i]*5.) g->RemovePoint(i);
 	    } // for i
 
-	    // // patch MC/data to data/MC for dijet samples
-	    // if (s=="dijet" && d=="ratio") {
-	    //   for (int i = 0; i != g->GetN(); ++i) {
-	    // 	double x = g->GetX()[i];
-	    // 	double ex = g->GetEX()[i];
-	    // 	double y = g->GetY()[i];
-	    // 	double ey = g->GetEY()[i];
-	    // 	assert(y!=0);
-	    // 	g->SetPoint(i, x, y!=0 ? 1./y : 0);
-	    // 	g->SetPointError(i, ex, y!=0 ? ey/(y*y) : 0);
-	    //   }
-	    // }
+	    // patch MC/data to data/MC for dijet samples
+	    if (s=="dijet" && d=="ratio") {
+	      for (int i = 0; i != g->GetN(); ++i) {
+	    	double x = g->GetX()[i];
+	    	double ex = g->GetEX()[i];
+	    	double y = g->GetY()[i];
+	    	double ey = g->GetEY()[i];
+	    	assert(y!=0);
+	    	g->SetPoint(i, x, y!=0 ? 1./y : 0);
+	    	g->SetPointError(i, ex, y!=0 ? ey/(y*y) : 0);
+	      }
+	    }
 
 	    // PATCH new Jan15 EGamma corrections for Legacy 2016
 	    /*
@@ -941,6 +928,7 @@ void reprocess(string epoch="") {
 				   sqrt(pow(g->GetEY()[i]*k,2) + ek*ek));
 	      }
 	    }
+
 	    // Photon scale correction (from drawGamVsZmm)
 	    // No separate unceratinty added, is already in global fit
 	    if (correctGamScale && s=="gamjet" && (d=="data" || d=="ratio")) {
@@ -1010,7 +998,7 @@ void reprocess(string epoch="") {
     double jecw1(1), jecw2(0), jecw3(0);       // for ABC
     double jecABCDw1(1), jecABCDw2(0), jecABCDw3(0), jecABCDw4(0);       // for ABCD
     {
-      s = Form("%s/Autumn18_Run%s_V8_DATA_L2L3Residual_AK4PFchs.txt",cd,ce);
+      s = Form("%s/Autumn18_Run%s_V16_DATA_L2L3Residual_AK4PFchs.txt",cd,ce);
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -1022,7 +1010,7 @@ void reprocess(string epoch="") {
 	jecw1 = 14.0/28.0;
 	jecABCDw1 = 14.0/59.9;
 
-	s=Form("%s/Autumn18_RunB_V8_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Autumn18_RunB_V16_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_b = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_b;
@@ -1031,7 +1019,7 @@ void reprocess(string epoch="") {
 	jecw2 = 7.1/28.0;
 	jecABCDw2 = 7.1/59.9;
 
-	s=Form("%s/Autumn18_RunC_V8_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Autumn18_RunC_V16_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_c = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_c;
@@ -1040,7 +1028,7 @@ void reprocess(string epoch="") {
 	jecw3 = 6.9/28.0;
 	jecABCDw3 = 6.9/59.9;
 
-      	s=Form("%s/Autumn18_RunD_V8_DATA_L2L3Residual_AK4PFchs.txt",cd);
+      	s=Form("%s/Autumn18_RunD_V16_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_d = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_d;
@@ -1066,7 +1054,7 @@ void reprocess(string epoch="") {
     // But even with this pT-dependent L2Res can cause problems
     FactorizedJetCorrector *jecold;
     {
-      s = Form("%s/Autumn18_Run%s_V8_DATA_L2Residual_AK4PFchs.txt",cd,ce);
+      s = Form("%s/Autumn18_Run%s_V16_DATA_L2Residual_AK4PFchs.txt",cd,ce);
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1077,7 +1065,7 @@ void reprocess(string epoch="") {
     // Difference between pT-dependent and flat L1
     FactorizedJetCorrector *jecl1flat;
     {
-      s = Form("%s/Autumn18_Run%s_V8_DATA_L1RC_AK4PFchs.txt",cd,ce);
+      s = Form("%s/Autumn18_Run%s_V16_DATA_L1RC_AK4PFchs.txt",cd,ce);
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1086,7 +1074,7 @@ void reprocess(string epoch="") {
     }
     FactorizedJetCorrector *jecl1pt;
     {
-      s = Form("%s/Autumn18_Run%s_V8_DATA_L1FastJet_AK4PFchs.txt",cd,ce);
+      s = Form("%s/Autumn18_Run%s_V16_DATA_L1FastJet_AK4PFchs.txt",cd,ce);
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1095,7 +1083,7 @@ void reprocess(string epoch="") {
     }
     FactorizedJetCorrector *jecl1mc;
     {
-      s = Form("%s/Autumn18_V8_MC_L1FastJet_AK4PFchs.txt",cd);
+      s = Form("%s/Autumn18_V16_MC_L1FastJet_AK4PFchs.txt",cd);
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1112,14 +1100,14 @@ void reprocess(string epoch="") {
     JetCorrectionUncertainty *unc_ref1 = new JetCorrectionUncertainty(*p_ref1);
 
     // Total uncertainty, excluding Flavor and Time
-    s = Form("%s/Autumn18_RunA_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s = Form("%s/Autumn18_V17WithClosureInputsPtDepRelativeSampleFunc3_DATA_UncertaintySources_AK4PFchs.txt",cd);
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
     JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p_unc);
 
     // Partial uncertainties
-    s = Form("%s/Autumn18_RunA_V8_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s = Form("%s/Autumn18_V17WithClosureInputsPtDepRelativeSampleFunc3_DATA_UncertaintySources_AK4PFchs.txt",cd);
     //s2 = "TotalNoFlavorNoTime";
     s2 = "SubTotalAbsolute"; // 07AugV4
     cout << s << ":" << s2 << endl << flush;
@@ -1268,7 +1256,7 @@ void reprocess(string epoch="") {
             else if (epoch=="ABCD")val = jecABCDw1*val1 + jecABCDw2*val2 + jecABCDw3*val3 + jecABCDw4*val4;
 	  }
           if(rp_debug) cout << "ABC/ABCD special treatment done" << endl;
-
+          if(CorLevel=="L1L2L3Res")val = 1.0; //to get proper bands during closure test
 	  sumval += w*val;
 	  sumw += w; // sum weights only once
 	  
@@ -1360,6 +1348,7 @@ void reprocess(string epoch="") {
 
 	// normalize by total weight for correct average
 	double val = sumval / sumw;
+        if(CorLevel=="L1L2L3Res")val = 1.0; //to get proper bands during closure test -- should already be 1.0 ... TESTING
 
 	// normalize uncertainties (quadratic instead of linear addition)
 	double err = sqrt(sumerr2 / sumw);
@@ -1390,10 +1379,12 @@ void reprocess(string epoch="") {
 	herr_pt->SetBinError(ipt, val*sqrt(err_pt*err_pt+err_pu*err_pu));
 
 	double run1 = (sumrun1 / sumw);
+        if(CorLevel=="L1L2L3Res") run1 = 1.0;  //to get proper bands during closure test
 	hrun1->SetBinContent(ipt, run1);
 	hrun1->SetBinError(ipt, run1*err_ref1);//run1*err);
 
 	double jes = (sumjes / sumw);
+        if(CorLevel=="L1L2L3Res") jes = 1.0;  //to get proper bands during closure test
 	hjes->SetBinContent(ipt, jes);
 	double l1pt = (sumvall1pt / sumw);
 	double l1mc = (sumvall1mc / sumw);
@@ -1416,42 +1407,42 @@ void reprocess(string epoch="") {
 
       herr->SetMarkerSize(0);
       herr->SetFillStyle(1001);
-      herr->SetFillColor(kYellow+1);
+      herr->SetFillColorAlpha(kYellow+1,0.5);
       herr->Write();
 
       herr_ref->SetMarkerSize(0);
       herr_ref->SetFillStyle(1001);
-      herr_ref->SetFillColor(kYellow+1);
+      herr_ref->SetFillColorAlpha(kYellow+1,0.5);
       herr_ref->Write();
 
       herr_spr->SetMarkerSize(0);
       herr_spr->SetFillStyle(1001);
-      herr_spr->SetFillColor(kYellow);
+      herr_spr->SetFillColorAlpha(kYellow,0.5);
       herr_spr->Write();
 
       herr_pu->SetMarkerSize(0);
       herr_pu->SetFillStyle(1001);
-      herr_pu->SetFillColor(kYellow+1);
+      herr_pu->SetFillColorAlpha(kYellow+1,0.5);
       herr_pu->Write();
 
       herr_noflv->SetMarkerSize(0);
       herr_noflv->SetFillStyle(1001);
-      herr_noflv->SetFillColor(kYellow+1);
+      herr_noflv->SetFillColorAlpha(kYellow+1,0.5);
       herr_noflv->Write();
 
       herr_mpf->SetMarkerSize(0);
       herr_mpf->SetFillStyle(1001);
-      herr_mpf->SetFillColor(kYellow+1);
+      herr_mpf->SetFillColorAlpha(kYellow+1,0.5);
       herr_mpf->Write();
 
       herr_pt->SetMarkerSize(0);
       herr_pt->SetFillStyle(1001);
-      herr_pt->SetFillColor(kYellow+1);
+      herr_pt->SetFillColorAlpha(kYellow+1,0.5);
       herr_pt->Write();
 
       hrun1->SetMarkerSize(0);
       hrun1->SetFillStyle(1001);
-      hrun1->SetFillColor(kCyan+1);
+      hrun1->SetFillColorAlpha(kCyan+1,0.5);
       hrun1->Write();
 
       hjes->Write();

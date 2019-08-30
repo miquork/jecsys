@@ -35,7 +35,7 @@ bool _extra = false; // single pion plots
 bool _paper = true; //  for paper
 
 // Plot uncertainty (true) or source (false)
-bool _absUncert = true;//false;
+bool _absUncert = false;//true;//false;
 // NB: All source files are currently printed together with AK4PFchs uncertainty
 bool _doTXT = true; // create uncertainty and source text files
 bool _didTXT = false;
@@ -444,20 +444,20 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 		       kYellow+3, kSolid, 1, // line
 		       kBlack, kNone, // marker
 		       kYellow, 1001, "LF")); // fill
-  syt.push_back(uncert("time_runa", "TimeRunB",
-                       jec::kTimeRunB,
+  syt.push_back(uncert("time_runa", "TimeRunA",
+                       jec::kTimeRunA,
                        "default", "default", -1, // defaults
                        kRed, kNone, 1, // line
                        kRed, kOpenCircle, // marker
                        kNone, kNone, "LP")); // fill
-  syt.push_back(uncert("flavor_runb", "TimeRunC",
-                       jec::kTimeRunC,
+  syt.push_back(uncert("flavor_runb", "TimeRunB",
+                       jec::kTimeRunB,
                        "default", "default", -1, // defaults
                        kMagenta+1, kNone, 1, // line
                        kMagenta+1, kOpenDiamond, // marker
                        kNone, kNone, "LP")); // fill
-  syt.push_back(uncert("time_runc", "TimeRunDE",
-                       jec::kTimeRunDE,
+  syt.push_back(uncert("time_runc", "TimeRunC",
+                       jec::kTimeRunC,
                        "default", "default", -1, // defaults
                        kBlue, kNone, 1, // line
                        kBlue, kFullTriangleUp, // marker
@@ -468,8 +468,8 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
 //                       kBlue+2, kNone, 1, // line
 //                       kBlue+2, kOpenTriangleUp, // marker
 //                       kNone, kNone, "LP")); // fill
-  syt.push_back(uncert("time_rund", "TimeRunF",
-                       jec::kTimeRunF,
+  syt.push_back(uncert("time_rund", "TimeRunD",
+                       jec::kTimeRunD,
                        "default", "default", -1, // defaults
                        kBlack, kNone, 1, // line
                        kBlack, kFullTriangleDown, // marker
@@ -1383,7 +1383,8 @@ void plotUncertainty(vector<uncert> const& sys,
   if (_paper) h0->GetXaxis()->SetRangeUser(10,3500);
   //lumi_13TeV = "Run2016BCDEFGH re-reco, 36.5 fb^{-1}"; // Sum16
   //lumi_13TeV = "2017BCDEF re-reco, 41.4 fb^{-1}"; // Fall17
-  lumi_13TeV = "2018ABCD, 59.9 fb^{-1}"; // Autumn18
+  //  lumi_13TeV = "2018ABCD V17Func3, 59.9 fb^{-1}"; // Autumn18
+  lumi_13TeV = "2018ABCD V16, 59.9 fb^{-1}"; // Autumn18
   TCanvas *c1 = tdrCanvas(Form("c1_%s",name.c_str()),h0,4,11,kSquare);
   if (type=="fixEta") c1->SetLogx();
   else c1->SetLogx(0);
@@ -1523,7 +1524,7 @@ void plotUncertainty(vector<uncert> const& sys,
     JECUncertainty rjets(d_algo, jec::DATA, jec::kData, d_mu);
     //ofstream fouts(Form("txt/Summer16_03Feb2017_V9_DATA_Uncertainty_%s.txt",
     //ofstream fouts(Form("txt/Fall17_07Nov2017_V31_DATA_Uncertainty_%s.txt",
-    ofstream fouts(Form("txt/Autumn18_V5_DATA_Uncertainty_%s.txt",
+    ofstream fouts(Form("txt/Autumn18_V16_DATA_Uncertainty_%s.txt",
 			(*_algnames)[d_algo]), ios::out);
     fouts << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
@@ -1549,14 +1550,14 @@ void plotUncertainty(vector<uncert> const& sys,
 
     //ofstream fout(Form("txt/Summer16_03Feb2017_V9_DATA_UncertaintySources_%s.txt",
     //ofstream fout(Form("txt/Fall17_07Nov2017_V31_DATA_UncertaintySources_%s.txt",
-    ofstream fout(Form("txt/Autumn18_V5_DATA_UncertaintySources_%s.txt",
+    ofstream fout(Form("txt/Autumn18_V16_DATA_UncertaintySources_%s.txt",
 		       (*_algnames)[d_algo]), ios::out);
     //fout << Form("#Uncertainty sources for Summer16_03Feb2017_V9_DATA_%s",
-    fout << Form("#Uncertainty sources for Autumn18_V5_DATA_%s",
+    fout << Form("#Uncertainty sources for Autumn18_V16_DATA_%s",
 		 (*_algnames)[d_algo]) << endl;
     cout << "Storing uncertainties to: "
       //<< Form("txt/Summer16_03Feb2017_V9_DATA_UncertaintySources_%s.txt",
-	 << Form("txt/Autumn18_V5_DATA_UncertaintySources_%s.txt",
+	 << Form("txt/Autumn18_V16_DATA_UncertaintySources_%s.txt",
 		 (*_algnames)[d_algo]) << endl;
 
     jec::ErrorTypes vsrc[] =
@@ -1584,7 +1585,7 @@ void plotUncertainty(vector<uncert> const& sys,
        jec::kFlavorZJet, jec::kFlavorPhotonJet,
        jec::kFlavorPureGluon, jec::kFlavorPureQuark, 
        jec::kFlavorPureCharm, jec::kFlavorPureBottom,
-       //       jec::kTimeRunB, jec::kTimeRunC, jec::kTimeRunDE,// jec::kTimeRunE, //don't write out as not updated for 2018, yet
+       jec::kTimeRunA, jec::kTimeRunB, jec::kTimeRunC, jec::kTimeRunD, 
        //       jec::kTimeRunF,
        jec::kCorrelationGroupMPFInSitu, jec::kCorrelationGroupIntercalibration, jec::kCorrelationGroupbJES,
        jec::kCorrelationGroupFlavor, jec::kCorrelationGroupUncorrelated
@@ -1640,11 +1641,12 @@ void plotUncertainty(vector<uncert> const& sys,
     srcname[jec::kFlavorPureQuark] = "FlavorPureQuark";
     srcname[jec::kFlavorPureBottom] = "FlavorPureBottom";
     srcname[jec::kFlavorPureCharm] = "FlavorPureCharm";
+    srcname[jec::kTimeRunA] =  "TimeRunA"; 
     srcname[jec::kTimeRunB] =  "TimeRunB"; 
     srcname[jec::kTimeRunC] =  "TimeRunC";
-    srcname[jec::kTimeRunDE] = "TimeRunDE";
+    srcname[jec::kTimeRunD] = "TimeRunD";
     //    srcname[jec::kTimeRunE] = "TimeRunE";
-    srcname[jec::kTimeRunF] =  "TimeRunF";
+    //    srcname[jec::kTimeRunF] =  "TimeRunF";
     srcname[jec::kCorrelationGroupMPFInSitu] = "CorrelationGroupMPFInSitu";
     srcname[jec::kCorrelationGroupFlavor] = "CorrelationGroupFlavor";
     srcname[jec::kCorrelationGroupIntercalibration] = "CorrelationGroupIntercalibration";
