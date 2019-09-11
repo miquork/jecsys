@@ -54,7 +54,8 @@
   // Perform final global fit (goes into GT) - 2018 V5M
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="B"||epoch=="ABC"||epoch=="D"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
-  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "gam_zll", "PtBalMPF");
+  //  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "gam_zll", "PtBalMPF");
+  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
 
   
 ////  
@@ -62,70 +63,73 @@
 ////  // Calculate soft radiation (ISR+FSR) corrections
 ////  // and uncertainty eigenvectors for global fit
 ////
-  Bool_t dodijetsoftrad=true;
-  softrad(0.000,0.261, dodijetsoftrad, epoch); 
-  softrad(0.261,0.522, dodijetsoftrad, epoch); 
-  softrad(0.522,0.783, dodijetsoftrad, epoch); 
-  softrad(0.783,1.044, dodijetsoftrad, epoch); 
-  softrad(1.044,1.305, dodijetsoftrad, epoch); 
-  softrad(1.305,1.479, dodijetsoftrad, epoch); 
-  softrad(1.479,1.653, dodijetsoftrad, epoch); 
-  softrad(1.653,1.930, dodijetsoftrad, epoch); 
-  softrad(1.930,2.172, dodijetsoftrad, epoch); 
-  softrad(2.172,2.322, dodijetsoftrad, epoch); 
-  softrad(2.322,2.500, dodijetsoftrad, epoch); 
-  softrad(2.500,2.650, dodijetsoftrad, epoch); 
-  softrad(2.650,2.853, dodijetsoftrad, epoch); 
-  softrad(2.853,2.964, dodijetsoftrad, epoch); 
-  softrad(2.964,3.139, dodijetsoftrad, epoch); 
-  softrad(3.139,3.489, dodijetsoftrad, epoch); 
-  softrad(3.489,3.839, dodijetsoftrad, epoch); 
-  softrad(3.839,5.191, dodijetsoftrad, epoch);
+//  Bool_t dodijetsoftrad=true;
+//  softrad(0.000,0.261, dodijetsoftrad, epoch); 
+//  softrad(0.261,0.522, dodijetsoftrad, epoch); 
+//  softrad(0.522,0.783, dodijetsoftrad, epoch); 
+//  softrad(0.783,1.044, dodijetsoftrad, epoch); 
+//  softrad(1.044,1.305, dodijetsoftrad, epoch); 
+//  softrad(1.305,1.479, dodijetsoftrad, epoch); 
+//  softrad(1.479,1.653, dodijetsoftrad, epoch); 
+//  softrad(1.653,1.930, dodijetsoftrad, epoch); 
+//  softrad(1.930,2.172, dodijetsoftrad, epoch); 
+//  softrad(2.172,2.322, dodijetsoftrad, epoch); 
+//  softrad(2.322,2.500, dodijetsoftrad, epoch); 
+//  softrad(2.500,2.650, dodijetsoftrad, epoch); 
+//  softrad(2.650,2.853, dodijetsoftrad, epoch); 
+//  softrad(2.853,2.964, dodijetsoftrad, epoch); 
+//  softrad(2.964,3.139, dodijetsoftrad, epoch); 
+//  softrad(3.139,3.489, dodijetsoftrad, epoch); 
+//  softrad(3.489,3.839, dodijetsoftrad, epoch); 
+//  softrad(3.839,5.191, dodijetsoftrad, epoch);
+//
+//
+//  //std::vector <string> sampleconfigs = {epoch=="B"||epoch=="ABC"||epoch=="ABCD" ? "zee_zmm" : "gam_zee_zmm"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
+//  //  std::vector <string> sampleconfigs = {epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll"};
+//  //  std::vector <string> sampleconfigs = {epoch=="D"||epoch=="ABCD" ? "zll" : "gam_zll"};
+//  //  std::vector <string> sampleconfigs = {"gam_zll"};
+//  //std::vector <string> sampleconfigs = {"zmm"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
+//  std::vector <string> sampleconfigs = {"gam_zll","MJDJ_gam_zll","DJ"};//,"gam","zll","gam_zll"};
+//  //std::vector <string> sampleconfigs = {"MJDJ_gam_zll"};//,"DJ"};//,"gam","zll","gam_zll"};
+//  std::vector <string> methodconfigs = {  "PtBalMPF"};//,"PtBal","MPF"};
+//
+//    for(auto s : sampleconfigs){
+//    for(auto m : methodconfigs){
+//      globalFitL3Res(0.000,0.261, epoch, s, m); //default: Standard_MJDJ_gam_zee_zmm; PtBalMPF
+//      globalFitL3Res(0.261,0.522, epoch, s, m); 
+//      globalFitL3Res(0.522,0.783, epoch, s, m); 
+//      globalFitL3Res(0.783,1.044, epoch, s, m); 
+//      globalFitL3Res(1.044,1.305, epoch, s, m); 
+//      globalFitL3Res(1.305,1.479, epoch, s, m); 
+//      globalFitL3Res(1.479,1.653, epoch, s, m); 
+//      globalFitL3Res(1.653,1.930, epoch, s, m); 
+//      globalFitL3Res(1.930,2.172, epoch, s, m); 
+//      globalFitL3Res(2.172,2.322, epoch, s, m); 
+//      globalFitL3Res(2.322,2.500, epoch, s, m); 
+//      globalFitL3Res(2.500,2.650, epoch, s, m); 
+//      globalFitL3Res(2.650,2.853, epoch, s, m); 
+//      globalFitL3Res(2.853,2.964, epoch, s, m); 
+//      globalFitL3Res(2.964,3.139, epoch, s, m); 
+//      globalFitL3Res(3.139,3.489, epoch, s, m); 
+//      globalFitL3Res(3.489,3.839, epoch, s, m); 
+//      globalFitL3Res(3.839,5.191, epoch, s, m);
+//      
+//      //produce summary pdf with all plots according to era
+//      gSystem->Exec(Form("pdflatex '\\def\\RunPeriod{pdf/%s}\\input{pdf/jecslides_FineEta_2016Legacy.tex}'", epoch.c_str()));
+//      string FolderName = Form("CollectL2Output_%s_%s",s.c_str(),m.c_str());
+//      gSystem->Exec(Form("mkdir %s",FolderName.c_str()));
+//      gSystem->Exec(Form("mv jecslides_FineEta_2016Legacy.pdf %s/jecslides_FineEta_Autumn18_V16_%s.pdf", FolderName.c_str(), epoch.c_str()));
+//      gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals.txt  %s/Summer16Legacy%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", FolderName.c_str(), epoch.c_str()));
+//      gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals_Chi2OverNDF.txt  %s/Summer16Legacy%s_VXXX_DATA_L2L3Residual_Chi2OverNDF_AK4PFchs.txt", FolderName.c_str(), epoch.c_str()));
+//      gSystem->Exec(Form("cp  %s/Summer16Legacy%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt %s_Summer16Legacy%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", FolderName.c_str(), epoch.c_str(), FolderName.c_str(), epoch.c_str()));
+//      gSystem->Exec("rm txt2/*");
+//  
+//      
+//    }
+//  }
+//
+//
 
-
-  //std::vector <string> sampleconfigs = {epoch=="B"||epoch=="ABC"||epoch=="ABCD" ? "zee_zmm" : "gam_zee_zmm"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
-  //  std::vector <string> sampleconfigs = {epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll"};
-  //  std::vector <string> sampleconfigs = {epoch=="D"||epoch=="ABCD" ? "zll" : "gam_zll"};
-  //  std::vector <string> sampleconfigs = {"gam_zll"};
-  //std::vector <string> sampleconfigs = {"zmm"};//"MJDJ_gam_zll","DJ","gam","zll","gam_zll"};
-  std::vector <string> sampleconfigs = {"gam_zll","MJDJ_gam_zll","DJ"};//,"gam","zll","gam_zll"};
-  //std::vector <string> sampleconfigs = {"MJDJ_gam_zll"};//,"DJ"};//,"gam","zll","gam_zll"};
-  std::vector <string> methodconfigs = {  "PtBalMPF"};//,"PtBal","MPF"};
-
-    for(auto s : sampleconfigs){
-    for(auto m : methodconfigs){
-      globalFitL3Res(0.000,0.261, epoch, s, m); //default: Standard_MJDJ_gam_zee_zmm; PtBalMPF
-      globalFitL3Res(0.261,0.522, epoch, s, m); 
-      globalFitL3Res(0.522,0.783, epoch, s, m); 
-      globalFitL3Res(0.783,1.044, epoch, s, m); 
-      globalFitL3Res(1.044,1.305, epoch, s, m); 
-      globalFitL3Res(1.305,1.479, epoch, s, m); 
-      globalFitL3Res(1.479,1.653, epoch, s, m); 
-      globalFitL3Res(1.653,1.930, epoch, s, m); 
-      globalFitL3Res(1.930,2.172, epoch, s, m); 
-      globalFitL3Res(2.172,2.322, epoch, s, m); 
-      globalFitL3Res(2.322,2.500, epoch, s, m); 
-      globalFitL3Res(2.500,2.650, epoch, s, m); 
-      globalFitL3Res(2.650,2.853, epoch, s, m); 
-      globalFitL3Res(2.853,2.964, epoch, s, m); 
-      globalFitL3Res(2.964,3.139, epoch, s, m); 
-      globalFitL3Res(3.139,3.489, epoch, s, m); 
-      globalFitL3Res(3.489,3.839, epoch, s, m); 
-      globalFitL3Res(3.839,5.191, epoch, s, m);
-      
-      //produce summary pdf with all plots according to era
-      gSystem->Exec(Form("pdflatex '\\def\\RunPeriod{pdf/%s}\\input{pdf/jecslides_FineEta_2016Legacy.tex}'", epoch.c_str()));
-      string FolderName = Form("CollectL2Output_%s_%s",s.c_str(),m.c_str());
-      gSystem->Exec(Form("mkdir %s",FolderName.c_str()));
-      gSystem->Exec(Form("mv jecslides_FineEta_2016Legacy.pdf %s/jecslides_FineEta_Autumn18_V16_%s.pdf", FolderName.c_str(), epoch.c_str()));
-      gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals.txt  %s/Summer16Legacy%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", FolderName.c_str(), epoch.c_str()));
-      gSystem->Exec(Form("./minitools/convertGlobalFitOutputToStandardTxt.sh txt2/GlobalFitOutput_L2L3Residuals_Chi2OverNDF.txt  %s/Summer16Legacy%s_VXXX_DATA_L2L3Residual_Chi2OverNDF_AK4PFchs.txt", FolderName.c_str(), epoch.c_str()));
-      gSystem->Exec(Form("cp  %s/Summer16Legacy%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt %s_Summer16Legacy%s_VXXX_DATA_L2L3Residual_AK4PFchs.txt", FolderName.c_str(), epoch.c_str(), FolderName.c_str(), epoch.c_str()));
-      gSystem->Exec("rm txt2/*");
-  
-      
-    }
-  }
 
   
 //  //wide eta bins

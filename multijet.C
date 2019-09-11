@@ -27,6 +27,7 @@
 using namespace std;
 
 const bool _m_dcsonly = false;
+//string CorLevel="L1L2Res"; // keep in sync with reprocess.C (!!!)
 
 // Remove empty bins
 void cleanGraph(TGraphErrors *g) {
@@ -181,14 +182,20 @@ void multijet(bool usemjb = true, string epoch="") {
   fm_files["ABC"] = "All"; // also update multijet.C
   fm_files["ABCD"] = "All"; // also update multijet.C
 
-//  fm_files["BCD"] = "BCD";
-//  fm_files["EF"] = "EFearly";
-//  fm_files["G"] = "FlateG";
-//  fm_files["H"] = "H";
-//  fm_files["GH"] = "H"; //somewhat of a hack
-//  fm_files["BCDEFGH"] = "All";
   TFile *f = new TFile(Form("rootfiles/multijet_20170428_Run2016%s.root",
-			    fm_files[epoch]),"READ");
+  			    fm_files[epoch]),"READ");
+
+  // add Minsuk's new multijet files in reprocess.C and in multijet.C
+  // they are found in rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7
+  //  
+  //Subject: 	RE: Multijet combination file format
+  //Date: 	Wed, 11 Sep 2019 15:53:41 +0200
+
+
+  
+//  cout << "Calling multijet("<<usemjb<<","<<epoch<<");"<<endl<<flush;
+//  const char *cep = epoch.c_str();
+// map<string,const char*> fm_files;
 
   //
   assert(f && !f->IsZombie());
