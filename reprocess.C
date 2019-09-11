@@ -58,7 +58,8 @@ bool correctUncert  =  true;
 
 bool confirmWarnings=true; //if active, deficiencies in input files are patched after confirmation via pushing "any key to continue"
 bool confirmedGamJet=false; // to avoid too many confirmations
-string CorLevel="L1L2L3Res"; // same for gamma+jet and Z+jet on RunD
+//need to adjust corlevel in multijet.C as well!!! Not synced automatically right now
+string CorLevel="L1L2Res"; // same for gamma+jet and Z+jet on RunD
 //string CorLevel="L1L2L3Res"; // same for gamma+jet and Z+jet on RunD
 //string CorLevel="L1L2";
 //"L1L2": "MCTruth corrections" applied, in reality L1Data/MC,L2
@@ -166,22 +167,37 @@ void reprocess(string epoch="") {
   // so far: only "L1L2 available, no closure with L2Res and/or L2L3res"  
   // https://indico.cern.ch/event/835064/contributions/3499545/attachments/1880873/3122628/Autumn18_V16_L2Res-14082019.zip --> for L1L2
   //   https://indico.cern.ch/event/835064/contributions/3499545/attachments/1880873/3124644/ClosureTest.zip --> JERNominal for L2L3Res
+
+
+
+
+  //-------- Forwarded Message --------
+  //Subject: 	Re: Update on L2Res with pt-dependent JER SF
+  //Date: 	Wed, 4 Sep 2019 08:12:07 +0200
+  //From: 	Jindrich Lidrych <jindrich.lidrych@desy.de>
+  //To: 	Henning Kirschenmann <henning.kirschenmann@cern.ch>
+  //CC: 	Mikko Antero Voutilainen <Mikko.Voutilainen@cern.ch>
+  //
+  // func 3 closure, in particular also JER-UP/Down of new pt-dependent JER SF (important for uncertainties)
+  //  https://indico.cern.ch/event/843251/contributions/3539912/attachments/1897256/3140124/4September-Output-Function3.zip
+
   string DijetCorLevel = (CorLevel=="L1L2Res" ? "L1L2L3Res" : CorLevel);
   //choose Func3/Func1/"" here
-  TFile *fdj = new TFile(Form("rootfiles/Autumn18_V16_%s-14082019_Func3/Run%s/InputForFit-WideEtabinning.root",DijetCorLevel.c_str(),fdj_files[epoch]),"READ");
+  TFile *fdj = new TFile(Form("rootfiles/Autumn18_V17_%s-04092019_Func3/Run%s/InputForFit-WideEtabinning.root",DijetCorLevel.c_str(),fdj_files[epoch]),"READ");
 
 
-  TFile *fdj2 = new TFile(Form("rootfiles/Autumn18_V16_%s-14082019_Func3/Run%s/InputForFit-standardEtabinning.root",DijetCorLevel.c_str(),fdj_files[epoch]),"READ");
+  TFile *fdj2 = new TFile(Form("rootfiles/Autumn18_V17_%s-04092019_Func3/Run%s/InputForFit-standardEtabinning.root",DijetCorLevel.c_str(),fdj_files[epoch]),"READ");
   assert(fdj2 && !fdj2->IsZombie());
 
   if(CorLevel!="L1L2"&&CorLevel!="L1L2L3Res"){
-    cout << Form("Dijet files are only available for Autumn18-V16 (L1L2+L2L3Res) narrow/wide bins. L1L2L3Res used for L1L2Res as placeholder. Please confirm by pushing any key.") << endl;
+    cout << Form("Dijet files are only available for Autumn18-V17 (L1L2+L2L3Res) narrow/wide bins. L1L2L3Res used for L1L2Res as placeholder. Please confirm by pushing any key.") << endl;
     if(confirmWarnings)cin.ignore();
   }
 
 
   // Andrey Popov, April, 2017 (Feb03_L2ResV2)
   // https://indico.cern.ch/event/634367/
+  // last traditional style input
   map<string,const char*> fm_files;
   //dummy files, temp
   fm_files["A"] = "0428_Run2016All"; // also update multijet.C
@@ -193,18 +209,26 @@ void reprocess(string epoch="") {
   TFile *fmj = new TFile(Form("rootfiles/multijet_2017%s.root",
   		      fm_files[epoch]),"READ");
 
-//  // Andrey Popov, March 19, 2018
-//  // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
-//  //fm_files["BCD"] = "BCD";
-//  //fm_files["EF"] = "EFearly";
-//  //fm_files["G"] = "FlateGH"; //X
-//  //fm_files["H"] = "FlateGH"; //X
-//  //fm_files["GH"] = "FlateGH";
-//  //fm_files["BCDEFGH"] = "All";
-//  //TFile *fmj = new TFile(Form("rootfiles/multijet_180319_2016%s.root",
-//  //		      fm_files[epoch]),"READ");
-//
-//
+  // Andrey Popov, March 19, 2018
+  // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
+  // `NEW MULTIJET INPUT`
+  //fm_files["BCD"] = "BCD";
+  //fm_files["EF"] = "EFearly";
+  //fm_files["G"] = "FlateGH"; //X
+  //fm_files["H"] = "FlateGH"; //X
+  //fm_files["GH"] = "FlateGH";
+  //fm_files["BCDEFGH"] = "All";
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_180319_2016%s.root",
+  //		      fm_files[epoch]),"READ");
+
+
+  
+  // add Minsuk's new multijet files in reprocess.C and in multijet.C
+  // they are found in rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7
+  //  
+  //Subject: 	RE: Multijet combination file format
+  //Date: 	Wed, 11 Sep 2019 15:53:41 +0200
+  
   assert(fmj && !fmj->IsZombie());
   //TFile *fmj =0;
 
@@ -213,6 +237,11 @@ void reprocess(string epoch="") {
   //Speaker: Lucas Torterotot (Centre National de la Recherche Scientifique (FR))
   // 25 July; ABC/ABCD missing
   // /afs/cern.ch/work/l/ltortero/public/JEC-task/2018/combinationfiles/JEC_Autumn18_V16-JER_Autumn18_V5/2019-07-25
+
+
+  // 4 September by mail: update with V17
+  // /afs/cern.ch/work/l/ltortero/public/JEC-task/2018/combinationfiles/JEC_Autumn18_V17-JER_Autumn18_V7/2019-09-03/
+
   map<string,const char*> fp_files;
   fp_files["A"] = "A";
   fp_files["B"] = "B";
@@ -222,7 +251,7 @@ void reprocess(string epoch="") {
   fp_files["ABCD"] = "ABCD";
   string sgcl = (CorLevel=="L1L2" ? "wo_L2Res" : CorLevel=="L1L2Res" ? "only_L2Res" : CorLevel=="L1L2L3Res" ? "L2L3Res" : "NotSupported");
   const char *cgcl = sgcl.c_str();
-  TFile *fp = new TFile(Form("rootfiles/gamjet_JEC_Autumn18_V16-JER_Autumn18_V5_2019-07-25/%s/Gjet_combinationfile_%s_%s_%s.root", cgcl, cgcl, fp_files[epoch], cgcl),"READ");
+  TFile *fp = new TFile(Form("rootfiles/gamjet_JEC_Autumn18_V17-JER_Autumn18_V7_2019-09-03/%s/Gjet_combinationfile_%s_%s_%s.root", cgcl, cgcl, fp_files[epoch], cgcl),"READ");
   assert(fp && !fp->IsZombie());
 
 
@@ -231,6 +260,19 @@ void reprocess(string epoch="") {
   // Daniel Savoiu,Z-Jet L3Res for 2018 v16, 29 July 2019
   //  https://indico.cern.ch/event/837707/contributions/3512864/attachments/1887357/3111688/zjet_combination_Autumn18_JECV16_2018-07-24.tar.gz
   // update: https://indico.cern.ch/event/837707/contributions/3512864/attachments/1887357/3125236/zjet_combination_Autumn18_JECV16_2019-08-19.tar.gz
+
+
+  // Update 11 Sptember 2019
+  //  
+  //-------- Forwarded Message --------
+  //Subject: 	AW: WG: [ekp-excalibur] Fwd: Re: 0Update on L2Res with pt-dependent JER SF
+  //Date: 	Wed, 11 Sep 2019 09:19:02 +0000
+  //From: 	Feßenbecker, Tabea <tabea.fessenbecker@student.kit.edu>
+  //To: 	Henning Kirschenmann <henning.kirschenmann@cern.ch>
+  //CC: 	Savoiu, Daniel (ETP) <daniel.savoiu@kit.edu>, Berger, Thomas (ETP) <thomas.berger@kit.edu>
+  //
+  //  http://ekpwww.etp.kit.edu/~tfesenbecker/Combinations2018v17/
+  //  visual inspection: http://ekpwww.etp.kit.edu/~tfesenbecker/plotslideshow/view_images.html
   map<string,const char*> fz_dirs;
   fz_dirs["A"] = "Run2018A";
   fz_dirs["B"] = "Run2018B";
@@ -260,8 +302,10 @@ void reprocess(string epoch="") {
 
     
   const char *ccr = scr.c_str();
-  TFile *fzmm = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zmm_2019-08-19.root","READ");
-  TFile *fzee = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zee_2019-08-19.root","READ");
+  //  TFile *fzmm = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zmm_2019-08-19.root","READ");
+  //  TFile *fzee = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zee_2019-08-19.root","READ");
+  TFile *fzmm = new TFile("rootfiles/FullCombination_Zmm_17Sep2018_Autumn18_JECv17.root","READ");
+  TFile *fzee = new TFile("rootfiles/FullCombination_Zee_17Sep2018_Autumn18_JECv17.root","READ");
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
