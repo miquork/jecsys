@@ -97,9 +97,12 @@ double fpbalptmax(700.);  // photon+jet pTbal
 double fzeeptmax(700.); // Zee+jet
 double fzmmptmax(700); // Zmm+jet 
 // Additional cuts to Z+jet MPF / balance methods
-double fzmpfptmax(500.); // Z+jet MPF
-double fzbalptmax(300.); // Z+jet pTbal
+double fzmpfptmax(1000.);//500.); // Z+jet MPF
+double fzbalptmax(700.);//300.); // Z+jet pTbal
 
+// multijet minimum and maximum pT
+double fmultijetptmin(200.);
+double fmultijetptmax(3000.);
 
 //for fine etabins deactivate ptbal
 double fdijetmpfptmin(30);
@@ -200,14 +203,14 @@ void reprocess(string epoch="") {
   // last traditional style input
   map<string,const char*> fm_files;
   //dummy files, temp
-  fm_files["A"] = "0428_Run2016All"; // also update multijet.C
-  fm_files["B"] = "0428_Run2016All"; // also update multijet.C
-  fm_files["C"] = "0428_Run2016All"; // also update multijet.C
-  fm_files["D"] = "0428_Run2016All"; // also update multijet.C
-  fm_files["ABC"] = "0428_Run2016All"; // also update multijet.C
-  fm_files["ABCD"] = "0428_Run2016All"; // also update multijet.C
-  TFile *fmj = new TFile(Form("rootfiles/multijet_2017%s.root",
-  		      fm_files[epoch]),"READ");
+//   fm_files["A"] = "0428_Run2016All"; // also update multijet.C
+//   fm_files["B"] = "0428_Run2016All"; // also update multijet.C
+//   fm_files["C"] = "0428_Run2016All"; // also update multijet.C
+//   fm_files["D"] = "0428_Run2016All"; // also update multijet.C
+//   fm_files["ABC"] = "0428_Run2016All"; // also update multijet.C
+//   fm_files["ABCD"] = "0428_Run2016All"; // also update multijet.C
+//   TFile *fmj = new TFile(Form("rootfiles/multijet_2017%s.root",
+//   		      fm_files[epoch]),"READ");
 
   // Andrey Popov, March 19, 2018
   // https://indico.cern.ch/event/713034/#4-residuals-with-multijet-2016
@@ -228,6 +231,13 @@ void reprocess(string epoch="") {
   //  
   //Subject: 	RE: Multijet combination file format
   //Date: 	Wed, 11 Sep 2019 15:53:41 +0200
+  fm_files["A"] = "A"; // also update multijet.C
+  fm_files["B"] = "B"; // also update multijet.C
+  fm_files["C"] = "C"; // also update multijet.C
+  fm_files["D"] = "D"; // also update multijet.C
+  fm_files["ABC"] = "ABC"; // also update multijet.C
+  fm_files["ABCD"] = "ABC"; // also update multijet.C
+  TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_P8CP5_jecV17_jerV7.root",fm_files[epoch]),"READ");
   
   assert(fmj && !fmj->IsZombie());
   //TFile *fmj =0;
@@ -418,13 +428,31 @@ void reprocess(string epoch="") {
   rename["dijet"]["mpfchs1"] = "mpfchs";
   rename["dijet"]["ptchs"] = "ptchs";
 
-  rename["multijet"]["ratio"] = "Data";//"Ratio"; => PATCH
+  // Andrey and Run I
+//   rename["multijet"]["ratio"] = "Data";//"Ratio"; => PATCH
+//   rename["multijet"]["data"] = "Data";
+//   rename["multijet"]["mc"] = "MC";
+//   rename["multijet"]["crecoil"] = "CRecoil";
+//   rename["multijet"]["mpfchs"] = "MPF";
+//   rename["multijet"]["mpfchs1"] = "MPF";
+//   rename["multijet"]["ptchs"] = "MJB";
+
+// Minsuk in Run II
+  rename["multijet"]["ratio"] = "Data";// => PATCH
   rename["multijet"]["data"] = "Data";
   rename["multijet"]["mc"] = "MC";
-  rename["multijet"]["crecoil"] = "CRecoil";
-  rename["multijet"]["mpfchs"] = "MPF";
-  rename["multijet"]["mpfchs1"] = "MPF";
-  rename["multijet"]["ptchs"] = "MJB";
+  rename["multijet"]["ratiocrecoil"] = "CRecoil";
+  rename["multijet"]["ratiompfchs1"] = "MPF_recoil_L1L2Res"; // => PATCH
+  rename["multijet"]["ratioptchs"] = "MJB_recoil_L1L2Res"; // => PATCH
+  //rename["multijet"]["ratioptchs"] = "MPF_recoil_L1L2Res"; // => !!PATCH!!
+  rename["multijet"]["datacrecoil"] = "CRecoil";
+  rename["multijet"]["datampfchs1"] = "MPF_recoil_L1L2Res"; // also *_leading_*
+  rename["multijet"]["dataptchs"] = "MJB_recoil_L1L2Res"; // also *_leading_*
+  //rename["multijet"]["dataptchs"] = "MPF_recoil_L1L2Res"; // !!PATCH!!
+  rename["multijet"]["mccrecoil"] = "CRecoil";
+  rename["multijet"]["mcmpfchs1"] = "MPF_recoil"; // also *_leading
+  rename["multijet"]["mcptchs"] = "MJB_recoil"; // also *_leading
+  //rename["multijet"]["mcptchs"] = "MPF_recoil"; // !!PATCH!!
 
   rename["gamjet"]["ratio"] = "";
   rename["gamjet"]["data"] = "_DATA"; 
@@ -645,8 +673,10 @@ void reprocess(string epoch="") {
 				     fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1) ||
 				    (epoch=="L4" &&
 				     fabs(eta1-0)<0.1 && fabs(eta2-2.4)<0.1))
-				  || fabs(alpha-0.10)<0.01))
-	      continue; // only barrel for multijet balance, pT=15,20,30
+				  || fabs(alpha-0.10)<0.01 
+				  || fabs(alpha-0.15)<0.01
+				  || fabs(alpha-0.20)<0.01))
+	      continue; // only barrel for multijet balance, pT=(15),(20),30
 	    if (s=="gamjet"  && fabs(eta1-3.2)<0.1) { eta1=3.0; eta2=3.2; }
 
 	    // Reconstruct naming scheme used in each of the files
@@ -657,7 +687,8 @@ void reprocess(string epoch="") {
                        dd, 10.001*eta1, 10.001*eta2, rename[s][t], ss, 100.*alpha); 
 	    } // dijet
 	    if (s=="multijet") {
-	      c = Form("%s/Pt%1.0f/%s", rename[s][d], 100.*alpha, rename[s][t]);
+	      //c = Form("%s/Pt%1.0f/%s", rename[s][d], 100.*alpha, rename[s][t]);
+	      c = Form("%s/Pt%1.0f/%s", rename[s][d], 100.*alpha, rename[s][(d+t)]);
 	    } // multijet
 	    if (s=="gamjet") {
 	      c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f",
@@ -752,6 +783,9 @@ void reprocess(string epoch="") {
 		g->RemovePoint(i);
 	      else if (s=="dijet" && t=="ptchs" &&
 		       (g->GetX()[i]<fdijetbalptmin || g->GetX()[i]>fdijetptmax))
+		g->RemovePoint(i);
+	      else if (s=="multijet" &&
+		       (g->GetX()[i]<fmultijetptmin || g->GetX()[i]>fmultijetptmax))
 		g->RemovePoint(i);
 	      else if (s=="zeejet" && 
 		       (g->GetX()[i]<fzeeptmin || g->GetX()[i]>fzeeptmax))
@@ -904,7 +938,8 @@ void reprocess(string epoch="") {
 					+ pow(yd-ym,2)) : 0);
 		}
 		else { // mpfchs1, ptchs
-		  g->SetPoint(i, 0.5*(xd+xm), ym ? yd / ym : 0.);
+		  //g->SetPoint(i, 0.5*(xd+xm), ym ? yd / ym : 0.);
+		  g->SetPoint(i, 0.5*(xd+xm), ym ? 0.975 * yd / ym : 0.); // !!PATCH!!
 		  g->SetPointError(i, 0.5*fabs(xd-xm),
 				   yd!=0 && ym!=0 ?
 				   yd / ym * sqrt(pow(eyd/yd,2) + pow(eym/ym,2))

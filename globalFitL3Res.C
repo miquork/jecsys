@@ -48,7 +48,8 @@ double ptreco_gjet = 15.; // min jet pT when evaluating alphamax for gamma+jet
 double ptreco_zjet = 5.; // same for Z+jet
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
 bool _paper = false;//true;
-bool _useZoom = true;//false; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
+bool _useZoom = false;//true;//false; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
+bool plotMultijetDown = false; // plot gray downward points for multijets
 double _cleanUncert = 0.05; // for eta>2
 //double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
@@ -622,7 +623,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     // Fractions for MPF (pT>10 GeV)
     //s = "ptf10_multijet_a30";
     //s = "crecoil_multijet_a10"; // 80XV1rereco
-    s = "crecoil_multijet_a15"; // 80XV1rereco+Sum16
+    //s = "crecoil_multijet_a15"; // 80XV1rereco+Sum16
+    s = "crecoil_multijet_a30"; // 2018_jecV17_jerV7
     g = (TGraphErrors*)d->Get(s.c_str());
     if (!g) cout << "Graph "<<s<<" not found!" << endl << flush;
     assert(g);
@@ -1194,7 +1196,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       if (gf2) {
 	gf2->SetMarkerColor(kGray+2);
 	gf2->SetLineColor(kGray+2);
-	gf2->DrawClone("SAMEPz");
+	if (plotMultijetDown) gf2->DrawClone("SAMEPz");
       }
     }
     
@@ -1717,7 +1719,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       if (gf2) {
 	gf2->SetMarkerColor(kGray+2);
 	gf2->SetLineColor(kGray+2);
-	gf2->DrawClone("SAMEPz");
+	if (plotMultijetDown) gf2->DrawClone("SAMEPz");
       }
     }
     
