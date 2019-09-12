@@ -238,7 +238,8 @@ void reprocess(string epoch="") {
   fm_files["ABC"] = "ABC"; // also update multijet.C
   fm_files["ABCD"] = "ABC"; // also update multijet.C
   //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_P8CP5_jecV17_jerV7.root",fm_files[epoch]),"READ"); // LO Pythia8 off by 2.5% on multijet scale
-  TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_MGP8CP5_jecV17_jerV4.root",fm_files[epoch]),"READ"); // MadGraph much better match to data than LO P8 (just not JER V4)
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_MGP8CP5_jecV17_jerV4.root",fm_files[epoch]),"READ"); // MadGraph much better match to data than LO P8 (just not JER V4)
+  TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190912_Run2018%s_MC_jecV17_jerV7.root",fm_files[epoch]),"READ"); // All MC in one file (JERV4+ABC only for MG)
   
   assert(fmj && !fmj->IsZombie());
   //TFile *fmj =0;
@@ -450,9 +451,9 @@ void reprocess(string epoch="") {
   rename["multijet"]["datampfchs1"] = "MPF_recoil_L1L2Res"; // also *_leading_*
   rename["multijet"]["dataptchs"] = "MJB_recoil_L1L2Res"; // also *_leading_*
   //rename["multijet"]["dataptchs"] = "MPF_recoil_L1L2Res"; // !!PATCH!!
-  rename["multijet"]["mccrecoil"] = "CRecoil";
-  rename["multijet"]["mcmpfchs1"] = "MPF_recoil"; // also *_leading
-  rename["multijet"]["mcptchs"] = "MJB_recoil"; // also *_leading
+  rename["multijet"]["mccrecoil"] = "CRecoil_P8";
+  rename["multijet"]["mcmpfchs1"] = "MPF_recoil_MG"; // also *_leading
+  rename["multijet"]["mcptchs"] = "MJB_recoil_MG"; // also *_leading
   //rename["multijet"]["mcptchs"] = "MPF_recoil"; // !!PATCH!!
 
   rename["gamjet"]["ratio"] = "";
