@@ -98,10 +98,10 @@ double fzeeptmax(700.); // Zee+jet
 double fzmmptmax(700); // Zmm+jet 
 // Additional cuts to Z+jet MPF / balance methods
 double fzmpfptmax(1000.);//500.); // Z+jet MPF
-double fzbalptmax(700.);//300.); // Z+jet pTbal
+double fzbalptmax(500);//700.);//300.); // Z+jet pTbal
 
 // multijet minimum and maximum pT
-double fmultijetptmin(200.);
+double fmultijetptmin(400);//300);//200.);
 double fmultijetptmax(3000.);
 
 //for fine etabins deactivate ptbal
@@ -237,7 +237,8 @@ void reprocess(string epoch="") {
   fm_files["D"] = "D"; // also update multijet.C
   fm_files["ABC"] = "ABC"; // also update multijet.C
   fm_files["ABCD"] = "ABC"; // also update multijet.C
-  TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_P8CP5_jecV17_jerV7.root",fm_files[epoch]),"READ");
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_P8CP5_jecV17_jerV7.root",fm_files[epoch]),"READ"); // LO Pythia8 off by 2.5% on multijet scale
+  TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_MGP8CP5_jecV17_jerV4.root",fm_files[epoch]),"READ"); // MadGraph much better match to data than LO P8 (just not JER V4)
   
   assert(fmj && !fmj->IsZombie());
   //TFile *fmj =0;
@@ -938,8 +939,9 @@ void reprocess(string epoch="") {
 					+ pow(yd-ym,2)) : 0);
 		}
 		else { // mpfchs1, ptchs
-		  //g->SetPoint(i, 0.5*(xd+xm), ym ? yd / ym : 0.);
-		  g->SetPoint(i, 0.5*(xd+xm), ym ? 0.975 * yd / ym : 0.); // !!PATCH!!
+		  g->SetPoint(i, 0.5*(xd+xm), ym ? yd / ym : 0.);
+		  //g->SetPoint(i, 0.5*(xd+xm), ym ? 0.975 * yd / ym : 0.); // !!PATCH!!
+		  //g->SetPoint(i, 0.5*(xd+xm), yd ? ym / yd : 0.); // !!PATCH!! => did't work as well, although post-fit better
 		  g->SetPointError(i, 0.5*fabs(xd-xm),
 				   yd!=0 && ym!=0 ?
 				   yd / ym * sqrt(pow(eyd/yd,2) + pow(eym/ym,2))
