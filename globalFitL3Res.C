@@ -50,7 +50,8 @@ bool _paper = true;
 double _cleanUncert = 0.05; // for eta>2
 //double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
-string scalingForL2OrL3Fit = "ApplyL3ResDontScaleDijets"; //"None" - for inpunt combination files without any residual applied
+string scalingForL2OrL3Fit = "ApplyL3ResDontScaleDijets";// to recreate corrections from DP2018_028 change to "None" here (and only run globalFitL3Res.C in zll_gam mode [globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch,"gam_zll","PtBalMPF");]);
+//"None" - for inpunt combination files without any residual applied
 //"PutBackL2Res" - put L2res back in for gamma/Z+jet for vs eta studies
 //"ApplyL3ResDontScaleDijets" - apply barrel JES (use case: check closure when only L2Res is applied to the inputs and L3Res didn't change)
 //N.B.: Barrel JES from input text file is always applied to dijet results
