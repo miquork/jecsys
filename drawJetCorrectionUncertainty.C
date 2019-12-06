@@ -35,7 +35,7 @@ bool _extra = false; // single pion plots
 bool _paper = true; //  for paper
 
 // Plot uncertainty (true) or source (false)
-bool _absUncert = false;//true;//false;
+bool _absUncert = false;//true;//true;//false;
 // NB: All source files are currently printed together with AK4PFchs uncertainty
 bool _doTXT = true; // create uncertainty and source text files
 bool _didTXT = false;
@@ -1106,7 +1106,7 @@ void drawJetCorrectionUncertainty(string algo = "AK4PFchs",
   string sst = Form("%s_Time_%s",cu,names[jetAlg]);
   const char *st = sst.c_str();
 
-  double ymaxt = 3.2;//6;//3.2;
+  double ymaxt = 6;//3.2;
 
   // Drop TimeEta for |eta|=0 plot
   //vector<uncert> syt0(syt.begin()+1,syt.end());
@@ -1384,7 +1384,7 @@ void plotUncertainty(vector<uncert> const& sys,
   //lumi_13TeV = "Run2016BCDEFGH re-reco, 36.5 fb^{-1}"; // Sum16
   //lumi_13TeV = "2017BCDEF re-reco, 41.4 fb^{-1}"; // Fall17
   //  lumi_13TeV = "2018ABCD V17Func3, 59.9 fb^{-1}"; // Autumn18
-  lumi_13TeV = "2018ABCD V16, 59.9 fb^{-1}"; // Autumn18
+  lumi_13TeV = "2018ABCD V18, 59.9 fb^{-1}"; // Autumn18
   TCanvas *c1 = tdrCanvas(Form("c1_%s",name.c_str()),h0,4,11,kSquare);
   if (type=="fixEta") c1->SetLogx();
   else c1->SetLogx(0);
@@ -1524,7 +1524,7 @@ void plotUncertainty(vector<uncert> const& sys,
     JECUncertainty rjets(d_algo, jec::DATA, jec::kData, d_mu);
     //ofstream fouts(Form("txt/Summer16_03Feb2017_V9_DATA_Uncertainty_%s.txt",
     //ofstream fouts(Form("txt/Fall17_07Nov2017_V31_DATA_Uncertainty_%s.txt",
-    ofstream fouts(Form("txt/Autumn18_V16_DATA_Uncertainty_%s.txt",
+    ofstream fouts(Form("txt/Autumn18_V18_DATA_Uncertainty_%s.txt",
 			(*_algnames)[d_algo]), ios::out);
     fouts << "{1 JetEta 1 JetPt \"\" Correction Uncertainty}" << endl;
 
@@ -1550,14 +1550,14 @@ void plotUncertainty(vector<uncert> const& sys,
 
     //ofstream fout(Form("txt/Summer16_03Feb2017_V9_DATA_UncertaintySources_%s.txt",
     //ofstream fout(Form("txt/Fall17_07Nov2017_V31_DATA_UncertaintySources_%s.txt",
-    ofstream fout(Form("txt/Autumn18_V16_DATA_UncertaintySources_%s.txt",
+    ofstream fout(Form("txt/Autumn18_V18_DATA_UncertaintySources_%s.txt",
 		       (*_algnames)[d_algo]), ios::out);
     //fout << Form("#Uncertainty sources for Summer16_03Feb2017_V9_DATA_%s",
-    fout << Form("#Uncertainty sources for Autumn18_V16_DATA_%s",
+    fout << Form("#Uncertainty sources for Autumn18_V18_DATA_%s",
 		 (*_algnames)[d_algo]) << endl;
     cout << "Storing uncertainties to: "
       //<< Form("txt/Summer16_03Feb2017_V9_DATA_UncertaintySources_%s.txt",
-	 << Form("txt/Autumn18_V16_DATA_UncertaintySources_%s.txt",
+	 << Form("txt/Autumn18_V18_DATA_UncertaintySources_%s.txt",
 		 (*_algnames)[d_algo]) << endl;
 
     jec::ErrorTypes vsrc[] =
