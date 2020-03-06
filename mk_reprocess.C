@@ -43,6 +43,12 @@
 //  // Perform final global fit (goes into GT)
 //  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch); // L3Res
 
+  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
+  //multijet(false,epoch);
+  //multijet(true,epoch);
+  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "gam_zll", "PtBalMPF");
+
+/*
   //now do narrow bins for L2Res
   // Calculate soft radiation (ISR+FSR) corrections
   // and uncertainty eigenvectors for global fit
@@ -109,7 +115,7 @@
       
     }
   }
-  
+*/  
 
   /*
   //wide eta bins

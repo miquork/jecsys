@@ -35,7 +35,7 @@ using namespace std;
 // rho used to calculate l1bias
 const double gRho = 15.36; // 2017-06-02 for 2016 data
 const bool _dcsonly = false;
-bool doFall17Closure = true;//false;//true;
+bool doFall17Closure = false;//true;
 
 // Appy mass corrections to Z+jet
 bool useFixedFit = true; // with minitools/drawZmass.C
@@ -99,7 +99,8 @@ void reprocess(string epoch="") {
   fdj_files["E"] = "E";
   fdj_files["F"] = "F";
   fdj_files["BCDEF"] = "BCDEF";
-  TFile *fdj = new TFile(Form("rootfiles/L2Res_Fall17_17Nov_V5V6/Run%s/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
+  //TFile *fdj = new TFile(Form("rootfiles/L2Res_Fall17_17Nov_V5V6/Run%s/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
+   TFile *fdj = new TFile(Form("rootfiles/L2Res_Fall17_17Nov_V27_Closure_JERNominal_derivedWithDiJetTrigger_withoutL1SeedCleaning/Run%s/JEC_L2_Dijet_AK4PFchs_pythia8_eta_0_13.root",fdj_files[epoch]),"READ"); //RunBCDEF is with SingleJettriggers...L2ResCorrection_RunBCDEFcombined_SiTrg_JERSF2016_withAndWithoutL1BXclean_V27_closure_globalFitInput
 
   // Anastasia Karavdina, 2016 Legacy re-reco (8 Dec 2017) :
   // https://indico.cern.ch/event/682570/
@@ -395,6 +396,7 @@ void reprocess(string epoch="") {
   // reference region |eta|<1.3
   if (epoch!="L4") etas.push_back(make_pair<double,double>(0,1.305));
   if (epoch=="L4") etas.push_back(make_pair<double,double>(0,2.4));
+  /*
   // Narrow eta bins for L2Res
   etas.push_back(make_pair<double,double>(0.000,0.261)); 
   etas.push_back(make_pair<double,double>(0.261,0.522)); 
@@ -420,7 +422,7 @@ void reprocess(string epoch="") {
   etas.push_back(make_pair<double,double>(2.5,2.964));
   etas.push_back(make_pair<double,double>(2.964,3.2));
   etas.push_back(make_pair<double,double>(3.2,5.191));
-
+  */
 
 
   vector<double> alphas;
@@ -919,11 +921,16 @@ void reprocess(string epoch="") {
     
     // New JEC for plotting on the back
     FactorizedJetCorrector *jec;
+    /*
     FactorizedJetCorrector *jecc(0), *jecd(0), *jece(0), *jecf(0); // for BCDEF
     double jecwb(1), jecwc(0), jecwd(0), jecwe(0), jecwf(0);       // for BCDEF
+    */
+    FactorizedJetCorrector *jecc(0), *jecde(0), *jecf(0); // for BCDEF
+    double jecwb(1), jecwc(0), jecwde(0), jecwf(0);       // for BCDEF
     {
-      s = Form("%s/Fall17_17Nov2017%s_V28_DATA_L2L3Residual_AK4PFchs.txt",cd,
-	       epoch=="BCDEF" ? "B" : epoch.c_str());
+      s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L2L3Residual_AK4PFchs.txt",cd,
+	       epoch=="BCDEF" ? "B" : 
+	       (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str());
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -936,7 +943,7 @@ void reprocess(string epoch="") {
 	double lumtot = 4.8+9.6+4.2+9.3+13.4; // 41.3/fb
 	jecwb = 4.8/lumtot;
 
-	s=Form("%s/Fall17_17Nov2017C_V28_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Fall17_17Nov2017C_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_c = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_c;
@@ -944,7 +951,8 @@ void reprocess(string epoch="") {
 	jecc = new FactorizedJetCorrector(vpar_c);
 	jecwc = 9.6/lumtot;
 
-	s=Form("%s/Fall17_17Nov2017D_V28_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	/*
+	s=Form("%s/Fall17_17Nov2017D_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_d = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_d;
@@ -952,15 +960,25 @@ void reprocess(string epoch="") {
 	jecd = new FactorizedJetCorrector(vpar_d);
 	jecwd = 4.2/lumtot;
 
-	s=Form("%s/Fall17_17Nov2017E_V28_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Fall17_17Nov2017E_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_e = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_e;
 	vpar_e.push_back(*par_e);
 	jece = new FactorizedJetCorrector(vpar_e);
 	jecwe = 9.3/lumtot;
+	*/
 
-	s=Form("%s/Fall17_17Nov2017F_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Fall17_17Nov2017DE_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	cout << s << endl;
+	JetCorrectorParameters *par_de = new JetCorrectorParameters(s);
+	vector<JetCorrectorParameters> vpar_de;
+	vpar_de.push_back(*par_de);
+	jecde = new FactorizedJetCorrector(vpar_de);
+	jecwde = (4.2+9.3)/lumtot;
+
+	//s=Form("%s/Fall17_17Nov2017F_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s=Form("%s/Fall17_17Nov2017F_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
 	JetCorrectorParameters *par_f = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_f;
@@ -986,8 +1004,9 @@ void reprocess(string epoch="") {
     // But even with this pT-dependent L2Res can cause problems
     FactorizedJetCorrector *jecold;
     {
-      s = Form("%s/Fall17_17Nov2017%s_V28_DATA_L2L3Residual_AK4PFchs.txt",cd,
-	       epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
+      s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L2L3Residual_AK4PFchs.txt",cd,
+	       epoch=="BCDEF"||epoch=="L4" ? "B" :
+	       (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -998,7 +1017,7 @@ void reprocess(string epoch="") {
     // Difference between pT-dependent and flat L1
     FactorizedJetCorrector *jecl1flat;
     {
-      s = Form("%s/Fall17_17Nov2017%s_V28_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
+      s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1007,7 +1026,7 @@ void reprocess(string epoch="") {
     }
     FactorizedJetCorrector *jecl1pt;
     {
-      s = Form("%s/Fall17_17Nov2017%s_V28_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : epoch.c_str()); // Fall17
+      s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1024,14 +1043,14 @@ void reprocess(string epoch="") {
     JetCorrectionUncertainty *unc_ref1 = new JetCorrectionUncertainty(*p_ref1);
 
     // Total uncertainty, excluding Flavor and Time
-    s =Form("%s/Fall17_17Nov2017B_V28_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s =Form("%s/Fall17_17Nov2017B_V32_DATA_UncertaintySources_AK4PFchs.txt",cd);
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
     JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p_unc);
 
     // Partial uncertainties
-    s =Form("%s/Fall17_17Nov2017B_V28_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    s =Form("%s/Fall17_17Nov2017B_V32_DATA_UncertaintySources_AK4PFchs.txt",cd);
     //s2 = "TotalNoFlavorNoTime";
     s2 = "SubTotalAbsolute";
     cout << s << ":" << s2 << endl << flush;
@@ -1150,8 +1169,12 @@ void reprocess(string epoch="") {
 	  double val = (epoch=="L4" ? 1 : 1./jec->getCorrection());
 
 	  if (epoch=="BCDEF") {
+	    /*
 	    assert(jecc); assert(jecd); assert(jece); assert(jecf);
 	    assert(fabs(jecwb+jecwc+jecwd+jecwe+jecwf-1)<1e-4);
+	    */
+	    assert(jecc); assert(jecde); assert(jecf);
+	    assert(fabs(jecwb+jecwc+jecwde+jecwf-1)<1e-4);
 
 	    double valb = val;
 
@@ -1159,6 +1182,7 @@ void reprocess(string epoch="") {
 	    jecc->setJetPt(pt);
 	    double valc = 1./jecc->getCorrection();
 
+	    /*
 	    jecd->setJetEta(eta);
 	    jecd->setJetPt(pt);
 	    double vald = 1./jecd->getCorrection();
@@ -1166,12 +1190,19 @@ void reprocess(string epoch="") {
 	    jece->setJetEta(eta);
 	    jece->setJetPt(pt);
 	    double vale = 1./jece->getCorrection();
+	    */
+	    jecde->setJetEta(eta);
+	    jecde->setJetPt(pt);
+	    double valde = 1./jecde->getCorrection();
 
 	    jecf->setJetEta(eta);
 	    jecf->setJetPt(pt);
 	    double valf = 1./jecf->getCorrection();
 
+	    /*
 	    val = jecwb*valb +jecwc*valc +jecwd*vald +jecwe*vale +jecwf*valf;
+	    */
+	    val = jecwb*valb +jecwc*valc +jecwde*valde +jecwf*valf;
 	  }
 
 	  if (doFall17Closure) val = 1;

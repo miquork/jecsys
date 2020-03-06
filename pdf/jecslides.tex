@@ -29,7 +29,7 @@
 {. }\\
 {. }\\
 {. }\\
-Z+Jet/$\gamma$+jet global fit status\\
+Z+Jet/$\gamma$+jet global fit status for 2017\\
 \today\\
 Mikko Voutilainen, Henning Kirschenmann
 U. Helsinki and HIP\\
@@ -39,20 +39,23 @@ with inputs from\\
 Daniel Savoiu, KIT (Z$(\rightarrow ee$)+jet, Z$(\rightarrow \mu\mu$)+jet)\\
 Hugues Lattaud, Lyon ($\gamma$+jet)\\
 .\\
-Github tag: \\
+Github branch/tag: \verb|origin/2017ReReco, cad2714..67bcca6|\\
 \end{centering}
 \newpage
 
 %These slides show global fit of Fall17\_17Nov17\_V10 inputs for 2017 prompt reco data from \url{https://indico.cern.ch/event/735951/} ($\gamma$+jet and Z+jet update). Settings:
-These slides show global fit of Fall17\_17Nov17\_V24 inputs for 2017 prompt reco data from \url{https://indico.cern.ch/event/758051/} ($\gamma$+jet and Z+jet update). Settings:
+These slides show global fit of Fall17\_17Nov17\_V28 (V27) inputs for 2017 re-reco data from {\tiny \url{https://indico.cern.ch/event/765393/#47-l3res-gammajets-with-fall17}} ($\gamma$+jet V27) and {\tiny \url{https://indico.cern.ch/event/763555/#31-l3res-and-closure-test-resu}} (Z+jet V28). Settings:
 \begin{itemize}
 \item Z mass corrections derived from BCDEF combined file (same as V10)
-\item Z scale uncertainty 0.05\% plus bin-by-bin fit uncertainty for ee and $\mu\mu$ each. Correction is quad-log (const) fit to BCDEF $\Delta m_Z$ (plot on next slide).
-\item Photon scale uncertainty 0.5\%.
+\item Zll scale uncertainty 0.2\% plus bin-by-bin fit uncertainty for ee and $\mu\mu$ each. Correction is quad-log (const) fit to BCDEF $\Delta m_Z$ (plot on next slide)
+\item Photon scale uncertainty 0.5\% + Zee mass correction uncertainty
+\item MPF method is given 0.5\% (0.2\%) footprint uncertainty for $\gamma$+jet (Zll+jet)
+\item No FSR priors for $p_T$ balance, 5\% prior on MPF
 \end{itemize}
 
 To be done:
 \begin{itemize}
+%\item Check stability with $p_{3}$ fit and full $p_T$ range of data
 \item Integrate new multijets, including FSR and flavor uncertainties
 %\item Decide on the fit shape(s) vs $p_T$
 %\item Decide on the IOVs
@@ -60,10 +63,14 @@ To be done:
 
 Observations so far:
 \begin{itemize}
-\item Slight time dependence in ECAL scale (+0.2\% in B to -0.3\% in F); not yet corrected, not so visible in MPF and $p_T$ balance
-\item Tension in $\gamma$+jet and Z+jet MPF at $p_T<200$~GeV in data and $p_T>200$~GeV in MC (s9); did somebody accidentally swap ECAL calibration constants for gain1 and gain6 between data and MC?
-\item Closure not perfect in B (low $p_T$) and E+F (flat 1\%)
-\item Z+jet and $\gamma$+jet in disagreement prior to global fit
+\item Slight time dependence in ECAL scale (+0.2\% in B to -0.3\% in F)?
+\item FSR for $\gamma$+jet $p_T^{\rm bal}$ swaps sign compared to 2016? CP5 vs CUETP8M1?
+\item RunD bit too flat compared to C and E?
+\item Cleaned $p_{2}$ fit here good; all data and $p_{3}$ are highly unstable
+%; not yet corrected, not so visible in MPF and $p_T$ balance
+%\item Tension in $\gamma$+jet and Z+jet MPF at $p_T<200$~GeV in data and $p_T>200$~GeV in MC (s9); did somebody accidentally swap ECAL calibration constants for gain1 and gain6 between data and MC?
+%\item Closure not perfect in B (low $p_T$) and E+F (flat 1\%)
+%\item Z+jet and $\gamma$+jet in disagreement prior to global fit
 %\item Tracker inefficiency in F (expected)
 %\item Tracker inefficiency also in B?
 %\item Some (time-dependent) detector bias in CDE?
