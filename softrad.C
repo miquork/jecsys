@@ -577,6 +577,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
       else
 	tex->DrawLatex(0.20,0.80,Form("%1.1f < |#eta| < %1.1f",
 				      etamin,etamax));
+      tex->DrawLatex(0.20,0.75,epoch.c_str());
       TLegend *leg = tdrLeg(0.60,0.75,0.90,0.90);
 
       for (int  isample = 0; isample != nsamples; ++isample) {
@@ -596,6 +597,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 			    "[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
 			    30,1500);
 	  fk->SetParameters(-0.05,+0.01,0);
+	  fk->FixParameter(2,0.); // post-Moriond19, reduce quad-log to log0-lin
 	  fk->SetLineColor(gk->GetLineColor());
 	  gk->Fit(fk, "QRN");
 
@@ -699,7 +701,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      fkeig->SetParameter(i, fk->GetParameter(i)
 				  + eigmat[i][ieig] * sqrt(eigvec[ieig]));
 	    }
-	    fkeig->DrawClone("SAMEL");
+	    // Draw eigenvectors (plots gets busy, so turned off)
+	    // fkeig->DrawClone("SAMEL");
 
 	    // Eigenvector histograms evaluated at bin mean pT
 	    TH1D *hke = (TH1D*)hk->Clone(Form("%s_eig%d",hk->GetName(),ieig));

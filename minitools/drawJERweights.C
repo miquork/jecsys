@@ -20,7 +20,7 @@ void drawJERweights() {
   TFile *f = new TFile("rootfiles/output-DATA-1-Fall18V8-D.root","READ");
   assert(f && !f->IsZombie());
 
-  TFile *fout = new TFile("rootfiles/jecweights_2018.root","RECREATE");
+  TFile *fout = new TFile("rootfiles/jerweights_2018.root","RECREATE");
   curdir->cd();
 
   //string path = "Standard/Eta_0.0-0.5/jt500";

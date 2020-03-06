@@ -50,13 +50,14 @@ void estimateMinJetPt() {
 
   TH1D *hrc = new TH1D("hrc",";Jet #eta;RC offset (GeV)",neta,veta);
   TH1D *hl1 = new TH1D("hl1",";Jet #eta;L1MC offset (GeV)",neta,veta);
+  TH1D *hrms = new TH1D("hrms",";Jet #eta;RC offset 3*RMS (GeV)",neta,veta);
 
   FactorizedJetCorrector *jecrc = getJEC("_V8_MC_L1RC_AK4PFchs");
   FactorizedJetCorrector *jecl1 = getJEC("_V8_MC_L1FastJet_AK4PFchs");
 
   for (int i = 1; i != hrc->GetNbinsX()+1; ++i) {
     
-    double pt = 30.; // value not really relevant for L1RC
+    double pt = 30.; // value not really relevant for L1RC (except capping)
     double eta = hrc->GetBinCenter(i);
 
     jecrc->setJetPt(pt);
@@ -65,25 +66,33 @@ void estimateMinJetPt() {
     jecrc->setRho(rho);
     double corrrc = jecrc->getCorrection(); // = (pt-off)/pt
     double offrc = pt - pt*corrrc;
-    hrc->SetBinContent(i, 2*offrc);
+    hrc->SetBinContent(i, offrc);
+    hrms->SetBinContent(i, 3*sqrt(offrc));
 
-    double ptl1 = 2*offrc;
+    double ptl1 = offrc;//2*offrc;
     jecl1->setJetPt(ptl1);
     jecl1->setJetEta(eta);
     jecl1->setJetA(TMath::Pi()*0.4*0.4);
     jecl1->setRho(rho);
     double corrl1 = jecl1->getCorrection(); // = (pt-off)/pt
     double offl1 = ptl1 - ptl1*corrl1;
-    hl1->SetBinContent(i, 2*offl1);
+    hl1->SetBinContent(i, offl1);
 
   } // for i
 
-  TH1D *h = new TH1D("h",";Jet #eta;2 #times offset (GeV)",neta,veta);
-  h->SetMaximum(30.);
+  TH1D *h = new TH1D("h",";Jet #eta;Offset (GeV)",neta,veta);
+  h->SetMaximum(16);//30.);
 
+  lumi_13TeV = "Autumn18_V8_MC";//_*_AK4PFchs";
   TCanvas *c1 = tdrCanvas("c1",h,4,11,kSquare);
   tdrDraw(hrc,"HIST");
   tdrDraw(hl1,"P");
+  tdrDraw(hrms,"P",kOpenSquare);
+
+  TLegend *leg = tdrLeg(0.40,0.69,0.70,0.87);
+  leg->AddEntry(hrc,"L1RC O_{RC} for AK4PFchs","F");
+  leg->AddEntry(hl1,"L1FastJet at p_{T}^{raw}=O_{RC}","PL");
+  leg->AddEntry(hrms,"3*#sqrt{O_{RC}}","PL");
 
   gPad->RedrawAxis();
 

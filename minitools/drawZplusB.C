@@ -4,6 +4,8 @@
 // - check data, check MC, check ratio for Z+jet
 // + purity of Z+b?
 // run with 'root -l minitools/drawZplusB.C+g'
+//
+// To actually extract bJSF, use minitools/extractBSJF.C
 #include "TFile.h"
 #include "TGraphErrors.h"
 #include "TF1.h"
@@ -15,13 +17,17 @@
 using namespace std;
 
 // Switches
-string sm = "mpfchs"; // method: mpfchs, ptchs
+//string sm = "mpfchs"; // method: mpfchs, ptchs (before v25)
+string sm = "rmpf"; // method: mpfchs, ptchs (after v25)
 //string sm = "ptchs";
 string sb = "none"; // b-tag: none, loose, medium, tight
 //string sb = "tight";
 //string sb = "medium";
 
-void drawZplusB() {
+//void drawZplusB() {
+void drawZplusB(string year="2018mm") {
+
+  string sy = year;
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
@@ -40,8 +46,13 @@ void drawZplusB() {
   //
   //TFile *fzb = new TFile("rootfiles/jme_bplusZ_2016Muons_v13.root","READ");
   //TFile *fzb = new TFile("rootfiles/jme_bplusZ_2017Muons_v14.root","READ");
-  TFile *fzb = new TFile("rootfiles/jme_bplusZ_2018Muons_v14.root","READ");
+  //TFile *fzb = new TFile("rootfiles/jme_bplusZ_2018Muons_v14.root","READ");
   //TFile *fzb = new TFile("rootfiles/jme_bplusZ_Run2Muons_v14.root","READ");
+  //TFile *fzb = new TFile("rootfiles/jme_bplusZ_Run2_v18.root","READ");
+  //TFile *fzb = new TFile("rootfiles/jme_bplusZ_Run2_v20.root","READ");
+  //TFile *fzb = new TFile("rootfiles/jme_bplusZ_Run2_v25.root","READ");
+  //TFile *fzb = new TFile("rootfiles/jme_bplusZ_Run2_Ver2.root","READ");
+  TFile *fzb = new TFile("rootfiles/jme_bplusZ_Run2_Ver3.root","READ");
   assert(fzb && !fzb->IsZombie());
   curdir->cd();
 
@@ -50,7 +61,33 @@ void drawZplusB() {
   //TFile *fz = new TFile("../jecsys2016/rootfiles/zjet_combination_07Aug2017_Summer16_JECV15_Zmm_BCDEFGH_2018-09-14.root","READ"); // L1L2Res
   //TFile *fz = new TFile("../jecsys2016/rootfiles/zjet_combination_07Aug2017_Summer16_JECV6_Zmm_GH_2018-03-06.root","READ"); // L1L2L3
   //TFile *fz = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zmm_2019-08-19.root","READ"); { assert(fz && !fz->IsZombie()); fz->cd("Run2018ABCD"); fz = (TFile*)gDirectory; } // L1L2Res, L1L2L3Res
-TFile *fz = new TFile("rootfiles/FullCombination_Zmm_17Sep2018_Autumn18_JECv17.root","READ"); { assert(fz && !fz->IsZombie()); fz->cd("Run2018ABCD"); fz = (TFile*)gDirectory; } // L1L2Res, L1L2L3Res
+  //TFile *fz = new TFile("rootfiles/FullCombination_Zmm_17Sep2018_Autumn18_JECv17.root","READ"); { assert(fz && !fz->IsZombie()); fz->cd("Run2018ABCD"); fz = (TFile*)gDirectory; } // L1L2Res, L1L2L3Res
+  //
+  // [1] https://indico.cern.ch/event/758051/contributions/3143597/ Summer16 JEC V15 (nearest official release V11)
+  // [2] https://indico.cern.ch/event/767001/contributions/3192422/ Fall17 JEC V31 (nearest official release V32)
+  // [3] https://indico.cern.ch/event/837707/contributions/3512864/ Autumn18 JEC V16 (nearest official release V19)
+  TFile *fz(0); string sjec("");
+  if (sy=="2016mm") { // Missing L1L2L3res, V15 vs V11
+    fz = new TFile("rootfiles/zjet_combination_07Aug2017_Summer16_JECV15_Zmm_BCDEFGH_2018-09-14.root","READ"); sjec="L1L2res"; assert(fz && !fz->IsZombie());
+  }
+  if (sy=="2016ee") { // Missing L1L2L3Res, V15 vs V11 
+    fz = new TFile("rootfiles/zjet_combination_07Aug2017_Summer16_JECV15_Zee_BCDEFGH_2018-09-14.root","READ"); sjec="L1L2Res"; assert(fz && !fz->IsZombie());
+  }
+  if (sy=="2017mm") { // V32 vs V31
+    fz = new TFile("rootfiles/zjet_combination_Fall17_JECV31_Zmm_BCDEF_2018-10-26.root","READ"); sjec="L1L2L3res"; assert(fz && !fz->IsZombie());
+  }
+  if (sy=="2017ee") { // V32 vs V31
+    fz = new TFile("rootfiles/zjet_combination_Fall17_JECV31_Zee_BCDEF_2018-10-26.root","READ"); sjec="L1L2L3res"; assert(fz && !fz->IsZombie());
+  }
+  if (sy=="2018mm") { // V16 vs V19
+    fz = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zmm_2019-08-19.root","READ"); sjec="L1L2L3Res"; assert(fz && !fz->IsZombie()); fz->cd("Run2018ABCD"); fz = (TFile*)gDirectory;
+  } // L1L2Res, L1L2L3Res
+  if (sy=="2018ee") { // V16 vs V19
+    fz = new TFile("rootfiles/zjet_combination_Autumn18_JECV16_Zmm_2019-08-19.root","READ"); sjec="L1L2L3Res"; assert(fz && !fz->IsZombie()); fz->cd("Run2018ABCD"); fz = (TFile*)gDirectory;
+  } // L1L2Res, L1L2L3Res
+
+  //{ assert(fz && !fz->IsZombie()); fz->cd("Run2018ABCD"); fz = (TFile*)gDirectory; } // L1L2Res, L1L2L3Res
+
 
   assert(fz && !fz->IsZombie());
 
@@ -131,7 +168,8 @@ TFile *fz = new TFile("rootfiles/FullCombination_Zmm_17Sep2018_Autumn18_JECv17.r
     int a = va[i];
     // mc = data (v1)
     //TH1D *h = (TH1D*)fzb->Get(Form("mc/eta13/statistics_zmmjet%s_a%d",cb,a));
-    TH1D *h = (TH1D*)fzb->Get(Form("data/eta13/statistics_zmmjet%s_a%d",cb,a));
+    //TH1D *h = (TH1D*)fzb->Get(Form("data/eta13/statistics_zmmjet%s_a%d",cb,a));
+    TH1D *h = (TH1D*)fzb->Get(Form("data/eta_00_13/statistics_zmmjet%s_a%d",cb,a));
     assert(h);
     //TH1D *h0 = (a<40 ? (TH1D*)fz->Get(Form("Data_RawNEvents_CHS_a%d_eta_00_13_L1L2Res",a)) : 0);
     //TH1D *h0 = (a<40 ? (TH1D*)fz->Get(Form("Data_RawNEvents_CHS_a%d_eta_00_13_L1L2L3",a)) : 0);
@@ -240,17 +278,24 @@ TFile *fz = new TFile("rootfiles/FullCombination_Zmm_17Sep2018_Autumn18_JECv17.r
     int a = va[i];
 
     // From Sami
-    TGraphErrors *gd = (TGraphErrors*)fzb->Get(Form("data/eta13/%s_zmmjet%s_a%d",sm.c_str(),cb,a));
+    TGraphErrors *gd = (TGraphErrors*)fzb->Get(Form("data/eta_00_13/%s_zmmjet%s_a%d",sm.c_str(),cb,a));
     assert(gd);
     // mc errors miscalculated?
-    TGraphErrors *gm = (TGraphErrors*)fzb->Get(Form("mc/eta13/%s_zmmjet%s_a%d",sm.c_str(),cb,a));
+    TGraphErrors *gm = (TGraphErrors*)fzb->Get(Form("mc/eta_00_13/%s_zmmjet%s_a%d",sm.c_str(),cb,a));
     assert(gm);
     // ratio
-    TGraphErrors *gr = (TGraphErrors*)fzb->Get(Form("ratio/eta13/%s_zmmjet%s_a%d",sm.c_str(),cb,a));
+    //TGraphErrors *gr = (TGraphErrors*)fzb->Get(Form("ratio/eta_00_13/%s_zmmjet%s_a%d",sm.c_str(),cb,a)); // before v25
+    TGraphErrors *gr = (TGraphErrors*)gd->Clone(); // after v25
+    assert(gd->GetN() == gm->GetN());
+    for (int i = 0; i != gr->GetN(); ++i) {
+      assert(fabs(gd->GetX()[i] / gm->GetX()[i]-1)<0.05);
+      gr->SetPoint(i, gd->GetX()[i], gd->GetY()[i] / gm->GetY()[i]);
+    } // for i
     assert(gr);
 
     // From Daniel
-    string skit = (sm=="mpfchs" ? "MPF_CHS" : "PtBal_CHS");
+    //string skit = (sm=="mpfchs" ? "MPF_CHS" : "PtBal_CHS"); // before v25
+    string skit = (sm=="rmpf" ? "MPF_CHS" : "PtBal_CHS"); // after v25
     //string skit = (sm=="mpfchs" ? "MPF-notypeI_CHS" : "PtBal_CHS");
     const char *ck = skit.c_str();
     //TGraphErrors *gd0 = (a<40 ? (TGraphErrors*)fz->Get(Form("Data_%s_a%d_eta_00_13_L1L2L3",ck,a)) : 0);

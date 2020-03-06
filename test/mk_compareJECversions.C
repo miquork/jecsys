@@ -10,13 +10,17 @@
   gROOT->ProcessLine(".L test/compareJECversions.C+");
   gROOT->ProcessLine(".exception");
   
+  // check new parallel MC
+  //compareJECversions("AK4PFchs",true,true,false,"MC"); // L1L2L3
+  compareJECversions("AK4PFchs",false,true,false,"MC"); // L2L3
+
   // Test Run2015D V3M2 L2L3Res
   //  compareJECversions("AK4PFchs",false,false,true,"DATA"); // Fig.24topleft (L2L3Res)
   //compareJECversions("AK4PFchs",true,true,true,"DATA"); // L1L2L3+Res
   //  compareJECversions("AK4PFchs",true,true,false,"DATA"); // L1L2L3
   //  compareJECversions("AK4PFchs",false,true,false,"DATA"); // L2L3
-  compareJECversions("AK4PFchs",true,false,false,"DATA"); // L1
-  compareJECversions("AK4PFchs",true,false,false,"MC"); // L1
+  //compareJECversions("AK4PFchs",true,false,false,"DATA"); // L1
+  //compareJECversions("AK4PFchs",true,false,false,"MC"); // L1
   /*
 
 

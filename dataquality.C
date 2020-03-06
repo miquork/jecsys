@@ -12,33 +12,17 @@ void dataquality() {
   gStyle->SetOptTitle();
   gStyle->SetPalette(1);
 
-  //TFile *f = new TFile("rootfiles/output_RunFlateG_Feb03V0/nol2l3res/output-DATA-1.root","READ");
-  //TFile *fd = new TFile("rootfiles/output_RunFlateG_Feb03V0/output-DATA-1.root","READ");
-  //TFile *fd = new TFile("rootfiles/exclusiontests/normalH/output-DATA-1.root","READ");
-  //TFile *fd = new TFile("rootfiles/exclusiontests/normalfG/output-DATA-1.root","READ");
-  //TFile *fd = new TFile("rootfiles/exclusion_cmsweek/normal/BCD/output-DATA-1.root","READ");
-  //TFile *fd = new TFile("rootfiles/exclusion_cmsweek/normal/EF/output-DATA-1.root","READ");
-  //TFile *fd = new TFile("rootfiles/exclusion_cmsweek/normal/BCDEF/output-DATA-1.root","READ");
-  TFile *fd = new TFile("rootfiles/exclusion_cmsweek/mikko/GH/output-DATA-1.root","READ");
+  // Primary epoch
+  TFile *fd = new TFile("rootfiles/output-DATA-1-Fall18V8-D.root","READ");
   assert(fd && !fd->IsZombie());
 
-  TFile *fd2 = new TFile("rootfiles/exclusion_cmsweek/mikko/BCDEF/output-DATA-1.root","READ");
-  assert(fd2 && !fd2->IsZombie());
+  // Compare to another epoch
+  TFile *fd2 = 0;//new TFile("rootfiles/output-DATA-1-Fall18V8-D.root","READ");
+  //assert(fd2 && !fd2->IsZombie());
 
-  //TFile *fm = new TFile("rootfiles/exclusiontests/normalMC_fG/output-MC-1.root","READ"); 
-  //TFile *fm = new TFile("rootfiles/exclusion_cmsweek/mc/BCD/output-MC-1.root","READ"); 
-  //TFile *fm = new TFile("rootfiles/exclusion_cmsweek/mc/EF/output-MC-1.root","READ"); 
-  //TFile *fm = new TFile("rootfiles/exclusion_cmsweek/mc/BCDEF/output-MC-1.root","READ");
-  TFile *fm = new TFile("rootfiles/exclusion_cmsweek/mc/GH/output-MC-1.root","READ"); 
-  //TFile *fm = new TFile("rootfiles/output_RunFlateG_Feb03V0/output-MC-1.root","READ"); 
+  TFile *fm = new TFile("rootfiles/output-MC-1-Fall18V8-D.root","READ"); 
   assert(fm && !fm->IsZombie());
 
-  //TFile *fh = new TFile("rootfiles/hotjets-RunG.root","READ");
-  //TFile *fh = new TFile("rootfiles/hotjets-RunBCD.root","READ");
-  //TFile *fh = new TFile("rootfiles/hotjets-RunEF.root","READ");
-  //TFile *fh = new TFile("rootfiles/hotjets-RunBCDEF.root","READ");
-  //TFile *fh = new TFile("rootfiles/hotjets-RunGH.root","READ");
-  //TFile *fh = new TFile("rootfiles/hotjets-RunBCDEFGH.root","READ");
   TFile *fh = new TFile("rootfiles/coldjets-RunBCDEFGH.root","READ");
   TH2D *h2jet(0);
   double minsumsig(0);
@@ -48,22 +32,22 @@ void dataquality() {
   }
 
 
-  const int ntrg = 9;//10;
-  string triggers[ntrg] = {"jt40", "jt60", "jt80", "jt140", "jt200",
-			   "jt260", "jt320", "jt400", /*"data",*/ "mc"};
-  TH2D *h2hots[ntrg], *h2hotr(0), *h2hotm(0);// *h2data(0);
+  const int ntrg = 12;
+  string triggers[ntrg] = {"jt0","jt40", "jt60", "jt80", "jt140", "jt200",
+			   "jt260", "jt320", "jt400", "jt450", "jt500",
+			   "mc"};
+  TH2D *h2hots[ntrg];
   TH2D *h2colds[ntrg];
 
-  //const char *ctrg = "jt400";
   for (int itrg = 0; itrg != ntrg; ++itrg) {
 
-  //const char *ctrg = "jt400";
   string strg = triggers[itrg];
   const char *ctrg = triggers[itrg].c_str();
   TFile *f = (strg=="mc" ? fm : fd);
   TFile *f2 = (strg=="mc" ? fm : fd2);
 
-  assert(f->cd("Standard"));
+  //assert(
+  f->cd("Standard");//);
   TDirectory *din = gDirectory;
 
   TCanvas *c1 = new TCanvas("c1","c1",600,600);
@@ -78,18 +62,10 @@ void dataquality() {
   for (int ieta = 0; ieta != neta; ++ieta) {
 
     double etamin = etabins[ieta]; double etamax = etabins[ieta+1];
-    assert(din->cd(Form("Eta_%1.1f-%1.1f",etamin,etamax)));
-    //assert(gDirectory->cd(ctrg));
-    //assert(gDirectory->cd(strg=="mc"||strg=="data" ? "jt450" : ctrg));
-    assert(gDirectory->cd(strg=="mc"||strg=="data" ? "jt40" : ctrg));
-    //assert(gDirectory->cd("jt400"));
-    //assert(gDirectory->cd("jt40")); // large correlated regions
-    //assert(gDirectory->cd("jt60")); // noisy
-    //assert(gDirectory->cd("jt80")); // noisy
-    //assert(gDirectory->cd("jt140")); // noisy, maxeta 3.5
-    //assert(gDirectory->cd("jt200")); // maxeta 3.2
-    //assert(gDirectory->cd("jt260")); // maxeta 3.0
-    //assert(gDirectory->cd("jt320")); // maxeta 2.8
+    //assert(
+    din->cd(Form("Eta_%1.1f-%1.1f",etamin,etamax));//);
+    //assert(
+    gDirectory->cd(strg=="mc"||strg=="data" ? "jt40" : ctrg);//);
     TDirectory *d = gDirectory;
     
     TH2D *h = (TH2D*)d->Get("hetaphi"); assert(h);
@@ -104,17 +80,6 @@ void dataquality() {
 	h2->Add(hb);
     }
   } // for ieta
-
-  // if (!h2data) {
-  //   h2data = (TH2D*)h2->Clone("h2data");
-  //   for (int i = 1; i != h2->GetNbinsX()+1; ++i) {
-  //     for (int j = 1; j != h2->GetNbinsY()+1; ++j) {
-  // 	h2data->SetBinContent(i, j, 0);
-  //     }
-  //   }
-  // }
-  // if (strg=="data") h2 = h2data;
-  // if (strg!="data"&&strg!="mc"&&strg!="jt40"&&h2data) h2data->Add(h2);
 
   // Create map of known hot ECAL regions from Robert Schoefbeck:
   // https://github.com/schoef/JetMET/blob/master/JEC/python/L2res/jet_cleaning.py#L2-L8
@@ -146,8 +111,6 @@ void dataquality() {
 
   TH2D *h2hot = (TH2D*)h2->Clone("h2hot");
   TH2D *h2cold = (TH2D*)h2->Clone("h2cold");
-  h2hotr = (TH2D*)h2->Clone("h2hotr");
-  h2hotm = (TH2D*)h2->Clone("h2hotm");
   for (int i = 1; i != h2hot->GetNbinsX()+1; ++i) {
     for (int j = 1; j != h2hot->GetNbinsY()+1; ++j) {
 
@@ -159,41 +122,12 @@ void dataquality() {
       h2hot->SetBinError(i, j, 0);
       h2cold->SetBinContent(i, j, 0);
       h2cold->SetBinError(i, j, 0);
-
-      // Produce map for Robert's hot spots
-      h2hotr->SetBinContent(i, j, -10);
-      h2hotr->SetBinError(i, j, 0);
-      for (int k = 0; k != nhot; ++k) {
-	if (eta >= thr[k][0] && eta <= thr[k][1] &&
-	    phi >= thr[k][2] && phi <= thr[k][3]) {
-	  h2hotr->SetBinContent(i, j, 10);
-	} // hot region
-      } // for k
-
-      // Produce map for Mikko's manual hot spots
-      h2hotm->SetBinContent(i, j, -10);
-      h2hotm->SetBinError(i, j, 0);
-      for (int k = 0; k != nhot2; ++k) {
-	if (eta >= thr2[k][0] && eta <= thr2[k][1] &&
-	    phi >= thr2[k][2] && phi <= thr2[k][3]) {
-	  h2hotm->SetBinContent(i, j, 10);
-	} // hot region 2
-      } // for k
-
     } // for j
   } // for i
-  h2hotr->GetZaxis()->SetRange(0,10);
-  h2hotr->SetFillStyle(0);
-  h2hotr->SetLineColor(kGray);
-  h2hotm->GetZaxis()->SetRange(0,10);
-  h2hotm->SetFillStyle(0);
-  h2hotm->SetLineColor(kRed+1);
 
   h2->SetTitle("Number of jets;#eta_{jet};#phi_{jet}");
   h2->GetYaxis()->SetRangeUser(-TMath::Pi(),TMath::Pi());
   h2->DrawClone("COLZ");   
-  h2hotr->DrawClone("BOX SAME");
-  //h2hotm->DrawClone("BOX SAME");
 
   TH2D *h2a = (TH2D*)h2->Clone("h2a"); // stat significance
   TH2D *h2b = (TH2D*)h2->Clone("h2b"); // relative fluctuation
@@ -302,14 +236,12 @@ void dataquality() {
   h2a->SetMaximum(+8);//+4);
 
   h2a->DrawClone("COLZ");
-  h2hotr->Draw("SAMEBOX");
-  //h2hotm->Draw("SAMEBOX");
 
   if (h2jet) {
     h2jet->GetZaxis()->SetRange(0,40);
     h2jet->SetFillStyle(0);
     h2jet->SetLineColor(kBlack);
-    h2jet->DrawClone("BOXSAME");
+    //h2jet->DrawClone("BOXSAME");
   }
 
   // Keep track of found hot regions
@@ -409,11 +341,9 @@ void dataquality() {
   //TFile *fout = new TFile("rootfiles/hotjets-runEF.root","RECREATE");
   //TFile *fout = new TFile("rootfiles/hotjets-runBCDEF.root","RECREATE");
   //TFile *fout = new TFile("rootfiles/hotjets-runGH.root","RECREATE");
-  TFile *fout = new TFile("rootfiles/coldjets-runBCDEFGH.root","RECREATE");
+  TFile *fout = new TFile("rootfiles/coldjets-2018D.root","RECREATE");
   h2hot->Write("h2hot");
   h2hot2->Write("h2jet");
-  //h2hotr->Write("h2hotr");
-  //h2hotm->Write("h2hotm");
   h2cold->Write("h2cold");
   h2cold2->Write("h2hole");
   fout->Close();
