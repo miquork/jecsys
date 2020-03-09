@@ -31,7 +31,8 @@ FactorizedJetCorrector *getJEC(string version) {
 
   string s;
   const char *cd = "CondFormats/JetMETObjects/data";
-  const char *gt = "Summer16_07Aug2017";
+  //const char *gt = "Summer16_07Aug2017";
+  const char *gt = "Autumn18";
 
   FactorizedJetCorrector *jecl1;
   s = Form("%s/%s%s.txt",cd,gt,version.c_str());
@@ -49,7 +50,7 @@ void drawL1(string run = "GH", string mode = "DataMC") {
   assert(mode=="DataMC" || mode=="CHSPF" || mode=="RCL1");
   setTDRStyle();
 
-  double gRho = 20.;
+  double gRho = 20.47;
   double gRho0 = 1.519;
   double gPt = 30.;
   double gJetArea = TMath::Pi()*0.4*0.4;
@@ -82,10 +83,10 @@ void drawL1(string run = "GH", string mode = "DataMC") {
   FactorizedJetCorrector *jecrcmcchs = getJEC("_V15_MC_L1RC_AK4PFchs");
   FactorizedJetCorrector *jecl1mcpf = getJEC("_V15_MC_L1FastJet_AK4PF");
   FactorizedJetCorrector *jecl1mcchs = getJEC("_V15_MC_L1FastJet_AK4PFchs");
-  FactorizedJetCorrector *jecrcdtpf = getJEC("GH_V18_DATA_L1RC_AK4PF");
-  FactorizedJetCorrector *jecrcdtchs = getJEC("GH_V18_DATA_L1RC_AK4PFchs");
-  FactorizedJetCorrector *jecl1dtpf = getJEC("GH_V18_DATA_L1FastJet_AK4PF");
-  FactorizedJetCorrector *jecl1dtchs = getJEC("GH_V18_DATA_L1FastJet_AK4PFchs");
+  FactorizedJetCorrector *jecrcdtpf = getJEC("_RunA_V15_DATA_L1RC_AK4PF");
+  FactorizedJetCorrector *jecrcdtchs = getJEC("_RunA_V15_DATA_L1RC_AK4PFchs");
+  FactorizedJetCorrector *jecl1dtpf = getJEC("_RunA_V15_DATA_L1FastJet_AK4PF");
+  FactorizedJetCorrector *jecl1dtchs = getJEC("_RunA_V15_DATA_L1FastJet_AK4PFchs");
 
   TH1D *h = new TH1D("h",";#eta;off(#LT#rho#GT) / A#times(#LT#rho#GT-#rho_{0})",
 		     94,-4.7,4.7);//
@@ -136,8 +137,8 @@ void drawL1(string run = "GH", string mode = "DataMC") {
 
   double ptmax = 1200.*2.;
   TH1D *hup = new TH1D("hup",";#eta;offset(#LT#rho#GT) / A#times(#LT#rho#GT-#rho_{0})",
-		       94,-4.7,4.7);//104,-5.2,5.2);
-  hup->SetMinimum(0.1+1e-4);
+		       94,-4.7,4.7);
+  hup->SetMinimum(0.0+1e-4);
   hup->SetMaximum(1.7-1e-4);
 
   TH1D *hdw = new TH1D("hdw",";#eta;Data / MC",94,-4.7,4.7);//104,-5.2,5.2);
@@ -205,19 +206,19 @@ void drawL1(string run = "GH", string mode = "DataMC") {
   hrcdtchs->SetLineWidth(3);
   hl1dtchs->SetLineWidth(3);
 
-  TLegend *leg1up = tdrLeg(0.43,0.66,0.63,0.76);
+  TLegend *leg1up = tdrLeg(0.43,0.665,0.63,0.765);
   leg1up->AddEntry(hrcdtpf,"PF RC DT","L");
   leg1up->AddEntry(hrcmcpf,"PF RC MC","L");
 
-  TLegend *leg1m1 = tdrLeg(0.45,0.43,0.65,0.53);
+  TLegend *leg1m1 = tdrLeg(0.43,0.43,0.63,0.53);
   leg1m1->AddEntry(hl1dtpf,"PF L1 DT","L");
   leg1m1->AddEntry(hl1mcpf,"PF L1 MC","L");
 
-  TLegend *leg1m2 = tdrLeg(0.43,0.30,0.63,0.40);
+  TLegend *leg1m2 = tdrLeg(0.43,0.31,0.63,0.41);
   leg1m2->AddEntry(hrcdtchs,"CHS RC DT","L");
   leg1m2->AddEntry(hrcmcchs,"CHS RC MC","L");
 
-  TLegend *leg1dw = tdrLeg(0.43,0.10,0.63,0.20);
+  TLegend *leg1dw = tdrLeg(0.43,0.06,0.63,0.16);
   leg1dw->AddEntry(hl1dtchs,"CHS L1 DT","L");
   leg1dw->AddEntry(hl1mcchs,"CHS L1 MC","L");
 
@@ -295,7 +296,7 @@ void drawL1(string run = "GH", string mode = "DataMC") {
     leg2->AddEntry(hrcpf,"PF RC","L");
     leg2->AddEntry(hl1pf,"PF L1","L");
     
-    c1->SaveAs(Form("pdf/drawL1_DataMC.pdf"));
+    c1->SaveAs(Form("pdf/drawL1_2018_DataMC.pdf"));
   }
   if (mode=="CHSPF") {
 
@@ -320,12 +321,13 @@ void drawL1(string run = "GH", string mode = "DataMC") {
     leg2->AddEntry(hl1dt,"L1 DT","L");
     leg2->AddEntry(hl1mc,"L1 MC","L");
     
-    c1->SaveAs(Form("pdf/drawL1_CHSPF.pdf"));
+    c1->SaveAs(Form("pdf/drawL1_2018_CHSPF.pdf"));
   }
   if (mode=="RCL1") {
 
     hdw->SetYTitle("RC / L1");
-    hdw->GetYaxis()->SetRangeUser(0.9+1e-4,2.5);//0.55-1e-4);
+    //hdw->GetYaxis()->SetRangeUser(0.9+1e-4,2.5);
+    hdw->GetYaxis()->SetRangeUser(0.9+1e-4,5.0);
 
     // L1CHS ratio red, L1PF ratio blue, RCCHS magenta, RCPF blue
     tdrDraw(hdtpf,"HIST",0,kBlue,kSolid,-1,0,0); 
@@ -345,7 +347,7 @@ void drawL1(string run = "GH", string mode = "DataMC") {
     leg2->AddEntry(hmcpf,"PF MC","L");
     leg2->AddEntry(hmcchs,"CHS MC","L");
     
-    c1->SaveAs(Form("pdf/drawL1_RCL1.pdf"));
+    c1->SaveAs(Form("pdf/drawL1_2018_RCL1.pdf"));
   }
 
 }

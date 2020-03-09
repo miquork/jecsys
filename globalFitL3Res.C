@@ -47,8 +47,8 @@ bool dofsr = true; // correct for FSR
 double ptreco_gjet = 15.; // min jet pT when evaluating alphamax for gamma+jet
 double ptreco_zjet = 5.; // same for Z+jet
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
-bool _paper = false;//true;
-bool _useZoom = true;//false; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
+bool _paper = true; // switch of plotting fit parameters
+bool _useZoom = false; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
 bool plotMultijetDown = false; // plot gray downward points for multijets
 double _cleanUncert = 0.05; // for eta>2
 //double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
@@ -1089,7 +1089,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   lumimap["C"] = "Run2018C 6.9 fb^{-1}"; //PdmV Analysis TWiki
   lumimap["D"] = "Run2018D 31.9 fb^{-1}"; //PdmV Analysis TWiki
   lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["ABCD"] = "2018, 59.7 fb^{-1}"; //PdmV Analysis TWiki
 
   lumi_13TeV = lumimap[epoch];
 
@@ -1104,7 +1105,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if(nmethods==2)legmf->AddEntry(gs[nsamples]," ","PL");
   if (_vpt2->size()>1) legmf->AddEntry((*_vpt2)[1]," ","PL");
 
-  TLegend *legp = tdrLeg(0.58,_useZoom ? 0.70 : 0.55,0.88,0.90);
+  TLegend *legp = tdrLeg(0.58,_useZoom ? 0.70 : 0.60,0.88,0.90);
   if( (nmethods==1||nmethods==2) && strcmp(methods[0],"ptchs")  ==0 ){
     legp->SetHeader("p_{T}^{bal}");
     for (int i = 0; i != nsamples; ++i)
@@ -1118,7 +1119,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   texlabel["zmmjet"] = "Z#mu#mu+jet";
   texlabel["zlljet"] = "Z+jet";//"Zl^{+}l{-}+jet";
 
-  TLegend *legm = tdrLeg(0.66,_useZoom ? 0.70 : 0.55,0.96,0.90);
+  TLegend *legm = tdrLeg(0.66,_useZoom ? 0.70 : 0.60,0.96,0.90);
   if( (nmethods==1&&strcmp(methods[0],"mpfchs1")  ==0) || (nmethods==2 && strcmp(methods[1],"mpfchs1")  ==0 )){
     legm->SetHeader("MPF");
     for (int i = 0; i != nsamples; ++i)
@@ -1273,13 +1274,18 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     legp->AddEntry(hrun1," ","");
     legm->AddEntry(hrun1,"Run I","FL");
     legp->AddEntry(herr_ref," ","");
+    if (!_paper) legm->AddEntry(herr_ref,"V19","FL");
+    if ( _paper) legm->AddEntry(herr_ref,"Run II","FL");
   }
-  else legp->AddEntry(herr," ","FL");
+  else {
+    legp->AddEntry(herr," ","FL");
+    if (!_paper) legm->AddEntry(herr_ref,"V19 (tot,abs)","FL");
+    if ( _paper) legm->AddEntry(herr_ref,"Syst. (tot,abs)","FL");
   //legm->AddEntry(herr_ref,"07AugV7","FL");
   //legm->AddEntry(herr_ref,"Run II","FL");
   //legm->AddEntry(herr_ref,"V10","FL");
   //legm->AddEntry(herr_ref,"V16M","FL");
-  legm->AddEntry(herr_ref,"V17 (func3)","FL");
+   }
 
 
   ///////////////////////

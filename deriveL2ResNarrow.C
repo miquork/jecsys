@@ -430,6 +430,10 @@ void deriveL2ResNarrow() {
     leg->AddEntry(gchi2a,"DB log-lin p_{T}^{tag}","PL");
     leg->AddEntry(gchi2b,"MPF log-lin p_{T}^{tag}","PL");
     
+    TLatex *tex = new TLatex();
+    tex->SetNDC(); tex->SetTextSize(0.045);
+    tex->DrawLatex(0.20,0.20,Form("#alpha < %1.2f",alphamax));
+
     c1->SaveAs(Form("pdf/l2res/%s/deriveL2ResNarrow_chi2_amax%1.0f%s.pdf",
 		    ct,alphamax*100,ctp));
     
@@ -456,6 +460,8 @@ void deriveL2ResNarrow() {
 		      markerpt[ipt]!=0 ? "LP" : "L");
     }
     
+    tex->DrawLatex(0.20,0.20,Form("#alpha < %1.2f",alphamax));
+
     gPad->RedrawAxis();
     c2a->SaveAs(Form("pdf/l2res/%s/deriveL2ResNarrow_Fig15a_amax%1.0f%s.pdf",
 		     ct,alphamax*100,ctp));
@@ -481,6 +487,8 @@ void deriveL2ResNarrow() {
 		      markerpt[ipt]!=0 ? "LP" : "L");
     }
     
+    tex->DrawLatex(0.20,0.20,Form("#alpha < %1.2f",alphamax));
+
     gPad->RedrawAxis();
     c2b->SaveAs(Form("pdf/l2res/%s/deriveL2ResNarrow_Fig15b_amax%1.0f%s.pdf",
 		     ct,alphamax*100,ctp));

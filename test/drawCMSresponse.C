@@ -82,27 +82,34 @@ void drawCMSresponse() {
     //const char *st = "Summer16_23Sep2016GV3_DATA"; // 2017
     //const char *st = "Summer16_03Feb2017G_V3_DATA"; // 2017 03FebV3
     //const char *st = "Summer16_03Feb2017BCD_V7_DATA"; // 2017 03FebV7
-    const char *st = "Summer16_07Aug2017GH_V10_DATA"; // 2017 03FebV
+    //const char *st = "Summer16_07Aug2017GH_V10_DATA"; // 2017 03FebV
     //const char *st = "Summer16_07Aug2017BCD_V10_DATA"; // 2017 03FebV7
+    //const char *st = "Autumn18_RunD_V8_DATA";
+    //const char *st = "Autumn18_V8_MC";
+    const char *st = "Summer16_07Aug2017GH_V11_DATA";
     const char *s;
 
     //s = Form("%s/%s_L1FastJet_AK5PFchs.txt",sd,st); cout << s << endl;
     //JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     s = Form("%s/%s_L1FastJet_AK4PFchs.txt",sd,st); cout << s << endl;
+    //s = Form("%s/%s_L1FastJet_AK4PF.txt",sd,st); cout << s << endl;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     //s = Form("%s/%s_L2Relative_AK5PFchs.txt",sd,st); cout << s << endl;
     s = Form("%s/%s_L2Relative_AK4PFchs.txt",sd,st); cout << s << endl;
+    //s = Form("%s/%s_L2Relative_AK4PF.txt",sd,st); cout << s << endl;
     JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
     //s = Form("%s/%s_L3Absolute_AK5PFchs.txt",sd,st); cout << s << endl;
     s = Form("%s/%s_L3Absolute_AK4PFchs.txt",sd,st); cout << s << endl;
+    //s = Form("%s/%s_L3Absolute_AK4PF.txt",sd,st); cout << s << endl;
     JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
     s = Form("%s/%s_L2L3Residual_AK4PFchs.txt",sd,st); cout << s << endl;
+    //s = Form("%s/%s_L2L3Residual_AK4PF.txt",sd,st); cout << s << endl;
     JetCorrectorParameters *l2l3 = new JetCorrectorParameters(s);
 
     vector<JetCorrectorParameters> v;
     v.push_back(*l1);
-    //v.push_back(*l2);
-    //v.push_back(*l3);
+    v.push_back(*l2);
+    v.push_back(*l3);
     //v.push_back(*l2l3);
     _jec = new FactorizedJetCorrector(v);
   }
@@ -127,8 +134,8 @@ void drawCMSresponse() {
   double pts[] = {15, 30, 60, 110, 400, 2000};
   const int npt = sizeof(pts)/sizeof(pts[0]);
   //const int neta = 48;//52;
-  const int jeta = TMath::Pi()*0.4*0.4;
-  const int mu = 25;
+  const double jeta = TMath::Pi()*0.4*0.4;
+  const double mu = 25;
 
   TGraph *gs[npt];
   //for (int ie = 0; ie != ne; ++ie) {
@@ -160,7 +167,9 @@ void drawCMSresponse() {
 
 
   // Draw results
-  TH1D *h = new TH1D("h",";Jet |#eta|;Simulated jet response",40,0,4.8);
+  //TH1D *h = new TH1D("h",";Jet |#eta|;Simulated jet response",40,0,4.8);
+  TH1D *h = new TH1D("h",";Jet |#eta|;Simulated jet response+offset",40,0,4.8);
+  //TH1D *h = new TH1D("h",";Jet |#eta|;Data/simulated jet response",40,0,4.8);
   //TH1D *h = new TH1D("h",";Jet |#eta|;Data jet response",40,0,4.8);
   //TH1D *h = new TH1D("h",";Jet |#eta|;Data response+offset",40,0,4.8);
   h->SetMaximum(1.25);
@@ -169,7 +178,7 @@ void drawCMSresponse() {
   extraText = "Simulation Preliminary";
   //extraText = "Preliminary";
   lumi_8TeV = "";
-  lumi_13TeV = "";
+  lumi_13TeV = "";//Run2018D 31.9 fb^{-1}";
   //lumi_13TeV = "2.1 fb^{-1}";
   //TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
   TCanvas *c1 = tdrCanvas("c1",h,4,0,kSquare);
@@ -230,6 +239,7 @@ void drawCMSresponse() {
   //tex->DrawLatex(0.30,0.86,"74X JES: Anti-k_{t} R = 0.4, PF+CHS");
   //tex->DrawLatex(0.30,0.86,"76X JES: Anti-k_{t} R = 0.4, PF+CHS");
   tex->DrawLatex(0.19,0.86,"2016 JES: Anti-k_{T} R = 0.4, PF + CHS");
+  //tex->DrawLatex(0.19,0.86,"2016 JES: Anti-k_{T} R = 0.4, PF");
   //tex->DrawLatex(0.23,0.86,"2017 JES: Anti-k_{t} R = 0.4, PF+CHS");
   //tex->DrawLatex(0.23,0.86,"2017 03FebV3: Anti-k_{t} R = 0.4, PF+CHS");
  
@@ -247,5 +257,7 @@ void drawCMSresponse() {
   tex->DrawLatex(0.77,0.73,"HF");
   
   c1->RedrawAxis();
-  c1->SaveAs("../pdf/drawCMSresponse.pdf");
+  //c1->SaveAs("../pdf/drawCMSresponse.pdf");
+  c1->SaveAs("../pdf/drawCMSresponse_2016_AK4PFchs.pdf");
+  //c1->SaveAs("../pdf/drawCMSresponse_2016_AK4PF.pdf");
 } // drawCMSresponse
