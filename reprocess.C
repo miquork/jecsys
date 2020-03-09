@@ -34,7 +34,7 @@ using namespace std;
 // rho used to calculate l1bias
 const double gRho = 15.36; // 2017-06-02 for 2016 data
 const bool _dcsonly = false;
-const bool rp_debug = false; // verbose messages
+const bool rp_debug = true; // verbose messages
 
 // Appy mass corrections to Z+jet
 bool useFixedFit    =  true; // New
@@ -59,8 +59,8 @@ bool correctUncert  =  true;
 bool confirmWarnings=true; //if active, deficiencies in input files are patched after confirmation via pushing "any key to continue"
 bool confirmedGamJet=false; // to avoid too many confirmations
 //need to adjust corlevel in multijet.C as well!!! Not synced automatically right now
-string CorLevel="L1L2Res"; // same for gamma+jet and Z+jet on RunD
-//string CorLevel="L1L2L3Res"; // same for gamma+jet and Z+jet on RunD
+//string CorLevel="L1L2Res"; // same for gamma+jet and Z+jet on RunD
+string CorLevel="L1L2L3Res"; // same for gamma+jet and Z+jet on RunD
 //string CorLevel="L1L2";
 //"L1L2": "MCTruth corrections" applied, in reality L1Data/MC,L2
 //"L1L2Res": MCTruth + L2Res applied
@@ -159,7 +159,7 @@ void reprocess(string epoch="") {
   fdj_files["B"] = "B";
   fdj_files["C"] = "C";
   fdj_files["D"] = "D";
-  fdj_files["ABC"] = "ABCD";
+  fdj_files["ABC"] = "ABC";
   fdj_files["ABCD"] = "ABCD";
 
 
@@ -181,7 +181,7 @@ void reprocess(string epoch="") {
   //To: 	Henning Kirschenmann <henning.kirschenmann@cern.ch>
   //CC: 	Mikko Antero Voutilainen <Mikko.Voutilainen@cern.ch>
   //
-  // func 3 closure, in particular also JER-UP/Down of new pt-dependent JER SF (important for uncertainties)
+  // func 3 closure, in particular also JER-UP/Down of new pt-dependent JER SF (important for uncertainties); missing cross-term...?!
   //  https://indico.cern.ch/event/843251/contributions/3539912/attachments/1897256/3140124/4September-Output-Function3.zip
 
   string DijetCorLevel = (CorLevel=="L1L2Res" ? "L1L2L3Res" : CorLevel);

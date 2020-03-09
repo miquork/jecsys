@@ -9,6 +9,21 @@
 #include <cmath>
 #include <map>
 
+// Autumn18 V17 updates
+// update data corrections --> inputs available for A/B/C/D and ABCD acrsoss all channels ABCD L2L3Res assembled from L2 MPF LOGLIN ABCD + custom L3-fit (2par) for ABCD (took V16 one)
+// --> should update once new global fit by Mikko is available
+// [RelativePt/Bal]: using ABCD closure test inputs from Jindrich
+// [TimePt]: updated for 2018, using ABCD L2Res result as well
+// [RelativeSample]:  ABCD closure test result: z/gam+jet vs. dijet; keep only const difference for eta>3.1
+// [RelativeStat]
+// - recycled
+// [RelativeFSR]
+// - recycled
+// [RelativeJER]
+// - using Jindrich's txt-files for closure test with up/dwn variations; missing cross-term
+
+
+
 // Autumn18 V16 updates
 // update MC-corrections --> V5 --> Autumn18_V16_MC (should be identical)
 // update data corrections --> inputs available for A/B/C/D and ABCD acrsoss all channels ABCD L2L3Res assembled from L2 MPF LOGLIN ABCD + custom L3-fit (2par) for ABCD 
@@ -22,6 +37,7 @@
 // - recycled
 // [RelativeJER]
 // - using Jindrich's txt-files for closure test with up/dwn variations
+
 
 
 using namespace std;
@@ -123,6 +139,7 @@ double JECUncertainty::Uncert(const double pTprime, const double eta) {
   }
   if (_errType & (jec::kTime | jec::kTimePtEtaMask)) {
     if (debug) cout << "_Time" << endl << flush;
+    //could consider to add averaging here...
     errTime = _Time(pTprime, eta2);
     err2 += errTime * errTime;
   }
@@ -193,7 +210,7 @@ void JECUncertainty::_InitL1() {
 
   {
     //const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1RC_%s.txt",d,a);
-    const char *s = Form("%sAutumn18_V16_MC_L1RC_%s.txt",d,a);
+    const char *s = Form("%sAutumn18_V17_MC_L1RC_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -202,7 +219,7 @@ void JECUncertainty::_InitL1() {
   }
   {
     //const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1FastJet_%s.txt",d,a);
-    const char *s = Form("%sAutumn18_V16_MC_L1FastJet_%s.txt",d,a);
+    const char *s = Form("%sAutumn18_V17_MC_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -214,7 +231,7 @@ void JECUncertainty::_InitL1() {
   {
     const char *a = "AK4PFchs"; // !! L3Res only for this
     //const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1RC_%s.txt",d,a);
-    const char *s = Form("%sAutumn18_V16_MC_L1RC_%s.txt",d,a);
+    const char *s = Form("%sAutumn18_V17_MC_L1RC_%s.txt",d,a);
 
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
@@ -225,7 +242,7 @@ void JECUncertainty::_InitL1() {
   {
     const char *a = "AK4PFchs"; // !! L3Res only for this
     //const char *s = Form("%sSummer16_03Feb2017_V1_MC_L1FastJet_%s.txt",d,a);
-    const char *s = Form("%sAutumn18_V16_MC_L1FastJet_%s.txt",d,a);
+    const char *s = Form("%sAutumn18_V17_MC_L1FastJet_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -257,18 +274,18 @@ void JECUncertainty::_InitJEC() {
   const char *d = directory.c_str();
 
   const char *s;
-  s = Form("%sAutumn18_RunA_V16_DATA_L1FastJet_%s.txt",d,a);
+  s = Form("%sAutumn18_RunA_V17_DATA_L1FastJet_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
-  s = Form("%sAutumn18_RunA_V16_DATA_L2Relative_%s.txt",d,a);
+  s = Form("%sAutumn18_RunA_V17_DATA_L2Relative_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
-  s = Form("%sAutumn18_RunA_V16_DATA_L3Absolute_%s.txt",d,a);
+  s = Form("%sAutumn18_RunA_V17_DATA_L3Absolute_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l3 = new JetCorrectorParameters(s);
   // Only one L3Residual derived for now for AK4PFchs
   // (although we clone this later on)
-  s = Form("%sAutumn18_RunA_V16_DATA_L2L3Residual_%s.txt",d,a);
+  s = Form("%sAutumn18_RunA_V17_DATA_L2L3Residual_%s.txt",d,a);
   if (debug) cout << s << endl << flush;
   JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
 
@@ -281,7 +298,7 @@ void JECUncertainty::_InitJEC() {
   _jec = _jecDefault;
 
   { // RunA 
-    s = Form("%sAutumn18_RunA_V16_DATA_L2L3Residual_%s.txt",d,a);
+    s = Form("%sAutumn18_RunA_V17_DATA_L2L3Residual_%s.txt",d,a);
     //    s = Form("%sFall17_17Nov2017B_V31_DATA_L2L3Residual_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
@@ -294,7 +311,7 @@ void JECUncertainty::_InitJEC() {
     _jecA = new FactorizedJetCorrector(v);
   }
   { // RunB 
-    s = Form("%sAutumn18_RunB_V16_DATA_L2L3Residual_%s.txt",d,a);
+    s = Form("%sAutumn18_RunB_V17_DATA_L2L3Residual_%s.txt",d,a);
     //    s = Form("%sFall17_17Nov2017B_V31_DATA_L2L3Residual_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
@@ -307,7 +324,7 @@ void JECUncertainty::_InitJEC() {
     _jecB = new FactorizedJetCorrector(v);
   }
   { // RunC
-    s = Form("%sAutumn18_RunC_V16_DATA_L2L3Residual_%s.txt",d,a);
+    s = Form("%sAutumn18_RunC_V17_DATA_L2L3Residual_%s.txt",d,a);
     //    s = Form("%sFall17_17Nov2017C_V31_DATA_L2L3Residual_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
@@ -320,7 +337,7 @@ void JECUncertainty::_InitJEC() {
     _jecC = new FactorizedJetCorrector(v);
   }
   { // RunD
-    s = Form("%sAutumn18_RunD_V16_DATA_L2L3Residual_%s.txt",d,a);
+    s = Form("%sAutumn18_RunD_V17_DATA_L2L3Residual_%s.txt",d,a);
     //    s = Form("%sFall17_17Nov2017DE_V31_DATA_L2L3Residual_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
@@ -334,7 +351,7 @@ void JECUncertainty::_InitJEC() {
   }
   { // RunABCD (all 2018)
     //    s = Form("%sFall17_17Nov2017BCDEF_181022_MPF_CUSTOMHYBRID_181022_V31_L2L3Residual_pythia8_%s.txt",d,a); // see above
-    s = Form("%sAutumn18_RunABCD_V16_DATA_L2L3Residual_%s.txt",d,a);
+    s = Form("%sAutumn18_RunABCD_V17_DATA_L2L3Residual_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     
@@ -394,7 +411,7 @@ void JECUncertainty::_InitL2Res() {
   const char *s, *s2;
   // For RelativePt (flat vs loglin)
   {
-    s = Form("%sAutumn18_V16_%s-14082019_RunABCD_Autumn18_MPF_FLAT_L2Residual_pythia8_%s.txt",d,useClosureInputs ? "L1L2L3Res": "L1L2" ,a);
+    s = Form("%sAutumn18_V17_%s-04092019_Func3_RunABCD_Autumn18_MPF_FLAT_L2Residual_pythia8_%s.txt",d,useClosureInputs ? "L1L2L3Res": "L1L2" ,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -402,7 +419,7 @@ void JECUncertainty::_InitL2Res() {
     _jecL2ResFlat = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%sAutumn18_V16_%s-14082019_RunABCD_Autumn18_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,useClosureInputs ? "L1L2L3Res": "L1L2", a);
+    s = Form("%sAutumn18_V17_%s-04092019_Func3_RunABCD_Autumn18_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,useClosureInputs ? "L1L2L3Res": "L1L2", a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -412,7 +429,7 @@ void JECUncertainty::_InitL2Res() {
 
   // For RelativeBal (MPF vs pTbal); separate source for Sum16
   {
-    s = Form("%sAutumn18_V16_%s-14082019_RunABCD_Autumn18_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,useClosureInputs ? "L1L2L3Res": "L1L2", a);
+    s = Form("%sAutumn18_V17_%s-04092019_Func3_RunABCD_Autumn18_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,useClosureInputs ? "L1L2L3Res": "L1L2", a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -420,7 +437,7 @@ void JECUncertainty::_InitL2Res() {
     _jecL2ResMPF = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%sAutumn18_V16_%s-14082019_RunABCD_Autumn18_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,useClosureInputs ? "L1L2L3Res": "L1L2", a);
+    s = Form("%sAutumn18_V17_%s-04092019_Func3_RunABCD_Autumn18_pT_LOGLIN_L2Residual_pythia8_%s.txt",d,useClosureInputs ? "L1L2L3Res": "L1L2", a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -451,7 +468,7 @@ void JECUncertainty::_InitL2Res() {
   string JERSFSelection="" ;
   //change to L1L2-files...
   {
-    s = Form("%sL1L2_2Par_%sCollectL2Output_DJ_PtBalMPF_Autumn18_V16ClosureD_DATA_L2L3Residual_%s.txt",d,JERSFSelection.c_str(),a); // ABCD closure test results with V16 inputs
+    s = Form("%sAutumn18_V17_L1L2L3Res_2Par_%sCollectL2Output_DJ_PtBalMPF_ABCD_DATA_L2L3Residual_%s.txt",d,JERSFSelection.c_str(),a); // ABCD closure test results with V17 inputs
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -459,7 +476,7 @@ void JECUncertainty::_InitL2Res() {
     _jecL2L3Res2ParDiJet = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%sL1L2_2Par_%sCollectL2Output_gam_zll_PtBalMPF_Autumn18_V16ClosureD_DATA_L2L3Residual_%s.txt",d,JERSFSelection.c_str(),a); // ABCD closure test results with V16 inputs
+    s = Form("%sAutumn18_V17_L1L2L3Res_2Par_%sCollectL2Output_gam_zll_PtBalMPF_ABCD_DATA_L2L3Residual_%s.txt",d,JERSFSelection.c_str(),a); // ABCD closure test results with V17 inputs
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -467,7 +484,7 @@ void JECUncertainty::_InitL2Res() {
     _jecL2L3Res2ParZGamJet = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%sL1L2_1Par_CollectL2Output_DJ_PtBalMPF_Autumn18_V16ClosureD_DATA_L2L3Residual_%s.txt",d,a); // ABCD closure test results with V16 inputs
+    s = Form("%sAutumn18_V17_L1L2L3Res_1Par_CollectL2Output_DJ_PtBalMPF_ABCD_DATA_L2L3Residual_%s.txt",d,a); // ABCD closure test results with V17 inputs
     //    s = Form("%sAutumn18_RunD_V5M2_FLAT_DATA_L2L3Residual_%s.txt",d,a); // RunD results for Dijet+barrel global fit vs. zjet only (no L2Res from dijets before)
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
@@ -476,7 +493,7 @@ void JECUncertainty::_InitL2Res() {
     _jecL2L3ResConstDiJet = new FactorizedJetCorrector(v);
   }
   {
-    s = Form("%sL1L2_1Par_CollectL2Output_gam_zll_PtBalMPF_Autumn18_V16ClosureD_DATA_L2L3Residual_%s.txt",d,a); // ABCD closure test results with V16 inputs
+    s = Form("%sAutumn18_V17_L1L2L3Res_1Par_CollectL2Output_gam_zll_PtBalMPF_ABCD_DATA_L2L3Residual_%s.txt",d,a); // ABCD closure test results with V17 inputs
     //    s = Form("%sAutumn18_RunD_V5MZJetOnly1Par_DATA_L2L3Residual_%s.txt",d,a); // RunD results for Dijet+barrel global fit vs. zjet only (no L2Res from dijets before)
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
@@ -543,7 +560,7 @@ void JECUncertainty::_InitL2Res() {
   // For RelativeJER
   {
     //s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_JERup_L2Residual_pythia8_%s.txt",d,a);
-    s = Form("%sAutumn18_V16_L1L2L3Res-14082019_RunABCD_JERUp_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a);
+    s = Form("%sAutumn18_V17_L1L2L3Res-04092019_Func3_JERUp_RunABCD_Autumn18_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -553,7 +570,7 @@ void JECUncertainty::_InitL2Res() {
   {
     //s = Form("%sSummer16_03Feb2017BCDEFGHV7_MPF_LOGLIN_JERdown_L2Residual_pythia8_%s.txt",d,a);
     //    s = Form("%sRunBCDEF_17Nov17_2017_withoutL1BXcleaning_JERdown_output_Fall17_17Nov2017_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a);
-    s = Form("%sAutumn18_V16_L1L2L3Res-14082019_RunABCD_JERDown_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a);
+    s = Form("%sAutumn18_V17_L1L2L3Res-04092019_Func3_JERDown_RunABCD_Autumn18_MPF_LOGLIN_L2Residual_pythia8_%s.txt",d,a);
     if (debug) cout << s << endl << flush;
     JetCorrectorParameters *l2l3res = new JetCorrectorParameters(s);
     vector<JetCorrectorParameters> v;
@@ -1171,13 +1188,13 @@ double JECUncertainty::_RelativeSample(const double pTprime,
   double kfactor = 1;
   double loglinerror = kfactor*(rzg / rdj - 1);
     
-  //outside of eta 2.65, take const fit difference for now
-//  if(fabs(eta)>2.649){
-//    assert(_jecL2L3ResConstDiJet);
-//    rdj = _Rjet(pt, eta, -1, -1, _jecL2L3ResConstDiJet);
-//    assert(_jecL2L3ResConstZGamJet);
-//    rzg = _Rjet(pt, eta, -1, -1, _jecL2L3ResConstZGamJet);
-//  }
+  //inside HF take const fit difference due to lack of lever arm for dijet (used to be >2.64 for older versions due to huge pt-dependence of dijets [and associated double-counting])
+  if(fabs(eta)>3.138){
+    assert(_jecL2L3ResConstDiJet);
+    rdj = _Rjet(pt, eta, -1, -1, _jecL2L3ResConstDiJet);
+    assert(_jecL2L3ResConstZGamJet);
+    rzg = _Rjet(pt, eta, -1, -1, _jecL2L3ResConstZGamJet);
+  }
   //  double kfactor = 1;
   double err = kfactor*(rzg / rdj - 1);
   //double err = kfactor*(rzg - 1);
