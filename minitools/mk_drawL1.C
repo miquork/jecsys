@@ -19,7 +19,7 @@
   gROOT->ProcessLine(".L tools.C+g");
   gROOT->ProcessLine(".L minitools/drawL1.C+g");
 
-  //drawL1("GH","DataMC");
-  drawL1("GH","CHSPF");
-  //drawL1("GH","RCL1");
+  //drawL1("ABC","DataMC");
+  //drawL1("ABC","CHSPF");
+  drawL1("ABC","RCL1");
 }

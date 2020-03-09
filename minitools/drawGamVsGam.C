@@ -1,4 +1,6 @@
 // Draw ratio of gamma+jet with two different EGamma corrections
+// run with 'root -l minitools/drawGamVsGam.C+g\(\"D\"\,\"MC\"\)'
+// or use 'root -l minitools/drawGamVsGam.C'
 #include "../tdrstyle_mod15.C"
 #include "../tools.C"
 
@@ -10,7 +12,7 @@
 #include "TF1.h"
 #include "TMultiGraph.h"
 
-void drawGamVsGam(string run = "GH") {
+void drawGamVsGam(string run = "ABC", string mode = "Data") {
 
   setTDRStyle();
 
@@ -22,17 +24,23 @@ void drawGamVsGam(string run = "GH") {
   //TFile *fn = new TFile(Form("../rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", sn.c_str()),"READ");
   //TFile *fn = new TFile(Form("../../jecsys2016/rootfiles/Gjet_combinationfile_07Aug17_L2res_%s_2016.root", sn.c_str()),"READ");
   //
-  TFile *fn = new TFile(Form("../../jecsys2016/rootfiles/Gjet_combinationfile_07Aug17_V15_L2res_run%s.root", (run=="GH" ? "FGH" : run.c_str())),"READ");
+  //TFile *fn = new TFile(Form("../../jecsys2016/rootfiles/Gjet_combinationfile_07Aug17_V15_L2res_run%s.root", (run=="GH" ? "FGH" : run.c_str())),"READ");
+  //
+  const char *cgcl = "only_L2Res";
+  //const char *cgcl = "wo_L2Res";
+  TFile *fn = new TFile(Form("rootfiles/gamjet_JEC_Autumn18_V17-JER_Autumn18_V7_2019-09-03/%s/Gjet_combinationfile_%s_%s_%s.root", cgcl, cgcl, run.c_str(), cgcl),"READ"); // V17
   assert(fn && !fn->IsZombie());
-
+  
   //TFile *fo = new TFile(Form("../rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", so.c_str()),"READ");
   //TFile *fo = new TFile(Form("../../jecsys2016/rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", sn.c_str()),"READ");
   //TFile *fo = new TFile(Form("../../jecsys/rootfiles/Gjet_combinationfile_07Aug17_nores_%s.root", so.c_str()),"READ");
   //
   //TFile *fo = new TFile(Form("../../jecsys/rootfiles/Gjet_combinationfile_07Aug17_nores_%s_%s.root", (run=="GH" ? "V1" : "V2"), (run=="GH" ? "FGH" : run.c_str())),"READ");
-  TFile *fo = new TFile(Form("../../jecsys2016/rootfiles/Gjet_combinationfile_07Aug17_L2Res_V6_%s_EGM2.root", (run=="GH" ? "FGH" : run.c_str())),"READ");
-assert(fo && !fo->IsZombie());  
+  //
+  TFile *fo = new TFile(Form("rootfiles/Gjet_combinationfile_2019-03-11_%s_%s_%s.root", cgcl, run.c_str(), cgcl),"READ"); // V8-V10
+  assert(fo && !fo->IsZombie());
 
+  /*
   TGraphErrors *gn = (TGraphErrors*)fn->Get("resp_MPFchs_DATA_a30_eta00_13");
   assert(gn);
   TGraphErrors *gn2 = (TGraphErrors*)fn->Get("resp_PtBalchs_DATA_a30_eta00_13");
@@ -41,14 +49,59 @@ assert(fo && !fo->IsZombie());
   assert(go);
   TGraphErrors *go2 = (TGraphErrors*)fo->Get("resp_PtBalchs_DATA_a30_eta00_13");
   assert(go2);
+  */
+  //string mode = "MC";
+  TGraphErrors *gn(0), *gn2(0), *go(0), *go2(0);
+  if (mode=="Data") {
+    gn = (TGraphErrors*)fn->Get("resp_MPFchs_DATA_a30_eta00_13");
+    gn2 = (TGraphErrors*)fn->Get("resp_PtBalchs_DATA_a30_eta00_13");
+    go = (TGraphErrors*)fo->Get("resp_MPFchs_DATA_a30_eta00_13");
+    go2 = (TGraphErrors*)fo->Get("resp_PtBalchs_DATA_a30_eta00_13");
+  }
+  if (mode=="MC") {
+    gn = (TGraphErrors*)fn->Get("resp_MPFchs_MC_a30_eta00_13");
+    gn2 = (TGraphErrors*)fn->Get("resp_PtBalchs_MC_a30_eta00_13");
+    go = (TGraphErrors*)fo->Get("resp_MPFchs_MC_a30_eta00_13");
+    go2 = (TGraphErrors*)fo->Get("resp_PtBalchs_MC_a30_eta00_13");
+  }
+  assert(gn);
+  assert(gn2);
+  assert(go);
+  assert(go2);
 
 
   // Same for Z
-  TFile *fzn = new TFile(Form("../../jecsys2016/rootfiles/zjet_combination_07Aug2017_Summer16_JECV15_Zmm_%s_2018-09-14.root",run.c_str()),"READ");
+  //TFile *fzn = new TFile(Form("../../jecsys2016/rootfiles/zjet_combination_07Aug2017_Summer16_JECV15_Zmm_%s_2018-09-14.root",run.c_str()),"READ");
+  //
+  map<string,const char*> fz_dirs;
+  fz_dirs["A"] = "Run2018A";
+  fz_dirs["B"] = "Run2018B";
+  fz_dirs["C"] = "Run2018C";
+  fz_dirs["ABC"] = "Run2018ABC";
+  fz_dirs["D"] = "Run2018D";
+  fz_dirs["ABCD"] = "Run2018ABCD";
+  TFile *fzmm = new TFile("rootfiles/FullCombination_Zmm_17Sep2018_Autumn18_JECv17.root","READ"); // V18
+  assert(fzmm && !fzmm->IsZombie());
+  // Redirection
+  TDirectory *dzmm = fzmm->GetDirectory(fz_dirs[run],true);
+  // Hack to avoid rewriting rest of code for dzmm, dzee. Get() still works
+  TFile *fzn = (TFile*)dzmm;
+  assert(fzn);
 
-  TFile *fzo = new TFile(Form("../../jecsys2016/rootfiles/zjet_combination_07Aug2017_Summer16_JECV6_Zmm_%s_2018-03-06.root",run.c_str()),"READ");
+  //TFile *fzo = new TFile(Form("../../jecsys2016/rootfiles/zjet_combination_07Aug2017_Summer16_JECV6_Zmm_%s_2018-03-06.root",run.c_str()),"READ");
   //zjet_pileupSummary_07Aug2017_Summer16_JECV6_Zmm_%s_2018-03-27.root
+  //
+  map<string,const char*> fz_files;
+  fz_files["A"] = "A_2019-03-01";
+  fz_files["B"] = "B_2019-03-01";
+  fz_files["C"] = "C_2019-03-01";
+  fz_files["D"] = "D_2019-03-05";
+  fz_files["ABC"] = "ABC_2019-03-01";
+  fz_files["ABCD"] = "ABCD_2019-03-05";
+  TFile *fzo = new TFile(Form("rootfiles/zjet_combination_17Sep2018_Autumn18_JECV5_Zmm_%s.root",fz_files[run]),"READ"); // V7
+  assert(fzo && !fzo->IsZombie());
 
+  /*
   TGraphErrors *gzn = (TGraphErrors*)fzn->Get("Data_MPF_CHS_a30_eta_00_13_L1L2Res");
   assert(gzn);
   TGraphErrors *gzn2 = (TGraphErrors*)fzn->Get("Data_PtBal_CHS_a30_eta_00_13_L1L2Res");
@@ -56,6 +109,38 @@ assert(fo && !fo->IsZombie());
   TGraphErrors *gzo = (TGraphErrors*)fzo->Get("Data_MPF_CHS_a30_eta_00_13_L1L2L3");//Res");
   assert(gzo);
   TGraphErrors *gzo2 = (TGraphErrors*)fzo->Get("Data_PtBal_CHS_a30_eta_00_13_L1L2L3");//Res");
+  assert(gzo2);
+  */
+  TGraphErrors *gzn(0), *gzn2(0), *gzo(0), *gzo2(0);
+  if (mode=="Data") {
+    // No L2Res
+    /*
+    gzn = (TGraphErrors*)fzn->Get("Data_MPF_CHS_a30_eta_00_13_L1L2L3");
+    gzn2 = (TGraphErrors*)fzn->Get("Data_PtBal_CHS_a30_eta_00_13_L1L2L3");
+    gzo = (TGraphErrors*)fzo->Get("Data_MPF_CHS_a30_eta_00_13_L1L2L3");
+    gzo2 = (TGraphErrors*)fzo->Get("Data_PtBal_CHS_a30_eta_00_13_L1L2L3");
+    */
+    // With L2Res (not available for Z+jet D, ABCD)
+    gzn = (TGraphErrors*)fzn->Get("Data_MPF_CHS_a30_eta_00_13_L1L2Res");
+    gzn2 = (TGraphErrors*)fzn->Get("Data_PtBal_CHS_a30_eta_00_13_L1L2Res");
+    gzo = (TGraphErrors*)fzo->Get("Data_MPF_CHS_a30_eta_00_13_L1L2Res");
+    gzo2 = (TGraphErrors*)fzo->Get("Data_PtBal_CHS_a30_eta_00_13_L1L2Res");
+  }
+  if (mode=="MC") {
+    // No L2Res
+    gzn = (TGraphErrors*)fzn->Get("MC_MPF_CHS_a30_eta_00_13_L1L2L3");
+    gzn2 = (TGraphErrors*)fzn->Get("MC_PtBal_CHS_a30_eta_00_13_L1L2L3");
+    gzo = (TGraphErrors*)fzo->Get("MC_MPF_CHS_a30_eta_00_13_L1L2L3");
+    gzo2 = (TGraphErrors*)fzo->Get("MC_PtBal_CHS_a30_eta_00_13_L1L2L3");
+    // With L2Res not applicable to MC
+    //gzn = (TGraphErrors*)fzn->Get("MC_MPF_CHS_a30_eta_00_13_L1L2Res");
+    //gzn2 = (TGraphErrors*)fzn->Get("MC_PtBal_CHS_a30_eta_00_13_L1L2Res");
+    //gzo = (TGraphErrors*)fzo->Get("MC_MPF_CHS_a30_eta_00_13_L1L2Res");
+    //gzo2 = (TGraphErrors*)fzo->Get("MC_PtBal_CHS_a30_eta_00_13_L1L2Res");
+  }
+  assert(gzn);
+  assert(gzn2);
+  assert(gzo);
   assert(gzo2);
 
 //gn->SetMarkerStyle(kFullCircle);
@@ -65,25 +150,34 @@ assert(fo && !fo->IsZombie());
 //go->Draw("SAMEP");
 									
   double ptmax = 2.*1200.;
-  TH1D *hup = new TH1D("hup",";p_{T,#gamma} (GeV);MPF or p_{T}^{bal}",670,30,ptmax);
+  TH1D *hup = new TH1D("hup",";p_{T,Z/#gamma} (GeV);MPF or p_{T}^{bal}",670,30,ptmax);
   hup->SetMinimum(0.83);//0.84);
   hup->SetMaximum(1.03);//1.00);
   hup->GetXaxis()->SetMoreLogLabels();
   hup->GetXaxis()->SetNoExponent();
 
-  TH1D *hdw = new TH1D("hdw",";p_{T} (GeV);New / Old - 1 (%)",670,30,ptmax);
-  hdw->SetMinimum(-2.5+1e-4);//(0.985+1e-5-1)*100);
-  hdw->SetMaximum(+4.5);//(1.025+1e-5-1)*100);
+  //TH1D *hdw = new TH1D("hdw",";p_{T} (GeV);New / Old - 1 (%)",670,30,ptmax);
+  TH1D *hdw = new TH1D("hdw",";p_{T} (GeV);V17 / V8 - 1 (%)",670,30,ptmax);
+  hdw->SetMinimum(-2.5+1e-4);//-2.5+1e-4);
+  hdw->SetMaximum(+2.0-1e-4);//+4.5);
   hdw->GetXaxis()->SetMoreLogLabels();
   hdw->GetXaxis()->SetNoExponent();
 
   map<string, const char*> lumimap;
+  /*
   lumimap["BCD"] = "Run2016BCD Legacy, 12.9 fb^{-1}";
   lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
   lumimap["FG"] = "Run2016fG Legacy, 8.0 fb^{-1}";
   lumimap["H"] = "Run2016H Legacy, 8.8 fb^{-1}";
   lumimap["GH"] = "Run2016fGH Legacy, 16.8 fb^{-1}";
   lumimap["BCDEFGH"] = "Run2016BCDEFGH Legacy, 36.5 fb^{-1}";
+  */
+  lumimap["A"] = "Run2018A, 14.0 fb^{-1}";
+  lumimap["B"] = "Run2018B, 7.1 fb^{-1}";
+  lumimap["C"] = "Run2018C, 6.9 fb^{-1}";
+  lumimap["D"] = "Run2018D, 31.9 fb^{-1}";
+  lumimap["ABC"] = "Run2018ABC, 28.0 fb^{-1}";
+  lumimap["ABCD"] = "Run2018ABCD, 59.9 fb^{-1}";
   lumi_13TeV = lumimap[run];
   TCanvas *c1 = tdrDiCanvas("c1",hdw,hup,4,11);
 
@@ -136,11 +230,12 @@ assert(fo && !fo->IsZombie());
     gzr2->SetPointError(i, gzr2->GetEX()[i], (gzn2->GetEY()[i])*100);
   }
 
-  //TLegend *legdw = tdrLeg(0.5,0.70,0.70,0.90);
-  TLegend *legdw = tdrLeg(0.5,0.78,0.70,0.90);
+  TLegend *legdw = tdrLeg(0.5,0.72,0.70,0.90);
+  legdw->SetHeader(" #gamma + jet");
   legdw->AddEntry(gr,"MPF","PL");
   legdw->AddEntry(gr2,"p_{T} balance","PL");
-  TLegend *legz = tdrLeg(0.45,0.78,0.65,0.90);
+  TLegend *legz = tdrLeg(0.45,0.72,0.65,0.90);
+  legz->SetHeader("Z_{#mu#mu}");
   legz->AddEntry(gzr," ","PL");
   legz->AddEntry(gzr2," ","PL");
 
@@ -162,15 +257,28 @@ assert(fo && !fo->IsZombie());
   fs->SetLineStyle(kSolid);//Dotted);
   //fs->SetLineWidth(2);
   fs->SetLineColor(kBlue);//kBlack);
-  fs->Draw("SAME");
-  
+  //fs->Draw("SAME");
+
+  gm->Add(gzr);
+  gm->Add(gzr2);
+
+  TF1 *fs2 = new TF1("fs2","([0]+[1]*log(x/30.)+[2]*(x-30.))/x",30,2000);
+  fs2->SetParameters(0.3, 0.2, 0);
+  gm->Fit(fs2,"QRN");
+  fs2->SetLineStyle(kSolid);
+  fs2->SetLineWidth(3);
+  fs2->SetLineColor(kGreen+2);
+  fs2->Draw("SAME");  
+
   TLatex *tex = new TLatex();
   tex->SetNDC();
   tex->SetTextSize(0.045);
   tex->DrawLatex(0.20,0.72,"#alpha < 0.30");
-  tex->DrawLatex(0.20,0.67,"Data only");
+  if (mode=="Data") tex->DrawLatex(0.20,0.67,"Data only");
+  if (mode=="MC") tex->DrawLatex(0.20,0.67,"MC only");
 
 
+  /*
   tex->SetTextColor(kBlue);
   tex->DrawLatex(0.20,0.23,Form("#Delta = %1.2f #pm %1.2f%%",
 				fs->GetParameter(1)-fs->GetParameter(0),
@@ -182,7 +290,17 @@ assert(fo && !fo->IsZombie());
 				fs->GetParameter(1), fs->GetParError(1)));
   tex->DrawLatex(0.20,0.05,Form("#chi^{2} / NDF = %1.1f / %d",
 				fs->GetChisquare(), fs->GetNDF()));
-
+  */
+  tex->SetTextColor(kGreen+2);
+  tex->DrawLatex(0.20,0.25,"([0]+[1]*log(x/30)+[2]*(x-30))/x");
+  tex->DrawLatex(0.20,0.20,Form("p_{0} = %1.2ff #pm %1.2f",
+				fs2->GetParameter(0), fs2->GetParError(0)));
+  tex->DrawLatex(0.20,0.15,Form("p_{1} = %1.2f #pm %1.2f",
+				fs2->GetParameter(1), fs2->GetParError(1)));
+  tex->DrawLatex(0.20,0.10,Form("p_{1} = %1.2f #pm %1.2f",
+				fs2->GetParameter(2), fs2->GetParError(2)));
+  tex->DrawLatex(0.20,0.05,Form("#chi^{2} / NDF = %1.1f / %d",
+				fs2->GetChisquare(), fs2->GetNDF()));
 
   // Compare to Zee mass corrections
   TF1 *f1mzee = new TF1("f1mzee","(1./([0]+[1]*log(2*x)+[2]*log(2*x)*log(2*x))"
@@ -208,5 +326,6 @@ assert(fo && !fo->IsZombie());
   f1mzee->SetLineStyle(kSolid);
   //legdw->AddEntry(f1mzee,"Z#rightarrow ee mass + 0.5%","L");
 
-  c1->SaveAs(Form("../pdf/drawGamVsGam_Run%s.pdf",run.c_str()));
+  //c1->SaveAs(Form("../pdf/drawGamVsGam_Run%s.pdf",run.c_str()));
+  c1->SaveAs(Form("pdf/drawGamVsGam_2018Run%s_%s.pdf",run.c_str(),mode.c_str()));
 }

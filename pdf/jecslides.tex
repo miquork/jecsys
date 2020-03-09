@@ -4,16 +4,23 @@
 %\usepackage{geometry} % SIVUN DIMENSION MUUTTAMISTA VARTEN
 %\geometry{a4paper} % or letterpaper (US) or a5paper or....
 %\addtolength{\topmargin}{-.5in} 
-\addtolength{\topmargin}{.2cm} 
 %\addtolength{\textheight}{1.75in}
 %\addtolength{\oddsidemargin}{.1in}
-\addtolength{\oddsidemargin}{-.3in}
 %\addtolength{\evensidemargin}{-.4in}
+%
+\addtolength{\topmargin}{.2cm} 
+%\addtolength{\topmargin}{-.2cm} 
+\addtolength{\oddsidemargin}{-.3in}
 \addtolength{\evensidemargin}{-.3in}
 \addtolength{\textwidth}{0.6in}
+%
+%\addtolength{\textheight}{-0.4cm}
+%\addtolength{\bottommargin}{+0.2cm}
 \newcommand{\commentout}[1]{}
 
-\pagestyle{empty}
+%\pagestyle{empty}
+%\setbeamertemplate{footline}[frame number]
+\pagestyle{plain}
 
 \begin{document}
 
@@ -28,44 +35,49 @@
 L3Res global fit status\\
 \today\\
 Mikko Voutilainen, U. Helsinki and HIP\\
+Henning Kirschenmann, HIP\\
 {. }\\
 {. }\\
-%{\bf Results for Sum16\_V15 MAX inclusive}\\
-{\bf Results for Sum16\_V16 ROBUST inputs}\\
+%{\bf Results for Autumn18\_V5 inputs vs V8 reference}\\
+{\bf Results for Autumn18\_V17 inputs vs V17 reference}\\
 \end{centering}
 
 \newpage
 
-%The following slides use inputs from the L3Res teams, posted on the virtual JEC agenda of April 4, 2018 ( \url{https://indico.cern.ch/event/719411/} around mi-April 2018 (up to April 14$^{\rm th}$).
-The following slides use inputs from the L3Res teams, posted on the virtual JEC agenda of Sep 17, 2018 ( \url{https://indico.cern.ch/event/758051/}.
-%These have been processed on top of the \verb|Summer16_07Aug17*_V6_[DATA/MC]| corrections in the JEC database, up to \verb|L2Residual|.\\
-These have been processed on top of the \verb|Summer16_07Aug17*_V16_[DATA/MC]| corrections in the JEC database, up to \verb|L2Residual|.\\
+%The following slides use inputs from the L3Res teams, posted on the JEC agenda of March 4, 2019 ( \url{https://indico.cern.ch/event/802822/} ).
+%These have been processed on top of the \verb|Autumn18_Run*_V5_[DATA/MC]| corrections in the JEC database, up to \verb|L2Residual|.\\
+These have been processed on top of the \verb|Autumn18_Run*_V17_[DATA/MC]| corrections in the JEC database, up to \verb|L2Residual|. The \verb|V17| has the same L3Res as \verb|V10| and later versions.
+The JER SF use \verb|Autumn18_V7_MC_SF| (same for all IOVs), except multijet that has SF \verb|V4| for MadGraph samples, but does not use forward jets for recoil. \\
 .\\
 I would like to extend special thanks to
 \begin{itemize}
-%  \item Alexx Perloff and Sifu Luo for MC truth corrections (L1L2L3)
-  \item Andrew Overton and Sifu Luo for MC truth corrections (L1L2L3)
-  \item Bahareh Roozbahani and Ia Iashvili for L1Res+L1RC
-  \item Jens Multhaup and Anastasia Karavdina for L2Res
+%  \item Andrew Overton and Sifu Luo for MC truth corrections (L1L2L3)
+%  \item Bahareh Roozbahani and Ia Iashvili for L1Res+L1RC
+%  \item Jens Multhaup and Anastasia Karavdina for L2Res
   \item Daniel Savoiu for Z+jet inputs to L3Res global fit
-  \item Hugues Lattaud and Viola Sordini for $\gamma$+jet inputs to L3Res global fit
-  \item Andrey Popov for multijet inputs to L3Res global fit
-  \item Henning Kirschenmann for integrating new multijets in the global fit
-  \item Hannu Siikonen for valuable checks of the PFJet composition on dijets
+  \item Lucas Torterotot for $\gamma$+jet inputs to L3Res global fit
+%  \item Andrey Popov for multijet inputs to L3Res global fit
+  \item Minsuk Kim for multijet inputs to L3Res global fit
+  \item Henning Kirschenmann for integrating new inputs to global fit
+%  \item Hannu Siikonen for valuable checks of the PFJet composition on dijets
 \end{itemize}
 
 \newpage
 
 Some notes about current global fit settings:
 \begin{itemize}
-\item The electron and muon scales are corrected with the Z mass in RunBCDEFGH. This is measured in bins of Z $p_T$ and fitted with quadratic logarithmic function (constant for Z$\mu\mu$). The Z mass fit uncertainty is added to the statistical uncertainty for each sample, and the Zee and Z$\mu\mu$ are subsequently combined into Zll, which is used in global fit to avoid decorrelated $k_{\rm FSR}$
+\item The electron and muon scales are corrected with the Z mass in RunABCD. This is measured in bins of Z $p_T$ and fitted with quadratic logarithmic function (constant for Z$\mu\mu$). The Z mass fit uncertainty is added to the statistical uncertainty for each sample, and the Zee and Z$\mu\mu$ are subsequently combined into Zll, which is used in global fit to avoid decorrelated $k_{\rm FSR}$
 \item The photon scale is corrected with the Zee mass at $p_{T,Z}=2\times p_{T,\gamma}$, and the fit uncertainty is added to the statistical uncertainty
 \item The reference scale uncertainties are set to 0.2\% for combined leptons (l=e+$\mu$), 0.5\% for photons
-%\item The reference scale uncertainties are set to {\bf 0.2\%} for combined leptons (l=e+$\mu$), 0.5\% for photons
 \item The MPF method is given an additional 0.5\% uncertainty for $\gamma$+jet and 0.2\% for Zll+jet (for 40\% Zee+jet) to cover for possible residual EM footprint effects
-\item JEC parameterization is the 3-p fit already used in Run I, {\bf but updated to the new quadratic-log L1-RC difference} with $p_2$ floating; tracker dynamic inefficiency is (hopefully) adequately absorbed in this fit for BCDEF
+\item The pTbal method is given an additional 0.5\% uncertainty for $\gamma$+jet and for Zll+jet to account for FSR correction time instability (physics does not change with time, so only MPF should have time dependence, if any). This is to avoid giving pTbal method more weight than MPF.
+\item JEC parameterization is the 2-p fit previously used in 2017.
+%\item JEC parameterization is the 3-p fit already used in Run I, {\bf but updated to the new quadratic-log L1-RC difference} with $p_2$ floating; tracker dynamic inefficiency is (hopefully) adequately absorbed in this fit for BCDEF
 %\item Multijet uncertainties have not been thoroughly revised yet, and use old Run I estimates
-\item {\bf Multijet inputs are missing}
+%\item {\bf $\gamma$+jet input bad for RunD and missing for RunABC and RunABCD. Not used in global for these runs, but may have RunC displayed as placeholder.}
+  %\item {\bf No multijet inputs.}
+\item {\bf Multijet uses JER SF V4 and ABC pileup profile for MadGraph MC.}
+\item {\bf Multijet uncertainties in global fit TBC. High $p_T$ binning TBrD.}
 \end{itemize}
 
 \newpage
@@ -83,64 +95,56 @@ Some notes about current global fit settings:
 \end{itemize}
 
 \newpage
-
-
-\begin{figure}[p]
+\begin{figure}[hp!]
 \centering
-  \includegraphics[width=0.32\textwidth]{drawZmass_RunBCDEFGH.pdf}
-  \includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunBCDEFGH_nomasscorr.pdf}
-  \includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunBCDEFGH_masscorr.pdf}
-  %\includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunBCDEFGH.pdf}
+  \includegraphics[width=0.32\textwidth]{drawZmass_RunABCD.pdf}
+  \includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunABCD_nomasscorr_noFSR.pdf}
+  \includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunABCD_masscorr.pdf}
 \caption{
 (a) Shift in Zee and Z$\mu\mu$ masses versus Z $p_T$.
 (b) MPF and $p_T$ balance for Zee+jet and $\gamma$+jet versus Z$\mu\mu$+jet before JME corrections.
 (b) MPF and $p_T$ balance for Zee+jet and $\gamma$+jet versus Z$\mu\mu$+jet after JME corrections.
-{\bf $\gamma$+jet is GH.}
+{\bf $\gamma$+jet is C.}
 }
 \end{figure}
 
 \newpage
-
-\begin{figure}[p]
+\begin{figure}[htp!]
   \centering
-  \includegraphics[width=0.32\textwidth]{drawZmass_RunBCD.pdf}
-  \includegraphics[width=0.32\textwidth]{drawZmass_RunEF.pdf}
-  \includegraphics[width=0.32\textwidth]{drawZmass_RunGH.pdf}
-\caption{
-Shift in Zee and Z$\mu\mu$ masses versus Z $p_T$ for run (a) BCD, (b) EF, (c) GH. Black line indicates the Zee fit from BCDEFGH that is used to correct all eras.
-}
-\end{figure}
-
-\begin{figure}[p]
-\centering
-  \includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunBCD_nomasscorr.pdf}
-  \includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunEF_nomasscorr.pdf}
-  \includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunGH_nomasscorr.pdf}
-  %\includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunBCD.pdf}
-  %\includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunEF.pdf}
-  %\includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunGH.pdf}
-\caption{
-MPF and $p_T$ balance for Zee+jet and $\gamma$+jet versus Z$\mu\mu$+jet before JME corrections for run (a) BCD, (b) EF, (c) GH. 
-}
+  \includegraphics[width=0.24\textwidth]{drawZmass_RunA.pdf}
+  \includegraphics[width=0.24\textwidth]{drawZmass_RunB.pdf}
+  \includegraphics[width=0.24\textwidth]{drawZmass_RunC.pdf}
+  \includegraphics[width=0.24\textwidth]{drawZmass_RunD.pdf}\\
+  \includegraphics[width=0.24\textwidth]{drawZmass_RunABC.pdf}
+  \includegraphics[width=0.24\textwidth]{drawZmass_RunABCD.pdf}
+\caption{Shift in Zee and Z$\mu\mu$ masses versus Z $p_T$ for run (a) A, (b) B, (c) C, (d) D. Black line indicates the Zee fit from ABCD that is used to correct all eras.}
 \end{figure}
 
 \newpage
-
-\begin{figure}[p]
+\begin{figure}[htp!]
 \centering
-  %\includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunBCD_masscorr.pdf}
-  %\includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunEF_masscorr.pdf}
-  %\includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunGH_masscorr.pdf}
- \includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunBCD_masscorr.pdf}
- \includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunEF_masscorr.pdf}
-  \includegraphics[width=0.32\textwidth]{drawZeeVsZmm_RunGH_masscorr.pdf}
-\caption{
-MPF and $p_T$ balance for Zee+jet and $\gamma$+jet versus Z$\mu\mu$+jet after JME corrections for run (a) BCD, (b) EF, (c) GH. 
-}
+  \includegraphics[width=0.24\textwidth]{drawZeeVsZmm_RunA_nomasscorr_noFSR.pdf}
+  \includegraphics[width=0.24\textwidth]{drawZeeVsZmm_RunB_nomasscorr_noFSR.pdf}
+  \includegraphics[width=0.24\textwidth]{drawZeeVsZmm_RunC_nomasscorr_noFSR.pdf}
+  \includegraphics[width=0.24\textwidth]{drawZeeVsZmm_RunD_nomasscorr_noFSR.pdf}\\
+  \includegraphics[width=0.24\textwidth]{drawZeeVsZmm_RunABC_nomasscorr_noFSR.pdf}
+  \includegraphics[width=0.24\textwidth]{drawZeeVsZmm_RunABCD_nomasscorr_noFSR.pdf}
+\caption{MPF and $p_T$ balance for Zee+jet and $\gamma$+jet versus Z$\mu\mu$+jet before JME corrections for run (a) A, (b) B, (c) C, (d) D.}
 \end{figure}
 
 \newpage
+\begin{figure}[htp!]
+\centering
+ \includegraphics[width=0.24\textwidth]{drawZeeVsZmm_RunA_masscorr.pdf}
+ \includegraphics[width=0.24\textwidth]{drawZeeVsZmm_RunB_masscorr.pdf}
+ \includegraphics[width=0.24\textwidth]{drawZeeVsZmm_RunC_masscorr.pdf}
+ \includegraphics[width=0.24\textwidth]{drawZeeVsZmm_RunD_masscorr.pdf}\\
+ \includegraphics[width=0.24\textwidth]{drawZeeVsZmm_RunABC_masscorr.pdf}
+ \includegraphics[width=0.24\textwidth]{drawZeeVsZmm_RunABCD_masscorr.pdf}
+\caption{MPF and $p_T$ balance for Zee+jet and $\gamma$+jet versus Z$\mu\mu$+jet after JME corrections for run (a) A, (b) B, (c) C, (d) D.}
+\end{figure}
 
+\newpage
 \begin{figure}[p]
 \centering
 \includegraphics[width=0.49\textwidth]{drawMJBfsr_vsPt.pdf}
@@ -150,49 +154,68 @@ MPF and $p_T$ balance for Zee+jet and $\gamma$+jet versus Z$\mu\mu$+jet after JM
 (b) Run I uncertainties for multijet. Open triangles are the Run I MPF and MJB, full triangles is their difference. Dashed histogram is the Run II MJB-MPF difference.}
 \end{figure}
 
-%\newpage
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{drawABCvsD_data_mpfchs1.pdf}
+  \includegraphics[width=0.33\textwidth]{drawABCvsD_data_ptchs.pdf}
+  \includegraphics[width=0.33\textwidth]{drawABCvsD_data_mpfchs1_ptchs.pdf}\\
+  \includegraphics[width=0.33\textwidth]{drawABCvsD_mc_mpfchs1.pdf}
+  \includegraphics[width=0.33\textwidth]{drawABCvsD_mc_ptchs.pdf}
+  \includegraphics[width=0.33\textwidth]{drawABCvsD_mc_mpfchs1_ptchs.pdf}\\
+%\caption{}
+\end{figure}
 
-%\begin{figure}[p]
-%\centering
-%  \includegraphics[width=0.39\textwidth]{BCD/globalFitL3res_shifted_p2.pdf}
-%  \includegraphics[width=0.39\textwidth]{EF/globalFitL3res_shifted_p2.pdf}\\
-%  \includegraphics[width=0.39\textwidth]{GH/globalFitL3res_shifted_p2.pdf}
-%  \includegraphics[width=0.39\textwidth]{BCDEFGH/globalFitL3res_shifted_p2.pdf}
-%\caption{Final fit results for BCD, EF, GH and BCDEFGH.}
-%\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{drawABCvsD_ratio_mpfchs1.pdf}
+  \includegraphics[width=0.33\textwidth]{drawABCvsD_ratio_ptchs.pdf}
+  \includegraphics[width=0.33\textwidth]{drawABCvsD_ratio_mpfchs1_ptchs.pdf}
+%\caption{}
+\end{figure}
+
+
 
 \newpage
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.39\textwidth]{BCD/globalFitL3res_shifted.pdf}
-  \includegraphics[width=0.39\textwidth]{EF/globalFitL3res_shifted.pdf}\\
-  \includegraphics[width=0.39\textwidth]{GH/globalFitL3res_shifted.pdf}
-  \includegraphics[width=0.39\textwidth]{BCDEFGH/globalFitL3res_shifted.pdf}
-%\caption{Final fit results for BCD, EF, GH and BCDEFGH.}
+  \includegraphics[width=0.33\textwidth]{A/globalFitL3res_shifted.pdf}
+  \includegraphics[width=0.33\textwidth]{B/globalFitL3res_shifted.pdf}
+  \includegraphics[width=0.33\textwidth]{C/globalFitL3res_shifted.pdf}\\
+  \includegraphics[width=0.33\textwidth]{D/globalFitL3res_shifted.pdf}
+  \includegraphics[width=0.33\textwidth]{ABC/globalFitL3res_shifted.pdf}
+  \includegraphics[width=0.33\textwidth]{ABCD/globalFitL3res_shifted.pdf}
+%\caption{Final fit results for A, B, C and ABC.}
 \end{figure}
 
 \newpage 
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.39\textwidth]{BCD/globalFitL3res_orig.pdf}
-  \includegraphics[width=0.39\textwidth]{EF/globalFitL3res_orig.pdf}\\
-  \includegraphics[width=0.39\textwidth]{GH/globalFitL3res_orig.pdf}
-  \includegraphics[width=0.39\textwidth]{BCDEFGH/globalFitL3res_orig.pdf}
-%\caption{Pre-fit (post-FSR) results for BCD, EF, GH and BCDEFGH.}
+  \includegraphics[width=0.33\textwidth]{A/globalFitL3res_orig.pdf}
+  \includegraphics[width=0.33\textwidth]{B/globalFitL3res_orig.pdf}
+  \includegraphics[width=0.33\textwidth]{C/globalFitL3res_orig.pdf}\\
+  \includegraphics[width=0.33\textwidth]{D/globalFitL3res_orig.pdf}
+  \includegraphics[width=0.33\textwidth]{ABC/globalFitL3res_orig.pdf}
+  \includegraphics[width=0.33\textwidth]{ABCD/globalFitL3res_orig.pdf}
+%\caption{Pre-fit (post-FSR) results for A, B, C and ABC.}
 \end{figure}
 
 \newpage
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.39\textwidth]{BCD/globalFitL3res_raw.pdf}
-  \includegraphics[width=0.39\textwidth]{EF/globalFitL3res_raw.pdf}\\
-  \includegraphics[width=0.39\textwidth]{GH/globalFitL3res_raw.pdf}
-  \includegraphics[width=0.39\textwidth]{BCDEFGH/globalFitL3res_raw.pdf}
-%\caption{Raw (Pre-fit, pre-FSR) results for BCD, EF, GH and BCDEFGH.}
+  \includegraphics[width=0.33\textwidth]{A/globalFitL3res_raw.pdf}
+  \includegraphics[width=0.33\textwidth]{B/globalFitL3res_raw.pdf}
+  \includegraphics[width=0.33\textwidth]{C/globalFitL3res_raw.pdf}\\
+  \includegraphics[width=0.33\textwidth]{D/globalFitL3res_raw.pdf}
+  \includegraphics[width=0.33\textwidth]{ABC/globalFitL3res_raw.pdf}
+  \includegraphics[width=0.33\textwidth]{ABCD/globalFitL3res_raw.pdf}
+%\caption{Raw (Pre-fit, pre-FSR) results for A, B, C and ABC.}
 \end{figure}
+
 
 \commentout{
 
@@ -238,60 +261,90 @@ MPF and $p_T$ balance for Zee+jet and $\gamma$+jet versus Z$\mu\mu$+jet after JM
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.33\textwidth]{BCD/globalFitL3res_raw.pdf}
-  \includegraphics[width=0.33\textwidth]{BCD/globalFitL3res_orig.pdf}
-  \includegraphics[width=0.33\textwidth]{BCD/globalFitL3res_shifted.pdf}
+  \includegraphics[width=0.33\textwidth]{A/globalFitL3res_raw.pdf}
+  \includegraphics[width=0.33\textwidth]{A/globalFitL3res_orig.pdf}
+  \includegraphics[width=0.33\textwidth]{A/globalFitL3res_shifted.pdf}
 \end{figure}
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.33\textwidth]{BCD/globalFitL3res_hsrc.pdf}
-  \includegraphics[width=0.33\textwidth]{BCD/globalFitL3res_mpfchs1_kfsr.pdf}
-  \includegraphics[width=0.33\textwidth]{BCD/globalFitL3res_ptchs_kfsr.pdf}
-\end{figure}
-
-\newpage
-
-\begin{figure}[p]
-\centering
-  \includegraphics[width=0.33\textwidth]{EF/globalFitL3res_raw.pdf}
-  \includegraphics[width=0.33\textwidth]{EF/globalFitL3res_orig.pdf}
-  \includegraphics[width=0.33\textwidth]{EF/globalFitL3res_shifted.pdf}
-\end{figure}
-\begin{figure}[p]
-\centering
-  \includegraphics[width=0.33\textwidth]{EF/globalFitL3res_hsrc.pdf}
-  \includegraphics[width=0.33\textwidth]{EF/globalFitL3res_mpfchs1_kfsr.pdf}
-  \includegraphics[width=0.33\textwidth]{EF/globalFitL3res_ptchs_kfsr.pdf}
+  \includegraphics[width=0.33\textwidth]{A/globalFitL3res_hsrc.pdf}
+  \includegraphics[width=0.33\textwidth]{A/globalFitL3res_mpfchs1_kfsr.pdf}
+  \includegraphics[width=0.33\textwidth]{A/globalFitL3res_ptchs_kfsr.pdf}
 \end{figure}
 
 \newpage
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.33\textwidth]{GH/globalFitL3res_raw.pdf}
-  \includegraphics[width=0.33\textwidth]{GH/globalFitL3res_orig.pdf}
-  \includegraphics[width=0.33\textwidth]{GH/globalFitL3res_shifted.pdf}
+  \includegraphics[width=0.33\textwidth]{B/globalFitL3res_raw.pdf}
+  \includegraphics[width=0.33\textwidth]{B/globalFitL3res_orig.pdf}
+  \includegraphics[width=0.33\textwidth]{B/globalFitL3res_shifted.pdf}
 \end{figure}
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.33\textwidth]{GH/globalFitL3res_hsrc.pdf}
-  \includegraphics[width=0.33\textwidth]{GH/globalFitL3res_mpfchs1_kfsr.pdf}
-  \includegraphics[width=0.33\textwidth]{GH/globalFitL3res_ptchs_kfsr.pdf}
+  \includegraphics[width=0.33\textwidth]{B/globalFitL3res_hsrc.pdf}
+  \includegraphics[width=0.33\textwidth]{B/globalFitL3res_mpfchs1_kfsr.pdf}
+  \includegraphics[width=0.33\textwidth]{B/globalFitL3res_ptchs_kfsr.pdf}
 \end{figure}
 
 \newpage
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.33\textwidth]{BCDEFGH/globalFitL3res_raw.pdf}
-  \includegraphics[width=0.33\textwidth]{BCDEFGH/globalFitL3res_orig.pdf}
-  \includegraphics[width=0.33\textwidth]{BCDEFGH/globalFitL3res_shifted.pdf}
+  \includegraphics[width=0.33\textwidth]{C/globalFitL3res_raw.pdf}
+  \includegraphics[width=0.33\textwidth]{C/globalFitL3res_orig.pdf}
+  \includegraphics[width=0.33\textwidth]{C/globalFitL3res_shifted.pdf}
 \end{figure}
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.33\textwidth]{BCDEFGH/globalFitL3res_hsrc.pdf}
-  \includegraphics[width=0.33\textwidth]{BCDEFGH/globalFitL3res_mpfchs1_kfsr.pdf}
-  \includegraphics[width=0.33\textwidth]{BCDEFGH/globalFitL3res_ptchs_kfsr.pdf}
+  \includegraphics[width=0.33\textwidth]{C/globalFitL3res_hsrc.pdf}
+  \includegraphics[width=0.33\textwidth]{C/globalFitL3res_mpfchs1_kfsr.pdf}
+  \includegraphics[width=0.33\textwidth]{C/globalFitL3res_ptchs_kfsr.pdf}
+\end{figure}
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{D/globalFitL3res_raw.pdf}
+  \includegraphics[width=0.33\textwidth]{D/globalFitL3res_orig.pdf}
+  \includegraphics[width=0.33\textwidth]{D/globalFitL3res_shifted.pdf}
+\end{figure}
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{D/globalFitL3res_hsrc.pdf}
+  \includegraphics[width=0.33\textwidth]{D/globalFitL3res_mpfchs1_kfsr.pdf}
+  \includegraphics[width=0.33\textwidth]{D/globalFitL3res_ptchs_kfsr.pdf}
+\end{figure}
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{ABC/globalFitL3res_raw.pdf}
+  \includegraphics[width=0.33\textwidth]{ABC/globalFitL3res_orig.pdf}
+  \includegraphics[width=0.33\textwidth]{ABC/globalFitL3res_shifted.pdf}
+\end{figure}
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{ABC/globalFitL3res_hsrc.pdf}
+  \includegraphics[width=0.33\textwidth]{ABC/globalFitL3res_mpfchs1_kfsr.pdf}
+  \includegraphics[width=0.33\textwidth]{ABC/globalFitL3res_ptchs_kfsr.pdf}
+\end{figure}
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{ABCD/globalFitL3res_raw.pdf}
+  \includegraphics[width=0.33\textwidth]{ABCD/globalFitL3res_orig.pdf}
+  \includegraphics[width=0.33\textwidth]{ABCD/globalFitL3res_shifted.pdf}
+\end{figure}
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{ABCD/globalFitL3res_hsrc.pdf}
+  \includegraphics[width=0.33\textwidth]{ABCD/globalFitL3res_mpfchs1_kfsr.pdf}
+  \includegraphics[width=0.33\textwidth]{ABCD/globalFitL3res_ptchs_kfsr.pdf}
 \end{figure}
 
 \commentout{
@@ -326,63 +379,97 @@ MPF and $p_T$ balance for Zee+jet and $\gamma$+jet versus Z$\mu\mu$+jet after JM
 } % commentout
 
 \newpage
-
 \begin{figure}[p]
 \centering
-  \includegraphics[width=1.00\textwidth]{BCD/softrad_2x6_vspt_eta00-13.pdf}
+  \includegraphics[width=1.00\textwidth]{A/softrad_2x6_vspt_eta00-13.pdf}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=1.00\textwidth]{B/softrad_2x6_vspt_eta00-13.pdf}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=1.00\textwidth]{C/softrad_2x6_vspt_eta00-13.pdf}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=1.00\textwidth]{D/softrad_2x6_vspt_eta00-13.pdf}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=1.00\textwidth]{ABC/softrad_2x6_vspt_eta00-13.pdf}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=1.00\textwidth]{ABCD/softrad_2x6_vspt_eta00-13.pdf}
+\end{figure}
+
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=1.00\textwidth]{A/softrad_2x6_kfsr_eta00-13.pdf}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=1.00\textwidth]{B/softrad_2x6_kfsr_eta00-13.pdf}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=1.00\textwidth]{C/softrad_2x6_kfsr_eta00-13.pdf}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=1.00\textwidth]{D/softrad_2x6_kfsr_eta00-13.pdf}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=1.00\textwidth]{ABC/softrad_2x6_kfsr_eta00-13.pdf}
+\end{figure}
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=1.00\textwidth]{ABCD/softrad_2x6_kfsr_eta00-13.pdf}
 \end{figure}
 
 \newpage
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=1.00\textwidth]{EF/softrad_2x6_vspt_eta00-13.pdf}
+  \includegraphics[width=0.33\textwidth]{A/paper_softrad_data_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{A/paper_softrad_mc_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{A/paper_softrad_ratio_mpfchs1_vspt.pdf}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{A/paper_softrad_data_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{A/paper_softrad_mc_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{A/paper_softrad_ratio_ptchs_vspt.pdf}
 \end{figure}
 
 \newpage
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=1.00\textwidth]{GH/softrad_2x6_vspt_eta00-13.pdf}
-\end{figure}
-
-\newpage
-
-\begin{figure}[p]
-\centering
-  \includegraphics[width=1.00\textwidth]{BCDEFGH/softrad_2x6_vspt_eta00-13.pdf}
-\end{figure}
-
-\newpage
-
-\begin{figure}[p]
-\centering
-  \includegraphics[width=0.33\textwidth]{BCD/paper_softrad_data_mpfchs1_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{BCD/paper_softrad_mc_mpfchs1_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{BCD/paper_softrad_ratio_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{B/paper_softrad_data_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{B/paper_softrad_mc_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{B/paper_softrad_ratio_mpfchs1_vspt.pdf}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.33\textwidth]{BCD/paper_softrad_data_ptchs_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{BCD/paper_softrad_mc_ptchs_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{BCD/paper_softrad_ratio_ptchs_vspt.pdf}
-\end{figure}
-
-\newpage
-
-\begin{figure}[p]
-\centering
-  \includegraphics[width=0.33\textwidth]{EF/paper_softrad_data_mpfchs1_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{EF/paper_softrad_mc_mpfchs1_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{EF/paper_softrad_ratio_mpfchs1_vspt.pdf}
-\end{figure}
-
-\begin{figure}[p]
-\centering
-  \includegraphics[width=0.33\textwidth]{EF/paper_softrad_data_ptchs_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{EF/paper_softrad_mc_ptchs_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{EF/paper_softrad_ratio_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{B/paper_softrad_data_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{B/paper_softrad_mc_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{B/paper_softrad_ratio_ptchs_vspt.pdf}
 \end{figure}
 
 
@@ -425,32 +512,64 @@ MPF and $p_T$ balance for Zee+jet and $\gamma$+jet versus Z$\mu\mu$+jet after JM
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.33\textwidth]{GH/paper_softrad_data_mpfchs1_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{GH/paper_softrad_mc_mpfchs1_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{GH/paper_softrad_ratio_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{C/paper_softrad_data_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{C/paper_softrad_mc_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{C/paper_softrad_ratio_mpfchs1_vspt.pdf}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.33\textwidth]{GH/paper_softrad_data_ptchs_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{GH/paper_softrad_mc_ptchs_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{GH/paper_softrad_ratio_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{C/paper_softrad_data_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{C/paper_softrad_mc_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{C/paper_softrad_ratio_ptchs_vspt.pdf}
 \end{figure}
 
 \newpage
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.33\textwidth]{BCDEFGH/paper_softrad_data_mpfchs1_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{BCDEFGH/paper_softrad_mc_mpfchs1_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{BCDEFGH/paper_softrad_ratio_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{D/paper_softrad_data_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{D/paper_softrad_mc_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{D/paper_softrad_ratio_mpfchs1_vspt.pdf}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.33\textwidth]{BCDEFGH/paper_softrad_data_ptchs_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{BCDEFGH/paper_softrad_mc_ptchs_vspt.pdf}
-  \includegraphics[width=0.33\textwidth]{BCDEFGH/paper_softrad_ratio_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{D/paper_softrad_data_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{D/paper_softrad_mc_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{D/paper_softrad_ratio_ptchs_vspt.pdf}
+\end{figure}
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{ABC/paper_softrad_data_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{ABC/paper_softrad_mc_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{ABC/paper_softrad_ratio_mpfchs1_vspt.pdf}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{ABC/paper_softrad_data_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{ABC/paper_softrad_mc_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{ABC/paper_softrad_ratio_ptchs_vspt.pdf}
+\end{figure}
+
+\newpage
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{ABCD/paper_softrad_data_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{ABCD/paper_softrad_mc_mpfchs1_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{ABCD/paper_softrad_ratio_mpfchs1_vspt.pdf}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.33\textwidth]{ABCD/paper_softrad_data_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{ABCD/paper_softrad_mc_ptchs_vspt.pdf}
+  \includegraphics[width=0.33\textwidth]{ABCD/paper_softrad_ratio_ptchs_vspt.pdf}
 \end{figure}
 
 \newpage
@@ -782,20 +901,20 @@ MPF and $p_T$ balance for Zee+jet and $\gamma$+jet versus Z$\mu\mu$+jet after JM
 
 } %commentout
 
-\begin{itemize}
+%\begin{itemize}
 %\item Add missing BCDEFGH sample for $\gamma$+jet (now using GH)
-\item {\bf{Fixed bug where photon scale was applied to Zll}}
-\item {\bf{Updated $p_{2}$ term to quad-log to match new L1-RC difference}}
-\item {\bf{After both updates results converge near previous V10 L3Res}}
-\item Add multijets back in (waiting for new inputs)
-\item Investigate large Z+jet and $\gamma$+jet difference in run GH
+%\item {\bf{Fixed bug where photon scale was applied to Zll}}
+%\item {\bf{Updated $p_{2}$ term to quad-log to match new L1-RC difference}}
+%\item {\bf{After both updates results converge near previous V10 L3Res}}
+%\item Add multijets back in (waiting for new inputs)
+%\item Investigate large Z+jet and $\gamma$+jet difference in run GH
 %\item Follow up on large change in L3Res at low $p_T$; TFormulaEvaluator? Update offset uncertainty component?
-\item Possible to get improved shape for TDI at high $p_T$?
-\item Possibly integrate Z mass corrections as nuisances instead of adding them to statistical uncertainty for each point; more or less constraint in global fit?
+%\item Possible to get improved shape for TDI at high $p_T$?
+%\item Possibly integrate Z mass corrections as nuisances instead of adding them to statistical uncertainty for each point; more or less constraint in global fit?
 %\item Investigate MPF and $p_T$ balance consistency in dijet balance in more detail. MPF can be written in terms of $p_T$ balance plus a correction term (do the maths and add here)
 %\item Longer term for dijet balance: investigate role of radiation outside of detector coverage, which biases both MPF and $p_T$ balance in the same way. E.g. look at balance in longitudinal direction (``missing-$E_Z$'')
 %\item Check EGM regression corrections and scaling+smearing, check Zee mass in both barrel (to match photons) and endcap
-\end{itemize}
+%\end{itemize}
 
 
 \commentout{

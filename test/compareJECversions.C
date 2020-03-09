@@ -25,11 +25,11 @@ bool _usenegative = false;
 bool _usepositive = false;
 
 bool _useptgen = true; // iterate to produce JEC vs pTgen
-bool _dothree  = false;//true; // compare three JECs instead of just two
+bool _dothree  = true; // compare three JECs instead of just two
 bool _paper    = true; // graphical settings for the paper (e.g. y-axis range)
 
-const double _mu = 24.68;//12.8;//20;//19.83; // 20/fb at 8 TeV (htrpu)
-//const double _lumi = 19800.;
+//const double _mu = 24.68;
+const double _mu = 35.44; // Fall17 Z+jet nAODv4 Pileup_nTrueInt
 bool _pdf = true; // save .pdf
 bool _C   = false;//true; // save .C
 bool _mc(false);
@@ -155,7 +155,6 @@ void compareJECversions(string algo="AK4PFchs",
 
   // Initialize function used to invert JEC
   fCorrPt = new TF1("fCorrPt",funcCorrPt,1,6500,2);
-  //bool dothree = (_dothree && !(l1 && TString(a).Contains("chs")));
   bool dothree = _dothree;
 
   // Legends
@@ -164,142 +163,48 @@ void compareJECversions(string algo="AK4PFchs",
   string sgen = (_useptgen ? "corr" : "raw");
   const char *cgen = sgen.c_str();
 
-  // 2015 JEC, 76X
-  //string sid2 = (_mc ? "Summer15_25nsV6_MC" : "Summer15_25nsV6_DATA");
-  //string sid2 = (_mc ? "Fall15_25nsV1_MC" : "Fall15_25nsV1_DATA");
-  //string sid2 = (_mc ? "Spring16_25nsV8p2_MC" : "Spring16_25nsV8p2_DATA");
-  //string sid2 = (_mc ? "Spring16_23Sep2016GHV1_MC" : "Spring16_23Sep2016GHV1_DATA");
-  //string sid2 = (_mc ? "Spring16_23Sep2016BCDV1_MC" : "Spring16_23Sep2016BCDV1_DATA");
-  //string sid2 = (_mc ? "Summer16_23Sep2016BCDV1_MC" : "Summer16_23Sep2016BCDV1_DATA");
-  //string sid2 = (_mc ? "Summer16_23Sep2016BCDV1_MC" : "Summer16_23Sep2016BCDV1_DATA");
-  //string sid2 = (_mc ? "Summer16_23Sep2016GV2_MC" : "Summer16_23Sep2016GV2_DATA");
-  //string sid2 = (_mc ? "Summer16_23Sep2016V2_MC" : "Summer16_23Sep2016GV3_DATA");
-  //string sid2 = (_mc ? "Summer16_23Sep2016V3_MC" : "Summer16_23Sep2016HV3_DATA");
-  string sid2 = (_mc ? "Summer16_03Feb2017_V1_MC" : "Summer16_03Feb2017H_V3_DATA");
+  //string sid2 = (_mc ? "Summer16_03Feb2017_V1_MC" : "Summer16_03Feb2017H_V3_DATA");
+  //string sid2 = (_mc ? "UL2017_SimpleExL1_MC" : "");
+  //string sid2 = (_mc ? "UL2017_SimpleL1_MC" : "");
+  string sid2 = (_mc ? "UL2017v2_SimpleL1_MC" : "");
+  //string sid2 = (_mc ? "UL2017_SimpleCL1_MC" : "");
+  //string sid2 = (_mc ? "UL2017_ComplexL1nc_MC" : "");
   const char *cid2 = sid2.c_str();
   const char *a2 = a;
-  //const char *s2 = "1.3 fb^{-1} (13 TeV)";
-  //const char *s2s = "2012";
-  //const char *s2 = "2.1 fb^{-1} (13 TeV)";
-  //const char *s2 = "76Xv1 (13 TeV)";
-  //const char *s2s = "76X";
-  //const char *s2 = "80Xv8 G";// (13 TeV)";
-  //const char *s2 = "80XreV1 GH";// (13 TeV)";
-  //const char *s2s = "reGH";
-  //const char *s2 = "80XreV1 BCD";
-  //const char *s2s = "reV1 BCD";
-  //const char *s2 = "80Xre Sum16";
-  //const char *s2s = "Sum16";
-  //const char *s2 = "80X Sum16 BCD";
-  //const char *s2s = "BCD";
-  //const char *s2 = "80X Sum16 G";
-  //const char *s2 = "Summer16GV3";
-  //const char *s2s = "Sum16V3";
-  const char *s2 = "03Feb2017H_V3";
-  const char *s2s = "03Feb17HV3";
-  // PATCH 2012 with clones
-  //if (algo=="AK4PF") a2 = "AK5PF";
-  //if (algo=="AK4PFchs") a2 = "AK5PFchs";
+  //const char *s2 = "03Feb2017H_V3";
+  //const char *s2s = "03Feb17HV3";
+  //const char *s2 = "UL2017SimpleEx";
+  //const char *s2s = "UL17SX";
+  //const char *s2 = "UL2017SimpleS";
+  //const char *s2s = "UL17SS";
+  const char *s2 = "UL2017SimpleV2";
+  const char *s2s = "UL17Sv2";
+  //const char *s2 = "UL2017SimpleC";
+  //const char *s2s = "UL17SC";
+  //const char *s2 = "UL2017ComplexNC";
+  //const char *s2s = "UL17CNC";
 
-  // 2012 JEC
-  //string sid1 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
-  // 74X JEC
-  //string sid1 = (_mc ? "Summer15_25nsV7_MC" : "Summer15_25nsV7_DATA");
-  //string sid1 = (_mc ? "Spring16_25nsV8BCD_MC" : "Spring16_25nsV8BCD_DATA");
-  //string sid1 = (_mc ? "Spring16_23Sep2016BCDV1_MC" : "Spring16_23Sep2016BCDV1_DATA");
-  //string sid1 = (_mc ? "Summer16_23Sep2016EFV1_MC" : "Summer16_23Sep2016EFV1_DATA");
-  //string sid1 = (_mc ? "Summer16_23Sep2016EFV2_MC" : "Summer16_23Sep2016EFV2_DATA");
-  //string sid1 = (_mc ? "Spring16_23Sep2016V1_MC" : "Spring16_23Sep2016GHV1_DATA");
-  //string sid1 = (_mc ? "Spring16_23Sep2016V1_MC" : "Spring16_23Sep2016GV2_DATA");
-  //string sid1 = (_mc ? "Summer16_23Sep2016V3_MC" : "Summer16_23Sep2016HV3_DATA");
-  //string sid1 = (_mc ? "Summer16_03Feb2017_V3_MC" : "Summer16_03Feb2017G_V3_DATA");
-  string sid1 = (_mc ? "Summer16_23Sep2016_V3_MC" : "Summer16_23Sep2016HV3_DATA");
+  //string sid1 = (_mc ? "Summer16_23Sep2016_V3_MC" : "Summer16_23Sep2016HV3_DATA");
+  string sid1 = (_mc ? "UL2017_ComplexL1_MC" : "");
+  //string sid1 = (_mc ? "UL2017_SimpleL1_MC" : "");
   const char *cid1 = sid1.c_str();
-  //const char *a1 = "AK5PFchs";//a;
-  const char *a1 = "AK4PFchs";//a;
-  //const char *s1 = "23Sep2016HV3";
-  //const char *s1s = "23Sep16HV3";
-  //const char *s1 = "03Feb2017G_V3";
-  //const char *s1s = "03Feb17G_V3";
-  const char *s1 = "23Sep2016H_V3";
-  const char *s1s = "23Sep16H_V3";
-  //const char *s1 = "20 fb^{-1} (8 TeV)";
-  //const char *s1s = "2012";
-  //const char *s1 = "1.3 fb^{-1} (13 TeV)";
-  //const char *s1 = "74Xv7 (13 TeV)";
-  //const char *s1s = "74X";
-  //const char *s1 = "80XprV8 BCD";// (13 TeV)";
-  //const char *s1 = "80Xre Spr16";// (13 TeV)";
-  //const char *s1 = "80XreV1 BCD";// (13 TeV)";
-  //const char *s1s = "prV8 BCD";
-  //const char *s1s = "Spr16";
-  //const char *s1 = "80X Sum16 EFearly";
-  //const char *s1s = "EF";
-  //const char *s1 = "80X Spr16 GH";
-  //const char *s1s = "Spr16";
-  // PATCH 2012 with clones
-  //if (algo=="AK4PF") a1 = "AK5PF";
-  //if (algo=="AK4PFchs") a1 = "AK5PFchs";
+  const char *a1 = "AK4PFchs";
+  //const char *s1 = "23Sep2016H_V3";
+  //const char *s1s = "23Sep16H_V3";
+  const char *s1 = "UL2017Complex";
+  const char *s1s = "UL17C";
+  //const char *s1 = "UL2017SimpleS";
+  //const char *s1s = "UL17SS";
 
-  // 2012 JEC
-  //string sid3 = (_mc ? "Winter14_V8_MC" : "Winter14_V8_DATA");
-  string sid3 = (_mc ? "Summer16_03Feb2017_V1_MC" : "Summer16_03Feb2017H_V3_DATA");
-  //string sid3 = (_mc ? "Spring16_25nsV8E_MC" : "Spring16_25nsV8E_DATA");
-  //string sid3 = (_mc ? "Spring16_25nsV6_MC" : "Spring16_25nsV6_DATA");
-  //string sid3 = (_mc ? "Spring16_25nsV8F_MC" : "Spring16_25nsV8F_DATA");
-  //string sid3 = (_mc ? "Spring16_25nsV8E_MC" : "Spring16_25nsV8E_DATA");
-  //string sid3 = (_mc ? "Summer15_50nsV4_MC" : "Summer15_50nsV4_DATA");
-  //string sid3 = (_mc ? "Spring16_23Sep2016EV1_MC" : "Spring16_23Sep2016EV1_DATA");
-  //string sid3 = (_mc ? "Summer16_23Sep2016GV1_MC" : "Summer16_23Sep2016GV1_DATA");
-  //string sid3 = (_mc ? "Summer16_23Sep2016GV2_MC" : "Summer16_23Sep2016GV2_DATA");
-  //string sid3 = (_mc ? "Summer16_23Sep2016V2_MC" : "Summer16_23Sep2016BCDV3_DATA");
+  //string sid3 = (_mc ? "Summer16_03Feb2017_V1_MC" : "Summer16_03Feb2017H_V3_DATA");
+  string sid3 = (_mc ? "UL2017_SimpleExL1_MC" : "");
+
   const char *cid3 = sid3.c_str();
   const char *a3 = a;
-  //const char *a3 = "AK5PFchs"; // for Winter14
-  //const char *s3 = "20 fb^{-1} (8 TeV)"; // for Winter14
-  //const char *s3 = "R=0.5, 20 fb^{-1} (8 TeV)"; // for Winter14
-  //const char *s3 = "R=0.5, Winter14_V8"; // for Winter14
-  const char *s3 = "03Feb2017H_V3";
-  const char *s3s = "03Feb17H_V3";
-  //const char *s3s = "2012";
-  //const char *s3s = "74X";
-  //const char *s3s = "Run I"; // for Winter14
-  //const char *s3 = "80Xv8 E";// (13 TeV)";
-  //const char *s3s = "E";
-  //const char *s3 = "80Xv6 BCD";// (13 TeV)";
-  //const char *s3s = "V6";
-  //const char *s3 = "80Xv8 F";// (13 TeV)";
-  //const char *s3s = "F";
-  //const char *s3 = "50ns v4";
-  //const char *s3s = "50ns";
-  //const char *s3 = "80XreV1 E";
-  //const char *s3s = "reE";
-  //const char *s3 = "80Xv8 E";// (13 TeV)";
-  //const char *s3s = "E";
-  //const char *s3 = "80X Sum16 FlateG";
-  //const char *s3s = "G";
-  //const char *s3 = "80X Sum16 BCD";
-  //const char *s3s = "BCD";
-  //if (algo=="AK4PF") a3 = "AK5PF";
-  //if (algo=="AK4PFchs") a3 = "AK5PFchs";
-
-  // 2011 JEC
-  //string sid3 = "GR_R_42_V23";
-  //const char *cid3 = sid3.c_str();
-  //const char *a3 = "AK5PFchs";//a;
-  //const char *s3 = "5 fb^{-1} (7 TeV)";
-  //const char *s3s = "2011";
-
-  // 2010 JEC
-  //string sid3 = "START38_V13";
-  //const char *cid3 = sid3.c_str();
-  //const char *a3 = a;
-  //const char *s3 = "36 pb^{-1} (7 TeV)";
-  //const char *s3s = "2010";
-  // PATCH 2010 with clones AK7PF/PFchs
-  //if (algo=="AK7PF") a3 = "AK5PF";
-  //if (algo=="AK7PFchs") a3 = "AK5PFchs";
-
+  //const char *s3 = "03Feb2017H_V3";
+  //const char *s3s = "03Feb17H_V3";
+  const char *s3 = "UL2017SimpleEx";
+  const char *s3s = "UL17SX";
 
   str=Form("CondFormats/JetMETObjects/data/%s_L1FastJet_%s.txt",cid1,a1);
   //str=Form("CondFormats/JetMETObjects/data/%s_L1RC_%s.txt",cid1,a1);
@@ -308,9 +213,9 @@ void compareJECversions(string algo="AK4PFchs",
   str=Form("CondFormats/JetMETObjects/data/%s_L2Relative_%s.txt",cid1,a1);
   cout << str << endl << flush;
   JetCorrectorParameters *JetCorPar1L2 = new JetCorrectorParameters(str);
-  str=Form("CondFormats/JetMETObjects/data/%s_L3Absolute_%s.txt",cid1,a1);
-  cout << str << endl << flush;
-  JetCorrectorParameters *JetCorPar1L3 = new JetCorrectorParameters(str);
+  //str=Form("CondFormats/JetMETObjects/data/%s_L3Absolute_%s.txt",cid1,a1);
+  //cout << str << endl << flush;
+  //JetCorrectorParameters *JetCorPar1L3 = new JetCorrectorParameters(str);
   str=Form("CondFormats/JetMETObjects/data/%s_L2L3Residual_%s.txt",cid1,a1);
   if (!mc) cout << str << endl << flush;
   JetCorrectorParameters *JetCorPar1 = (mc ? 0 : new JetCorrectorParameters(str));
@@ -325,9 +230,9 @@ void compareJECversions(string algo="AK4PFchs",
   str=Form("CondFormats/JetMETObjects/data/%s_L2Relative_%s.txt",cid2,a2);
   cout << str << endl << flush;
   JetCorrectorParameters *JetCorPar2L2 = new JetCorrectorParameters(str);
-  str=Form("CondFormats/JetMETObjects/data/%s_L3Absolute_%s.txt",cid2,a2);
-  cout << str << endl << flush;
-  JetCorrectorParameters *JetCorPar2L3 = new JetCorrectorParameters(str);
+  //str=Form("CondFormats/JetMETObjects/data/%s_L3Absolute_%s.txt",cid2,a2);
+  //cout << str << endl << flush;
+  //JetCorrectorParameters *JetCorPar2L3 = new JetCorrectorParameters(str);
   str=Form("CondFormats/JetMETObjects/data/%s_L2L3Residual_%s.txt",cid2,a2);
   if (!mc) cout << str << endl << flush;
   JetCorrectorParameters *JetCorPar2 = (mc ? 0 : new JetCorrectorParameters(str));
@@ -338,12 +243,12 @@ void compareJECversions(string algo="AK4PFchs",
   vector<JetCorrectorParameters> vParam1;
   if (l1)   vParam1.push_back(*JetCorPar1L1);
   if (l2l3) vParam1.push_back(*JetCorPar1L2);
-  if (l2l3) vParam1.push_back(*JetCorPar1L3);
+  //if (l2l3) vParam1.push_back(*JetCorPar1L3);
   if (res && !mc && JetCorPar1)  vParam1.push_back(*JetCorPar1);
   vector<JetCorrectorParameters> vParam2;
   if (l1)   vParam2.push_back(*JetCorPar2L1);
   if (l2l3) vParam2.push_back(*JetCorPar2L2);
-  if (l2l3) vParam2.push_back(*JetCorPar2L3);
+  //if (l2l3) vParam2.push_back(*JetCorPar2L3);
   if (res && !mc && JetCorPar2)  vParam2.push_back(*JetCorPar2);
 
   FactorizedJetCorrector *JEC1 = new FactorizedJetCorrector(vParam1);
@@ -352,24 +257,6 @@ void compareJECversions(string algo="AK4PFchs",
   FactorizedJetCorrector *JEC3(0);
   JetCorrectionUncertainty *jecUnc3(0);
   if (dothree) {
-    // Note the reversed naming scheme in 2010
-    /*
-    str=Form("CondFormats/JetMETObjects/data/%s_%s_L1FastJet.txt",cid3,a3);
-    cout << str << endl << flush;
-    JetCorrectorParameters *JetCorPar3L1 = new JetCorrectorParameters(str);
-    str=Form("CondFormats/JetMETObjects/data/%s_%s_L2Relative.txt",cid3,a3);
-    cout << str << endl << flush;
-    JetCorrectorParameters *JetCorPar3L2 = new JetCorrectorParameters(str);
-    str=Form("CondFormats/JetMETObjects/data/%s_%s_L3Absolute.txt",cid3,a3);
-    cout << str << endl << flush;
-    JetCorrectorParameters *JetCorPar3L3 = new JetCorrectorParameters(str);
-    str=Form("CondFormats/JetMETObjects/data/%s_%s_L2L3Residual.txt",cid3,a3);
-    if (!mc) cout << str << endl << flush;
-    JetCorrectorParameters *JetCorPar3 = (mc ? 0 : new JetCorrectorParameters(str));
-    str=Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty.txt",cid3,a3);
-    cout << str << endl << flush;
-    jecUnc3 = new JetCorrectionUncertainty(str);
-    */
 
     str=Form("CondFormats/JetMETObjects/data/%s_L1FastJet_%s.txt",cid3,a3);
     //str=Form("CondFormats/JetMETObjects/data/%s_RC_%s.txt",cid3,a3); // L1RC
@@ -378,9 +265,9 @@ void compareJECversions(string algo="AK4PFchs",
     str=Form("CondFormats/JetMETObjects/data/%s_L2Relative_%s.txt",cid3,a3);
     cout << str << endl << flush;
     JetCorrectorParameters *JetCorPar3L2 = new JetCorrectorParameters(str);
-    str=Form("CondFormats/JetMETObjects/data/%s_L3Absolute_%s.txt",cid3,a3);
-    cout << str << endl << flush;
-    JetCorrectorParameters *JetCorPar3L3 = new JetCorrectorParameters(str);
+    //str=Form("CondFormats/JetMETObjects/data/%s_L3Absolute_%s.txt",cid3,a3);
+    //cout << str << endl << flush;
+    //JetCorrectorParameters *JetCorPar3L3 = new JetCorrectorParameters(str);
     str=Form("CondFormats/JetMETObjects/data/%s_L2L3Residual_%s.txt",cid3,a3);
     if (!mc) cout << str << endl << flush;
     JetCorrectorParameters *JetCorPar3 = (mc ? 0 : new JetCorrectorParameters(str));
@@ -391,7 +278,7 @@ void compareJECversions(string algo="AK4PFchs",
     vector<JetCorrectorParameters> vParam3;
     if (l1)   vParam3.push_back(*JetCorPar3L1);
     if (l2l3) vParam3.push_back(*JetCorPar3L2);
-    if (l2l3) vParam3.push_back(*JetCorPar3L3);
+    //if (l2l3) vParam3.push_back(*JetCorPar3L3);
     if (res && !mc && JetCorPar3)  vParam3.push_back(*JetCorPar3);
     JEC3 = new FactorizedJetCorrector(vParam3);
 
@@ -443,6 +330,9 @@ void compareJECversions(string algo="AK4PFchs",
     //if (l1 && !l2l3 && !res) hpt->SetYTitle("Random cone offset correction"); // L1RC
     if (!l1 && l2l3 && !res) hpt->SetYTitle("Simulated response correction");
     if (!l1 && !l2l3 && res) hpt->SetYTitle("Residual response correction");
+
+    if (l1 && l2l3 && !res) h->SetYTitle("Simulated L1L2L3");
+    if (l1 && l2l3 && !res) hpt->SetYTitle("Simulated L1L2L3");
   }
   h->SetMinimum(0.3);
   h->SetMaximum(2.0);
@@ -453,26 +343,21 @@ void compareJECversions(string algo="AK4PFchs",
     //
     if (l1 && !l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.5,1.4);
     if (!l1 && l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.85,1.6);
-    //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.85,1.45);
-    //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.80,1.20);
-    //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.06);
-    //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.95,1.15);
-    //if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.95,1.06);
-if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
+    if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
     //
     if (l1 && !l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
     if (!l1 && l2l3 && !res) hpt->GetXaxis()->SetRangeUser(10,1999);
-    //if (!l1 && !l2l3 && res) hpt->GetXaxis()->SetRangeUser(10,1999);
-    //if (!l1 && !l2l3 && res) hpt->GetXaxis()->SetRangeUser(10,3500);
     if (!l1 && !l2l3 && res) hpt->GetXaxis()->SetRangeUser(50,3500);
+
+    if (l1 && l2l3 && !res) hpt->GetYaxis()->SetRangeUser(0.6,1.5);
+    if (l1 && l2l3 && !res) h->GetYaxis()->SetRangeUser(0.6,1.5);
   }
 
-  //lumi_7TeV  = (dothree ? "36 pb^{-1} + 4.9 fb^{-1}" : "4.9 fb^{-1}");
-  //lumi_13TeV  = "19.8 fb^{-1} (8 TeV) + 1.3--2.1 fb^{-1}";
-  //lumi_13TeV  = "27 fb^{-1} (13 TeV)";
-  //lumi_13TeV  = "2016 re-reco 36.5 fb^{-1}";
-  lumi_13TeV  = "2016 re-mAOD 36.5 fb^{-1}";
+  //lumi_13TeV  = "2016 re-mAOD 36.5 fb^{-1}";
+  lumi_13TeV  = "UL2017";
 
+  TH1D *h1x = (TH1D*)h->Clone(Form("h1x_%s",a));
+  TCanvas *c1x = tdrCanvas(Form("c1x_%s",a),h1x,4,11,kSquare);
   TH1D *h1a = (TH1D*)h->Clone(Form("h1a_%s",a));
   TCanvas *c1a = tdrCanvas(Form("c1a_%s",a),h1a,4,11,kSquare);
   TH1D *h1b = (TH1D*)h->Clone(Form("h1b_%s",a));
@@ -485,34 +370,42 @@ if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
   TCanvas *c1d = tdrCanvas(Form("c1d_%s",a),hpt,4,11,kSquare);
   if (_paper) hpt->SetTitleOffset(0.97); // comma otherwise cut off
 
+  TGraph *g1x = new TGraph(0);
   TGraph *g1a = new TGraph(0);
   TGraph *g1b = new TGraph(0);
   TGraph *g1c = new TGraph(0);
   TGraph *g1d = new TGraph(0);
   TGraph *g1e = new TGraph(0);
   //
+  TGraph *g2x = new TGraph(0);
   TGraph *g2a = new TGraph(0);
   TGraph *g2b = new TGraph(0);
   TGraph *g2c = new TGraph(0);
   TGraph *g2d = new TGraph(0);
   TGraph *g2e = new TGraph(0);
   //
+  TGraph *g3x = new TGraph(0);
+  TGraph *g3 = new TGraph(0);
   TGraph *g3a = new TGraph(0);
   TGraph *g3b = new TGraph(0);
   TGraph *g3c = new TGraph(0);
   TGraph *g3d = new TGraph(0);
   TGraph *g3e = new TGraph(0);
   //
+  TGraph *g21x = new TGraph(0);
   TGraph *g21a = new TGraph(0);
   TGraph *g21b = new TGraph(0);
   TGraph *g21c = new TGraph(0);
   TGraph *g21e = new TGraph(0);
 
+  TGraphErrors *g1x_e = new TGraphErrors(0);
   TGraphErrors *g1a_e = new TGraphErrors(0);
   TGraphErrors *g1b_e = new TGraphErrors(0);
   TGraphErrors *g1c_e = new TGraphErrors(0);
   TGraphErrors *g1d_e = new TGraphErrors(0);
   TGraphErrors *g1e_e = new TGraphErrors(0);
+  TGraph *g1x_pl = new TGraph(0);
+  TGraph *g1x_mn = new TGraph(0);
   TGraph *g1a_pl = new TGraph(0);
   TGraph *g1a_mn = new TGraph(0);
   TGraph *g1b_pl = new TGraph(0);
@@ -524,11 +417,14 @@ if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
   TGraph *g1e_pl = new TGraph(0);
   TGraph *g1e_mn = new TGraph(0);
 
+  TGraphErrors *g2x_e = new TGraphErrors(0);
   TGraphErrors *g2a_e = new TGraphErrors(0);
   TGraphErrors *g2b_e = new TGraphErrors(0);
   TGraphErrors *g2c_e = new TGraphErrors(0);
   TGraphErrors *g2d_e = new TGraphErrors(0);
   TGraphErrors *g2e_e = new TGraphErrors(0);
+  TGraph *g2x_pl = new TGraph(0);
+  TGraph *g2x_mn = new TGraph(0);
   TGraph *g2a_pl = new TGraph(0);
   TGraph *g2a_mn = new TGraph(0);
   TGraph *g2b_pl = new TGraph(0);
@@ -540,11 +436,14 @@ if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
   TGraph *g2e_pl = new TGraph(0);
   TGraph *g2e_mn = new TGraph(0);
 
+  TGraphErrors *g3x_e = new TGraphErrors(0);
   TGraphErrors *g3a_e = new TGraphErrors(0);
   TGraphErrors *g3b_e = new TGraphErrors(0);
   TGraphErrors *g3c_e = new TGraphErrors(0);
   TGraphErrors *g3d_e = new TGraphErrors(0);
   TGraphErrors *g3e_e = new TGraphErrors(0);
+  TGraph *g3x_pl = new TGraph(0);
+  TGraph *g3x_mn = new TGraph(0);
   TGraph *g3a_pl = new TGraph(0);
   TGraph *g3a_mn = new TGraph(0);
   TGraph *g3b_pl = new TGraph(0);
@@ -585,9 +484,15 @@ if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
   } // icase
   */
 
-  const int npt = 6;
+  const int npt = 8;//7;//6;
   //double ptbins[npt] = {30, 40, 50, 80, 140,500};
-  double ptbins[npt] = {30, 60, 120, 240, 480, 960};
+  double ptbins[npt] = {8, 15, 30, 60, 120, 240, 480, 960};
+  int colors[npt] = {kBlack, kBlack, kBlack, kBlue,
+		     kCyan+2, kGreen+2, kOrange+2, kRed};
+  int styles[npt] = {kDotted, kDashed, kSolid, kDashed,
+		     kDotted, kDashDotted, kDashed, kSolid};
+
+
   TGraphErrors *g21s[npt];
   for (int i = 0; i != npt; ++i) {
     g21s[i] = new TGraphErrors(0);
@@ -598,7 +503,7 @@ if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
     double eta = h->GetBinCenter(i);
     if (fabs(eta)>4.7) continue;
 
-    // ***** Pt = 30, 50, 80, 120, 200, 500 *****
+    // ***** Pt = 8, 15, 30, 50, 80, 120, 200, 500 *****
     {
       for (int j = 0; j != npt; ++j) {
 
@@ -618,6 +523,59 @@ if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
       } // for j
     } // pt bins
  
+    // ***** Pt = 15 
+    {
+      double pt = 15.;
+      double energy = pt*cosh(eta);
+      
+      if (energy < 6500.) {
+	// Asymmetric corrections now
+	double y1 = 0.5*(getEtaPtE(JEC1, +eta, pt, energy)
+			  + getEtaPtE(JEC1, -eta, pt, energy));
+	double y2 = 0.5*(getEtaPtE(JEC2, +eta, pt, energy)
+			  + getEtaPtE(JEC2, -eta, pt, energy));
+	double y3(0);
+	if (dothree) y3 = 0.5*(getEtaPtE(JEC3, +eta, pt, energy)
+				+ getEtaPtE(JEC3, -eta, pt, energy));
+	// negative side
+	if (_usenegative) {
+	  y1 = getEtaPtE(JEC1, -eta, pt, energy);
+	  y2 = getEtaPtE(JEC2, -eta, pt, energy);
+	  y3 = (dothree ? getEtaPtE(JEC3, -eta, pt, energy) : 0);
+	}
+	// positive side
+	if (_usepositive) {
+	  y1 = getEtaPtE(JEC1, +eta, pt, energy);
+	  y2 = getEtaPtE(JEC2, +eta, pt, energy);
+	  y3 = (dothree ? getEtaPtE(JEC3, +eta, pt, energy) : 0);
+	}
+	double e1 = getEtaPtUncert(jecUnc1, JEC1, eta, pt);
+	double e2 = getEtaPtUncert(jecUnc2, JEC2, eta, pt);
+	double e3 = (dothree ? getEtaPtUncert(jecUnc3, JEC3, eta, pt) : 0);
+	
+	g1x->SetPoint(g1x->GetN(), eta, y1);
+	g2x->SetPoint(g2x->GetN(), eta, y2);
+	g3x->SetPoint(g3x->GetN(), eta, y3);
+	g21x->SetPoint(g21x->GetN(),eta, y2/y1);
+	//
+	g1x_pl->SetPoint(g1x_pl->GetN(), eta, y1*(1+e1));
+	g1x_mn->SetPoint(g1x_mn->GetN(), eta, y1*(1-e1));
+	g1x_e->SetPoint(i-1, eta, y1);
+	g1x_e->SetPointError(i-1, 0., y1*e1);
+	//
+	g2x_pl->SetPoint(g2x_pl->GetN(), eta, y2*(1+e2));
+	g2x_mn->SetPoint(g2x_mn->GetN(), eta, y2*(1-e2));
+	g2x_e->SetPoint(i-1, eta, y2);
+	g2x_e->SetPointError(i-1, 0., y2*e2);
+	//
+	g3x_pl->SetPoint(g3x_pl->GetN(), eta, y3*(1+e3));
+	g3x_mn->SetPoint(g3x_mn->GetN(), eta, y3*(1-e3));
+	g3x_e->SetPoint(i-1, eta, y3);
+	g3x_e->SetPointError(i-1, 0., y3*e3);
+      }
+    }
+
+
     // ***** Pt = 30 
     {
       double pt = 30.;
@@ -955,6 +913,73 @@ if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
   texmap["AK7PF"] = "R = 0.7, PF";
   texmap["AK7PFchs"] = "R = 0.7, PF+CHS";
 
+
+  // ***** Pt = 15
+  {
+    c1x->cd();
+    //h->DrawClone("AXIS");
+
+    if (dothree) {
+      g3x_e->SetFillStyle(3003);
+      g3x_e->SetFillColor(kGreen+2);
+      g3x_e->Draw("SAME E3");
+      g3x_pl->SetLineColor(kGreen-9);
+      g3x_pl->SetLineStyle(kSolid);//kDotted);
+      g3x_pl->Draw("SAMEL");
+      g3x_mn->SetLineColor(kGreen-9);
+      g3x_mn->SetLineStyle(kSolid);//kDotted);
+      g3x_mn->Draw("SAMEL");
+    }
+
+    g1x_e->SetFillStyle(3003);
+    g1x_e->SetFillColor(kBlue);
+    g1x_e->Draw("SAME E3");
+    g1x_pl->SetLineColor(kBlue-9);
+    g1x_pl->SetLineStyle(kSolid);//kDotted);
+    g1x_pl->Draw("SAMEL");
+    g1x_mn->SetLineColor(kBlue-9);
+    g1x_mn->SetLineStyle(kSolid);//kDotted);
+    g1x_mn->Draw("SAMEL");
+
+    g2x_e->SetFillStyle(3003);
+    g2x_e->SetFillColor(kRed);
+    g2x_e->Draw("SAME E3");
+    g2x_pl->SetLineColor(kRed-9);
+    g2x_pl->SetLineStyle(kSolid);//kDotted);
+    g2x_pl->Draw("SAMEL");
+    g2x_mn->SetLineColor(kRed-9);
+    g2x_mn->SetLineStyle(kSolid);//kDotted);
+    g2x_mn->Draw("SAMEL");
+        
+    if (dothree) {
+      g3x->SetMarkerStyle(kOpenSquare);
+      g3x->SetMarkerColor(kGreen+2);
+      g3x->SetLineColor(kGreen+2);
+      g3x->Draw("SAMEPL");
+    }
+
+    g1x->SetMarkerStyle(kFullSquare);
+    g1x->SetMarkerColor(kBlue);
+    g1x->SetLineColor(kBlue);
+    g1x->Draw("SAMEPL");
+
+    g2x->SetMarkerStyle(kFullCircle);
+    g2x->SetMarkerColor(kRed);
+    g2x->SetLineColor(kRed);
+    g2x->Draw("SAMEPL");
+
+    tex->DrawLatex(0.19,0.81,Form("p_{T,%s} = 15 GeV",cgen));
+    if (l1) tex->DrawLatex(0.19,0.74,Form("#LT#mu#GT = %1.1f",_mu));
+    if (l1) tex->DrawLatex(0.19,0.68,Form("R = %1.1f, PF+chs",0.4));
+
+    TLegend *leg1a = tdrLeg(0.47, dothree ? 0.72 : 0.78, 0.87, 0.93);
+    leg1a->SetHeader(texmap[a]);
+    leg1a->AddEntry(g2a,s2,"LPF");
+    leg1a->AddEntry(g1a,s1,"LPF");
+    if (dothree) leg1a->AddEntry(g3a,s3,"LPF");
+
+    gPad->RedrawAxis();
+  }
 
   // ***** Pt = 30
   {
@@ -1327,6 +1352,7 @@ if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
   string ctype = string(cl1)+string(cl2l3)+string(cplus)+string(cres);
   const char *cs = ctype.c_str();
   if (_pdf) {
+    c1x->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Pt015.pdf",a,cm,cs));
     c1a->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Pt030.pdf",a,cm,cs));
     c1b->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Pt100.pdf",a,cm,cs));
     //c1c->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Pt1000.pdf",a,cm,cs));
@@ -1335,6 +1361,7 @@ if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
     c1e->SaveAs(Form("pdf/compareJECversions_%s_%s_%s_Q1000.pdf",a,cm,cs));
   }
   if (_C) {
+    c1x->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Pt015.C",a,cm,cs));
     c1a->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Pt030.C",a,cm,cs));
     c1b->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Pt100.C",a,cm,cs));
     //c1c->SaveAs(Form("pdfC/compareJECversions_%s_%s_%s_Pt1000.C",a,cm,cs));
@@ -1345,8 +1372,6 @@ if (!l1 && !l2l3 && res) hpt->GetYaxis()->SetRangeUser(0.96,1.07);
 
   // ***** Multiple pT bins for ratio only
   {
-    int colors[] = {kBlack, kBlue, kCyan+2, kGreen+2, kOrange+2, kRed};
-    int styles[] = {kSolid, kDashed, kDotted, kDashDotted, kDashed, kSolid};
     c0->cd();
     h->SetMinimum(0.85);//0.90);
     h->SetMaximum(1.25);//1.20);

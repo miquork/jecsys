@@ -40,6 +40,28 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
     gpp->SetPoint(i, gpp->GetX()[i], gpp->GetY()[i]*(1. - 0.3*kfsr));
   }
 
+  // Use Zll+jet FSR for Zee+jet and Zmm+jet to keep them on same footing
+  TH1D *hzm = (TH1D*)d->Get("fsr/hkfsr_mpfchs1_zlljet"); assert(hzm);
+  TH1D *hzp = (TH1D*)d->Get("fsr/hkfsr_ptchs_zlljet"); assert(hzp);
+  // Correct Zee
+  for (int i = 0; i != gem->GetN(); ++i) {
+    double kfsr  = hzm->GetBinContent(hzm->FindBin(gem->GetX()[i]));
+    gem->SetPoint(i, gem->GetX()[i], gem->GetY()[i]*(1. - 0.3*kfsr));
+  }
+  for (int i = 0; i != gep->GetN(); ++i) {
+    double kfsr  = hzp->GetBinContent(hzp->FindBin(gep->GetX()[i]));
+    gep->SetPoint(i, gep->GetX()[i], gep->GetY()[i]*(1. - 0.3*kfsr));
+  }
+  // Correct Zmm
+  for (int i = 0; i != gmm->GetN(); ++i) {
+    double kfsr  = hzm->GetBinContent(hzm->FindBin(gmm->GetX()[i]));
+    gmm->SetPoint(i, gmm->GetX()[i], gmm->GetY()[i]*(1. - 0.3*kfsr));
+  }
+  for (int i = 0; i != gmp->GetN(); ++i) {
+    double kfsr  = hzp->GetBinContent(hzp->FindBin(gmp->GetX()[i]));
+    gmp->SetPoint(i, gmp->GetX()[i], gmp->GetY()[i]*(1. - 0.3*kfsr));
+  }
+
 
   curdir->cd();
 
@@ -187,14 +209,14 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
   TF1 *f1mzee = new TF1("f1mzee","([3]/([0]+[1]*log(0.01*x)"
 			"+[2]*pow(log(0.01*x),2))"
 			"-1)*100", 30, ptmax);
-  // ABC fit with minitools/drawZmass.C (f1mzee x 3 + f1mzmm x 1)
-  f1mzee->SetParameters(1.00307, 0.00273, 0.00056, 0.99859); // V5
+  // ABCD fit with minitools/drawZmass.C (f1mzee x 3 + f1mzmm x 1)
+  f1mzee->SetParameters(1.00276, 0.00243, 0.00021, 0.99844); // V5M2
 
   // Zee mass applied to gamma+jet at pT,Z=2*pT,gamma
   TF1 *f1mgam = new TF1("f1mgam","([3]/([0]+[1]*log(0.01*x*2)"
                         "+[2]*pow(log(0.01*x*2),2))"
                         "-1)*100", 30, ptmax);
-  f1mgam->SetParameters(1.00307, 0.00273, 0.00056, 0.99859); // V5
+  f1mgam->SetParameters(1.00276, 0.00243, 0.00021, 0.99844); // V5M2
 
   c1->cd(1);
   f1mzee->SetLineStyle(kSolid);

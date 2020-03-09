@@ -18,23 +18,36 @@
 \begin{document}
 
 \begin{centering}
+%{. }\\
+%{. }\\
+%{. }\\
+%{. }\\
+%{. }\\
+%{. }\\
+{\bf Inclusive jet cross section status}\\
+\today\\
 {. }\\
+%{\em MET filters:} None by accident, except $MET<0.3*sumET$.\\
+%Check that list of filters applied to both data and MC (efficiency correction, could be up to 10\% at high $p_T$).\\
+{\em JERC hot zones:} Maps from Hannu at \href{http://hsiikone.web.cern.ch/hsiikone/hotcoldjets/}{[link]}.\\
+%{\em JEC+uncert.}: Autumn18\_RunX\_V13h (V14 unc.), Fall17Nov2017X\_V32 and Summer16\_07Aug2017X\_V11.\\% plus rough 2016 unfolding.\\
+{\em JEC+uncert.}: Autumn18\_RunX\_V10 (V18 unc.), Fall17Nov2017X\_V32 and Summer16\_07Aug2017X\_V11.\\% plus rough 2016 unfolding.\\
+{\em ECAL Prefire}: Smoothed JME ECAL prefire per IOV for 2016 \& 2017 data.\\
+{\em MET filter}: High $p_T$ MET filter inefficiencies for 2016 from MC.\\
+{\em JER}: Custom JER from dijet MC (x-check w/ JME). SF: Autumn18\_Run[ABC,D]\_V4, Fall17\_V3, Summer16\_25nsV1, w/ custom rebin.\\
+{\em Unfolding:} Numerical integration for response matrix, based on JER+SF parameterizations and Gaussian resolution. Forward smearing with powerlaw fit.\\ 
+%Unfolded (forward smear) with custom JER and rebinned JME JER SF per year.\\
 {. }\\
-{. }\\
-{. }\\
-{. }\\
-{. }\\
-{. }\\
-Inclusive jet cross section status\\
-With Autumn18\_RunX\_V8\_DATA JEC + rough 2016 unfolding\\
-Compared to unfolded data from SMP-15-007 (EPJC76)\\
+Results compared to unfolded data from SMP-15-007 (EPJC76), SMP-19-003\\
 and to uncertainties from 2012 (8 TeV) and 2015 (13 TeV)\\
 {. }\\
-\today\\
-Laura Martikainen, U. Helsinki and HIP\\
-Hannu Siikonen, U. Helsinki and HIP\\
+Laura Martikainen, Hannu Siilkonen, U. Helsinki and HIP\\
 Henning Kirschenmann, Academy of Finland and HIP\\
 Mikko Voutilainen, U. Helsinki and HIP\\
+%Engin Eren, formerly DESY (for 2016 data and unfolding)\\
+%Engin Eren, formerly DESY (for 2016 unfolding)\\
+Laurent Thomas, ULB (for ECAL prefire efficiency per IOV)\\
+Patrick Connor, DESY (MET filter efficiency in 2016)\\
 \end{centering}
 
 \newpage
@@ -44,13 +57,14 @@ Mikko Voutilainen, U. Helsinki and HIP\\
   \includegraphics[width=0.24\textwidth]{drawDeltaJEC_jetPt_00-05.pdf}
   \includegraphics[width=0.24\textwidth]{drawDeltaJEC_jetPt_05-10.pdf}
   \includegraphics[width=0.24\textwidth]{drawDeltaJEC_jetPt_10-15.pdf}
-  \includegraphics[width=0.24\textwidth]{drawDeltaJEC_jetPt_15-20.pdf}
-\end{figure}
-\begin{figure}[p]
-\centering
+  \includegraphics[width=0.24\textwidth]{drawDeltaJEC_jetPt_15-20.pdf}\\
+%\end{figure}
+%\begin{figure}[p]
+%\centering
   \includegraphics[width=0.28\textwidth]{drawDeltaJEC_jetPt_20-25.pdf}
   \includegraphics[width=0.28\textwidth]{drawDeltaJEC_jetPt_25-30.pdf}
   \includegraphics[width=0.28\textwidth]{drawDeltaJEC_jetPt_32-47.pdf}
+\caption{2015 results fit with 3p powerlaw. Points at $30<p_{T}<40$~GeV ($p_{T}\cosh(\eta)>2000$~GeV) are from 2016BCD (2018D) with 30\% additional uncertainty.}
 \end{figure}
 
 \newpage
@@ -60,13 +74,184 @@ Mikko Voutilainen, U. Helsinki and HIP\\
   \includegraphics[width=0.24\textwidth]{drawDeltaJEC_00-05.pdf}
   \includegraphics[width=0.24\textwidth]{drawDeltaJEC_05-10.pdf}
   \includegraphics[width=0.24\textwidth]{drawDeltaJEC_10-15.pdf}
-  \includegraphics[width=0.24\textwidth]{drawDeltaJEC_15-20.pdf}
+  \includegraphics[width=0.24\textwidth]{drawDeltaJEC_15-20.pdf}\\
+%\end{figure}
+%\begin{figure}[p]
+%\centering
+  \includegraphics[width=0.32\textwidth]{drawDeltaJEC_20-25.pdf}
+  \includegraphics[width=0.32\textwidth]{drawDeltaJEC_25-30.pdf}
+  \includegraphics[width=0.32\textwidth]{drawDeltaJEC_32-47.pdf}
+  \caption{Difference to 2015 fit (on previous page), turned into equivalent shift in JEC. 2016--17 results corrected for ECAL prefire per year, 2016 corrected for MET filter per year, and 2016--2018 unfolded per year.
+%``Unfolding'' is fit of 2016 unfolded/smeared ratio. Files:
+%\href{https://gitlab.cern.ch/lamartik/combinationfiles/common2018_V13h.root}{common2018\_V13h.root} (2018),
+\href{https://gitlab.cern.ch/lamartik/combinationfiles/common2018_V10_hotzone.root}{common2018\_V10\_hotzone.root} (2018),
+%\href{https://gitlab.cern.ch/lamartik/combinationfiles/common17_V11.root}{common17\_V11.root} (2017), 
+%\href{https://gitlab.cern.ch/lamartik/combinationfiles/common17_V32_tight.root}{common17\_V32\_tight.root} (2017), 
+\href{https://gitlab.cern.ch/lamartik/combinationfiles/common17_V32_hotzone.root}{common17\_V32\_hotzone.root} (2017), 
+%\href{https://gitlab.cern.ch/CMS-SMP-J/InclusiveJetsLegacy/blob/master/common2016_October2018_V17.root}{common2016\_October2018\_V17.root} (2016),
+%\href{https://gitlab.cern.ch/lamartik/combinationfiles/common16_V11.root}{common16\_V11.root} (2016).}
+\href{https://gitlab.cern.ch/lamartik/combinationfiles/common16_V11_hotzone.root}{common16\_V11\_hotzone.root} (2016). Run2 is equal weight combination.}
+%\href{https://gitlab.cern.ch/CMS-SMP-J/InclusiveJetsLegacy/blob/master/common2016_LegacyIOVs_V3.root}{common2016\_LegacyIOVs\_V3.root} (``unfolding'').}
 \end{figure}
+
 \begin{figure}[p]
 \centering
-  \includegraphics[width=0.33\textwidth]{drawDeltaJEC_20-25.pdf}
-  \includegraphics[width=0.33\textwidth]{drawDeltaJEC_25-30.pdf}
-  \includegraphics[width=0.33\textwidth]{drawDeltaJEC_32-47.pdf}
+  \includegraphics[width=0.24\textwidth]{2016/drawDeltaJEC_00-05.pdf}
+  \includegraphics[width=0.24\textwidth]{2016/drawDeltaJEC_05-10.pdf}
+  \includegraphics[width=0.24\textwidth]{2016/drawDeltaJEC_10-15.pdf}
+  \includegraphics[width=0.24\textwidth]{2016/drawDeltaJEC_15-20.pdf}\\
+  \includegraphics[width=0.32\textwidth]{2016/drawDeltaJEC_20-25.pdf}
+  \includegraphics[width=0.32\textwidth]{2016/drawDeltaJEC_25-30.pdf}
+  \includegraphics[width=0.32\textwidth]{2016/drawDeltaJEC_32-47.pdf}
+  \caption{Difference to 2015 fit (on previous page), turned into equivalent shift in JEC. 2016 results corrected for ECAL prefire per IOV, MET filter per year.
+\href{https://gitlab.cern.ch/lamartik/combinationfiles/common16_V11_hotzone.root}{common16\_V11\_hotzone.root} (2016).}
 \end{figure}
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.24\textwidth]{2017/drawDeltaJEC_00-05.pdf}
+  \includegraphics[width=0.24\textwidth]{2017/drawDeltaJEC_05-10.pdf}
+  \includegraphics[width=0.24\textwidth]{2017/drawDeltaJEC_10-15.pdf}
+  \includegraphics[width=0.24\textwidth]{2017/drawDeltaJEC_15-20.pdf}\\
+  \includegraphics[width=0.32\textwidth]{2017/drawDeltaJEC_20-25.pdf}
+  \includegraphics[width=0.32\textwidth]{2017/drawDeltaJEC_25-30.pdf}
+  \includegraphics[width=0.32\textwidth]{2017/drawDeltaJEC_32-47.pdf}
+  \caption{Difference to 2015 fit (on previous page), turned into equivalent shift in JEC. 2017 results corrected for ECAL prefire per IOV.
+\href{https://gitlab.cern.ch/lamartik/combinationfiles/common17_V32_hotzone.root}{common17\_V32\_hotzone.root} (2017).}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.24\textwidth]{2018/drawDeltaJEC_00-05.pdf}
+  \includegraphics[width=0.24\textwidth]{2018/drawDeltaJEC_05-10.pdf}
+  \includegraphics[width=0.24\textwidth]{2018/drawDeltaJEC_10-15.pdf}
+  \includegraphics[width=0.24\textwidth]{2018/drawDeltaJEC_15-20.pdf}\\
+  \includegraphics[width=0.32\textwidth]{2018/drawDeltaJEC_20-25.pdf}
+  \includegraphics[width=0.32\textwidth]{2018/drawDeltaJEC_25-30.pdf}
+  \includegraphics[width=0.32\textwidth]{2018/drawDeltaJEC_32-47.pdf}
+  \caption{Difference to 2015 fit (on previous page), turned into equivalent shift in JEC. 2018ABC, 2018D and 2018 use different JER SF.
+\href{https://gitlab.cern.ch/lamartik/combinationfiles/common18_V10_hotzone.root}{common18\_V10\_hotzone.root} (2018).}
+\end{figure}
+
+\newpage
+\begin{figure}[p]
+\centering
+%  \includegraphics[width=0.33\textwidth]{resolution_redoECALprefire_20-25_2016BtoH.pdf}
+%  \includegraphics[width=0.33\textwidth]{resolution_redoECALprefire_25-30_2016BtoH.pdf}\\
+%  \includegraphics[width=0.33\textwidth]{resolution_redoECALprefire_20-25_2017BtoF.pdf}
+%  \includegraphics[width=0.33\textwidth]{resolution_redoECALprefire_25-30_2017BtoF.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_20-25_2016BCD.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_20-25_2016EF.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_20-25_2016FGH.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_20-25_2016BtoH.pdf}\\
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_25-30_2016BCD.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_25-30_2016EF.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_25-30_2016FGH.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_25-30_2016BtoH.pdf}
+\caption{Smoothed ECAL prefire corrections for 2016. Fit is used by previous plots.}
+\end{figure}
+
+\newpage
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_20-25_2017B.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_20-25_2017C.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_20-25_2017DE.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_20-25_2017F.pdf}\\
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_25-30_2017B.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_25-30_2017C.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_25-30_2017DE.pdf}
+\includegraphics[width=0.24\textwidth]{resolution_redoECALprefire_25-30_2017F.pdf}
+\caption{Smoothed ECAL prefire corrections for 2017. Fit is used by previous plots.}
+\end{figure}
+
+\commentout{
+\newpage
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.24\textwidth]{resolution_interpol_datamc_Run1.pdf}
+  \includegraphics[width=0.24\textwidth]{resolution_interpol_datamc_Run2016.pdf}
+  \includegraphics[width=0.24\textwidth]{resolution_interpol_datamc_Run2017.pdf}
+  \includegraphics[width=0.24\textwidth]{resolution_interpol_datamc_Run2018.pdf}\\
+  \includegraphics[width=0.24\textwidth]{resolution_interpol_Run1.pdf}
+  \includegraphics[width=0.24\textwidth]{resolution_interpol_Run2016.pdf}
+  \includegraphics[width=0.24\textwidth]{resolution_interpol_Run2017.pdf}
+  \includegraphics[width=0.24\textwidth]{resolution_interpol_Run2018.pdf}
+\caption{Rebinned JER scale factors (top). These are be used to scale MC truth JER derived in inclusive jet rapidity bins (top).}
+\end{figure}
+} % commentout
+
+\newpage
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.32\textwidth]{resolution_interpol_datamc_Run1.pdf}
+\includegraphics[width=0.32\textwidth]{resolution_interpol_datamc_Run2016.pdf}
+\includegraphics[width=0.32\textwidth]{resolution_interpol_datamc_Run2017.pdf}
+\\
+\includegraphics[width=0.32\textwidth]{resolution_interpol_datamc_Run2018.pdf}
+\includegraphics[width=0.32\textwidth]{resolution_interpol_datamc_Run2018ABC.pdf}
+\includegraphics[width=0.32\textwidth]{resolution_interpol_datamc_Run2018D.pdf}
+\caption{Rebinned JER scale factors.}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+  \includegraphics[width=0.32\textwidth]{resolution_interpol_Run1.pdf}
+  \includegraphics[width=0.32\textwidth]{resolution_interpol_Run2016.pdf}
+  \includegraphics[width=0.32\textwidth]{resolution_interpol_Run2017.pdf}
+\\
+  \includegraphics[width=0.32\textwidth]{resolution_interpol_Run2018.pdf}
+  \includegraphics[width=0.32\textwidth]{resolution_interpol_Run2018abc.pdf}
+  \includegraphics[width=0.32\textwidth]{resolution_interpol_Run2018d.pdf}
+\caption{These are be used to scale MC truth JER derived in inclusive jet rapidity bins (top).}
+\end{figure}
+
+\newpage
+
+Done:
+\begin{itemize}
+%\item Run2016ABC normalization was wrong, now fixed. Problem was not L3Res.
+  %\item Run2016--17 ECAL prefire corrections for $2<|\eta|<3$ from JME (smoothed). Still need per IOV.
+\item Run2016--17 ECAL prefire for $2<|\eta|<3$ from JME per IOV (smoothed). 
+\item Unfolded JER with forward smearing per year (IOV for 2018).
+% [2018 2.5-3.0 uses 2016 JER for V8 JEC.]
+%\item Zero Bias luminosity: brilCalc should be ok.
+%\item Updated to 2018 V10 JEC, switched 2018 2.5-3.0 back to 2018 JER.
+\item Hotzones maps: 2017 (2.5-3.0 for 17DE+17F) and 2016 (2.0-2.5 for 16BCD).
+% Still missing 2016.
+%\item Add hotzone maps to clean high $p_T$ tails for 
+\item Jet40 trigger thresholds for 2017+2016 were increased to avoid dip.
+\item Updated to 2018\_V13h
+\end{itemize}
+To-do list:
+\begin{itemize}
+\item June 7 SMP-J: MET filter, NNLO pTjet, size of uncorrelated uncertainty.
+\item Come up with scheme to merge IOVs. Before or after unfoldig? IOV subset? Correlated systematics? Discuss with Stat.Comm.
+%\item Run2018ABC L3res still needs to be better understood. Potential 2\% bias in.
+%\item Run2017BCDEF needs ECAL prefire corrections for $2<|\eta|<3$.
+%\item Run2016--17 needs ECAL prefire corrections for $2<|\eta|<3$.
+%\item Add ECAL prefire corrections per IOV for 2016 and 2017 (now per year).
+%\item Jet40 trigger thresholds need to be increased to avoid dip.
+%\item Zero Bias luminosity normalization may be off (18C, 16BCD, 16GH etc.). Not proportional to lumi.
+%\item Add hotzone maps to clean high $p_T$ tails (2.0-2.5 for 16BCD, 2.5-3.0 for 17DE+17F).
+%\item Add hotzone maps to clean high $p_T$ tails for 2016 (2.0-2.5 for 16BCD).
+  %\item Unfold JER with forward smearing per IOV (now same for all years).
+%\item Update to 2018 V10 JEC, switch 2018 2.5-3.0 back to 2018 JER.
+%\item Test 2018\_V13h
+%\item Consider effects that would contribute to 1\% uncorrelated.
+%\item New NNLO theory with pTjet or 2*HT(?) instead of pTmax. 
+\item New finer binning for reco jets for unfolding.
+%\item Check MET filter (and JetID, met/SumEt) efficiencies.
+\item Make overlay plots of unfolding and ECAL prefire per IOV.
+%\item Separate unfolding for 2018ABC and 2018D.
+\item Reweight Zero Bias to unprescaled PU profile? Helps if L1FastJet biased.
+%\item HF may need update of L2Res $p_T$ dependence, JetID and JER (including tails).
+%\item JER will require extra care at $|\eta|>2.5$, and particularly at $|\eta|>3.2$, where unfolding corrections are very large.
+%\item L2Res needs to be investigated for (a) $p_T$ dependence within $|\eta|<1.3$ and (b) capping of log-linear fit at low and high $p_T$.
+%\item EW corrections for powerlaw at $|\eta|<0.5$ and $p_{T}>1.5$~TeV?
+%\item Unfolding needs to be updated with time dependence, and to make sure RooUnfold/TUnfold fully agrees with plain forward smearing.
+\item MET group filter to cut out jets at $p_T<75$~GeV in EC for 2017.
+\item Apply efficiency corrections for hotzone removal (about 2\%).
+\end{itemize}
 
 \end{document}
