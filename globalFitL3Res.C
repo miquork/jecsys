@@ -53,8 +53,8 @@ bool plotMultijetDown = false; // plot gray downward points for multijets
 double _cleanUncert = 0.05; // for eta>2
 //double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
-//string scalingForL2OrL3Fit = "None";// was "ApplyL3ResDontScaleDijets";
-string scalingForL2OrL3Fit = "DontScaleDijets";// was "ApplyL3ResDontScaleDijets";
+string scalingForL2OrL3Fit = "None";// was "ApplyL3ResDontScaleDijets";
+//string scalingForL2OrL3Fit = "DontScaleDijets";// was "ApplyL3ResDontScaleDijets";
 //string scalingForL2OrL3Fit = "DontScaleDijets";// was "ApplyL3ResDontScaleDijets";
 //"None" - for inpunt combination files without any residual applied (dijets are still scaled, see below)
 //"PutBackL2Res" - put L2res back in for gamma/Z+jet for vs eta studies
@@ -1092,6 +1092,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
   lumimap["ABCD"] = "2018, 59.7 fb^{-1}"; //PdmV Analysis TWiki
 
+  //lumimap["BCDEF"] = "Run2017BCDEF , 41.4 fb^{-1}"; // sum below 41.3
+  lumimap["BCDEF"] = "2017, 41.5 fb^{-1}"; // for DP note
+  lumimap["B"] = "Run2017B, 4.8 fb^{-1}";
+  lumimap["C"] = "Run2017C, 9.6 fb^{-1}";
+  lumimap["D"] = "Run2017D, 4.2 fb^{-1}";
+  lumimap["E"] = "Run2017E, 9.3 fb^{-1}";
+  lumimap["F"] = "Run2017F, 13.4 fb^{-1}";
   lumi_13TeV = lumimap[epoch];
 
   TCanvas *c0 = tdrCanvas("c0",h,4,11,true);
