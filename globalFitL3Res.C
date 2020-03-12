@@ -47,7 +47,7 @@ bool dofsr = true; // correct for FSR
 double ptreco_gjet = 15.; // min jet pT when evaluating alphamax for gamma+jet
 double ptreco_zjet = 5.; // same for Z+jet
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
-bool _paper = true; // switch of plotting fit parameters
+bool _paper = false; // switch of plotting fit parameters
 bool _useZoom = false; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
 bool plotMultijetDown = false; // plot gray downward points for multijets
 double _cleanUncert = 0.05; // for eta>2
@@ -897,33 +897,33 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     hs.push_back(h2);
   } // for i
 
-  // *** NEW for 2018 V5M, V5M2 ***
-  // Additional uncertainties for pT balance shape so that
-  // it is not given more weight than MPF with footprint uncertainty
-  // (one for each sample x method, but all except two are empty)
-  for (unsigned int i = 0; i != _vdt->size(); ++i) {
-
-    string s = samples[i%nsamples]; const char *cs = s.c_str();
-    string m = methods[i/nsamples]; const char *cm = m.c_str();
-
-    double escale(0);
-    if (s=="gamjet" && m=="ptchs") { escale = 0.005; }
-    if (s=="zeejet" && m=="ptchs") { escale = 0.005; }
-    if (s=="zmmjet" && m=="ptchs") { escale = 0.005; }
-    if (s=="zlljet" && m=="ptchs") { escale = 0.005; }
-
-    TH1D *h = hs[i]; assert(h);
-    TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_%s_%02.0f_%s_%s_%d",
-				    1<<i,
-				    escale!=0 ? "ptbalscale" : "inactive",
-				    escale*1000.,cm,cs,i));
-    
-    for (int j = 1; j != h2->GetNbinsX()+1; ++j) {
-      h2->SetBinContent(j, escale);
-      h2->SetBinError(j, escale);
-    } // for j
-    hs.push_back(h2);
-  } // for i
+//  // *** NEW for 2018 V5M, V5M2 ***
+//  // Additional uncertainties for pT balance shape so that
+//  // it is not given more weight than MPF with footprint uncertainty
+//  // (one for each sample x method, but all except two are empty)
+//  for (unsigned int i = 0; i != _vdt->size(); ++i) {
+//
+//    string s = samples[i%nsamples]; const char *cs = s.c_str();
+//    string m = methods[i/nsamples]; const char *cm = m.c_str();
+//
+//    double escale(0);
+//    if (s=="gamjet" && m=="ptchs") { escale = 0.005; }
+//    if (s=="zeejet" && m=="ptchs") { escale = 0.005; }
+//    if (s=="zmmjet" && m=="ptchs") { escale = 0.005; }
+//    if (s=="zlljet" && m=="ptchs") { escale = 0.005; }
+//
+//    TH1D *h = hs[i]; assert(h);
+//    TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_%s_%02.0f_%s_%s_%d",
+//				    1<<i,
+//				    escale!=0 ? "ptbalscale" : "inactive",
+//				    escale*1000.,cm,cs,i));
+//    
+//    for (int j = 1; j != h2->GetNbinsX()+1; ++j) {
+//      h2->SetBinContent(j, escale);
+//      h2->SetBinError(j, escale);
+//    } // for j
+//    hs.push_back(h2);
+//  } // for i
 
   // MPF uncertainties from offset pT dependence and type-I
   /*
@@ -1373,7 +1373,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     jesfit->SetParameter(0, 0.98);
   }
   if (njesFit==2) {
-    jesfit->SetParameters(0.990, 0.043);
+    jesfit->SetParameters(0.98, 0.0);
   }
   if (njesFit==3 && useOff) {
     jesfit->SetParameters(0.989, 0.053, -0.370);
@@ -1837,11 +1837,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     tex->DrawLatex(0.32,0.64,Form("Npar=%d",_jesFit->GetNpar()));
     //tex->DrawLatex(0.20,0.61,Form("N_{par}=%d (%d)",_jesFit->GetNpar(),
     //				_jesFit->GetNumberFreeParameters()));
-    tex->DrawLatex(0.32,0.61,Form("p0=%1.4f #pm %1.4f",
+    tex->DrawLatex(0.32,0.61,Form("p0=%1.3f #pm %1.3f",
 				  _jesFit->GetParameter(0),
 				  sqrt(emat[0][0])));
     if (njesFit>=2)
-      tex->DrawLatex(0.32,0.58,Form("p1=%1.4f #pm %1.4f",
+      tex->DrawLatex(0.32,0.58,Form("p1=%1.3f #pm %1.3f",
 				    _jesFit->GetParameter(1),
 				    sqrt(emat[1][1])));
     if (njesFit==2 && fixTDI)

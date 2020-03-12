@@ -455,7 +455,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  if (true) { // use priors
 	    int n = ga->GetN();
 	    // For response, limit to 1+/-0.02 (we've corrected for L3Res)
-	    if (mm=="ptchs") {
+	    if (false && mm=="ptchs") {
 	      // For pT balance, estimate slope of <vecpT2>/alpha from data
 	      // => 7.5%/0.30 = 25%
 	      // Approximate uncertainty on this to be
@@ -497,8 +497,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      // => 1.25%
 	      // 80X constraint, no slope in MPF
 	      ga->SetPoint(n, 2.5, dd=="mc" ? 0. : 0.00);
-	      if (dd!="mc") ga->SetPointError(n, 0, 0.0125);
-	      if (dd=="mc") ga->SetPointError(n, 0, 0.0125);
+	      if (dd!="mc") ga->SetPointError(n, 0, 0.05);//0.0125);
+	      if (dd=="mc") ga->SetPointError(n, 0, 0.05);//0.0125);
 	    } // MPF
 	  } // use priors
 
@@ -597,7 +597,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 			    "[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
 			    30,1500);
 	  fk->SetParameters(-0.05,+0.01,0);
-	  fk->FixParameter(2,0.); // post-Moriond19, reduce quad-log to log0-lin
+	  //fk->FixParameter(2,0.); // post-Moriond19, reduce quad-log to log0-lin
 	  fk->SetLineColor(gk->GetLineColor());
 	  gk->Fit(fk, "QRN");
 
