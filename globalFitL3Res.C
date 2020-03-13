@@ -38,6 +38,7 @@ bool dofsr = true; // correct for FSR
 double ptreco_gjet = 15.; // min jet pT when evaluating alphamax for gamma+jet
 double ptreco_zjet = 5.; // same for Z+jet
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
+bool _addRun1 = false; // plot Run1 L3Res for reference
 bool _paper = true;
 bool _useZoom = false; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
 double _cleanUncert = 0.05; // for eta>2
@@ -859,8 +860,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int minpt = 30;
   TH1D *h = new TH1D("h",";p_{T} (GeV);Jet response (ratio)",
 		     maxpt-minpt,minpt,maxpt);
-  h->SetMinimum(etamin>=3 ? 0.50 : (etamin>=2.5 ? 0.70 : 0.91));
-  h->SetMaximum(etamin>=3 ? 1.75 : (etamin>=2.5 ? 1.45 : 1.15));
+  h->SetMinimum(etamin>=3 ? 0.50 : (etamin>=2.5 ? 0.70 : 0.9301));//0.91));
+  h->SetMaximum(etamin>=3 ? 1.75 : (etamin>=2.5 ? 1.45 : 1.07));//1.15));
   //h->SetMinimum(etamin>=3 ? 0.50 : (etamin>=2.5 ? 0.70 : 0.940));//0.91));
   //h->SetMaximum(etamin>=3 ? 1.75 : (etamin>=2.5 ? 1.45 : 1.035));//1.15));
   if (doClosure) {
@@ -912,6 +913,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //TLegend *legp = tdrLeg(0.58,0.55,0.88,0.90);
   //TLegend *legp = tdrLeg(0.58,0.70,0.88,0.90);
   TLegend *legp = tdrLeg(0.58,_useZoom ? 0.70 : 0.60,0.88,0.90);
+  if (!_addRun1 && !_useZoom) legp->SetY1(0.70);
   if( (nmethods==1||nmethods==2) && strcmp(methods[0],"ptchs")  ==0 ){
     legp->SetHeader("p_{T}^{bal}");
     for (int i = 0; i != nsamples; ++i)
@@ -928,6 +930,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //TLegend *legm = tdrLeg(0.66,0.55,0.96,0.90);
   //TLegend *legm = tdrLeg(0.66,0.70,0.96,0.90);
   TLegend *legm = tdrLeg(0.66,_useZoom ? 0.70 : 0.60,0.96,0.90);
+  if (!_addRun1 && !_useZoom) legm->SetY1(0.70);
   if( (nmethods==1&&strcmp(methods[0],"mpfchs1")  ==0) || (nmethods==2 && strcmp(methods[1],"mpfchs1")  ==0 )){
     legm->SetHeader("MPF");
     for (int i = 0; i != nsamples; ++i)
@@ -1011,8 +1014,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   // }
 
   else if (!_useZoom) {
-    hrun1->DrawClone("SAME E5");
-    (new TGraph(hrun1))->DrawClone("SAMEL");
+    if (_addRun1) {
+      hrun1->DrawClone("SAME E5");
+      (new TGraph(hrun1))->DrawClone("SAMEL");
+    }
   }
   else {
     herr->DrawClone("SAME E5");
@@ -1021,10 +1026,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   herr_ref->DrawClone("SAME E5");
   (new TGraph(herr_ref))->DrawClone("SAMEL");
   if (!_useZoom) {  
-    hrun1->SetFillStyle(kNone);
-    hrun1->DrawClone("SAME E5");
-    (new TGraph(hrun1))->DrawClone("SAMEL");
-    hrun1->SetFillStyle(1001);
+    if (_addRun1) {
+      hrun1->SetFillStyle(kNone);
+      hrun1->DrawClone("SAME E5");
+      (new TGraph(hrun1))->DrawClone("SAMEL");
+      hrun1->SetFillStyle(1001);
+    }
   }
   else {
     herr->SetFillStyle(kNone);
@@ -1057,11 +1064,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
 
   if (!_useZoom) {
-    legp->AddEntry(hrun1," ","");
-    legm->AddEntry(hrun1,"Run I","FL");
+    if (_addRun1) legp->AddEntry(hrun1," ","");
+    if (_addRun1) legm->AddEntry(hrun1,"Run I","FL");
     legp->AddEntry(herr_ref," ","");
     if (!_paper) legm->AddEntry(herr_ref,"V32","FL");
-    if ( _paper) legm->AddEntry(herr_ref,"Run II","FL");
+    if ( _paper &&  _addRun1) legm->AddEntry(herr_ref,"Run II","FL");
+    if ( _paper && !_addRun1) legm->AddEntry(herr_ref,"Syst.","FL");
   }
   else {
     legp->AddEntry(herr," ","FL");
@@ -1106,8 +1114,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //   hrun1->SetFillStyle(1001);
   // }
   else if (!_useZoom) {
-    hrun1->DrawClone("SAME E5");
-    (new TGraph(hrun1))->DrawClone("SAMEL");
+    if (_addRun1) {
+      hrun1->DrawClone("SAME E5");
+      (new TGraph(hrun1))->DrawClone("SAMEL");
+    }
   }
   else {
     herr->DrawClone("SAME E5");
@@ -1125,10 +1135,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     (new TGraph(herr_ref))->DrawClone("SAMEL");
   }
   else if (!_useZoom) {
-    hrun1->SetFillStyle(kNone);
-    hrun1->DrawClone("SAME E5");
-    (new TGraph(hrun1))->DrawClone("SAMEL");
-    hrun1->SetFillStyle(1001);
+    if (_addRun1) {
+      hrun1->SetFillStyle(kNone);
+      hrun1->DrawClone("SAME E5");
+      (new TGraph(hrun1))->DrawClone("SAMEL");
+      hrun1->SetFillStyle(1001);
+    }
   }
   else {
     herr->SetFillStyle(kNone);
@@ -1462,8 +1474,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //(new TGraph(hrun1))->DrawClone("SAMEL");
   //}
   else if (!_useZoom) {
-    hrun1->DrawClone("SAME E5");
-    (new TGraph(hrun1))->DrawClone("SAMEL");
+    if (_addRun1) {
+      hrun1->DrawClone("SAME E5");
+      (new TGraph(hrun1))->DrawClone("SAMEL");
+    }
   }
   else {
     herr->DrawClone("SAME E5");
@@ -1497,10 +1511,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 //  hrun1->SetFillStyle(1001);
 //}
   else if (!_useZoom) {
-    hrun1->SetFillStyle(kNone);
-    hrun1->DrawClone("SAME E5");
-    (new TGraph(hrun1))->DrawClone("SAMEL");
-    hrun1->SetFillStyle(1001);
+    if (_addRun1) {
+      hrun1->SetFillStyle(kNone);
+      hrun1->DrawClone("SAME E5");
+      (new TGraph(hrun1))->DrawClone("SAMEL");
+      hrun1->SetFillStyle(1001);
+    }
   }
   else {
     herr->SetFillStyle(kNone);
