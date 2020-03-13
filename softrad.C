@@ -675,6 +675,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 	    double pt = gk->GetX()[i];
 	    int ipt = hk->FindBin(pt);
+	    pt = hk->GetBinCenter(ipt); // IN UL2017 to reproduce EOY2017
 	    hk->SetBinContent(ipt, fk->Eval(pt));
 	    hk->SetBinError(ipt, fabs(fke->Eval(pt)-fk->Eval(pt)));
 	  }
