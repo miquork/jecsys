@@ -114,9 +114,23 @@ void reprocess(string epoch="") {
   if (doFall17Closure){
   // Monday 24 Sep 2018
   //https://indico.cern.ch/event/759977/#34-closure-test-for-fall17_17n
-    fdj = new TFile(Form("rootfiles/L2Res_Fall17_17Nov_V27_Closure_JERNominal_derivedWithDiJetTrigger_withoutL1SeedCleaning/Run%s/JEC_L2_Dijet_AK4PFchs_pythia8_eta_0_13.root",fdj_files[epoch]),"READ"); //RunBCDEF is with SingleJettriggers...L2ResCorrection_RunBCDEFcombined_SiTrg_JERSF2016_withAndWithoutL1BXclean_V27_closure_globalFitInput
+  //  fdj = new TFile(Form("rootfiles/L2Res_Fall17_17Nov_V27_Closure_JERNominal_derivedWithDiJetTrigger_withoutL1SeedCleaning/Run%s/JEC_L2_Dijet_AK4PFchs_pythia8_eta_0_13.root",fdj_files[epoch]),"READ"); //RunBCDEF is with SingleJettriggers...L2ResCorrection_RunBCDEFcombined_SiTrg_JERSF2016_withAndWithoutL1BXclean_V27_closure_globalFitInput
+  //  assert(fdj && !fdj->IsZombie());
+  //  fdj2 = new TFile(Form("rootfiles/L2Res_Fall17_17Nov_V27_Closure_JERNominal_derivedWithDiJetTrigger_withoutL1SeedCleaning/Run%s/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ"); //RunBCDEF is with SingleJettriggers...L2ResCorrection_RunBCDEFcombined_SiTrg_JERSF2016_withAndWithoutL1BXclean_V27_closure_globalFitInput
+  //  assert(fdj2 && !fdj2->IsZombie());
+
+
+    //    fdj = new TFile(Form("rootfiles/L2ResCorrection_RunBCDEFcombined_SiTrg_JERSF2016_withAndWithoutL1BXclean_V27_closure_globalFitInput/WithL1BXCleanRun%s/JEC_L2_Dijet_AK4PFchs_pythia8_eta_0_13.root",fdj_files[epoch]),"READ"); //only configured for BCDEF... RunBCDEF is with SingleJettriggers...L2ResCorrection_RunBCDEFcombined_SiTrg_JERSF2016_withAndWithoutL1BXclean_V27_closure_globalFitInput
+    //    assert(fdj && !fdj->IsZombie());
+    //    fdj2 = new TFile(Form("rootfiles/L2ResCorrection_RunBCDEFcombined_SiTrg_JERSF2016_withAndWithoutL1BXclean_V27_closure_globalFitInput/WithL1BXCleanRun%s/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ"); //only configured for BCDEF... RunBCDEF is with SingleJettriggers...L2ResCorrection_RunBCDEFcombined_SiTrg_JERSF2016_withAndWithoutL1BXclean_V27_closure_globalFitInput
+    //    assert(fdj2 && !fdj2->IsZombie());
+
+    //Monday 22 Oct 2018, Fall17_17Nov2017_V31_DATA
+    //  https://indico.cern.ch/event/767001/#51-closure-test-for-fall17_17n
+    //    rootfiles/L2Res_GlobalFitInput_JERSF_V2_RunBCDEF_Fall17_17Nov2017_V31_DATA/RunBCDEF_17Nov17_2017_JERnominalV2/output/
+    fdj = new TFile(Form("rootfiles/L2Res_GlobalFitInput_JERSF_V2_Fall17_17Nov2017_V31_DATA/Run%s_17Nov17_2017_JERnominalV2/output/JEC_L2_Dijet_AK4PFchs_pythia8_eta_0_13.root",fdj_files[epoch]),"READ"); //only RunBCDEF, nominal JERSF_V2
     assert(fdj && !fdj->IsZombie());
-    fdj2 = new TFile(Form("rootfiles/L2Res_Fall17_17Nov_V27_Closure_JERNominal_derivedWithDiJetTrigger_withoutL1SeedCleaning/Run%s/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ"); //RunBCDEF is with SingleJettriggers...L2ResCorrection_RunBCDEFcombined_SiTrg_JERSF2016_withAndWithoutL1BXclean_V27_closure_globalFitInput
+    fdj2 = new TFile(Form("rootfiles/L2Res_GlobalFitInput_JERSF_V2_Fall17_17Nov2017_V31_DATA/Run%s_17Nov17_2017_JERnominalV2/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ"); //only RunBCDEF, nominal JERSF_V2
     assert(fdj2 && !fdj2->IsZombie());
   }
 
@@ -148,15 +162,15 @@ void reprocess(string epoch="") {
   TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V27_L2res_%s.root", fp_files[epoch]),"READ");
 
   if (doFall17Closure){
-    // Hugues Lattaud, 2017 V24 closure, Sep 17, 2018
-    // https://indico.cern.ch/event/758051/
+    // Hugues Lattaud, 2017 V31 closure, Nov 12, 2018
+    // https://indico.cern.ch/event/772590/#6-l3res-gammajet-closure
     fp_files["B"] = "B";
     fp_files["C"] = "C";
     fp_files["D"] = "D";
     fp_files["E"] = "E";
     fp_files["F"] = "F";
     fp_files["BCDEF"] = "BCDEF";
-    fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V24_L2L3Res_%s.root", fp_files[epoch]),"READ");
+    fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V31_L2L3res_%s.root", fp_files[epoch]),"READ");
     // can not update, yet, due to incompatible binning
     //    fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V24_L2L3res_%s.root", fp_files[epoch]),"READ"); //residual residual input https://indico.cern.ch/event/758051/#21-closure-test-with-gammajets
   }
@@ -174,17 +188,15 @@ void reprocess(string epoch="") {
   fz_files["BCDEF"] = "BCDEF";
   TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV28_Zmm_%s_2018-10-08.root",fz_files[epoch]),"READ");
   TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV28_Zee_%s_2018-10-08.root",fz_files[epoch]),"READ");
-  assert(fzmm && !fzmm->IsZombie());
-  assert(fzee && !fzee->IsZombie());
 
   if (doFall17Closure){
-    // Monday 24 Sep 2018
-    // https://indico.cern.ch/event/759977/#35-closure-test-for-fall17_17n
-    fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV27_Zmm_%s_2018-09-28.root",fz_files[epoch]),"READ"); // https://indico.cern.ch/event/759977/#35-closure-test-for-fall17_17n
-    fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV27_Zee_%s_2018-09-28.root",fz_files[epoch]),"READ"); // for October 2018 release
-    assert(fzmm && !fzmm->IsZombie());
-    assert(fzee && !fzee->IsZombie());
+    // Monday 22 Oct V31 closure
+    // https://indico.cern.ch/event/767001/#52-closure-test-for-fall17_17n
+    fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV31_Zmm_%s_2018-10-26.root",fz_files[epoch]),"READ"); // https://indico.cern.ch/event/759977/#35-closure-test-for-fall17_17n
+    fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV31_Zee_%s_2018-10-26.root",fz_files[epoch]),"READ"); // for October 2018 release
   }
+  assert(fzmm && !fzmm->IsZombie());
+  assert(fzee && !fzee->IsZombie());
 
   // Link to Z mass files (same as above now) and histograms
   // This is used for scaling Z mass back to 1 for Zee and Zmm
@@ -921,10 +933,6 @@ void reprocess(string epoch="") {
     
     // New JEC for plotting on the back
     FactorizedJetCorrector *jec;
-    /*
-    FactorizedJetCorrector *jecc(0), *jecd(0), *jece(0), *jecf(0); // for BCDEF
-    double jecwb(1), jecwc(0), jecwd(0), jecwe(0), jecwf(0);       // for BCDEF
-    */
     FactorizedJetCorrector *jecc(0), *jecde(0), *jecf(0); // for BCDEF
     double jecwb(1), jecwc(0), jecwde(0), jecwf(0);       // for BCDEF
     {
@@ -941,6 +949,7 @@ void reprocess(string epoch="") {
 
 	// luminosity from Hugues Lattaud, photon+jet 11 June 2018
 	double lumtot = 4.8+9.6+4.2+9.3+13.4; // 41.3/fb
+        //D+E = 4.2+9.3 = 13.5
 	jecwb = 4.8/lumtot;
 
 	s=Form("%s/Fall17_17Nov2017C_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
@@ -954,11 +963,11 @@ void reprocess(string epoch="") {
 	/*
 	s=Form("%s/Fall17_17Nov2017D_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
-	JetCorrectorParameters *par_d = new JetCorrectorParameters(s);
-	vector<JetCorrectorParameters> vpar_d;
-	vpar_d.push_back(*par_d);
-	jecd = new FactorizedJetCorrector(vpar_d);
-	jecwd = 4.2/lumtot;
+	JetCorrectorParameters *par_de = new JetCorrectorParameters(s);
+	vector<JetCorrectorParameters> vpar_de;
+	vpar_de.push_back(*par_de);
+	jecde = new FactorizedJetCorrector(vpar_de);
+	jecwde = 13.5/lumtot;
 
 	s=Form("%s/Fall17_17Nov2017E_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	cout << s << endl;
@@ -1169,10 +1178,6 @@ void reprocess(string epoch="") {
 	  double val = (epoch=="L4" ? 1 : 1./jec->getCorrection());
 
 	  if (epoch=="BCDEF") {
-	    /*
-	    assert(jecc); assert(jecd); assert(jece); assert(jecf);
-	    assert(fabs(jecwb+jecwc+jecwd+jecwe+jecwf-1)<1e-4);
-	    */
 	    assert(jecc); assert(jecde); assert(jecf);
 	    assert(fabs(jecwb+jecwc+jecwde+jecwf-1)<1e-4);
 
@@ -1182,15 +1187,6 @@ void reprocess(string epoch="") {
 	    jecc->setJetPt(pt);
 	    double valc = 1./jecc->getCorrection();
 
-	    /*
-	    jecd->setJetEta(eta);
-	    jecd->setJetPt(pt);
-	    double vald = 1./jecd->getCorrection();
-
-	    jece->setJetEta(eta);
-	    jece->setJetPt(pt);
-	    double vale = 1./jece->getCorrection();
-	    */
 	    jecde->setJetEta(eta);
 	    jecde->setJetPt(pt);
 	    double valde = 1./jecde->getCorrection();
@@ -1199,9 +1195,6 @@ void reprocess(string epoch="") {
 	    jecf->setJetPt(pt);
 	    double valf = 1./jecf->getCorrection();
 
-	    /*
-	    val = jecwb*valb +jecwc*valc +jecwd*vald +jecwe*vale +jecwf*valf;
-	    */
 	    val = jecwb*valb +jecwc*valc +jecwde*valde +jecwf*valf;
 	  }
 

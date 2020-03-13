@@ -68,8 +68,8 @@ namespace jec {
   // optional time bits for individual epochs (not included in total), 48-51
   const ErrorTypes kTimeRunB            = ErrorTypes(0L, 1L << 47); //opt
   const ErrorTypes kTimeRunC            = ErrorTypes(0L, 1L << 48); //opt
-  const ErrorTypes kTimeRunD            = ErrorTypes(0L, 1L << 49); //opt
-  const ErrorTypes kTimeRunE            = ErrorTypes(0L, 1L << 50); //opt
+  const ErrorTypes kTimeRunDE            = ErrorTypes(0L, 1L << 49); //opt
+  //  const ErrorTypes kTimeRunE            = ErrorTypes(0L, 1L << 50); //opt
   const ErrorTypes kTimeRunF            = ErrorTypes(0L, 1L << 51); //opt
   // optional PU term for <mu>=0 sample (bias from fitting L2Res with <mu>=20)
   const ErrorTypes kPileUpMuZero        = ErrorTypes(0L, 1L << 52); //opt
@@ -100,14 +100,14 @@ namespace jec {
 
   // SubTotalPileUp, SubTotalRelative, [SubTotalAbsolute], SubTotalPt
   const ErrorTypes kPileUp              = kPileUpDataMC | kPileUpPt;
-  const ErrorTypes kRelative            = kRelativeJER | kRelativeFSR | kRelativeStat | kRelativePt | kRelativeBal | kRelativeSample | kRelativePrefire ;
+  const ErrorTypes kRelative            = kRelativeJER | kRelativeFSR | kRelativeStat | kRelativePt | kRelativeBal | kRelativeSample; //| kRelativePrefire ;
   const ErrorTypes kAbsolutePt          = kAbsoluteFrag | kAbsoluteSPR;
   const ErrorTypes kAbsoluteFlat        = kAbsoluteStat | kAbsoluteMPFBias | kAbsoluteFlavorMapping | kAbsoluteScale;
   const ErrorTypes kAbsolute            = kAbsoluteFlat | kAbsolutePt;
 
   // Test mask: only one of these should be on at a time
   const ErrorTypes kFlavorMask          = kFlavorQCD | kFlavorZJet | kFlavorPhotonJet | kFlavorPureQuark | kFlavorPureGluon | kFlavorPureCharm | kFlavorPureBottom;
-  const ErrorTypes kTimePtEtaMask          = kTimePtEta | kTimeRunB | kTimeRunC | kTimeRunD | kTimeRunE | kTimeRunF;
+  const ErrorTypes kTimePtEtaMask          = kTimePtEta | kTimeRunB | kTimeRunC | kTimeRunDE | kTimeRunF; //| kTimeRunE;
 
   // Total uncertainty bits
   const ErrorTypes kMC = kPileUpDataMC | kRelative | kAbsolute | kFlavorQCD | kTime; // for Data/MC comparisons (excludes kPileUpPt)
