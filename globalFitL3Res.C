@@ -1054,8 +1054,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int minpt = 30;
   TH1D *h = new TH1D("h",";p_{T} (GeV);Jet response (ratio)",
 		     maxpt-minpt,minpt,maxpt);
-  h->SetMinimum(etamin>=3 ? 0.50 : (etamin>=2.5 ? 0.70 : 0.91));
-  h->SetMaximum(etamin>=3 ? 1.75 : (etamin>=2.5 ? 1.45 : 1.15));
+  h->SetMinimum(etamin>=3 ? 0.50 : (etamin>=2.5 ? 0.70 : 0.9301));//0.91));
+  h->SetMaximum(etamin>=3 ? 1.75 : (etamin>=2.5 ? 1.45 : 1.07));//1.15));
   if (_useZoom) {
     //    h->SetMinimum(0.9501); // GH
     //    h->SetMaximum(1.045); // GH
@@ -1281,12 +1281,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     legp->AddEntry(hrun1," ","");
     legm->AddEntry(hrun1,"Run I","FL");
     legp->AddEntry(herr_ref," ","");
-    if (!_paper) legm->AddEntry(herr_ref,"V19","FL");
+    if (!_paper) legm->AddEntry(herr_ref,"V32","FL");
     if ( _paper) legm->AddEntry(herr_ref,"Run II","FL");
   }
   else {
     legp->AddEntry(herr," ","FL");
-    if (!_paper) legm->AddEntry(herr_ref,"V19 (tot,abs)","FL");
+    if (!_paper) legm->AddEntry(herr_ref,"V32 (tot,abs)","FL");
     if ( _paper) legm->AddEntry(herr_ref,"Syst. (tot,abs)","FL");
   //legm->AddEntry(herr_ref,"07AugV7","FL");
   //legm->AddEntry(herr_ref,"Run II","FL");

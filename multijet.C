@@ -174,6 +174,7 @@ void multijet(bool usemjb = true, string epoch="") {
   TFile *f = new TFile(Form("rootfiles/multijet_20170329_Run2016%s.root",
 			    fm_files[epoch]),"READ");
   */
+  /*
   fm_files["BCD"] = "BCD";
   fm_files["EF"] = "EFearly";
   fm_files["G"] = "FlateG";
@@ -188,6 +189,15 @@ void multijet(bool usemjb = true, string epoch="") {
   fm_files["BCDEF"] = "All";
   TFile *f = new TFile(Form("rootfiles/multijet_20170428_Run2016%s.root",
   			    fm_files[epoch]),"READ");
+  */
+  fm_files["B"] = "B";
+  fm_files["C"] = "C";
+  fm_files["D"] = "D";
+  fm_files["E"] = "E";
+  fm_files["DE"] = "DE";
+  fm_files["F"] = "F";
+  fm_files["BCDEF"] = "B"; //patch
+  TFile *f = new TFile(Form("rootfiles/multijet_Rebin2_20200312_UL2017%s_jecV1_jerV3.root",fm_files[epoch]),"READ");
 
   // add Minsuk's new multijet files in reprocess.C and in multijet.C
   // they are found in rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7
@@ -206,21 +216,33 @@ void multijet(bool usemjb = true, string epoch="") {
 
   // Load MJB and MPF from pt30 file: reduces bias no pTrecoil binning
   // However, later use pt10 for the MPF lever arm: this is longer
-  TGraphErrors *gmd1 = (TGraphErrors*)f->Get("Data/Pt30/MJB");
+  //TGraphErrors *gmd1 = (TGraphErrors*)f->Get("Data/Pt30/MJB");
   //TGraphErrors *gmd1 = (TGraphErrors*)f->Get("Data/Pt10/MJB");
-  assert(gmd1); gmd1->SetName("MJB");
+  //assert(gmd1); gmd1->SetName("MJB");
+  TH1D *h1md1 = (TH1D*)f->Get("Data/Pt30/MJB_recoil_L1L2Res");
+  assert(h1md1);
+  TGraphErrors *gmd1 = new TGraphErrors(h1md1);
   //
-  TGraphErrors *gmd2 = (TGraphErrors*)f->Get("Data/Pt30/MPF");
+  //TGraphErrors *gmd2 = (TGraphErrors*)f->Get("Data/Pt30/MPF");
   //TGraphErrors *gmd2 = (TGraphErrors*)f->Get("Data/Pt10/MPF");
-  assert(gmd2); gmd2->SetName("MPF");
+  //assert(gmd2); gmd2->SetName("MPF");
+  TH1D *h1md2 = (TH1D*)f->Get("Data/Pt30/MPF_recoil_L1L2Res");
+  assert(h1md2);
+  TGraphErrors *gmd2 = new TGraphErrors(h1md2);
 
-  TGraphErrors *gmc1 = (TGraphErrors*)f->Get("MC/Pt30/MJB");
+  //TGraphErrors *gmc1 = (TGraphErrors*)f->Get("MC/Pt30/MJB");
   //TGraphErrors *gmc1 = (TGraphErrors*)f->Get("MC/Pt10/MJB");
-  assert(gmc1); gmc1->SetName("MJB");
+  //assert(gmc1); gmc1->SetName("MJB");
+  TH1D *h1mc1 = (TH1D*)f->Get("MC/Pt30/MJB_recoil_MG");
+  assert(h1mc1);
+  TGraphErrors *gmc1 = new TGraphErrors(h1mc1);
   //
-  TGraphErrors *gmc2 = (TGraphErrors*)f->Get("MC/Pt30/MPF");
+  //TGraphErrors *gmc2 = (TGraphErrors*)f->Get("MC/Pt30/MPF");
   //TGraphErrors *gmc2 = (TGraphErrors*)f->Get("MC/Pt10/MPF");
-  assert(gmc2); gmc2->SetName("MPF");
+  //assert(gmc2); gmc2->SetName("MPF");
+  TH1D *h1mc2 = (TH1D*)f->Get("MC/Pt30/MJB_recoil_MG");
+  assert(h1mc2);
+  TGraphErrors *gmc2 = new TGraphErrors(h1mc2);
 
   // Remove "empty" points (from TH1D to TGraph conversion?)
   cleanGraph(gmd1); cleanGraph(gmc1);
@@ -289,23 +311,30 @@ void multijet(bool usemjb = true, string epoch="") {
   // Get MJB and MPF lever arms from MC
   // Use pt30 for MJB and pt10 for MPF, even though
   // pTrecoil binning for both uses pt30
-  TGraphErrors *ge1 = (TGraphErrors*)f->Get("Data/Pt30/CRecoil");
-  assert(ge1);
+  //TGraphErrors *ge1 = (TGraphErrors*)f->Get("Data/Pt30/CRecoil");
+  //assert(ge1);
+  TH1D *he1 = (TH1D*)f->Get("Data/Pt30/CRecoil");
+  assert(he1);
+  TGraphErrors *ge1 = new TGraphErrors(he1);
 
-  TGraphErrors *ge2 = (TGraphErrors*)f->Get("Data/Pt10/CRecoil");
-  if (!ge2) ge2 = (TGraphErrors*)f->Get("Data/Pt15/CRecoil");
-  assert(ge2);
+  //TGraphErrors *ge2 = (TGraphErrors*)f->Get("Data/Pt10/CRecoil");
+  //if (!ge2) ge2 = (TGraphErrors*)f->Get("Data/Pt15/CRecoil");
+  //assert(ge2);
+  TH1D *he2 = (TH1D*)f->Get("Data/Pt30/CRecoil");
+  assert(he2);
+  TGraphErrors *ge2 = new TGraphErrors(he2);
 
   TGraphErrors *ge = (usemjb ? ge1 : ge2);
 
   curdir->cd();
   // Make graphs "stick" by cloning them
-  gm = (TGraphErrors*)gm->Clone();
-  gm1 = (TGraphErrors*)gm1->Clone();
-  gm2 = (TGraphErrors*)gm2->Clone();
-  ge = (TGraphErrors*)ge->Clone();
-  ge1 = (TGraphErrors*)ge1->Clone();
-  ge2 = (TGraphErrors*)ge2->Clone();
+  // Not needed for UL2017 anymore, already cloned TH1D's
+  //gm = (TGraphErrors*)gm->Clone();
+  //gm1 = (TGraphErrors*)gm1->Clone();
+  //gm2 = (TGraphErrors*)gm2->Clone();
+  //ge = (TGraphErrors*)ge->Clone();
+  //ge1 = (TGraphErrors*)ge1->Clone();
+  //ge2 = (TGraphErrors*)ge2->Clone();
 
   const double ptx(200), pty(1600); // data 250-1600 (last bin up to 2.6 TeV)
   for (int i = ge->GetN()-1; i != -1; --i) {

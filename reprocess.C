@@ -136,9 +136,11 @@ void reprocess(string epoch="") {
   fdj_files["BCDEF"] = "BCDEF";
   //  TFile *fdj = new TFile(Form("rootfiles/L2Res_Fall17_17Nov_V5V6/Run%s/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ");
   //patch... using closure files...
-    TFile *fdj = new TFile(Form("rootfiles/L2Res_GlobalFitInput_JERSF_V2_Fall17_17Nov2017_V31_DATA/Run%s_17Nov17_2017_JERnominalV2/output/JEC_L2_Dijet_AK4PFchs_pythia8_eta_0_13.root",fdj_files[epoch]),"READ"); //only RunBCDEF, nominal JERSF_V2
+  //TFile *fdj = new TFile(Form("rootfiles/L2Res_GlobalFitInput_JERSF_V2_Fall17_17Nov2017_V31_DATA/Run%s_17Nov17_2017_JERnominalV2/output/JEC_L2_Dijet_AK4PFchs_pythia8_eta_0_13.root",fdj_files[epoch]),"READ"); //only RunBCDEF, nominal JERSF_V2
+  TFile *fdj = new TFile(Form("rootfiles/L2Res_GlobalFitInput_JERSF_V2_Fall17_17Nov2017_V31_DATA/Run%s_17Nov17_2017_JERnominalV2/output/JEC_L2_Dijet_AK4PFchs_pythia8_eta_0_13.root","BCDEF"),"READ"); //UL2017-v1
     assert(fdj && !fdj->IsZombie());
-    TFile *fdj2 = new TFile(Form("rootfiles/L2Res_GlobalFitInput_JERSF_V2_Fall17_17Nov2017_V31_DATA/Run%s_17Nov17_2017_JERnominalV2/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ"); //only RunBCDEF, nominal JERSF_V2
+    //TFile *fdj2 = new TFile(Form("rootfiles/L2Res_GlobalFitInput_JERSF_V2_Fall17_17Nov2017_V31_DATA/Run%s_17Nov17_2017_JERnominalV2/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ"); //only RunBCDEF, nominal JERSF_V2
+    TFile *fdj2 = new TFile(Form("rootfiles/L2Res_GlobalFitInput_JERSF_V2_Fall17_17Nov2017_V31_DATA/Run%s_17Nov17_2017_JERnominalV2/output/JEC_L2_Dijet_AK4PFchs_pythia8.root","BCDEF"),"READ"); // UL2017-v1
     assert(fdj2 && !fdj2->IsZombie());
 
   // Anastasia Karavdina, 2016 Legacy re-reco (8 Dec 2017) :
@@ -202,18 +204,22 @@ void reprocess(string epoch="") {
   //  
   //Subject: 	RE: Multijet combination file format
   //Date: 	Wed, 11 Sep 2019 15:53:41 +0200
-  fm_files["B"] = "ABC"; // also update multijet.C
-  fm_files["C"] = "ABC"; // also update multijet.C
-  fm_files["D"] = "ABC"; // also update multijet.C
-  fm_files["E"] = "ABC"; // also update multijet.C
-  fm_files["F"] = "ABC"; // also update multijet.C
-  fm_files["BCDEF"] = "ABC"; // also update multijet.C
+  fm_files["B"] = "B";//"ABC"; // also update multijet.C
+  fm_files["C"] = "C";//"ABC"; // also update multijet.C
+  fm_files["D"] = "D";//"ABC"; // also update multijet.C
+  fm_files["E"] = "E";//"ABC"; // also update multijet.C
+  fm_files["DE"] = "DE"; // also update multijet.C
+  fm_files["F"] = "F";//"ABC"; // also update multijet.C
+  fm_files["BCDEF"] = "B";//"ABC"; // also update multijet.C
   //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_P8CP5_jecV17_jerV7.root",fm_files[epoch]),"READ"); // LO Pythia8 off by 2.5% on multijet scale
   //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_MGP8CP5_jecV17_jerV4.root",fm_files[epoch]),"READ"); // MadGraph much better match to data than LO P8 (just not JER V4)
   //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190912_Run2018%s_MC_jecV17_jerV7.root",fm_files[epoch]),"READ"); // All MC in one file (JERV4+ABC only for MG)
-  TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_Rebin2_20190920_Run2018%s_jecV17_jerV7.root",fm_files[epoch]),"READ"); // All MC in one file (JERV4+ABC only for MG)
-  if (!fmj || fmj->IsZombie()) 
-    fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190912_Run2018%s_MC_jecV17_jerV7.root",fm_files[epoch]),"READ"); // All MC in one file (JERV4+ABC only for MG)
+  //
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_Rebin2_20190920_Run2018%s_jecV17_jerV7.root",fm_files[epoch]),"READ"); // All MC in one file (JERV4+ABC only for MG) EOY2017
+  //if (!fmj || fmj->IsZombie()) 
+  //fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190912_Run2018%s_MC_jecV17_jerV7.root",fm_files[epoch]),"READ"); // All MC in one file (JERV4+ABC only for MG) EOY2017
+  TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200312_UL2017%s_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017
+
   assert(fmj && !fmj->IsZombie());
   //TFile *fmj =0;
 
@@ -252,11 +258,21 @@ void reprocess(string epoch="") {
   fz_files["D"] = "D";
   fz_files["E"] = "E";
   fz_files["F"] = "F";
-  fz_files["BCDEF"] = "BCDEF";
-  TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV28_Zmm_%s_2018-10-08.root",fz_files[epoch]),"READ");
-  TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV28_Zee_%s_2018-10-08.root",fz_files[epoch]),"READ");
+  //fz_files["BCDEF"] = "BCDEF"; // EOY2017
+  fz_files["BCDEF"] = "B"; // UL2017-v1
+  //TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV28_Zmm_%s_2018-10-08.root",fz_files[epoch]),"READ"); // EOY2017
+  //TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV28_Zee_%s_2018-10-08.root",fz_files[epoch]),"READ"); // EOY2017
+  //TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1
+  //TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1
+  TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
+  TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
+
+  // UL2017-v1
+  fzmm->cd(Form("Run2017%s",fz_files[epoch])); fzmm = (TFile*)gDirectory;
+  fzee->cd(Form("Run2017%s",fz_files[epoch])); fzee = (TFile*)gDirectory;
+
 
   if(CorLevel=="L1L2L3Res"){
     // Monday 22 Oct V31 closure
@@ -414,7 +430,7 @@ void reprocess(string epoch="") {
   rename["multijet"]["datampfchs1"] = "MPF_recoil_L1L2Res"; // also *_leading_*
   rename["multijet"]["dataptchs"] = "MJB_recoil_L1L2Res"; // also *_leading_*
   //rename["multijet"]["dataptchs"] = "MPF_recoil_L1L2Res"; // !!PATCH!!
-  rename["multijet"]["mccrecoil"] = "CRecoil_P8";
+  rename["multijet"]["mccrecoil"] = "CRecoil_MG";//P8";
   rename["multijet"]["mcmpfchs1"] = "MPF_recoil_MG"; // also *_leading
   rename["multijet"]["mcptchs"] = "MJB_recoil_MG"; // also *_leading
   //rename["multijet"]["mcptchs"] = "MPF_recoil"; // !!PATCH!!
