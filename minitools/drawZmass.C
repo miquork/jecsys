@@ -1,4 +1,7 @@
-#include "../tdrstyle_mod14.C"
+// Purpose: calibrate Zee and Zmm masses for JEC
+//          use minitools/drawZeeVsZmm.C to cross-check parameterization
+// run with 'root -l -b -q minitools/drawZmass.C+g'
+#include "../tdrstyle_mod15.C"
 #include "../tools.C"
 
 #include "TFile.h"
@@ -8,33 +11,60 @@
 #include "TLine.h"
 #include "TMatrixD.h"
 
-bool ispr = true;
+// Plot Z/gamma+jet MPF statistical uncertaity band as reference
+bool plotZmmStat = true;
+bool plotZeeStat = true;
+bool plotGamStat = true;
 
-void drawZmass(string run="ABC") {
+bool ispr = true;
+const double ptzmax = 1000;
+void cleanGraph(TGraphErrors *g, double xmax) {
+  for (int i = g->GetN(); i != -1; --i) {
+    if (g->GetX()[i]>xmax) g->RemovePoint(i);
+  } // for i
+} // cleanGraph
+
+
+void drawZmasses(string run="ABC") {
 
   setTDRStyle();
 
-  TFile *f = new TFile(Form("../rootfiles/jecdata%s.root",run.c_str()),"READ");
+  TFile *f = new TFile(Form("rootfiles/jecdata%s.root",run.c_str()),"READ");
   assert(f && !f->IsZombie());
 
   TGraphErrors *gzmmd = (TGraphErrors*)f->Get("data/eta00-13/mass_zmmjet_a30");
   assert(gzmmd);
   TGraphErrors *gzmmm = (TGraphErrors*)f->Get("mc/eta00-13/mass_zmmjet_a30");
   assert(gzmmm);
-  TGraphErrors *gzmmr = (TGraphErrors*)f->Get("ratio/eta00-13/mass_zmmjet_a30");
-  assert(gzmmr);
+  //TGraphErrors *gzmmr = (TGraphErrors*)f->Get("ratio/eta00-13/mass_zmmjet_a30");
+  //assert(gzmmr);
 
   TGraphErrors *gzeed = (TGraphErrors*)f->Get("data/eta00-13/mass_zeejet_a30");
   assert(gzeed);
   TGraphErrors *gzeem = (TGraphErrors*)f->Get("mc/eta00-13/mass_zeejet_a30");
   assert(gzeem);
-  TGraphErrors *gzeer = (TGraphErrors*)f->Get("ratio/eta00-13/mass_zeejet_a30");
-  assert(gzeer);
+  //TGraphErrors *gzeer = (TGraphErrors*)f->Get("ratio/eta00-13/mass_zeejet_a30");
+  //assert(gzeer);
+
+  // MPFchs for statistical uncertainty band
+  TGraphErrors *gzmmr = (TGraphErrors*)f->Get("ratio/eta00-13/mpfchs1_zmmjet_a30");
+  //assert(gzmmr);
+  TGraphErrors *gzeer = (TGraphErrors*)f->Get("ratio/eta00-13/mpfchs1_zeejet_a30");
+  //assert(gzeer);
+  TGraphErrors *ggamr = (TGraphErrors*)f->Get("ratio/eta00-13/mpfchs1_gamjet_a30");
+  //assert(ggamr);
+
+
+  cleanGraph(gzmmd,ptzmax);
+  cleanGraph(gzmmm,ptzmax);
+  //cleanGraph(gzmmr,ptzmax);
+  cleanGraph(gzeed,ptzmax);
+  cleanGraph(gzeem,ptzmax);
 
   double ptmax = 1200.*2.;
   TH1D *hup = new TH1D("hup",";p_{T,Z} (GeV);m_{Z} (GeV)",670,30,ptmax);
-  hup->SetMinimum(90.0);//90.5);
-  hup->SetMaximum(93.0);//92.5);
+  hup->SetMinimum(90.0);//80);//90.0);
+  hup->SetMaximum(93.0);//110);//93.0);
   hup->GetXaxis()->SetMoreLogLabels();
   hup->GetXaxis()->SetNoExponent();
 
@@ -46,12 +76,18 @@ void drawZmass(string run="ABC") {
 
   //extraText = "Private Work";
   map<string, const char*> lumimap;
-  lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["B"] = "Run2018B 7.1 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["C"] = "Run2018C 6.9 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["D"] = "Run2018D 31.9 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["B"] = "Run2018B 7.1 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["C"] = "Run2018C 6.9 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["D"] = "Run2018D 31.9 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["BCDEF"] = "2017, 41.5 fb^{-1}"; // for DP note
+  lumimap["B"] = "Run2017B, 4.8 fb^{-1}";
+  lumimap["C"] = "Run2017C, 9.6 fb^{-1}";
+  lumimap["D"] = "Run2017D, 4.2 fb^{-1}";
+  lumimap["E"] = "Run2017E, 9.3 fb^{-1}";
+  lumimap["F"] = "Run2017F, 13.4 fb^{-1}";
   lumi_13TeV = lumimap[run];
   TCanvas *c1 = tdrDiCanvas("c1",hdw,hup,4,11);
 
@@ -77,14 +113,46 @@ void drawZmass(string run="ABC") {
   //tdrDraw(gzeer,"Pz",kFullSquare,kGreen+2);
   //tdrDraw(gzmmr,"Pz",kFullCircle,kRed);
 
-  // Plot the fit used in reprocess.C (f1mzee)
-  TF1 *f1jec = new TF1("f1jec","(([0]+[1]*log(0.01*x)"
-			"+[2]*pow(log(0.01*x),2))"
-			"-1)*100", 30, ptmax);
-  f1jec->SetParameters(1.00298, 0.00260, 0.00026); // V5M2
-  f1jec->SetLineColor(kBlack);
-  f1jec->SetLineWidth(2);
-  f1jec->Draw("SAME");
+  // Plot the old fit used in EOY2017 reprocess.C (f1mzee)
+  TF1 *f1eoy17ee = new TF1("f1eoy17ee","(([0]+[1]*log(0.01*x)"
+			   "+[2]*pow(log(0.01*x),2))"
+			   "-1)*100", 30, ptmax);
+  //f1eoy17ee->SetParameters(1.00298, 0.00260, 0.00026); // 2018?
+  f1eoy17ee->SetParameters(1.00246, 0.00214, 0.00116); // EOY2017
+  f1eoy17ee->SetLineColor(kGray);
+  f1eoy17ee->SetLineWidth(2);
+  f1eoy17ee->Draw("SAME");
+  //
+  TF1 *f1eoy17mm = new TF1("f1eoy17","([0]-1)*100", 30, ptmax);
+  f1eoy17mm->SetParameter(0, 0.99854); // EOY2017
+  f1eoy17mm->SetLineColor(kGray);
+  f1eoy17mm->SetLineWidth(2);
+  f1eoy17mm->Draw("SAME");
+
+  // Plot the new fit used in UL17 reprocess.C (f1mzee)
+  double kee = -(4.8*0.329 + 9.6*0.474 + 4.2*0.513 + 9.3*0.517 + 13.4*0.534)
+    / (4.8+9.6+4.2+9.3+13.4)*0.01 + 1.00246;
+  double kmm = -(4.8*0.181 + 9.6*0.171 + 4.2*0.213 + 9.3*0.190 + 13.4*0.158)
+    / (4.8+9.6+4.2+9.3+13.4)*0.01 + 1;
+  cout << "kee(UL17 BCDEF) = " << kee << endl;
+  cout << "kmm(UL17 BCDEF) = " << kmm << endl;
+  TF1 *f1ul17ee = new TF1("f1ul17ee","(([0]+[1]*log(0.01*x)"
+			  "+[2]*pow(log(0.01*x),2))"
+			  "-1)*100", 30, ptmax);
+  //f1ul17ee->SetParameters(1.00298, 0.00260, 0.00026); // UL17B
+  //f1ul17ee->SetParameters(0.997557, 0.00214, 0.00116); // UL17B+C+D+E+F
+  f1ul17ee->SetParameters(0.99780, 0.00225, 0.00031); // UL17BCDEF-v1
+  f1ul17ee->SetLineColor(kBlack);
+  f1ul17ee->SetLineWidth(2);
+  f1ul17ee->Draw("SAME");
+  //
+  TF1 *f1ul17mm = new TF1("f1ul17mm","([0]-1)*100", 30, ptmax);
+  //f1ul17mm->SetParameter(0, 0.998235); // UL17B+C+D+E+F
+  f1ul17mm->SetParameter(0, 0.99821); // UL17BCDEF
+  f1ul17mm->SetLineColor(kBlack);
+  f1ul17mm->SetLineWidth(2);
+  f1ul17mm->Draw("SAME");
+
   
 
   l->DrawLine(30,0,ptmax,0);
@@ -96,11 +164,9 @@ void drawZmass(string run="ABC") {
 
   // Increase uncertainty for Zmm mZ kink at pT,Z~70 GeV
   int ik = 3;
-  //double ek = 0.00000; // no extra
-  //double ek = 0.0004; // 0.04% extra
-  //double ek = 0.0002; // 0.02% extra
+  double ek = 0.0000; // no extra (UL17)
   // same as ee * mumu(100)/ee(100):
-  double ek = gzeer2->GetEY()[3] * gzmmr2->GetEY()[4]/gzeer2->GetEY()[4];
+  //double ek = gzeer2->GetEY()[3] * gzmmr2->GetEY()[4]/gzeer2->GetEY()[4]; // EOY2017
   gzmmr2->SetPointError(ik, gzmmr2->GetEX()[ik],
 			sqrt(pow(gzmmr2->GetEY()[ik],2)+pow(ek,2)));
 
@@ -117,8 +183,39 @@ void drawZmass(string run="ABC") {
   TF1 *f1mzee = new TF1("f1zee","([0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)-1)*100",
 			30,ptmax);
   f1mzee->SetParameters(1,0.001,0.0001);
+  //f1mzee->FixParameter(1, 0.00214); // EOY2017BCDEF
+  //f1mzee->FixParameter(2, 0.00116); // EOY2017BCDEF
+  if (run!="BCDEF") {
+    f1mzee->FixParameter(1, 0.00225); // UL2017BCDEF-v1
+    f1mzee->FixParameter(2, 0.00031); // UL2017BCDEF-v1
+  }
   f1mzee->SetLineColor(kGreen+2);
   gzeer2->Fit(f1mzee,"QRN");
+
+  // Put Zee+jet and gamma+jet statistical uncertainties around the fit
+  TGraphErrors *gstatze(0);
+  if (gzeer && plotZeeStat) {
+    gstatze = (TGraphErrors*)gzeer->Clone();
+    for (int i = 0; i != gstatze->GetN(); ++i) {
+      gstatze->SetPointError(i,0,100.*gstatze->GetEY()[i]/gstatze->GetY()[i]);
+      gstatze->SetPoint(i,gstatze->GetX()[i],f1mzee->Eval(gstatze->GetX()[i]));
+    }
+    gstatze->SetFillStyle(1001);
+    gstatze->SetFillColorAlpha(kGreen-9,0.3);
+    gstatze->Draw("E3");
+  }
+  TGraphErrors *gstatg(0);
+  if (ggamr && plotGamStat) {
+    gstatg = (TGraphErrors*)ggamr->Clone();
+    for (int i = 0; i != gstatg->GetN(); ++i) {
+      gstatg->SetPointError(i, 0, 100.*gstatg->GetEY()[i]/gstatg->GetY()[i]);
+      gstatg->SetPoint(i, 2*gstatg->GetX()[i], f1mzee->Eval(2*gstatg->GetX()[i]));
+    }
+    gstatg->SetFillStyle(1001);
+    gstatg->SetFillColorAlpha(kBlue-9,0.3);
+    gstatg->Draw("E3");
+  }
+  
   f1mzee->Draw("SAME");
 
   TMatrixD emat(f1mzee->GetNpar(),f1mzee->GetNpar());
@@ -156,8 +253,10 @@ void drawZmass(string run="ABC") {
     "                        \"+2*pow(log(0.01*x),3)*[5])\",\n"
     "			     fzeeptmin, fzeeptmax);\n"
     "  if (correctZeeMass || correctGamMass) {\n"
-    "    if (useFixedFit) {\n"
-    "      // ABCD fit with minitools/drawZmass.C\n";
+    "    if (useFixedFit) {\n";
+  //"      // ABCD fit with minitools/drawZmass.C\n";
+  cout << Form("      // UL17 Run%s fit with minitools/drawZmass.C\n",
+	       run.c_str());
   cout << Form(""
 	       "      f1mzee->SetParameters(%1.5f, %1.5f, %1.5f);\n"
 	       "      f1ezee->SetParameters(%+9.3g, %+9.3g, %+9.3g,\n"
@@ -173,25 +272,32 @@ void drawZmass(string run="ABC") {
 	       emat[0][1], emat[0][2], emat[1][2]);
 
 
-  //TF1 *f1mzee0 = new TF1("f1zee0","1+[0]*log(x)+[1]*log(x)*log(x)",30,ptmax);
-  TF1 *f1mzee0 = new TF1("f1zee0","(1+[0]*log(x)+[1]*log(x)*log(x)-1)*100",
-			 30,ptmax);
-  f1mzee0->SetParameters(0.001,0.0001);
-  //TF1 *f1mzee0 = new TF1("f1zee0","[0]+[1]*pow(x,[2])",30,ptmax);
-  //f1mzee0->SetParameters(1,0.01,0.5);
-  f1mzee0->SetLineColor(kGreen+3);
-  gzeer2->Fit(f1mzee0,"QRN");
-  //f1mzee0->Draw("SAME");
+  //TF1 *f1mzee0 = new TF1("f1zee0","(1+[0]*log(x)+[1]*log(x)*log(x)-1)*100",
+  //			 30,ptmax);
+  //f1mzee0->SetParameters(0.001,0.0001);
+  //f1mzee0->SetLineColor(kGreen+3);
+  //gzeer2->Fit(f1mzee0,"QRN");
 
   TF1 *f1mzmm = new TF1("f1zmm","([0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)-1)*100",
 			30,ptmax);
-  //f1mzmm->SetParameters(1,-0.001,0.00015);
-  //f1mzmm->FixParameter(1,1);
   f1mzmm->SetParameters(1,0,0);
   f1mzmm->FixParameter(2,0);
   f1mzmm->FixParameter(1,0);
   f1mzmm->SetLineColor(kRed);
   gzmmr2->Fit(f1mzmm,"QRN");
+
+  TGraphErrors *gstatzm(0);
+  if (gzmmr && plotZmmStat) {
+    gstatzm = (TGraphErrors*)gzmmr->Clone();
+    for (int i = 0; i != gstatzm->GetN(); ++i) {
+      gstatzm->SetPointError(i,0,100.*gstatzm->GetEY()[i]/gstatzm->GetY()[i]);
+      gstatzm->SetPoint(i,gstatzm->GetX()[i],f1mzmm->Eval(gstatzm->GetX()[i]));
+    }
+    gstatzm->SetFillStyle(1001);
+    gstatzm->SetFillColorAlpha(kRed-9,0.3);
+    gstatzm->Draw("E3");
+  }
+
   f1mzmm->Draw("SAME");
 
   TMatrixD emat2(f1mzmm->GetNpar(),f1mzmm->GetNpar());
@@ -216,8 +322,9 @@ void drawZmass(string run="ABC") {
     "                        \"+2*pow(log(0.01*x),3)*[5])\"\n"
     "			     ,fzeeptmin, fzeeptmax);\n"
     "  if (correctZmmMass) {\n"
-    "    if (useFixedFit) {\n"
-    "      // ABC fit with minitools/drawZmass.C\n";
+    "    if (useFixedFit) {\n";
+    //"      // ABC fit with minitools/drawZmass.C\n";
+  cout << Form("      // UL17 %s fit with minitools/drawZmass.C\n",run.c_str());
   cout << Form(""
 	       "      f1mzmm->SetParameters(%1.5f, %1.5f, %1.5f);\n"
 	       "      f1ezmm->SetParameters(%+9.3g, %+9.3g, %+9.3g,\n"
@@ -240,6 +347,25 @@ void drawZmass(string run="ABC") {
 
   TLatex *tex = new TLatex();
   tex->SetNDC(); tex->SetTextSize(0.045);
+
+  TLegend *leg = tdrLeg(0.20,0.50,0.40,0.74);
+  leg->AddEntry(gzeed,"Z(#rightarrow e^{+}e^{-}) data","PL");
+  leg->AddEntry(gzmmd,"Z(#rightarrow #mu^{+}#mu^{-}) data","PL");
+  leg->AddEntry(gzeem,"Z(#rightarrow e^{+}e^{-}) MC","PL");
+  leg->AddEntry(gzmmm,"Z(#rightarrow #mu^{+}#mu^{-}) MC","PL");
+  
+
+  if (plotZmmStat || plotZeeStat || plotGamStat) {
+    
+    int n(0);
+    if (plotZmmStat) ++n;
+    if (plotZeeStat) ++n;
+    if (plotGamStat) ++n;
+    TLegend *leg2 = tdrLeg(0.50,0.72,0.80,0.72+0.06*n);
+    if (plotZeeStat) leg2->AddEntry(gstatzm,"Zee+jet stat.","F");
+    if (plotZmmStat) leg2->AddEntry(gstatze,"Z#mu#mu+jet stat.","F");
+    if (plotGamStat) leg2->AddEntry(gstatg, "#gamma+jet stat.","F");
+  }
 
   // Don't print all the internal information to the PR plots
   if (!ispr) {
@@ -267,9 +393,6 @@ void drawZmass(string run="ABC") {
 				  emat[2][0], emat[2][1], emat[2][2]));
     tex->SetTextSize(0.045);
     
-    //tex->DrawLatex(0.20,1.09-dy,Form("p_{0} = %1.5f #pm %1.5f",
-    //tex->DrawLatex(0.20,0.73-dy,Form("#chi^{2}/NDF = %1.1f/%d (p1)",
-
     tex->SetTextColor(kRed);
     tex->DrawLatex(0.20,0.05,Form("#chi^{2} / NDF = %1.1f / %d (p1)",
 				  f1mzmm->GetChisquare(), f1mzmm->GetNDF()));
@@ -279,16 +402,16 @@ void drawZmass(string run="ABC") {
   } // !ispr
   if (ispr) {
 
-    TLegend *leg = tdrLeg(0.20,0.50,0.40,0.74);
-    leg->AddEntry(gzeed,"Z(#rightarrow e^{+}e^{-}) data","PL");
-    leg->AddEntry(gzmmd,"Z(#rightarrow #mu^{+}#mu^{-}) data","PL");
-    leg->AddEntry(gzeem,"Z(#rightarrow e^{+}e^{-}) MC","PL");
-    leg->AddEntry(gzmmm,"Z(#rightarrow #mu^{+}#mu^{-}) MC","PL");
-
-
     tex->SetTextColor(kGreen+2);
     tex->DrawLatex(0.2,0.40,Form("#chi^{2} / NDF = %1.1f / %d (e^{+}e^{-})",
 				  f1mzee->GetChisquare(), f1mzee->GetNDF()));
+    if (run!="BCDEF")
+      tex->DrawLatex(0.4,0.85,Form("#Delta^{2}M(e^{+}e^{-})"
+                                   " = %+1.3f #pm %1.3f%%",
+                                   100.*(f1mzee->GetParameter(0)-
+					 f1ul17ee->GetParameter(0)),
+					 //f1eoy17ee->GetParameter(0)),
+                                   100.*f1mzee->GetParError(0)));
 
     tex->SetTextColor(kRed);
     tex->DrawLatex(0.2,0.05,Form("#chi^{2} / NDF = %1.1f / %d (#mu^{+}#mu^{-})",
@@ -296,8 +419,27 @@ void drawZmass(string run="ABC") {
     tex->DrawLatex(0.2,0.11,Form("#DeltaM(#mu^{+}#mu^{-}) = %1.3f #pm %1.3f%%",
 				 (f1mzmm->GetParameter(0)-1)*100,
 				 f1mzmm->GetParError(0)*100));
+    if (run!="BCDEF")
+      tex->DrawLatex(0.4,0.80,Form("#Delta^{2}M(#mu^{+}#mu^{-})"
+                                   " = %+1.3f #pm %1.3f%%",
+                                   100.*(f1mzmm->GetParameter(0)-
+					 f1ul17mm->GetParameter(0)),
+					 //f1eoy17mm->GetParameter(0)),
+                                   100.*f1mzmm->GetParError(0)));
   }
 
 
-  c1->SaveAs(Form("../pdf/drawZmass_Run%s.pdf",run.c_str()));
-}
+  c1->SaveAs(Form("pdf/drawZmass_Run%s.pdf",run.c_str()));
+} // drawZmasses
+
+void drawZmass() {
+
+  /*
+  drawZmasses("B");
+  drawZmasses("C");
+  drawZmasses("D");
+  drawZmasses("E");
+  drawZmasses("F");*/
+  drawZmasses("BCDEF");
+
+} // drawZmass

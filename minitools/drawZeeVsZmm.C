@@ -1,4 +1,5 @@
 // Draw ratio of Zee+jet and Zmm+jet
+// run with 'root -l -b -q minitools/drawZeeVsZmm.C+g'
 #include "../tdrstyle_mod15.C"
 #include "../tools.C"
 
@@ -11,12 +12,12 @@
 #include "TMultiGraph.h"
 #include "TMatrixD.h"
 
-void drawZeeVsZmm(string run = "BCDEFGH") {
+void drawZeeVsZmms(string run = "BCDEFGH") {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
-  TFile *f = new TFile(Form("../rootfiles/jecdata%s.root",run.c_str()),"READ");
+  TFile *f = new TFile(Form("rootfiles/jecdata%s.root",run.c_str()),"READ");
   assert(f && !f->IsZombie());
   gDirectory->cd("ratio");
   gDirectory->cd("eta00-13");
@@ -79,12 +80,18 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
   hdw->GetXaxis()->SetNoExponent();
 
   map<string, const char*> lumimap;
-  lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["B"] = "Run2018B 7.1 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["C"] = "Run2018C 6.9 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["D"] = "Run2018D 31.9 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["B"] = "Run2018B 7.1 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["C"] = "Run2018C 6.9 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["D"] = "Run2018D 31.9 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
+  lumimap["BCDEF"] = "2017, 41.5 fb^{-1}"; // for DP note
+  lumimap["B"] = "Run2017B, 4.8 fb^{-1}";
+  lumimap["C"] = "Run2017C, 9.6 fb^{-1}";
+  lumimap["D"] = "Run2017D, 4.2 fb^{-1}";
+  lumimap["E"] = "Run2017E, 9.3 fb^{-1}";
+  lumimap["F"] = "Run2017F, 13.4 fb^{-1}";
   lumi_13TeV = lumimap[run];
   TCanvas *c1 = tdrDiCanvas("c1",hdw,hup,4,11);
 
@@ -210,13 +217,17 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
 			"+[2]*pow(log(0.01*x),2))"
 			"-1)*100", 30, ptmax);
   // ABCD fit with minitools/drawZmass.C (f1mzee x 3 + f1mzmm x 1)
-  f1mzee->SetParameters(1.00276, 0.00243, 0.00021, 0.99844); // V5M2
+  //f1mzee->SetParameters(1.00276, 0.00243, 0.00021, 0.99844); // V5M2
+  // UL17 RunBCDEF fit with minitools/drawZmass.C
+  f1mzee->SetParameters(0.99781, 0.00244, 0.00014);
 
   // Zee mass applied to gamma+jet at pT,Z=2*pT,gamma
   TF1 *f1mgam = new TF1("f1mgam","([3]/([0]+[1]*log(0.01*x*2)"
                         "+[2]*pow(log(0.01*x*2),2))"
                         "-1)*100", 30, ptmax);
-  f1mgam->SetParameters(1.00276, 0.00243, 0.00021, 0.99844); // V5M2
+  //f1mgam->SetParameters(1.00276, 0.00243, 0.00021, 0.99844); // V5M2
+  // UL17 RunBCDEF fit with minitools/drawZmass.C
+  f1mzee->SetParameters(0.99781, 0.00244, 0.00014);
 
   c1->cd(1);
   f1mzee->SetLineStyle(kSolid);
@@ -230,7 +241,18 @@ void drawZeeVsZmm(string run = "BCDEFGH") {
 
   gPad->Update();
 
-  //c1->SaveAs(Form("../pdf/drawZeeVsZmm_Run%s.pdf",run.c_str()));
-  //c1->SaveAs(Form("../pdf/drawZeeVsZmm_Run%s_nomasscorr.pdf",run.c_str()));
-  c1->SaveAs(Form("../pdf/drawZeeVsZmm_Run%s_masscorr.pdf",run.c_str()));
+  //c1->SaveAs(Form("pdf/drawZeeVsZmm_Run%s.pdf",run.c_str()));
+  //c1->SaveAs(Form("pdf/drawZeeVsZmm_Run%s_nomasscorr.pdf",run.c_str()));
+  c1->SaveAs(Form("pdf/drawZeeVsZmm_Run%s_masscorr.pdf",run.c_str()));
+} // drawZeeVsZmms
+
+void drawZeeVsZmm() {
+
+  /*
+  drawZeeVsZmms("B");
+  drawZeeVsZmms("C");
+  drawZeeVsZmms("D");
+  drawZeeVsZmms("E");
+  drawZeeVsZmms("F");*/
+  drawZeeVsZmms("BCDEF");
 }
