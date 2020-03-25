@@ -44,12 +44,14 @@ using namespace std;
 int iMultijet =0;
 
 bool dofsr = true; // correct for FSR
+bool dofsrcombo = true; // use BCDEF for FSR, not individual IOVs
+double alphaeffmax = 0.45; // max alphaeff
 double ptreco_gjet = 15.; // min jet pT when evaluating alphamax for gamma+jet
 double ptreco_zjet = 5.; // same for Z+jet
 bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
 bool _paper = false; // switch of plotting fit parameters
-bool _useZoom = false; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
-bool plotMultijetDown = false; // plot gray downward points for multijets
+bool _useZoom = true;//false; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
+bool plotMultijetDown = true;//false; // plot gray downward points for multijets
 double _cleanUncert = 0.05; // for eta>2
 //double _cleanUncert = 0.020; // Clean out large uncertainty points from PR plot
 //bool _g_dcsonly = false;
@@ -100,8 +102,8 @@ double fixTDI = 0; // do NOT fix TDI for BCD+EF and G+H
 bool useEG = false; // ECAL gain shift for 3p fit
 
 //const int njesFit = 1; // scale only
-const int njesFit = 2; // scale(ECAL)+HB
-//const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
+//const int njesFit = 2; // scale(ECAL)+HB
+const int njesFit = 3; //useOff=true; // scale(ECAL)+HB+offset
 //const int njesFit = 3; //useTDI=true; // scale(ECAL)+HB+tracker (switchable)
 //const int njesFit = 3; //useEG=true; // scale(ECAL)+HB+ECALgain
 //const int njesFit = 4; // scale(ECAL)+HB+offset+ECALgain
@@ -129,13 +131,11 @@ Double_t jesFit(Double_t *x, Double_t *p) {
  
   // Initialize L1FastJet-L1RC difference
   // Values from fitting ratio/eta00-13/hl1bias (JEC set in reprocess.C)
-  //if (!fl1) fl1 = new TF1("fl1","1-([0]+[1]*log(x))/x",10,3500);
   if (!fl1) fl1 = new TF1("fl1","1-([0]+[1]*log(x)+[2]*pow(log(x),2))/x",
 			  10,3500);
-  //fl1->SetParameters(2.60382e-01, 1.96664e-01); // Sum16V6G hl1bias
-  //fl1->SetParameters(5.71298e-01, 1.59635e-01);
-  //fl1->SetParameters(-1.96332e-01, 3.07378e-01); // Sum16_07AugBCDEFGHV6 hl1bias
-  fl1->SetParameters(3.906, -1.652, 0.2257); // Sum16_07AugBCDEFGHV16 hl1bias
+  //fl1->SetParameters(3.906, -1.652, 0.2257); // Sum16_07AugBCDEFGHV16 hl1bias
+  fl1->SetParameters(1.72396, 0, 0); // UL17 V1S hl1bias (p1=p2=0)
+  //fl1->SetParameters(-0.0871060, 0, 0); // UL17 V1S hl1diff (p1=p2=0)
   
   if (!fl1mc) fl1mc = new TF1("fl1mc","1-([0]+[1]*log(x))/x",10,3500);
   fl1mc->SetParameters(1.414,-0.131); // Sum16_07AugBCDEFGHV16 hl1diff
@@ -351,6 +351,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   TFile *f = new TFile(Form("rootfiles/jecdata%s.root",cep),"READ");
   assert(f && !f->IsZombie());
 
+  TFile *ffsr = new TFile(Form("rootfiles/jecdata%s.root","BCDEF"),"READ");
+  assert((ffsr && !ffsr->IsZombie()) || !dofsrcombo);
+  if (dofsrcombo) cout << "Use FSR from jecdataBCDEF.root for all IOVs\n";
+
   // Patch photon E/p (moved to reprocess.C in v7)
   //TFile *feop = new TFile("rootfiles/EoverP_dataMCratio/EoverP_vsRegrCorrEnergy_dataMCRatio.root","READ");
   //assert(feop && !feop->IsZombie());
@@ -553,6 +557,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   string sbin = Form("eta%02.0f-%02.0f",10*etamin,10*etamax);
   const char* bin = sbin.c_str();
 
+  TDirectory *dfsr(0);
+  if (dofsrcombo) {
+    assert(ffsr->cd(ct));
+    TDirectory *dfsrin1 = ffsr->GetDirectory(ct); assert(dfsrin1);
+    assert(dfsrin1->cd(bin));
+    dfsr = dfsrin1->GetDirectory(bin); assert(dfsr);
+  } // usefsrcombo
+
   assert(f->cd(ct));
   TDirectory *din1 = f->GetDirectory(ct); assert(din1);
   assert(din1->cd(bin));
@@ -665,12 +677,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
       string s = Form("fsr/hkfsr_%s_%s",cm,cs);
       TH1D *h = (TH1D*)d->Get(s.c_str());
+      if (dofsrcombo) h = (TH1D*)dfsr->Get(s.c_str());
       if (!h) cout << "Histo "<<s<<" not found!" << endl << flush;
       assert(h);
 
       // For correcting L1L2L3-L1 to L1L2L3-RC
       TH1D *hl1 = (TH1D*)d->Get("hl1bias"); assert(hl1);
-
+      
       int ibm = isample + nsamples*imethod;
       h->SetName(Form("bm%d_%s",(1<<ibm),h->GetName()));
 
@@ -689,7 +702,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	double ptreco = (string(cs)=="zeejet"||string(cs)=="zmmjet"
 			 ||string(s)=="zlljet" ?
 			 ptreco_zjet : ptreco_gjet);
-	double aeff = max(alpha, ptreco/pt);
+	double aeff = min(max(alpha, ptreco/pt),alphaeffmax);
+	if (string(cs)=="multijet") aeff = alpha;
 	double kfsr = (dofsr ? 1./(1+aeff*h->GetBinContent(h->FindBin(pt))):1);
 	double l1 = (dol1bias && string(cm)=="mpfchs1" && string(cs)=="gamjet" ?
 		     1./hl1->GetBinContent(hl1->FindBin(pt)) : 1);
@@ -720,16 +734,18 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	g3->SetPointError(i, ex, sqrt(ey*ey + escale*escale));
 
 	
-	// For multijet, correct instead for reference JES
+	// For multijet, correct instead for reference JES (and FSR)
 	if (string(cs)=="multijet" && gf) {
 	  double ptref = gf->GetY()[i] * pt;
 	  double jesref = herr->GetBinContent(herr->FindBin(ptref));
 	  // Don't correct g, we need raw input for global fit
 	  //g->SetPoint(i, pt, jesref * r);
-	  g2->SetPoint(i, pt, jesref * r);
+	  g->SetPoint(i, pt, r * kfsr);
+	  g2->SetPoint(i, pt, jesref * r * kfsr);
 	  g3->SetPoint(i, pt, jesref * r);
 	  double jes = herr->GetBinContent(herr->FindBin(pt));
-	  gf2->SetPoint(i, ptref, jes / r);
+	  //gf2->SetPoint(i, ptref, jes / r);
+	  gf2->SetPoint(i, ptref, jes / (r * kfsr));
 	}
 	// For dijet, multiply by barrel JES
 	if (string(cs)=="dijet" && !(scalingForL2OrL3Fit=="ApplyL3ResDontScaleDijets"||scalingForL2OrL3Fit=="DontScaleDijets")) {
@@ -750,20 +766,30 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   // FSR uncertainty sources (fit uncertainty eigenvectors)
   // 3x2x(3-4) (we have FSR for multijets as well?)
-  const int neig = 3;
-  for (int ieig = 0; ieig != neig; ++ieig) {
+  const int neigmax = 4;//3;
+  for (int ieig = 0; ieig != neigmax; ++ieig) {
     for (unsigned int imethod = 0; imethod != nmethods; ++imethod) {
       for (int isample = 0; isample != nsamples; ++isample) {
 	
 	const char *cm = methods[imethod];
 	const char *cs = samples[isample];
-
+	int ibm = isample + nsamples*imethod;	
+	
 	string s = Form("fsr/hkfsr_%s_%s_eig%d",cm,cs,ieig);
 	TH1D *h = (TH1D*)d->Get(s.c_str());
+	if (dofsrcombo) h = (TH1D*)dfsr->Get(s.c_str());
+	if ((string(cs)!="multijet" && ieig>2 && !h) ||
+	    (string(cs)=="multijet" && ieig>1 && !h)) {
+	  h = hs[ibm]; assert(h); // use src0
+	  h = (TH1D*)h->Clone(Form("bm%d_inactive_hkfsr_%s_%s_eig%d",
+				   (1<<ibm),cm,cs,ieig));
+	  h->Reset();
+	  hs.push_back(h);
+	  continue;
+	}
 	if (!h) cout << "Histo "<<s<<" not found!" << endl << flush;
 	assert(h);
 
-	int ibm = isample + nsamples*imethod;	
 	for (int i = 1; i != h->GetNbinsX()+1; ++i) {
 	  double pt = h->GetBinCenter(i);
 	  double ptreco = (string(cs)=="zeejet"||string(cs)=="zmmjet"
@@ -796,10 +822,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     //bool gain6(true), gain1(true);
     const int n0 = nsample0;
     const int n1 = nsamples+nsample0;
+    /*
+    // 20200319: why did we need this again? chi2 is from ratio of JECs
     if (s=="multijet" && m=="ptchs") { // imethod==0) {
       escale = 1.0; // no constraint on absolute scale
       h2->SetName(Form("bm%d_scale_multijet_%d",(1<<(n0-1) | (1<<(n1-1))), i));
     }
+    */
     if (s=="dijet" && m=="ptchs") { //imethod==0) {
       escale = 0.005; // for JER bias and whatnot
       h2->SetName(Form("bm%d_scale_dijet_%02.0f_%d",
@@ -811,7 +840,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       // BCDEFGH 0.5%: 49.8/56 0.988,0.027(0.5904)
       // BCDEFGH 0.2%: 54.5/56 0.986,0.023(0.6199) => some tension
       //if (epoch=="GH" || epoch=="BCDEFGH") escale = 0.005;
-      escale = 0.005;
+      //escale = 0.005; // EOY17
+      escale = 0.0200; // UL17-v1
       //gain6 = true; gain1 = true;//false;
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_gamjet_%02.0f_%d",
@@ -901,29 +931,32 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 //  // Additional uncertainties for pT balance shape so that
 //  // it is not given more weight than MPF with footprint uncertainty
 //  // (one for each sample x method, but all except two are empty)
-//  for (unsigned int i = 0; i != _vdt->size(); ++i) {
-//
-//    string s = samples[i%nsamples]; const char *cs = s.c_str();
-//    string m = methods[i/nsamples]; const char *cm = m.c_str();
-//
-//    double escale(0);
-//    if (s=="gamjet" && m=="ptchs") { escale = 0.005; }
-//    if (s=="zeejet" && m=="ptchs") { escale = 0.005; }
-//    if (s=="zmmjet" && m=="ptchs") { escale = 0.005; }
-//    if (s=="zlljet" && m=="ptchs") { escale = 0.005; }
-//
-//    TH1D *h = hs[i]; assert(h);
-//    TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_%s_%02.0f_%s_%s_%d",
-//				    1<<i,
-//				    escale!=0 ? "ptbalscale" : "inactive",
-//				    escale*1000.,cm,cs,i));
-//    
-//    for (int j = 1; j != h2->GetNbinsX()+1; ++j) {
-//      h2->SetBinContent(j, escale);
-//      h2->SetBinError(j, escale);
-//    } // for j
-//    hs.push_back(h2);
-//  } // for i
+// UL17 with dofsrcombo: switch off again
+  if (!dofsrcombo) {
+    for (unsigned int i = 0; i != _vdt->size(); ++i) {
+
+      string s = samples[i%nsamples]; const char *cs = s.c_str();
+      string m = methods[i/nsamples]; const char *cm = m.c_str();
+      
+      double escale(0);
+      if (s=="gamjet" && m=="ptchs") { escale = 0.005; }
+      if (s=="zeejet" && m=="ptchs") { escale = 0.005; }
+      if (s=="zmmjet" && m=="ptchs") { escale = 0.005; }
+      if (s=="zlljet" && m=="ptchs") { escale = 0.005; }
+      
+      TH1D *h = hs[i]; assert(h);
+      TH1D *h2 = (TH1D*)h->Clone(Form("bm%d_%s_%02.0f_%s_%s_%d",
+				      1<<i,
+				      escale!=0 ? "ptbalscale" : "inactive",
+				      escale*1000.,cm,cs,i));
+   
+      for (int j = 1; j != h2->GetNbinsX()+1; ++j) {
+	h2->SetBinContent(j, escale);
+	h2->SetBinError(j, escale);
+      } // for j
+      hs.push_back(h2);
+    } // for i
+  } // !dofsrcombo
 
   // MPF uncertainties from offset pT dependence and type-I
   /*
@@ -1017,10 +1050,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   } // for ieig
   
   // Uncertainty sources for multijets
-  if (true && string(samples[0])=="multijet") {
+  if (string(samples[0])=="multijet") {
 
     const int isample = 0;
-    const int nsrcmj = 3;
+    const int nsrcmj = 1;//3;
     for (unsigned int imethod = 0; imethod != nmethods; ++imethod) {
       for (int isrc = 0; isrc != nsrcmj; ++isrc) {
 	
@@ -1028,18 +1061,48 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	const char *cs = "multijet";
 	
 	// Don't remember why these sources were stored under fsr/, but ok
-	string s = Form("fsr/%s_%s_src%d",cm,cs,isrc);
+	//string s = Form("fsr/%s_%s_src%d",cm,cs,isrc);
+	//string s = Form("sys/%s_%s_src%d",cm,cs,isrc);
+	string s;
+	if (isrc==0) s = "sys/jer_multijet";
+	TH1D *h = (TH1D*)d->Get(s.c_str());
+	if (dofsrcombo) h = (TH1D*)dfsr->Get(s.c_str());
+	if (!h) cout << "Histo "<<s<<" not found!" << endl << flush;
+	assert(h);
+	
+	//int ibm = isample + nsamples*imethod;
+	//h->SetName(Form("bm%d_%s",(1<<ibm),h->GetName()));
+	
+	// JER uncertainty applies for both MPF and MJB
+	if (isrc==0 && imethod==0) { // jer
+	  h->SetName(Form("bm%d_multijet_jer_src%d_%d",
+			  (1<<0 | 1<<nsamples),isrc,hs.size()+1));
+	  hs.push_back(h);
+	}
+      } // for imethod
+    } // for ieig
+  } // multijet syst.
+
+  // Uncertainty sources for gamma+jet EM energy scale from Zee fit
+  if (true) {
+
+    const int n0 = nsample0;
+    const int n1 = nsamples+nsample0;
+
+    const int nees = 3;
+    for (int ieig = 0; ieig != nees; ++ieig) {
+	
+	string s = Form("sys/zee_gamjet_eig%d",ieig);
 	TH1D *h = (TH1D*)d->Get(s.c_str());
 	if (!h) cout << "Histo "<<s<<" not found!" << endl << flush;
 	assert(h);
 	
-	int ibm = isample + nsamples*imethod;
-	h->SetName(Form("bm%d_%s",(1<<ibm),h->GetName()));
-	
+	// EES uncertainty applies for both MPF and MJB
+	h->SetName(Form("bm%d_eesfromzee_eig%d_gamjet_%d",
+			(1<<(n0+igj) | 1<<(n1+igj)),ieig,hs.size()+1));
 	hs.push_back(h);
-      } // for imethod
     } // for ieig
-  }
+  } // Photon EES
 
   // use global pointer to give outside access
   _vsrc = &hs;
@@ -1060,8 +1123,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     //    h->SetMinimum(0.9501); // GH
     //    h->SetMaximum(1.045); // GH
     //less aggressive zoom, depending on detector region
-    h->SetMinimum(etamin>=3 ? 0.80 : (etamin>=2.5 ? 0.80 : 0.9501));
-    h->SetMaximum(etamin>=3 ? 1.3 : (etamin>=2.5 ? 1.3 : 1.045));
+    h->SetMinimum(etamin>=3 ? 0.80 : (etamin>=2.5 ? 0.80 : 0.9401));//0.94));//0.9501));
+    h->SetMaximum(etamin>=3 ? 1.3 : (etamin>=2.5 ? 1.3 : 1.0599));//1.035));//1.045));
   }
   h->GetXaxis()->SetMoreLogLabels();
   h->GetXaxis()->SetNoExponent();
@@ -1084,13 +1147,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //lumimap["BCDEFGH"] = "Run2016BCDEFGH 36.5 fb^{-1}"; // DPNote
   //lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
   map<string, const char*> lumimap;
-  lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["B"] = "Run2018B 7.1 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["C"] = "Run2018C 6.9 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["D"] = "Run2018D 31.9 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
+  // lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["B"] = "Run2018B 7.1 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["C"] = "Run2018C 6.9 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["D"] = "Run2018D 31.9 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
   //lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
-  lumimap["ABCD"] = "2018, 59.7 fb^{-1}"; //PdmV Analysis TWiki
+  //lumimap["ABCD"] = "2018, 59.7 fb^{-1}"; //PdmV Analysis TWiki
 
   //lumimap["BCDEF"] = "Run2017BCDEF , 41.4 fb^{-1}"; // sum below 41.3
   lumimap["BCDEF"] = "2017, 41.5 fb^{-1}"; // for DP note
@@ -1105,14 +1168,17 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   gPad->SetLogx();
   
   // multijets up/down
-  TLegend *legpf = tdrLeg(0.58,0.79,0.88,0.83);
+  //TLegend *legpf = tdrLeg(0.58,0.79,0.88,0.83);
+  TLegend *legpf = tdrLeg(0.54,0.79,0.81,0.83);
   legpf->AddEntry(gs[0]," ","PL");
   if (_vpt2->size()!=0) legpf->AddEntry((*_vpt2)[0]," ","PL");
-  TLegend *legmf = tdrLeg(0.66,0.79,0.96,0.83);
+  //TLegend *legmf = tdrLeg(0.66,0.79,0.96,0.83);
+  TLegend *legmf = tdrLeg(0.62,0.79,0.90,0.83);
   if(nmethods==2)legmf->AddEntry(gs[nsamples]," ","PL");
   if (_vpt2->size()>1) legmf->AddEntry((*_vpt2)[1]," ","PL");
 
-  TLegend *legp = tdrLeg(0.58,_useZoom ? 0.70 : 0.60,0.88,0.90);
+  //TLegend *legp = tdrLeg(0.58,_useZoom ? 0.70 : 0.60,0.88,0.90);
+  TLegend *legp = tdrLeg(0.54,_useZoom ? 0.70 : 0.60,0.81,0.90);
   if( (nmethods==1||nmethods==2) && strcmp(methods[0],"ptchs")  ==0 ){
     legp->SetHeader("p_{T}^{bal}");
     for (int i = 0; i != nsamples; ++i)
@@ -1126,7 +1192,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   texlabel["zmmjet"] = "Z#mu#mu+jet";
   texlabel["zlljet"] = "Z+jet";//"Zl^{+}l{-}+jet";
 
-  TLegend *legm = tdrLeg(0.66,_useZoom ? 0.70 : 0.60,0.96,0.90);
+  //TLegend *legm = tdrLeg(0.66,_useZoom ? 0.70 : 0.60,0.96,0.90);
+  TLegend *legm = tdrLeg(0.62,_useZoom ? 0.70 : 0.60,0.90,0.90);
   if( (nmethods==1&&strcmp(methods[0],"mpfchs1")  ==0) || (nmethods==2 && strcmp(methods[1],"mpfchs1")  ==0 )){
     legm->SetHeader("MPF");
     for (int i = 0; i != nsamples; ++i)
@@ -1373,7 +1440,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     jesfit->SetParameter(0, 0.98);
   }
   if (njesFit==2) {
-    jesfit->SetParameters(0.98, 0.0);
+    //jesfit->SetParameters(0.98, 0.0); // EOY2017
+    jesfit->SetParameters(0.99, 0.05); // UL17-v1
   }
   if (njesFit==3 && useOff) {
     jesfit->SetParameters(0.989, 0.053, -0.370);
@@ -1546,6 +1614,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       const char *cs = samples[isample];
       string s = Form("fsr/hkfsr_%s_%s",cm,cs);
       TH1D *h = (TH1D*)d->Get(s.c_str());
+      if (dofsrcombo) h = (TH1D*)dfsr->Get(s.c_str());
       if (!h) cout << "Histo "<<s<<" not found!" << endl << flush;
       assert(h);
 
@@ -1834,24 +1903,24 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if (!_paper) {
  
     //tex->SetTextColor(kWhite); // hide from view
-    tex->DrawLatex(0.32,0.64,Form("Npar=%d",_jesFit->GetNpar()));
+    tex->DrawLatex(0.20,0.67,Form("Npar=%d",_jesFit->GetNpar()));
     //tex->DrawLatex(0.20,0.61,Form("N_{par}=%d (%d)",_jesFit->GetNpar(),
     //				_jesFit->GetNumberFreeParameters()));
-    tex->DrawLatex(0.32,0.61,Form("p0=%1.3f #pm %1.3f",
+    tex->DrawLatex(0.20,0.64,Form("p0=%1.3f #pm %1.3f",
 				  _jesFit->GetParameter(0),
 				  sqrt(emat[0][0])));
     if (njesFit>=2)
-      tex->DrawLatex(0.32,0.58,Form("p1=%1.3f #pm %1.3f",
+      tex->DrawLatex(0.20,0.61,Form("p1=%1.3f #pm %1.3f",
 				    _jesFit->GetParameter(1),
 				    sqrt(emat[1][1])));
     if (njesFit==2 && fixTDI)
-      tex->DrawLatex(0.32,0.55,Form("p2=%1.3f (TDI fix)",fixTDI));
+      tex->DrawLatex(0.20,0.58,Form("p2=%1.3f (TDI fix)",fixTDI));
     if (njesFit>=3)
-      tex->DrawLatex(0.32,0.55,Form("p2=%1.3f #pm %1.3f",
+      tex->DrawLatex(0.20,0.58,Form("p2=%1.3f #pm %1.3f",
 				  _jesFit->GetParameter(2),
 				    sqrt(emat[2][2])));
     if (njesFit>=4)
-      tex->DrawLatex(0.32,0.52,Form("p3=%1.3f #pm %1.3f",
+      tex->DrawLatex(0.20,0.55,Form("p3=%1.3f #pm %1.3f",
 				    _jesFit->GetParameter(3),
 				    sqrt(emat[3][3])));
     tex->SetTextSize(0.045); tex->SetTextColor(kBlack);
@@ -1917,8 +1986,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   int colorslight[4] = {kGray, kBlue-10, kGreen+2-10,kRed-10};
   for (unsigned int imethod = 0; imethod != nmethods; ++imethod) {
 
-    h->SetMinimum(-0.06);
-    h->SetMaximum(+0.09);
+    h->SetMinimum(imethod==0 ? -0.10 : -0.06);
+    h->SetMaximum(imethod==0 ? +0.05 : +0.09);
     h->SetYTitle("dR / d#alpha (ratio)");
     h = (TH1D*)h->Clone(Form("h3_%d",imethod));
 
@@ -1973,7 +2042,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	double yeig(0);
 	vector<double> df(Npar,0);
 	//const int neig = 3;
-	for (int ieig = 0; ieig != neig; ++ieig) {
+	for (int ieig = 0; ieig != neigmax; ++ieig) {
 
 	  int ie = ibm+ieig*nsamples*nmethods;
 	  TH1D *hi = hs[ie]; assert(hi);
@@ -1998,6 +2067,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 			 ||string(cs)=="zlljet" ?
 			 ptreco_zjet : ptreco_gjet);
 	double aeff = max(alpha, ptreco/pt);
+	if (string(cs)=="multijet") aeff = alpha;
 	hke->SetBinContent(ipt, (aeff*hk->GetBinContent(ipt) - yeig)/aeff);
 	hke->SetBinError(ipt, sqrt(err2));
       } // for ipt

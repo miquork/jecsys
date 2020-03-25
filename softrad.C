@@ -16,6 +16,7 @@
 #include "TMatrixD.h"
 #include "TVectorD.h"
 #include "TMath.h"
+#include "TLine.h"
 
 //#include "../tools.h"
 #include "tdrstyle_mod14.C"
@@ -27,11 +28,13 @@
 #include <map>
 
 const double _lumi = 2065.;//19800.;
-const double ptrec_zjet = 5.;
-const double ptrec_gjet = 15.;
+// UL17: adjust threhsolds bit for FSR fits
+const double ptrec_zjet = 8.9;//5.;
+const double ptrec_gjet = 8.9;//15.;
 
 bool debug = true;
 bool dodijet = false;
+bool domultijet = false; // =dodijet at |eta|<1.3
 
 bool verbose = true;
 
@@ -45,6 +48,9 @@ Double_t sr_fitError(Double_t *xx, Double_t *p);
 void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	     string epoch="") {
 
+  if (dodijet && fabs(etamin-0.0)<0.1 && fabs(etamax-1.3)<0.1)
+    domultijet = true;
+  
   cout << "Calling softrad("<<etamin<<","<<etamax<<","<<dodijet<<");\n"<<flush;
   const char *cep = epoch.c_str();
   cout << "For epoch " << epoch << endl;
@@ -66,7 +72,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   //  const int nsamples = (dodijet ? 4 : 3);
   //const char* samples[4] = {"zeejet", "zmmjet", "zlljet", "dijet"};
   const int nsamples = (dodijet ? 5 : 4);
-  const char* samples[5] = {"gamjet","zeejet", "zmmjet", "zlljet", "dijet"};
+  const char* samples[5] = {"gamjet","zeejet", "zmmjet", "zlljet",
+			    domultijet ? "multijet" : "dijet"};
   //const int nsamples = (dodijet ? 4 : 3);
   //const char* samples[4] = {"gamjet","zeejet", "zmmjet", "dijet"};
   //const int nsamples = (dodijet ? 3 : 2);
@@ -103,6 +110,12 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   TH1D *hpt4 = new TH1D("hpt4","",npt4,&ptbins4[0]);
   TProfile *ppt4 = new TProfile("ppt4","",npt4,&ptbins4[0]);
 
+  // multijet bins
+  const double ptbins5[] = {/*10, 15, 21, 28, 37, 49, 64, 84,*/ 114, 153, 196, 245, 300, 362, 430, 507, 592, 686, 790, 905, 1032, 1172, 1327, 1497, 1684, 1890};//, 2116, 2366, 2640, 2941, 3273, 5220};
+  const int npt5 = sizeof(ptbins5)/sizeof(ptbins5[0])-1;
+  TH1D *hpt5 = new TH1D("hpt5","",npt5,&ptbins5[0]);
+  TProfile *ppt5 = new TProfile("ppt5","",npt5,&ptbins5[0]);
+
   TLatex *tex = new TLatex();
   tex->SetNDC();
   tex->SetTextSize(0.045);
@@ -115,6 +128,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   //texlabel["zmmjet"] = "Z(#rightarrow#mu#mu)+jet RS";
   texlabel["zlljet"] = "Z(#rightarrowl^{+}l^{-})+jet";
   texlabel["dijet"] = "Dijet";
+  texlabel["multijet"] = "Multijet";
   texlabel["ptchs"] = "p_{T} balance (CHS)";
   texlabel["mpfchs"] = "MPF raw (CHS)";
   texlabel["mpfchs1"] = "MPF type-I (CHS)";
@@ -170,6 +184,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  string s = Form("%s/%s/%s_%s_a%d",dirs[idir],bin,cm,cs,a);
 	  TGraphErrors *g = (TGraphErrors*)finout->Get(s.c_str());
 	  if (!g) cout << "Missing " << s << endl << flush;
+	  if (!g && string(cs)=="multijet" && a==10) g = new TGraphErrors(0);
 	  assert(g);
 
 	  // Clean out empty points
@@ -180,6 +195,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
             //cout << g->GetX()[i] << " ";
 	    if (g->GetY()[i]==0 || g->GetEY()[i]==0 ||
 		(string(cs)=="dijet" && g->GetX()[i]<70.)  ||
+		(string(cs)=="multijet" && g->GetX()[i]<114.)  ||
+		//(string(cs)=="multijet" && g->GetX()[i]<49.)  ||
+		//(string(cs)=="multijet" && g->GetX()[i]<84.)  ||
 		(string(cs)=="gamjet" && g->GetX()[i]>ptmax2) ||
 		(string(cs)=="zeejet" && g->GetX()[i]>ptmax1) ||
 		(string(cs)=="zmmjet" && g->GetX()[i]>ptmax1) ||
@@ -197,6 +215,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  //if (isample==3) { hpt = hpt4; ppt = ppt4; } // pas-v6
 	  //if (isample==idj) { hpt = hpt4; ppt = ppt4; } // pas-v6
 	  if (string(cs)=="dijet") { hpt = hpt4; ppt = ppt4; } // pas-v6
+	  if (string(cs)=="multijet") { hpt = hpt5; ppt = ppt5; }
 	  for (int i = 0; i != g->GetN(); ++i) {
 	    
 	    double pt = g->GetX()[i];
@@ -323,14 +342,20 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	//lumimap["EF"] = "Run2016EF Legacy, 6.8 fb^{-1}";
 	//lumimap["L4"] = "Run2016BCDEFGH closure, 36.5 fb^{-1}";
         map<string, const char*> lumimap;
+	/*
         lumimap["A"] = "Run2018A 14.0 fb^{-1}"; //PdmV Analysis TWiki
         lumimap["B"] = "Run2018B 7.1 fb^{-1}"; //PdmV Analysis TWiki
         lumimap["C"] = "Run2018C 6.9 fb^{-1}"; //PdmV Analysis TWiki
         lumimap["D"] = "Run2018D 31.9 fb^{-1}"; //PdmV Analysis TWiki
         lumimap["ABC"] = "Run2018ABC 28.0 fb^{-1}"; //PdmV Analysis TWiki
         lumimap["ABCD"] = "Run2018ABCD 59.9 fb^{-1}"; //PdmV Analysis TWiki
-
-        
+	*/
+	lumimap["BCDEF"] = "2017, 41.5 fb^{-1}"; // for DP note
+	lumimap["B"] = "Run2017B, 4.8 fb^{-1}";
+	lumimap["C"] = "Run2017C, 9.6 fb^{-1}";
+	lumimap["D"] = "Run2017D, 4.2 fb^{-1}";
+	lumimap["E"] = "Run2017E, 9.3 fb^{-1}";
+	lumimap["F"] = "Run2017F, 13.4 fb^{-1}";
 	lumi_13TeV = lumimap[epoch];
 
 	TCanvas *c0 = tdrCanvas(Form("c0_%s_%s",cm,cd), h, 4, 11, true);
@@ -418,7 +443,10 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	leg->AddEntry(gemap[cd][cm]["zeejet"][30], texlabel["zeejet"], "P");
 	leg->AddEntry(gemap[cd][cm]["zmmjet"][30], texlabel["zmmjet"], "P");
 	leg->AddEntry(gemap[cd][cm]["zlljet"][30], texlabel["zlljet"], "P");
-	leg->AddEntry(gemap[cd][cm]["dijet"][30], texlabel["dijet"], "P");
+	if (domultijet)
+	  leg->AddEntry(gemap[cd][cm]["multijet"][30],texlabel["multijet"],"P");
+	else if (dodijet)
+	  leg->AddEntry(gemap[cd][cm]["dijet"][30], texlabel["dijet"], "P");
       }
 
       for (int  isample = 0; isample != nsamples; ++isample) {
@@ -448,44 +476,33 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 			    "(x>2)*[1]",-1,1);
 	  f1->SetLineColor(ga->GetLineColor());
 	  f1->SetParameters(1,0);
-	  const double minalpha = (isample==0 ? ptrec_gjet/ipt :
-	  			   ptrec_zjet/ipt);
+	  double minalpha = (isample==0 ? ptrec_gjet/ipt : ptrec_zjet/ipt);
+	  if (ss=="multijet") minalpha=0.145; // 0.15 included
 	  // Constrain slope to within reasonable values
 	  // in the absence of sufficient data using priors
-	  if (true) { // use priors
+	  // apply at max(ptrec_gjet,ptrec_zjet)/0.15 = 59.3 GeV ~ 60 GeV
+	  if (ipt<60) { // use priors
 	    int n = ga->GetN();
-	    // For response, limit to 1+/-0.02 (we've corrected for L3Res)
-	    if (false && mm=="ptchs") {
-	      // For pT balance, estimate slope of <vecpT2>/alpha from data
-	      // => 7.5%/0.30 = 25%
-	      // Approximate uncertainty on this to be
-	      // 0.5%/0.30 ~ 1.5% for data, 0.5%/0.30 ~ 1.5% for Z+jet MC, and
-	      // 2%/0.30 ~ 6% for gamma+jet MC (same as slope)
-	      // x=2.5 constraints the slope dR/dalpha; set expexted value
-	      if (dd=="data"  && ss!="dijet") ga->SetPoint(n, 2.5, -0.300);
-	      if (dd=="mc"    && ss!="dijet") ga->SetPoint(n, 2.5, -0.300);
-	      if (dd=="ratio" && ss!="dijet") ga->SetPoint(n, 2.5, -0.000);
+	    bool iszjet = (ss=="zeejet"||ss=="zmmjet"||ss=="zlljet");
+	    if (mm=="ptchs") {
+	      // For pT balance in UL17, looking at higher pT:
+	      // Best fit for Z+jet data is -30%, MC -25%, ratio -7%
+	      // Best fit for gamma+jet data and MC is -25%, ratio -3%
+	      // Data,MC variation 5%, ratio variation 2%(gamma+jet),7%(Z+jet)
+	      // Use two sigma of above for constraints
+	      if (dd=="data"  && iszjet) ga->SetPoint(n,   2.5, -0.30);
+	      if (dd=="data"  && iszjet) ga->SetPointError(n,0,  0.05*2);
+	      if (dd=="mc"    && iszjet) ga->SetPoint(n,   2.5, -0.25);
+	      if (dd=="mc"    && iszjet) ga->SetPointError(n,0,  0.05*2);
+	      if (dd=="ratio" && iszjet) ga->SetPoint(n,   2.5, -0.07);
+	      if (dd=="ratio" && iszjet) ga->SetPointError(n,0,  0.07*2);
 	      //
-	      if (dd=="data"  && ss=="dijet") ga->SetPoint(n, 2.5, -0.075);
-	      if (dd=="mc"    && ss=="dijet") ga->SetPoint(n, 2.5, -0.075);
-	      if (dd=="ratio" && ss=="dijet") ga->SetPoint(n, 2.5, -0.000); 
-	      // For V7, consider different slope for gamma+jet
-	      if (dd=="data"  && ss=="gamjet") ga->SetPoint(n, 2.5, -0.275);
-	      if (dd=="mc"    && ss=="gamjet") ga->SetPoint(n, 2.5, -0.300);
-	      if (dd=="ratio" && ss=="gamjet") ga->SetPoint(n, 2.5, +0.025); 
-	      //
-	      // x=2.5 for slope of dR/dalpha; set the a priori uncertainty
-	      if (dd=="data"  && ss!="dijet") ga->SetPointError(n, 0, 0.050);
-	      if (dd=="mc"    && ss!="dijet") ga->SetPointError(n, 0, 0.050);
-	      if (dd=="ratio" && ss!="dijet") ga->SetPointError(n, 0, 0.025);
-	      //
-	      if (dd=="data"  && ss=="dijet") ga->SetPointError(n, 0, 0.025);
-	      if (dd=="mc"    && ss=="dijet") ga->SetPointError(n, 0, 0.025);
-	      if (dd=="ratio" && ss=="dijet") ga->SetPointError(n, 0, 0.0125);
-	      // For V7, consider different slope for gamma+jet
-	      if (dd=="data"  && ss=="gamjet") ga->SetPointError(n, 0, 0.050);
-	      if (dd=="mc"    && ss=="gamjet") ga->SetPointError(n, 0, 0.050);
-	      if (dd=="ratio" && ss=="gamjet") ga->SetPointError(n, 0, 0.050);
+	      if (dd=="data"  && ss=="gamjet") ga->SetPoint(n,   2.5, -0.25);
+	      if (dd=="data"  && ss=="gamjet") ga->SetPointError(n,0,  0.05*2);
+	      if (dd=="mc"    && ss=="gamjet") ga->SetPoint(n,   2.5, -0.25);
+	      if (dd=="mc"    && ss=="gamjet") ga->SetPointError(n,0,  0.05*2);
+	      if (dd=="ratio" && ss=="gamjet") ga->SetPoint(n,   2.5, -0.03);
+	      if (dd=="ratio" && ss=="gamjet") ga->SetPointError(n,0,  0.02*2);
 	    }
 	    if (mm=="mpfchs1") { // MPF
 	      // For MPF, expectation is no slope
@@ -495,10 +512,13 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      // => 0.25*0.10 = 2.5%
 	      // For data/MC, estimate uncertainty as half of this
 	      // => 1.25%
-	      // 80X constraint, no slope in MPF
-	      ga->SetPoint(n, 2.5, dd=="mc" ? 0. : 0.00);
-	      if (dd!="mc") ga->SetPointError(n, 0, 0.05);//0.0125);
-	      if (dd=="mc") ga->SetPointError(n, 0, 0.05);//0.0125);
+	      // UL17 constraint, no slope in MPF, two sigma of above
+	      if (iszjet || ss=="gamjet") {
+		ga->SetPoint(n, 2.5, dd=="mc" ? 0. : 0.00);
+		if (dd=="data")  ga->SetPointError(n, 0, 0.050);
+		if (dd=="mc")    ga->SetPointError(n, 0, 0.05);
+		if (dd=="ratio") ga->SetPointError(n, 0, 0.025);
+	      }
 	    } // MPF
 	  } // use priors
 
@@ -527,9 +547,16 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      TGraphErrors *gk = gkmap[cd][cm][cs];
 	      int n = gk->GetN();
 
-	      TProfile *ppt = (isample==0 ? ppt2 : ppt1);
+	      TProfile *ppt(0);// = (isample==0 ? ppt2 : ppt1);
 	      //if (isample==3) { ppt = ppt4; } // pas-v6
-	      if (isample==idj) { ppt = ppt4; } // pas-v6
+	      //if (isample==idj) { ppt = ppt4; } // pas-v6
+	      if (ss=="gamjet") { ppt = ppt2; }
+	      if (ss=="zlljet")   { ppt = ppt1; }
+	      if (ss=="zeejet")   { ppt = ppt1; }
+	      if (ss=="zmmjet")   { ppt = ppt1; }
+	      if (ss=="dijet")    { ppt = ppt4; }
+	      if (ss=="multijet") { ppt = ppt5; }
+	      assert(ppt);
 	      double pt = ppt->GetBinContent(ppt->FindBin(ipt));
 	      gk->SetPoint(n, pt, f1->GetParameter(1));
 	      gk->SetPointError(n, 0, f1->GetParError(1));
@@ -559,16 +586,22 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
       const char *cd = dirs[idir];
       const char *cm = methods[imethod];
+      string sm(cm);
 
       TMultiGraph *mgk = new TMultiGraph();
 
       int ipad = ndirs*imethod + idir + 1; assert(ipad<=6);
       c3->cd(ipad);
       gPad->SetLogx();
-      h3->SetMaximum(imethod==0 ? 0.05 : (idir!=2 ? 0.1 : 0.25));
-      h3->SetMinimum(imethod==0 ? -0.05 : (idir!=2 ? -0.4 : -0.25));
+      //h3->SetMaximum(imethod==0 ? 0.05 : (idir!=2 ? 0.1 : 0.25));
+      //h3->SetMinimum(imethod==0 ? -0.05 : (idir!=2 ? -0.4 : -0.25));
+      h3->SetMaximum(imethod==0 ? 0.10 : (idir!=2 ? 0.45 : 0.25));
+      h3->SetMinimum(imethod==0 ? -0.10 : (idir!=2 ? -0.55 : -0.25));
       h3->SetYTitle(Form("k_{FSR} = dR/d#alpha (%s)",cd));
       h3->DrawClone("AXIS");
+      TLine *l = new TLine();
+      l->SetLineStyle(kDashed);
+      l->DrawLine(h3->GetXaxis()->GetXmin(),0,h3->GetXaxis()->GetXmax(),0);
       tex->DrawLatex(0.20,0.85,texlabel[cm]);
       //if (epoch!="L4") tex->DrawLatex(0.20,0.80,"|#eta| < 1.3");
       //if (epoch=="L4") tex->DrawLatex(0.20,0.80,"|#eta| < 2.4");
@@ -583,6 +616,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
       for (int  isample = 0; isample != nsamples; ++isample) {
 
 	const char *cs = samples[isample];
+	string ss(cs);
 	TGraphErrors *gk = gkmap[cd][cm][cs];
 	if (!gk) cout << cd << " " << cm << " " << cs
 		      << "eta_"<<etamin<<"_"<<etamax << endl << flush;
@@ -593,11 +627,36 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	// Fit each sample separately for pT balance
 	if (true) {
 
-	  TF1 *fk = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
-			    "[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
-			    30,1500);
-	  fk->SetParameters(-0.05,+0.01,0);
-	  //fk->FixParameter(2,0.); // post-Moriond19, reduce quad-log to log0-lin
+	  TF1 *fk(0);
+	  if (ss=="multijet" || sm=="mpfchs1") {
+	    // MJB lead: proportional to alpha_s times 15 GeV / pT
+	    // MPF lead: proportional to MJB times unclustered pT response diff.
+	    // both simply to 1/(log(x/LambdaQCD)*x) shape at high x
+	    // but, code does not like a single parameter, need at least two?
+	    // alpha_s + quad-log shape?
+	    // globalFitL3Res.C may also be confused by other than 3 pars
+	    fk = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
+			 //"[0] / (log(x/0.218) * x) + [1]/x + [2]*log(0.01*x)",
+			 //"[0] / (log(x/0.218) * x) + [1] + [2]*log(0.01*x)",
+			 "[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)"
+			 "+ [3] / (log(x/0.218) * x)",
+			 30,3000);
+	    //if (sm=="ptchs")   fk->SetParameters(45,-0.05,+0.01,0);
+	    //if (sm=="mpfchs1") fk->SetParameters(45*0.2,-0.05,+0.01,0);
+	    //if (sm=="ptchs")   fk->SetParameters(45,+0.01,0);
+	    //if (sm=="mpfchs1") fk->SetParameters(45*0.2,+0.01,0);
+	    if (sm=="ptchs")   fk->SetParameters(-0.05,+0.01,0,45);
+	    if (sm=="mpfchs1") fk->SetParameters(-0.05,+0.01,0,45*0.2);
+	  }
+	  else {
+	    // Z+jet still better with quad-log
+	    fk = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
+			 "[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
+			 30,1500);
+	    fk->SetParameters(-0.05,+0.01,0);
+	    //fk->FixParameter(2,0.); // post-Moriond19, reduce quad-log to log0-lin => UL17 again quad-log
+	  }
+
 	  fk->SetLineColor(gk->GetLineColor());
 	  gk->Fit(fk, "QRN");
 
@@ -617,7 +676,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  _sr_fitError_emat = &emat;
 
 	  fke->SetLineStyle(kSolid);
-	  fke->SetLineColor(fk->GetLineColor()-10);
+	  fke->SetLineColor(ss=="multijet" ? kGray+1 : fk->GetLineColor()-10);
 	  fke->SetParameter(0,-1);
 	  fke->DrawClone("SAME");
 	  fke->SetParameter(0,+1);
@@ -649,6 +708,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  TH1D *hk = (TH1D*)(isample==0 ? hpt2->Clone() : hpt1->Clone());
 	  TProfile *ppt = (isample==0 ? ppt2 : ppt1);
           if (isample==idj) { hk = (TH1D*)hpt4->Clone(); ppt = ppt4; } 
+          if (ss=="multijet") { hk = (TH1D*)hpt5->Clone(); ppt = ppt5; } 
 
 	  hk->SetName(Form("hkfsr_%s_%s",cm,cs));
           

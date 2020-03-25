@@ -38,15 +38,19 @@ const bool _dcsonly = false;
 const bool rp_debug = true; // verbose messages
 
 // Appy mass corrections to Z+jet
+// Update 20200325: start moving these to globalFitSyst.C as syst. eigenvectors
+// Need to correct Zee and Zmm here to combine them, but photon could be later
 bool useFixedFit = true; // with minitools/drawZmass.C
 double fitUncMin = 0.00000; // Some bug if unc<0?
 bool correctZmmMass = true; // pT with mumu mass
 bool correctZeeMass = true; // pT with ee mass
 bool correctGamMass = true; // pT with ee mass at 2*pT
-bool correctUncert = true;  // ll mass uncertainty
+bool correctUncert = false;  // ll mass uncertainty => globalFitSyst.C
 //
+// Which binning to use for multijets ("leading" or "recoil")
+string multijetMode = "leading"; // check also multijetModeS in globalFitSyst.C
 
-bool confirmWarnings=true; //if active, deficiencies in input files are patched after confirmation via pushing "any key to continue"
+bool confirmWarnings=false;//true; //if active, deficiencies in input files are patched after confirmation via pushing "any key to continue"
 bool confirmedGamJet=false; // to avoid too many confirmations
 //need to adjust corlevel in multijet.C as well!!! Not synced automatically right now
 string CorLevel="L1L2Res"; // same for gamma+jet and Z+jet on RunD
@@ -63,19 +67,19 @@ double valueGamScale = 1.;
 
 // Settings for cleaned up global fit
 /////////////////////////////////////
-
 // Minimum pTcut for gamma+jet
-double fpmpfptmin(100.); // photon+jet MPF
-double fpbalptmin(100.); // photon+jet pTbal
+double fpmpfptmin(30);//100.); // photon+jet MPF
+double fpbalptmin(30);//100.); // photon+jet pTbal
 double fzeeptmin(30.);   // Zee+jet both methods
 double fzmmptmin(30.);   // Zmm+jet both methods
 // Additional cuts to Z+jet MPF / balance methods
-double fzmpfptmin(30.);   // Z+jet MPF
-double fzbalptmin(100);//30.);   // Z+jet pTbal
+//double fzmpfptmin(30.);   // Z+jet MPF
+//double fzbalptmin(30.);//100);//30.);   // Z+jet pTbal
 
 // multijet minimum and maximum pT
-double fmultijetptmin(400);//300);//200.);
-double fmultijetptmax(3000.);
+// (high for now until FSR working for low pT)
+double fmultijetptmin(114.);//84.);//49.);//114.);//400);//600);//500);//400);
+double fmultijetptmax(1890.);//1800.);//3000.);
 
 
 //for fine etabins deactivate ptbal
@@ -83,10 +87,10 @@ double fdijetmpfptmin(30);
 double fdijetbalptmin(30.);
 double fdijetptmax(1500.);
 
-
+/*
 // Settings for maximally inclusive glofal fit
 /////////////////////////////////////////////
-/*
+// (use for checking data/data, MC/MC ratios before fit)
 // Minimum pTcut for gamma+jet
 double fpmpfptmin(30.);//100. // photon+jet MPF
 double fpbalptmin(30.);//100; // photon+jet pTbal
@@ -94,17 +98,26 @@ double fzeeptmin(30.); // Zee+jet
 double fzmmptmin(30.); // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
 double fzmpfptmin(30.); // Z+jet MPF
-double fzbalptmin(30.);//100.); // Z+jet pTbal
+double fzbalptmin(30.); // Z+jet pTbal
 */
 
 // Maximum pTcut for samples (to avoid bins with too large uncertainty)
-double fpmpfptmax(1500.);//2500.); // photon+jet MPF
-double fpbalptmax(700.);//2500.);//700.);  // photon+jet pTbal
+double fpmpfptmax(1500.); // photon+jet MPF
+double fpbalptmax(1500);//700.);  // photon+jet pTbal
 double fzeeptmax(700.);   // Zee+jet
 double fzmmptmax(700.);   // Zmm+jet
 // Additional cuts to Z+jet MPF / balance methods
-double fzmpfptmax(500.);//700.);  // Z+jet MPF
-double fzbalptmax(300.);//700.);  // Z+je pTbal
+//double fzmpfptmax(700);//500.);  // Z+jet MPF
+//double fzbalptmax(500);//300.);  // Z+jet pTbal
+
+// Regular settings for fits with Z+jet
+double fzmpfptmin(30); double fzbalptmin(30); double fzmpfptmax(700); double fzbalptmax(500);
+
+// Special setting for "multijet only" fit 
+//double fzmpfptmin(130); double fzbalptmin(130); double fzmpfptmax(175); double fzbalptmax(175); // option B
+//double fzmpfptmin(175); double fzbalptmin(175); double fzmpfptmax(230); double fzbalptmax(230); // option A
+
+
 
 //minimum event counts
 const double neventsmin = 20.;
@@ -204,13 +217,14 @@ void reprocess(string epoch="") {
   //  
   //Subject: 	RE: Multijet combination file format
   //Date: 	Wed, 11 Sep 2019 15:53:41 +0200
-  fm_files["B"] = "B";//"ABC"; // also update multijet.C
-  fm_files["C"] = "C";//"ABC"; // also update multijet.C
-  fm_files["D"] = "D";//"ABC"; // also update multijet.C
-  fm_files["E"] = "E";//"ABC"; // also update multijet.C
+  fm_files["B"] = "B"; // also update multijet.C
+  fm_files["C"] = "C"; // also update multijet.C
+  fm_files["BC"] = "BC";
+  fm_files["D"] = "D"; // also update multijet.C
+  fm_files["E"] = "E"; // also update multijet.C
   fm_files["DE"] = "DE"; // also update multijet.C
-  fm_files["F"] = "F";//"ABC"; // also update multijet.C
-  fm_files["BCDEF"] = "BCDEF";//"ABC"; // also update multijet.C
+  fm_files["F"] = "F"; // also update multijet.C
+  fm_files["BCDEF"] = "BCDEF"; // also update multijet.C
   //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_P8CP5_jecV17_jerV7.root",fm_files[epoch]),"READ"); // LO Pythia8 off by 2.5% on multijet scale
   //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_MGP8CP5_jecV17_jerV4.root",fm_files[epoch]),"READ"); // MadGraph much better match to data than LO P8 (just not JER V4)
   //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190912_Run2018%s_MC_jecV17_jerV7.root",fm_files[epoch]),"READ"); // All MC in one file (JERV4+ABC only for MG)
@@ -218,7 +232,9 @@ void reprocess(string epoch="") {
   //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_Rebin2_20190920_Run2018%s_jecV17_jerV7.root",fm_files[epoch]),"READ"); // All MC in one file (JERV4+ABC only for MG) EOY2017
   //if (!fmj || fmj->IsZombie()) 
   //fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190912_Run2018%s_MC_jecV17_jerV7.root",fm_files[epoch]),"READ"); // All MC in one file (JERV4+ABC only for MG) EOY2017
-  TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200312_UL2017%s_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200312_UL2017%s_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200318_UL2017%s_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017
+  TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200320_UL2017%s_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017
 
   assert(fmj && !fmj->IsZombie());
   //TFile *fmj =0;
@@ -258,14 +274,18 @@ void reprocess(string epoch="") {
   fz_files["D"] = "D";
   fz_files["E"] = "E";
   fz_files["F"] = "F";
-  //fz_files["BCDEF"] = "BCDEF"; // EOY2017
-  fz_files["BCDEF"] = "B"; // UL2017-v1
+  fz_files["BCDEF"] = "BCDEF"; // 20200317 update
+  //fz_files["BCDEF"] = "B"; // UL2017-v1
   //TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV28_Zmm_%s_2018-10-08.root",fz_files[epoch]),"READ"); // EOY2017
   //TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV28_Zee_%s_2018-10-08.root",fz_files[epoch]),"READ"); // EOY2017
   //TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1
   //TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1
-  TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
-  TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
+  //TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
+  //TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
+  //TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
+  //TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
+  TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1b
+  TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1b
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
@@ -318,7 +338,14 @@ void reprocess(string epoch="") {
   assert(hmzmm_mc);
 
 
-
+  // Extra functions for gamma+jet, modified from Zee+jet
+  TF1 *f1mgam = new TF1("f1mgam","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
+			fpmpfptmin, fpmpfptmax);
+  TF1 *f1egam = new TF1("f1egam","sqrt([0]+pow(log(0.01*x),2)*[1]"
+                        "+pow(log(0.01*x),4)*[2]"
+                        "+2*log(0.01*x)*[3]+2*pow(log(0.01*x),2)*[4]"
+                        "+2*pow(log(0.01*x),3)*[5])",
+			fpmpfptmin, fpmpfptmax);
 
   // \BEGIN copy-paste from minitools/drawZmass.C
 
@@ -332,18 +359,33 @@ void reprocess(string epoch="") {
 			fzeeptmin, fzeeptmax);
   if (correctZeeMass || correctGamMass) {
     if (useFixedFit) {
-      // BCDEFGH fit with minitools/drawZmass.C
-      //f1mzee->SetParameters(1.01732, -0.00909, 0.00116);
-      //f1ezee->SetParameters(7.54e-05, 1.41e-05, 1.63e-07,
-      //		    -3.26e-05, 3.47e-06, -1.51e-06);
-      // Fall17 BCDEF
-      //f1mzee->SetParameters(1.02106, -0.01001, 0.00130);
-      //f1ezee->SetParameters(1.02e-04, 1.83e-05, 2.01e-07,
-      //		    -4.31e-05, 4.48e-06, -1.91e-06);
-      // 17Nov17_V10 BCDEF
-      f1mzee->SetParameters(1.00246, 0.00214, 0.00116);
-      f1ezee->SetParameters(+3.73e-08, +1.17e-07, +2.02e-07,
-                             +1.5e-08, -5.07e-08, -6.39e-08);
+      // 17Nov17_V10 BCDEF (EOY2017)
+      //f1mzee->SetParameters(1.00246, 0.00214, 0.00116);
+      //f1ezee->SetParameters(+3.73e-08, +1.17e-07, +2.02e-07,
+      //                     +1.5e-08, -5.07e-08, -6.39e-08);
+      // UL17 RunB fit with minitools/drawZmass.C (3 free)
+      //f1mzee->SetParameters(0.99904, 0.00170, 0.00156);
+      //f1ezee->SetParameters(+1.94e-07, +5.65e-07, +9.65e-07,
+      //                    +8.95e-08, -2.53e-07,  -2.2e-07);
+      // UL17 RunB fit with minitools/drawZmass.C (p1,p2 fixed to EOY2017)
+      //f1mzee->SetParameters(0.99917, 0.00214, 0.00116);
+      //f1ezee->SetParameters(+1.26e-07,        +0,        +0,
+      //                           +0,        +0,        +0);
+      // UL17 RunC fit with minitools/drawZmass.C (p1,p2 fixed to EOY2017)
+      //f1mzee->SetParameters(0.99772, 0.00214, 0.00116);
+      //f1mzee->SetParameters(0.997557, 0.00214, 0.00116); // p0 from B+C+D+E+F
+      //f1ezee->SetParameters( +6.8e-08,        +0,        +0,
+      //                           +0,        +0,        +0);
+      // UL17 RunBCDEF fit with minitools/drawZmass.C
+      f1mzee->SetParameters(0.99780, 0.00225, 0.00031);
+      f1ezee->SetParameters( +6.1e-08, +1.66e-07, +3.27e-07,
+                            +2.56e-08,  -8.5e-08, -5.39e-08);
+
+      // 17Nov17_V10 BCDEF (EOY2017)
+      f1mgam->SetParameters(1.00246, 0.00214, 0.00116);
+      f1egam->SetParameters(+3.73e-08, +1.17e-07, +2.02e-07,
+			    +1.5e-08, -5.07e-08, -6.39e-08);
+
     }
     else
       hmzee->Fit(f1mzee);
@@ -358,18 +400,16 @@ void reprocess(string epoch="") {
 			fzeeptmin, fzeeptmax);
   if (correctZmmMass) {
     if (useFixedFit) {
-      // BCDEFGH fit with minitools/drawZmass.C
-      //f1mzmm->SetParameters(0.99855, 0., 0.);
-      //f1ezmm->SetParameters(pow(0.00010,2),0,0, 0,0,0);
-      // Fall17 BCDEF
-      //f1mzmm->SetParameters(0.99837, 0., 0.);
-      //f1ezmm->SetParameters(pow(0.00019,2),0,0, 0,0,0);
-      // Fall17 BCDEF (full Zmm statistics)
-      //f1mzmm->SetParameters(0.998440, 0., 0.);
-      //f1ezmm->SetParameters(pow(0.00011,2),0,0, 0,0,0);
-      // 17Nov17_V10 BCDEF
-      f1mzmm->SetParameters(0.99854, 0.00000, 0.00000);
-      f1ezmm->SetParameters(+1.53e-08,        +0,        +0,
+      // 17Nov17_V10 BCDEF (EOY2017)
+      //f1mzmm->SetParameters(0.99854, 0.00000, 0.00000);
+      //f1ezmm->SetParameters(+1.53e-08,        +0,        +0,
+      //                           +0,        +0,        +0);
+      // UL17 C fit with minitools/drawZmass.C
+      //f1mzmm->SetParameters(0.99829, 0.00000, 0.00000);
+      //f1mzmm->SetParameters(0.998235, 0.00000, 0.00000); // p0 from B+C+D+E+F
+      // UL17 BCDEF fit with minitools/drawZmass.C
+      f1mzmm->SetParameters(0.99821, 0.00000, 0.00000);
+      f1ezmm->SetParameters(+3.43e-08,        +0,        +0,
                                    +0,        +0,        +0);
     }
     else
@@ -423,17 +463,28 @@ void reprocess(string epoch="") {
   rename["multijet"]["data"] = "Data";
   rename["multijet"]["mc"] = "MC";
   rename["multijet"]["ratiocrecoil"] = "CRecoil";
-  rename["multijet"]["ratiompfchs1"] = "MPF_recoil_L1L2Res"; // => PATCH
-  rename["multijet"]["ratioptchs"] = "MJB_recoil_L1L2Res"; // => PATCH
-  //rename["multijet"]["ratioptchs"] = "MPF_recoil_L1L2Res"; // => !!PATCH!!
   rename["multijet"]["datacrecoil"] = "CRecoil";
-  rename["multijet"]["datampfchs1"] = "MPF_recoil_L1L2Res"; // also *_leading_*
-  rename["multijet"]["dataptchs"] = "MJB_recoil_L1L2Res"; // also *_leading_*
-  //rename["multijet"]["dataptchs"] = "MPF_recoil_L1L2Res"; // !!PATCH!!
   rename["multijet"]["mccrecoil"] = "CRecoil_MG";//P8";
-  rename["multijet"]["mcmpfchs1"] = "MPF_recoil_MG"; // also *_leading
-  rename["multijet"]["mcptchs"] = "MJB_recoil_MG"; // also *_leading
-  //rename["multijet"]["mcptchs"] = "MPF_recoil"; // !!PATCH!!
+  // Switch to leading jet pT binning instead or recoil pT binning
+  if (multijetMode=="leading") {
+    rename["multijet"]["ratiompfchs1"] = "MPF_leading_L1L2Res";
+    rename["multijet"]["ratioptchs"] = "MJB_leading_L1L2Res";
+    rename["multijet"]["datampfchs1"] = "MPF_leading_L1L2Res";
+    rename["multijet"]["dataptchs"] = "MJB_leading_L1L2Res";
+    rename["multijet"]["mcmpfchs1"] = "MPF_leading_MG";
+    rename["multijet"]["mcptchs"] = "MJB_leading_MG";
+  }
+  else if (multijetMode=="recoil") {
+    rename["multijet"]["ratiompfchs1"] = "MPF_recoil_L1L2Res";
+    rename["multijet"]["ratioptchs"] = "MJB_recoil_L1L2Res";
+    rename["multijet"]["datampfchs1"] = "MPF_recoil_L1L2Res";
+    rename["multijet"]["dataptchs"] = "MJB_recoil_L1L2Res";
+    rename["multijet"]["mcmpfchs1"] = "MPF_recoil_MG";
+    rename["multijet"]["mcptchs"] = "MJB_recoil_MG";
+  }
+  else
+    assert(false);
+
 
   rename["gamjet"]["ratio"] = "";
   rename["gamjet"]["data"] = "_DATA"; 
@@ -520,7 +571,7 @@ void reprocess(string epoch="") {
   if (epoch=="L4") etas.push_back(make_pair<double,double>(0,2.4));
   // Narrow eta bins for L2Res
   
-  
+  /*
   etas.push_back(make_pair<double,double>(0.000,0.261)); 
   etas.push_back(make_pair<double,double>(0.261,0.522)); 
   // PATCH!! V15 gamjet combines 0-0.5 bins
@@ -549,7 +600,7 @@ void reprocess(string epoch="") {
   etas.push_back(make_pair<double,double>(2.5,2.964));
   etas.push_back(make_pair<double,double>(2.964,3.2));
   etas.push_back(make_pair<double,double>(3.2,5.191));
-  
+  */
 
 
   vector<double> alphas;
@@ -563,7 +614,7 @@ void reprocess(string epoch="") {
   ///////////////////////////////////////////
 
   map<string, map<string, map<string, map<int, map<int, TGraphErrors*> > > > > grs;
-  map<string, map<string, map<int, map<int, TH1F*> > > > counts;
+  map<string, map<string, map<int, map<int, TH1D*> > > > counts;
 
   // Loop over data, MC, ratio
   for (unsigned int idir = 0; idir != dirs.size(); ++idir) {
@@ -655,9 +706,10 @@ void reprocess(string epoch="") {
 				     fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1) ||
 				    (epoch=="L4" &&
 				     fabs(eta1-0)<0.1 && fabs(eta2-2.4)<0.1))
-				  || fabs(alpha-0.10)<0.01 
-				  || fabs(alpha-0.15)<0.01
-				  || fabs(alpha-0.20)<0.01))
+				  //|| fabs(alpha-0.10)<0.01 
+				  // || fabs(alpha-0.15)<0.01
+				  //|| fabs(alpha-0.20)<0.01))
+				  || fabs(alpha-0.10)<0.01))
 	      continue; // only barrel for multijet balance, pT=(15),(20),30
 	    if (s=="gamjet"  && fabs(eta1-3.2)<0.1) { eta1=3.0; eta2=3.2; }
 
@@ -722,21 +774,25 @@ void reprocess(string epoch="") {
 
 
             if (t=="counts" && (s=="zmmjet" || s=="zeejet" || s=="gamjet") ){ // write out counts to jecdata.root (as TH1D)
-              assert(obj->InheritsFrom("TH1D")||obj->InheritsFrom("TH1F"));
-	      TH1F *g;
-	      if (obj->InheritsFrom("TH1F")) g = (TH1F*)obj;
-	      else if (obj->InheritsFrom("TH1D")) g->Copy( *(TH1D*)obj );
+              assert(obj->InheritsFrom("TH1D") ||obj->InheritsFrom("TH1F"));
+	      dout->cd();
+	      //TH1F *g;
+	      //if (obj->InheritsFrom("TH1F")) g = (TH1F*)obj;
+	      //else if (obj->InheritsFrom("TH1D")) g->Copy( *(TH1D*)obj );
+	      TH1D* h = (TH1D*)obj;
 	      //              TH1D *g = (TH1D*)obj;
-              g->SetName(Form("%s_%s_a%1.0f",tt,ss,100.*alphas[ialpha]));
+              h->SetName(Form("%s_%s_a%1.0f",tt,ss,100.*alphas[ialpha]));
               //PATCH???? //              g->Scale(g->GetEntries()/g->Integral()); // to retunr "raw number of events"
-              g->UseCurrentStyle(); // Basic TDR style
-              g->SetMarkerStyle(style[s][t]);
-              g->SetMarkerColor(color[s]);
-              g->SetLineColor(color[s]);
-              g->SetMarkerSize(size[alpha]);
-              g->SetDrawOption("SAMEP");
-              g->Write();
-              counts[d][s][ieta][ialpha] = g;
+	      
+              //h->UseCurrentStyle(); // Basic TDR style
+              //h->SetMarkerStyle(style[s][t]);
+              //h->SetMarkerColor(color[s]);
+              //h->SetLineColor(color[s]);
+              //h->SetMarkerSize(size[alpha]);
+              //h->SetDrawOption("SAMEP");
+	      //TH1D *h2 = (TH1D*)h->Clone(Form("%s_clone",h->GetName()));
+              h->Write();
+              counts[d][s][ieta][ialpha] = h;//h2;
               continue; // counts available only for z+jet, so far
             }
 
@@ -787,18 +843,23 @@ void reprocess(string epoch="") {
               else if (s=="zmmjet" || s=="zeejet" || s=="gamjet"){ // patch: clean away points with low statistics based on event counts histograms, currently Z+jet
                 assert(counts[d][s][ieta][ialpha]);
                 double pt = g->GetX()[i];
-                double ipt = counts[d][s][ieta][ialpha]->FindBin(pt);
+                int ipt = counts[d][s][ieta][ialpha]->FindBin(pt);
 		double nentries = counts[d][s][ieta][ialpha]->GetBinContent(ipt);
                 if (d=="ratio"){
                   assert(counts["mc"][s][ieta][ialpha]);
                   assert(counts["data"][s][ieta][ialpha]);
-                  if(counts["mc"][s][ieta][ialpha]->GetBinContent(ipt) < neventsmin || counts["data"][s][ieta][ialpha]->GetBinContent(ipt) < neventsmin){
-                    if (rp_debug) cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries MC "<< counts["mc"][s][ieta][ialpha]->GetBinContent(ipt) << " nentries data " <<  counts["data"][s][ieta][ialpha]->GetBinContent(ipt)<<  " y: " << g->GetY()[i] << endl;
+		  int ipt_dt = counts["data"][s][ieta][ialpha]->FindBin(pt);
+		  int ipt_mc = counts["mc"][s][ieta][ialpha]->FindBin(pt);
+
+                  if(counts["mc"][s][ieta][ialpha]->GetBinContent(ipt_mc) < neventsmin || counts["data"][s][ieta][ialpha]->GetBinContent(ipt_dt) < neventsmin){
+                    //if (rp_debug) cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries MC "<< counts["mc"][s][ieta][ialpha]->GetBinContent(ipt) << " nentries data " <<  counts["data"][s][ieta][ialpha]->GetBinContent(ipt)<<  " y: " << g->GetY()[i] << endl;
+		    if (rp_debug) cout << "ratio " << s << " " << t << " ieta " << ieta << " ialpha " << ialpha << " ipt " << ipt << " pt " << pt << " nentries MC "<< counts["mc"][s][ieta][ialpha]->GetBinContent(ipt_mc) << " data " <<  counts["data"][s][ieta][ialpha]->GetBinContent(ipt_dt) << " y: " << g->GetY()[i] << "+/-" << g->GetEY()[i] << endl;
                     g->RemovePoint(i);
                   }
                 }
                 else if (nentries < neventsmin){
-                  if (rp_debug) cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries "<< nentries <<  " y: " << g->GetY()[i] << endl;
+                  //if (rp_debug) cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries "<< nentries <<  " y: " << g->GetY()[i] << endl;
+		  if (rp_debug) cout << d << " " << s << " " << t << " ieta " << ieta << " ialpha " << ialpha << " ipt " << ipt << " pt " <<pt << " nentries "<< nentries <<  " y: " << g->GetY()[i] << "+/-" << g->GetEY()[i] << endl;
                   g->RemovePoint(i);
                 }
               } // zmm/zee
@@ -984,9 +1045,10 @@ void reprocess(string epoch="") {
 		//double ipt = hmzee->FindBin(pt);
 		double ipt = min(hmzee->FindBin(fzmmptmax), hmzee->FindBin(pt));
 		double ek = min(0.005,hmzee->GetBinError(ipt));
-		if (useFixedFit) ek = max(fitUncMin,f1ezee->Eval(pt));
-		double k = f1mzee->Eval(pt);
-		//double ek = femzee->Eval(pt);
+		//if (useFixedFit) ek = max(fitUncMin,f1ezee->Eval(pt));
+		//double k = f1mzee->Eval(pt);
+		if (useFixedFit) ek = max(fitUncMin,f1egam->Eval(pt));
+		double k = f1mgam->Eval(pt); // vs pTZ
 		g->SetPoint(i, g->GetX()[i], g->GetY()[i]*k);
 		if (correctUncert)
 		  g->SetPointError(i, g->GetEX()[i], 
@@ -1142,9 +1204,13 @@ void reprocess(string epoch="") {
     // But even with this pT-dependent L2Res can cause problems
     FactorizedJetCorrector *jecold;
     {
-      s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L2L3Residual_AK4PFchs.txt",cd,
-	       epoch=="BCDEF"||epoch=="L4" ? "B" :
-	       (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
+      //s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L2L3Residual_AK4PFchs.txt",cd,
+      //epoch=="BCDEF"||epoch=="L4" ? "B" :
+      //(epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
+      //s = Form("%s/Summer19UL17_Run%s_V1_ComplexL1_DATA_L2Residual_AK4PFchs.txt", cd, "C");
+      s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L2Residual_AK4PFchs.txt",
+	       cd, "C");
+
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1155,7 +1221,10 @@ void reprocess(string epoch="") {
     // Difference between pT-dependent and flat L1
     FactorizedJetCorrector *jecl1flat;
     {
-      s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
+      //s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
+      //s = Form("%s/Summer19UL17_Run%s_V1_ComplexL1_DATA_L1RC_AK4PFchs.txt",
+      s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L1RC_AK4PFchs.txt",
+	       cd,"C");
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1164,7 +1233,10 @@ void reprocess(string epoch="") {
     }
     FactorizedJetCorrector *jecl1pt;
     {
-      s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
+      //s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
+      //s = Form("%s/Summer19UL17_Run%s_V1_ComplexL1_DATA_L1FastJet_AK4PFchs.txt",cd,"C");
+      s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L1FastJet_AK4PFchs.txt",
+	       cd,"C");
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1173,7 +1245,9 @@ void reprocess(string epoch="") {
     }
     FactorizedJetCorrector *jecl1mc;
     {
-      s = Form("%s/Fall17_17Nov2017_V32_MC_L1FastJet_AK4PFchs.txt",cd); // Fall17
+      //s = Form("%s/Fall17_17Nov2017_V32_MC_L1FastJet_AK4PFchs.txt",cd); // Fall17
+      //s = Form("%s/Summer19UL17_V1_ComplexL1_MC_L1FastJet_AK4PFchs.txt",cd);
+      s = Form("%s/Summer19UL17_V1_SimpleL1_MC_L1FastJet_AK4PFchs.txt",cd);
       cout << s << endl << flush;
       JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
@@ -1361,7 +1435,7 @@ void reprocess(string epoch="") {
 	    */
 	    val = jecwb*valb +jecwc*valc +jecwde*valde +jecwf*valf;
 	  }
-          if(rp_debug) cout << "ABC/ABCD special treatment done" << endl;
+          //if(rp_debug) cout << "ABC/ABCD special treatment done" << endl;
           if(CorLevel=="L1L2L3Res")val = 1.0; //to get proper bands during closure test
 	  if(CorLevel=="L1L2L3Res") val = 1;
 	  sumval += w*val;
