@@ -24,7 +24,8 @@
   gROOT->ProcessLine(".L tools.C+g");
   gROOT->ProcessLine(".L reprocess.C+g");
   gROOT->ProcessLine(".L softrad.C+g");
-  gROOT->ProcessLine(".L multijet.C+g");
+  //gROOT->ProcessLine(".L multijet.C+g"); // obsolete since 20200318
+  gROOT->ProcessLine(".L globalFitSyst.C+g");
   gROOT->ProcessLine(".L globalFitL3Res.C+g");
 
   // Merge inputs from separate groups
@@ -43,12 +44,15 @@
   reprocess(epoch); // Switched off for JetMET100
 
   softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
+  
+  globalFitSyst(epoch);
 
   //  softrad(0.0,epoch=="L4" ? 2.4 : 1.3,false,epoch); // without dijets
   // Run multijet analysis to store information for later global fit
   // => multijet central values now old, but FSR still needed
-  multijet(false,epoch);
-  multijet(true,epoch);
+  // 20200319: multijet had FSR=0, sys obsolete; do FSR now in softrad
+  //multijet(false,epoch);
+  //multijet(true,epoch);
   // Perform final global fit (goes into GT) - 2018v0
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="B"||epoch=="ABC" ? "zee_zmm" : "gam_zee_zmm", "PtBalMPF");
   // Perform final global fit (goes into GT) - 2018 V5M
@@ -56,6 +60,8 @@
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "gam_zll", "PtBalMPF");
   globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
+  //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_zll", "PtBalMPF");
+  //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "zll", "PtBalMPF");
 
   
 ////  
