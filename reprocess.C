@@ -614,7 +614,7 @@ void reprocess(string epoch="") {
   ///////////////////////////////////////////
 
   map<string, map<string, map<string, map<int, map<int, TGraphErrors*> > > > > grs;
-  map<string, map<string, map<int, map<int, TH1D*> > > > counts;
+  map<string, map<string, map<int, map<int, TH1F*> > > > counts;
 
   // Loop over data, MC, ratio
   for (unsigned int idir = 0; idir != dirs.size(); ++idir) {
@@ -773,27 +773,22 @@ void reprocess(string epoch="") {
 	    assert(obj);
 
 
-            if (t=="counts" && (s=="zmmjet" || s=="zeejet" || s=="gamjet") ){ // write out counts to jecdata.root (as TH1D)
+            if (t=="counts" && (s=="zmmjet" || s=="zeejet" || s=="gamjet") ){ // write out counts to jecdata.root (as TH1F)
               assert(obj->InheritsFrom("TH1D") ||obj->InheritsFrom("TH1F"));
 	      dout->cd();
-	      //TH1F *g;
-	      //if (obj->InheritsFrom("TH1F")) g = (TH1F*)obj;
-	      //else if (obj->InheritsFrom("TH1D")) g->Copy( *(TH1D*)obj );
-	      TH1D* h = (TH1D*)obj;
-	      //              TH1D *g = (TH1D*)obj;
+	      TH1F *h;
+	      if (obj->InheritsFrom("TH1F")) h = (TH1F*)obj;
+	      else if (obj->InheritsFrom("TH1D")){
+                TH1D *temp = (TH1D*) obj;
+                temp->Copy(*h);// copy contents to different type histogram
+              }
               h->SetName(Form("%s_%s_a%1.0f",tt,ss,100.*alphas[ialpha]));
-              //PATCH???? //              g->Scale(g->GetEntries()/g->Integral()); // to retunr "raw number of events"
-	      
-              //h->UseCurrentStyle(); // Basic TDR style
-              //h->SetMarkerStyle(style[s][t]);
-              //h->SetMarkerColor(color[s]);
-              //h->SetLineColor(color[s]);
-              //h->SetMarkerSize(size[alpha]);
-              //h->SetDrawOption("SAMEP");
-	      //TH1D *h2 = (TH1D*)h->Clone(Form("%s_clone",h->GetName()));
+              //if (obj->InheritsFrom("TH1F"))       cout << Form("%s_%s_a%1.0f is TH1Float and has %f entries, %f effective entries, and integral %f",tt,ss,100.*alphas[ialpha],h->GetEntries(),h->GetEffectiveEntries(),h->Integral()) << endl << flush;
+              //else if (obj->InheritsFrom("TH1D"))       cout << Form("%s_%s_a%1.0f is TH1Double and has %f entries, %f effective entries, and integral %f",tt,ss,100.*alphas[ialpha],h->GetEntries(),h->GetEffectiveEntries(),h->Integral()) << endl << flush;
+
               h->Write();
-              counts[d][s][ieta][ialpha] = h;//h2;
-              continue; // counts available only for z+jet, so far
+              counts[d][s][ieta][ialpha] = h;
+              continue; // counts reliably available only for z+jet, so far. For gamma+jet MC events contain weights
             }
 
 	    // If data stored in TH1D instead of TGraphErrors, patch here
@@ -853,13 +848,13 @@ void reprocess(string epoch="") {
 
                   if(counts["mc"][s][ieta][ialpha]->GetBinContent(ipt_mc) < neventsmin || counts["data"][s][ieta][ialpha]->GetBinContent(ipt_dt) < neventsmin){
                     //if (rp_debug) cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries MC "<< counts["mc"][s][ieta][ialpha]->GetBinContent(ipt) << " nentries data " <<  counts["data"][s][ieta][ialpha]->GetBinContent(ipt)<<  " y: " << g->GetY()[i] << endl;
-		    if (rp_debug) cout << "ratio " << s << " " << t << " ieta " << ieta << " ialpha " << ialpha << " ipt " << ipt << " pt " << pt << " nentries MC "<< counts["mc"][s][ieta][ialpha]->GetBinContent(ipt_mc) << " data " <<  counts["data"][s][ieta][ialpha]->GetBinContent(ipt_dt) << " y: " << g->GetY()[i] << "+/-" << g->GetEY()[i] << endl;
+		    if (rp_debug) cout << "ratio " << s << " " << t << " ieta " << ieta << " ialpha " << ialpha << " ipt " << ipt << " pt " << pt << " REMOVE POINT... nentries MC "<< counts["mc"][s][ieta][ialpha]->GetBinContent(ipt_mc) << " data " <<  counts["data"][s][ieta][ialpha]->GetBinContent(ipt_dt) << " y: " << g->GetY()[i] << "+/-" << g->GetEY()[i] << endl;
                     g->RemovePoint(i);
                   }
                 }
                 else if (nentries < neventsmin){
                   //if (rp_debug) cout << ipt << " pt " <<pt << " g->GetX()[i] " << g->GetX()[i] << " nentries "<< nentries <<  " y: " << g->GetY()[i] << endl;
-		  if (rp_debug) cout << d << " " << s << " " << t << " ieta " << ieta << " ialpha " << ialpha << " ipt " << ipt << " pt " <<pt << " nentries "<< nentries <<  " y: " << g->GetY()[i] << "+/-" << g->GetEY()[i] << endl;
+		  if (rp_debug) cout << d << " " << s << " " << t << " ieta " << ieta << " ialpha " << ialpha << " ipt " << ipt << " pt " <<pt << " REMOVE POINT... nentries "<< nentries <<  " y: " << g->GetY()[i] << "+/-" << g->GetEY()[i] << endl;
                   g->RemovePoint(i);
                 }
               } // zmm/zee
