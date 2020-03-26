@@ -2012,6 +2012,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //double minx = (isample==nsample0 ? 40  : 30);
       double minx = 30;//(isample==igj ? 40  : 30);
       double maxx = (isample==nsample0 ? 1500 : 1000); // 80X
+      //double maxx = (isample==nsample0 ? 3000 : 1000); // 80X
+      if (string(samples[isample])=="multijet") maxx = 2640;
       hk->GetXaxis()->SetRangeUser(minx,maxx);
 
       hk->SetLineColor(colorslight[isample-offsetsample]);

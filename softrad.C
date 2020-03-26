@@ -96,7 +96,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
   // gamma+jet bins
   const double ptbins2[] = {40, 50, 60, 85, 105, 130, 175, 230, 300, 400,
-			    500, 700, 1000, 1500};
+  			    500, 700, 1000, 1500};
+  //const double ptbins2[] = {40, 50, 60, 85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 3000}; // more correct, but too wide last bin
   const int npt2 = sizeof(ptbins2)/sizeof(ptbins2[0])-1;
   cout << Form("npt2: %i", npt2) << endl << flush;
   double ptmax2 = ptbins2[npt2];
@@ -111,8 +112,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   TProfile *ppt4 = new TProfile("ppt4","",npt4,&ptbins4[0]);
 
   // multijet bins
-  const double ptbins5[] = {/*10, 15, 21, 28, 37, 49, 64, 84,*/ 114, 153, 196, 245, 300, 362, 430, 507, 592, 686, 790, 905, 1032, 1172, 1327, 1497, 1684, 1890};//, 2116, 2366, 2640, 2941, 3273, 5220};
+  const double ptbins5[] = {10, 15, 21, 28, 37, 49, 64, 84, 114, 153, 196, 245, 300, 362, 430, 507, 592, 686, 790, 905, 1032, 1172, 1327, 1497, 1684, 1890, 2116, 2366, 2640, 2941, 3273, 5220};
   const int npt5 = sizeof(ptbins5)/sizeof(ptbins5[0])-1;
+  double ptmax5 = ptbins5[npt5];
   TH1D *hpt5 = new TH1D("hpt5","",npt5,&ptbins5[0]);
   TProfile *ppt5 = new TProfile("ppt5","",npt5,&ptbins5[0]);
 
@@ -195,7 +197,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
             //cout << g->GetX()[i] << " ";
 	    if (g->GetY()[i]==0 || g->GetEY()[i]==0 ||
 		(string(cs)=="dijet" && g->GetX()[i]<70.)  ||
-		(string(cs)=="multijet" && g->GetX()[i]<114.)  ||
+		(string(cs)=="multijet" && g->GetX()[i]>ptmax5)  ||
 		//(string(cs)=="multijet" && g->GetX()[i]<49.)  ||
 		//(string(cs)=="multijet" && g->GetX()[i]<84.)  ||
 		(string(cs)=="gamjet" && g->GetX()[i]>ptmax2) ||
