@@ -614,7 +614,7 @@ void reprocess(string epoch="") {
   ///////////////////////////////////////////
 
   map<string, map<string, map<string, map<int, map<int, TGraphErrors*> > > > > grs;
-  map<string, map<string, map<int, map<int, TH1F*> > > > counts;
+  map<string, map<string, map<int, map<int, TH1D*> > > > counts;
 
   // Loop over data, MC, ratio
   for (unsigned int idir = 0; idir != dirs.size(); ++idir) {
@@ -776,12 +776,13 @@ void reprocess(string epoch="") {
             if (t=="counts" && (s=="zmmjet" || s=="zeejet" || s=="gamjet") ){ // write out counts to jecdata.root (as TH1F)
               assert(obj->InheritsFrom("TH1D") ||obj->InheritsFrom("TH1F"));
 	      dout->cd();
-	      TH1F *h;
-	      if (obj->InheritsFrom("TH1F")) h = (TH1F*)obj;
-	      else if (obj->InheritsFrom("TH1D")){
-                TH1D *temp = (TH1D*) obj;
-                temp->Copy(*h);// copy contents to different type histogram
-              }
+	      TH1D *h = (TH1D*)obj;
+              // gamjet TH1F somehow TH1D after all?
+	      // (obj->InheritsFrom("TH1F")) h = (TH1F*)obj;
+	      //se if (obj->InheritsFrom("TH1D")){
+              //TH1D *temp = (TH1D*) obj;
+              //temp->Copy(*h);// copy contents to different type histogram
+              //
               h->SetName(Form("%s_%s_a%1.0f",tt,ss,100.*alphas[ialpha]));
               //if (obj->InheritsFrom("TH1F"))       cout << Form("%s_%s_a%1.0f is TH1Float and has %f entries, %f effective entries, and integral %f",tt,ss,100.*alphas[ialpha],h->GetEntries(),h->GetEffectiveEntries(),h->Integral()) << endl << flush;
               //else if (obj->InheritsFrom("TH1D"))       cout << Form("%s_%s_a%1.0f is TH1Double and has %f entries, %f effective entries, and integral %f",tt,ss,100.*alphas[ialpha],h->GetEntries(),h->GetEffectiveEntries(),h->Integral()) << endl << flush;
