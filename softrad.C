@@ -35,6 +35,8 @@ const double ptrec_gjet = 8.9;//15.;
 bool debug = true;
 bool dodijet = false;
 bool domultijet = false; // =dodijet at |eta|<1.3
+bool dropZee = true; // clean up plots a bit (leave Zll)
+bool dropZmm = true; // clean up plots a bit  (leave Zll)
 
 bool verbose = true;
 
@@ -139,7 +141,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   TCanvas *c1 = new TCanvas("c1","c1",ndirs*400,nmethods*400);
   c1->Divide(ndirs,nmethods);
 
-  TH1D *h1 = new TH1D("h1",";p_{T} (GeV);Response",1470,30,1500);
+  TH1D *h1 = new TH1D("h1",";p_{T} (GeV);Response",2610,30,2640);
+  h1->GetXaxis()->SetNoExponent();
+  h1->GetXaxis()->SetMoreLogLabels();
 
   // extrapolation vs alpha for each pT bin
   vector<TCanvas*> c2s(ndirs*nmethods);
@@ -159,7 +163,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   c3->Divide(ndirs,nmethods);
 
   TH1D *h3 = new TH1D("h3",";p_{T,ref} (GeV);FSR sensitivity: -dR/d#alpha [%]",
-		      1470,30,1500);
+		      2610,30,2640);
+  h3->GetXaxis()->SetNoExponent();
+  h3->GetXaxis()->SetMoreLogLabels();
 
   cout << "Reading in data" << endl << flush;
   // Read in plots vs pT (and alpha)
@@ -298,6 +304,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	for (int  ialpha = 0; ialpha != nalphas; ++ialpha) {
 
 	  const char *cs = samples[isample];
+	  string ss = cs;
 	  if (etamin==0 && string(cs)=="dijet") continue;
 
 	  const int a = alphas[ialpha];
@@ -307,10 +314,12 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  //for (int i = g->GetN()-1; i != -1; --i) {
 	  //if (g->GetEY()[i]>0.02) g->RemovePoint(i);
 	  //}
-
-	  g->Draw("SAME Pz");
-
-	  if (ialpha==0) leg->AddEntry(g,texlabel[cs],"P");
+	  
+	  if (!((dropZee && ss=="zeejet") || (dropZmm && ss=="zmmjet"))) {
+	    g->Draw("SAME Pz");
+	    
+	    if (ialpha==0) leg->AddEntry(g,texlabel[cs],"P");
+	  }
 	}
       } // for isample
 
@@ -381,13 +390,16 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	for (int  isample = 0; isample != nsamples; ++isample) {
 	  
 	  const char *cs = samples[isample];
+	  string ss = cs;
 	  if (string(cs)=="dijet") continue;
 	  TGraphErrors *g = gemap[cd][cm][cs][30];
 	  if (!g) cout << cd <<"_"<< cm <<"_"<< cs <<"_30"<< endl << flush;
 	  assert(g);
-	  g->Draw("SAME Pz");
+	  if (!((dropZee && ss=="zeejet") || (dropZmm && ss=="zmmjet"))) {
+	    g->Draw("SAME Pz");
 	  
-	  leg->AddEntry(g,texlabel[cs],"P");
+	    leg->AddEntry(g,texlabel[cs],"P");
+	  }
 	} // for isample
 
 	if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1)) {
@@ -470,7 +482,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  
 	  TGraphErrors *ga = itpt->second; assert(ga);
 	  
-	  ga->Draw("SAME Pz");
+	  if (!((dropZee && ss=="zeejet") || (dropZmm && ss=="zmmjet")))
+	    ga->Draw("SAME Pz");
 
 	  // Fit slope
 	  TF1 *f1 = new TF1(Form("f1_%s_%s_%s_%d",cd,cm,cs,ipt),
@@ -540,10 +553,12 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	    ga->Fit(f1,"QRN");
 
 	    if (f1->GetNDF()>=0) {
-	      f1->DrawClone("SAME");
+	      if (!((dropZee && ss=="zeejet") || (dropZmm && ss=="zmmjet")))
+		f1->DrawClone("SAME");
 	      f1->SetRange(0,0.4);
 	      f1->SetLineStyle(kDashed);
-	      f1->DrawClone("SAME");
+	      if (!((dropZee && ss=="zeejet") || (dropZmm && ss=="zmmjet")))
+		f1->DrawClone("SAME");
 
 	      // Store results
 	      TGraphErrors *gk = gkmap[cd][cm][cs];
@@ -624,13 +639,52 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 		      << "eta_"<<etamin<<"_"<<etamax << endl << flush;
 	assert(gk);
 	
-	leg->AddEntry(gk,texlabel[cs],"P");
+	if (!((dropZee && ss=="zeejet") || (dropZmm && ss=="zmmjet")))
+	  leg->AddEntry(gk,texlabel[cs],"P");
 
 	// Fit each sample separately for pT balance
 	if (true) {
 
 	  TF1 *fk(0);
-	  if (ss=="multijet" || sm=="mpfchs1") {
+	  // For UL17_V2
+	  if ((ss=="zlljet" || ss=="zeejet" || ss=="zmmjet")) {
+	    // Log-lin works well, except maybe for zlljet pTbal in data
+	    // Want to reduce freedom a bit at the edges of phase space
+	    if (sm=="ptchs")
+	      fk = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
+			   "[0]+[1]*log(0.01*x)",30,3000);
+			   //"[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",30,3000);
+			   //"[0]+[1]/log(x/0.218)",30,3000);
+	    if (sm=="mpfchs1")
+	      // Similar to ptchs, but now scaled to pt>15 GeV part only
+	      fk = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
+			   "([0]+[1]*log(0.01*x))*(15./x)/0.3",30,3000);
+			   //"([0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2))*(15./x)/0.3",30,3000);
+			   //"([0]+[1]/log(x/0.218))*(15./x)/0.3",30,3000);
+	  }
+	  if (ss=="gamjet") {
+	    
+	    if (sm=="ptchs")
+	      // Log-lin works well, especially for short span at pT>230 GeV
+	      fk = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
+			   "[0]+[1]*log(0.01*x)",30,3000);
+	    if (sm=="mpfchs1")
+	      // Similar to ptchs, but now scaled to pt>15 GeV part only
+	      fk = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
+			   "([0]+[1]*log(0.01*x))*(15./x)/0.3",30,3000);
+	  }
+	  if (ss=="multijet" || ss=="dijet") {
+	    // Log-lin ok for high pT, but low pT needs extra shaping
+	    //fk = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
+	    //		 "[0]+[1]*log(0.01*x)+[2]/(log(x/0.218) * x)",30,3000);
+			 //"[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)"
+			 //"+ [3] / (log(x/0.218) * x)",30,3000);
+	    fk = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
+			 "[0]+[1]/(log(x/0.218) * x)",30,3000);
+	  }
+	  assert(fk);
+	  /*
+	  if (ss=="multijet") {// || sm=="mpfchs1") {
 	    // MJB lead: proportional to alpha_s times 15 GeV / pT
 	    // MPF lead: proportional to MJB times unclustered pT response diff.
 	    // both simply to 1/(log(x/LambdaQCD)*x) shape at high x
@@ -658,14 +712,17 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	    fk->SetParameters(-0.05,+0.01,0);
 	    //fk->FixParameter(2,0.); // post-Moriond19, reduce quad-log to log0-lin => UL17 again quad-log
 	  }
+	  */
+
+	  double dy = (isample!=0 && dropZee && dropZmm ? 0.09 : 0);
 
 	  fk->SetLineColor(gk->GetLineColor());
 	  gk->Fit(fk, "QRN");
-
 	  tex->SetTextColor(fk->GetLineColor());
-	  tex->DrawLatex(0.55,0.27-0.045*isample,
-			 Form("#chi^{2}/NDF = %1.1f / %d",
-			      fk->GetChisquare(), fk->GetNDF()));
+	  if (!((dropZee && ss=="zeejet") || (dropZmm && ss=="zmmjet")))
+	    tex->DrawLatex(0.55,0.27-0.045*isample+dy,
+			   Form("#chi^{2}/NDF = %1.1f / %d",
+				fk->GetChisquare(), fk->GetNDF()));
 	  tex->SetTextColor(kBlack);
 
 	  // Error band
@@ -673,19 +730,23 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  TMatrixD emat(n,n);
 	  gMinuit->mnemat(emat.GetMatrixArray(), n);
 	  TF1 *fke = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
-			     sr_fitError, 30, 1500, 1);
+			     sr_fitError, 30, 2640, 1);
 	  _sr_fitError_func = fk;
 	  _sr_fitError_emat = &emat;
 
 	  fke->SetLineStyle(kSolid);
 	  fke->SetLineColor(ss=="multijet" ? kGray+1 : fk->GetLineColor()-10);
 	  fke->SetParameter(0,-1);
-	  fke->DrawClone("SAME");
+	  if (!((dropZee && ss=="zeejet") || (dropZmm && ss=="zmmjet")))
+	    fke->DrawClone("SAME");
 	  fke->SetParameter(0,+1);
-	  fke->DrawClone("SAME");
+	  if (!((dropZee && ss=="zeejet") || (dropZmm && ss=="zmmjet")))
+	    fke->DrawClone("SAME");
 
-	  fk->DrawClone("SAME");
-	  gk->DrawClone("SAME Pz");
+	  if (!((dropZee && ss=="zeejet") || (dropZmm && ss=="zmmjet"))) {
+	    fk->DrawClone("SAME");
+	    gk->DrawClone("SAME Pz");
+	  }
 
 
           ofstream txtFSRDiJet(Form("txt2/GlobalFitOutput_FSRFit_%s_%s_%s.txt",cd, cs,cm),ios_base::app);
@@ -793,6 +854,18 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   //cmsPrel(_lumi, true);
   CMS_lumi(c3, 2, 33);
   c3->SaveAs(Form("pdf/%s/softrad_2x6_kfsr_eta%02.0f-%02.0f.pdf",cep,10*etamin,10*etamax));
+
+  ///////////////////////////////////////////////////////////
+  // Recreate MPF bias and uncertainties for data/MC ratio:
+  // 0) Central value: pTbal factored into jetn and uncl
+  //    times expected data/MC response difference for these
+  //    plus jetn and uncl data/MC difference times MC response
+  // 1) Source 1: Uncl(MC) x DeltaRuncl(data/MC)
+  // 2) Source 2: JetN(MC) x DeltaRjetn(data/MC) 
+  // 3) Source 3: DeltaUncl(data/MC) x Runlc(MC)
+  // 4) Source 4: DeltaJetN(data/MC) x Rjetn(MC)
+  // Cross-terms omitted for now
+  ////////////////////////////////////////
 
   finout->Close();
   //fout->Close();

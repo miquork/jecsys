@@ -25,8 +25,8 @@
   unfold("2.0-2.5",5);
   unfold("2.5-3.0",6);
   unfold("3.2-4.7",7);
-  */  
-
+  */
+  /*
   drawDeltaJEC("0.0-0.5");
   drawDeltaJEC("0.5-1.0");
   drawDeltaJEC("1.0-1.5");
@@ -34,7 +34,18 @@
   drawDeltaJEC("2.0-2.5");
   drawDeltaJEC("2.5-3.0");
   drawDeltaJEC("3.2-4.7");
-
+  */
+  drawDeltaJEC("0.0-1.3","2017UL");
+  /*
+  drawDeltaJEC("0.0-0.5","2017UL");
+  drawDeltaJEC("0.5-1.0","2017UL");
+  drawDeltaJEC("1.0-1.5","2017UL");
+  drawDeltaJEC("1.5-2.0","2017UL");
+  drawDeltaJEC("2.0-2.5","2017UL");
+  drawDeltaJEC("2.5-3.0","2017UL");
+  drawDeltaJEC("3.2-4.7","2017UL");
+  */
+  /*
   drawDeltaJEC("0.0-0.5","2018");
   drawDeltaJEC("0.5-1.0","2018");
   drawDeltaJEC("1.0-1.5","2018");
@@ -42,7 +53,8 @@
   drawDeltaJEC("2.0-2.5","2018");
   drawDeltaJEC("2.5-3.0","2018");
   drawDeltaJEC("3.2-4.7","2018");
-
+  */
+  /*
   drawDeltaJEC("0.0-0.5","2017");
   drawDeltaJEC("0.5-1.0","2017");
   drawDeltaJEC("1.0-1.5","2017");
@@ -50,7 +62,8 @@
   drawDeltaJEC("2.0-2.5","2017");
   drawDeltaJEC("2.5-3.0","2017");
   drawDeltaJEC("3.2-4.7","2017");
-
+  */
+  /*
   drawDeltaJEC("0.0-0.5","2016");
   drawDeltaJEC("0.5-1.0","2016");
   drawDeltaJEC("1.0-1.5","2016");
@@ -58,5 +71,5 @@
   drawDeltaJEC("2.0-2.5","2016");
   drawDeltaJEC("2.5-3.0","2016");
   drawDeltaJEC("3.2-4.7","2016");
-  
+  */
 }
