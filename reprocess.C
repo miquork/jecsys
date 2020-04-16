@@ -45,7 +45,7 @@ bool useFixedFit = true; // with minitools/drawZmass.C
 double fitUncMin = 0.00000; // Some bug if unc<0?
 bool correctZmmMass = true; // pT with mumu mass
 bool correctZeeMass = true; // pT with ee mass
-bool correctGamMass = true; // pT with ee mass at 2*pT
+bool correctGamMass = true; //!!UL17_V3 false, pT with ee mass at 2*pT
 bool correctUncert = false;  // ll mass uncertainty => globalFitSyst.C
 //
 // Which binning to use for multijets ("leading" or "recoil")
@@ -62,7 +62,7 @@ string CorLevel="L1L2Res"; // same for gamma+jet and Z+jet on RunD
 //"L1L2Res": MCTruth + L2Res applied
 //"L1L2L3Res": MCTruth + L2L3Res applied; reference JES central values set to 1.0 (affects pliotting as well)
 
-bool correctGamScale = true;//false; 
+bool correctGamScale = true; 
 double valueGamScale = 1.01;//1.;
 
 
@@ -1223,7 +1223,9 @@ void reprocess(string epoch="") {
       //s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L2L3Residual_AK4PFchs.txt",cd,
       //       epoch=="BCDEF" ? "B" : 
       //       (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str());
-      s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="DE" ? "E" : epoch.c_str());
+      //s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="DE" ? "E" : epoch.c_str());
+      s = Form("textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_Run%s_V2M2_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",epoch=="BCDEF" ? "B" : epoch.c_str());
+
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> vpar;
@@ -1237,7 +1239,8 @@ void reprocess(string epoch="") {
 	jecwb = 4.8/lumtot;
 
 	//s=Form("%s/Fall17_17Nov2017C_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	s = Form("%s/Summer19UL17_RunC_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	//s = Form("%s/Summer19UL17_RunC_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);
+	s = "textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_RunC_V2M2_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
 	cout << s << endl;
 	JetCorrectorParameters *par_c = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_c;
@@ -1247,7 +1250,8 @@ void reprocess(string epoch="") {
 
 
 	//s=Form("%s/Fall17_17Nov2017D_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	s = Form("%s/Summer19UL17_RunD_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
+	//s = Form("%s/Summer19UL17_RunD_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
+	s = "textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_RunD_V2M2_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
 	cout << s << endl;
 	JetCorrectorParameters *par_d = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_d;
@@ -1256,7 +1260,8 @@ void reprocess(string epoch="") {
 	jecwd = 4.2/lumtot;
 
 	//s=Form("%s/Fall17_17Nov2017E_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	s = Form("%s/Summer19UL17_RunE_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
+	//s = Form("%s/Summer19UL17_RunE_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
+	s = "textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_RunE_V2M2_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
 	cout << s << endl;
 	JetCorrectorParameters *par_e = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_e;
@@ -1276,7 +1281,8 @@ void reprocess(string epoch="") {
 
 	//s=Form("%s/Fall17_17Nov2017F_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	//s=Form("%s/Fall17_17Nov2017F_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	s = Form("%s/Summer19UL17_RunF_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
+	//s = Form("%s/Summer19UL17_RunF_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
+	s = "textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_RunF_V2M2_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
 	cout << s << endl;
 	JetCorrectorParameters *par_f = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_f;
@@ -1306,9 +1312,7 @@ void reprocess(string epoch="") {
       //epoch=="BCDEF"||epoch=="L4" ? "B" :
       //(epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
       //s = Form("%s/Summer19UL17_Run%s_V1_ComplexL1_DATA_L2Residual_AK4PFchs.txt", cd, "C");
-      s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L2Residual_AK4PFchs.txt",
-	       cd, "C");
-
+      s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L2Residual_AK4PFchs.txt",cd, "C");
       cout << s << endl;
       JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
       vector<JetCorrectorParameters> v;
