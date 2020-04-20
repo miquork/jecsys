@@ -290,8 +290,9 @@ void reprocess(string epoch="") {
   //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200320_UL2017%s_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017
   //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200330_UL2017%s_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017 (TProfile means?)
   //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200404_UL2017%s_ComplexL1_jecV1_jerV1.root",fm_files[epoch]),"READ"); // UL2017 (Complex+new JER etc.)
-  TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200404_UL2017%s_SimpleL1_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017 (Simple+old JER)
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200404_UL2017%s_SimpleL1_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017 (Simple+old JER)
   //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200404_UL2017%s_ComplexL1_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017 (Complex+new JER, partially complete)
+  TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200419_UL2017%s_SimpleL1_jecV2_jerV1.root",fm_files[epoch]),"READ"); // UL2017_V2
   assert(fmj && !fmj->IsZombie());
   //TFile *fmj =0;
 
@@ -1224,7 +1225,7 @@ void reprocess(string epoch="") {
       //       epoch=="BCDEF" ? "B" : 
       //       (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str());
       //s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="DE" ? "E" : epoch.c_str());
-      s = Form("textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_Run%s_V2M2_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",epoch=="BCDEF" ? "B" : epoch.c_str());
+      s = Form("textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_Run%s_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",epoch=="BCDEF" ? "B" : epoch.c_str());
 
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
@@ -1240,7 +1241,7 @@ void reprocess(string epoch="") {
 
 	//s=Form("%s/Fall17_17Nov2017C_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	//s = Form("%s/Summer19UL17_RunC_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	s = "textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_RunC_V2M2_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
+	s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunC_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
 	cout << s << endl;
 	JetCorrectorParameters *par_c = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_c;
@@ -1251,7 +1252,7 @@ void reprocess(string epoch="") {
 
 	//s=Form("%s/Fall17_17Nov2017D_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	//s = Form("%s/Summer19UL17_RunD_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
-	s = "textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_RunD_V2M2_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
+	s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunD_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
 	cout << s << endl;
 	JetCorrectorParameters *par_d = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_d;
@@ -1261,7 +1262,7 @@ void reprocess(string epoch="") {
 
 	//s=Form("%s/Fall17_17Nov2017E_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	//s = Form("%s/Summer19UL17_RunE_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
-	s = "textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_RunE_V2M2_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
+	s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunE_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
 	cout << s << endl;
 	JetCorrectorParameters *par_e = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_e;
@@ -1282,7 +1283,7 @@ void reprocess(string epoch="") {
 	//s=Form("%s/Fall17_17Nov2017F_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	//s=Form("%s/Fall17_17Nov2017F_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	//s = Form("%s/Summer19UL17_RunF_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
-	s = "textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_RunF_V2M2_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
+	s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunF_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
 	cout << s << endl;
 	JetCorrectorParameters *par_f = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_f;
@@ -1714,7 +1715,8 @@ void reprocess(string epoch="") {
 	  //jecl1rc->setRho(gRho);
 	  //jecl1rc->setJetA(TMath::Pi()*0.4*0.4);
 	  //double vall1rc = 1./jecl1rc->getCorrection();
-	  double vall1rc = 1./getJEC(jecl1rc,eta,pt);
+	  double vall1rc = 1./max(0.0001,getJEC(jecl1rc,eta,pt));
+	  sumvall1rc += w*vall1rc;
 	  //
 	  //jecl2c->setJetEta(eta);
 	  //jecl2c->setJetPt(pt);

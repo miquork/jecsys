@@ -95,10 +95,10 @@ Double_t fitError(Double_t *xx, Double_t *p);
 // 2: EM+HB (w/ fixOff option)
 // 3: EM+HB+offset
 const int njesFit = 2;
-double fixOff = -0.586;// pT-dependent offset for 2p from BCDEF 3p (0 for none)
+double fixOff = -0.6035; // p3 185.9/62
 const double ptminJesFit = 30;
 
-TF1 *fhb(0), *fl1(0), *fl1mc(0), *ftr(0), *feg(0); double _etamin(0);
+TF1 *fhb(0), *fl1(0), *fl1b(0), *fl1mc(0), *ftr(0), *feg(0); double _etamin(0);
 Double_t jesFit(Double_t *x, Double_t *p) {
   
   double pt = *x;
@@ -110,7 +110,11 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   // Initialize L1FastJe_Simple-L1RC difference
   // Values from fitting ratio/eta00-13/hl1bias (JEC set in reprocess.C)
   if (!fl1) fl1 = new TF1("fl1","1-([0]+[1]*log(x)+[2]*pow(log(x),2))/x",10,3500);
-  fl1->SetParameters(1.72396, 0, 0); // UL17 V1S hl1bias (p1=p2=0) (UL17_V1)
+  //fl1->SetParameters(1.72396, 0, 0); // UL17 V1S hl1bias (p1=p2=0) (UL17_V1)
+  fl1->SetParameters(0.350077, 0.553560, -0.0527681); // BCDEF hl1rcos (RC vs Simple)
+
+  if (!fl1b) fl1b = new TF1("fl1b","1-([0]+[1]*log(x)+[2]*pow(log(x),2))/x",10,3500);
+  fl1b->SetParameters(-2.62921, 2.34488, -0.429717); // BCDEF hl1cos
 
   double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
   // (or used to minimize in Run I: for Run II, 208.*sqrt(13/8)=265)
@@ -136,6 +140,15 @@ Double_t jesFit(Double_t *x, Double_t *p) {
     return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
 	    + p[2]*(fl1->Eval(pt)-fl1->Eval(ptref)));
   } // njesFit==3
+
+  if (njesFit==4) {
+
+    // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
+    // p[2]: L1FastJet-L1RC difference
+    return (p[0] + p[1]/3.*100*(fhb->Eval(pt)-fhb->Eval(ptref))
+	    + p[2]*(fl1->Eval(pt)-fl1->Eval(ptref))
+	    + p[3]*(fl1b->Eval(pt)-fl1b->Eval(ptref)));
+  } // njesFit==4
 
   assert(0);
   exit(0);
@@ -950,12 +963,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     legp->AddEntry(hrun1," ","");
     legm->AddEntry(hrun1,"Run I","FL");
     legp->AddEntry(herr_ref," ","");
-    if (!_paper) legm->AddEntry(herr_ref,"UL17V2M2 IOV","FL");
+    if (!_paper) legm->AddEntry(herr_ref,"UL17V2M3 IOV","FL");
     if ( _paper) legm->AddEntry(herr_ref,"Run II","FL");
   }
   else {
     legp->AddEntry(herr," ","FL");
-    if (!_paper) legm->AddEntry(herr_ref,"UL17V2M2","FL");
+    if (!_paper) legm->AddEntry(herr_ref,"UL17V2M3","FL");
     if ( _paper) legm->AddEntry(herr_ref,"Syst. (tot,abs)","FL");
    }
 
@@ -1061,6 +1074,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if (njesFit==1)  jesfit->SetParameter (0, 0.98);
   if (njesFit==2)  jesfit->SetParameters(0.99, 0.05);
   if (njesFit==3)  jesfit->SetParameters(0.981, 0.044, -0.519);
+  if (njesFit==4)  jesfit->SetParameters(0.981, 0.044, -0.519,0 );
 
   _jesFit = jesfit;
   
@@ -1450,6 +1464,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       tex->DrawLatex(0.25,0.58,Form("p2=%1.4f #pm %1.4f",
 				  _jesFit->GetParameter(2),
 				    sqrt(emat[2][2])));
+    if (njesFit>=4)
+      tex->DrawLatex(0.25,0.54,Form("p3=%1.4f #pm %1.4f",
+				    _jesFit->GetParameter(3),
+				    sqrt(emat[3][3])));
     tex->SetTextSize(0.045); tex->SetTextColor(kBlack);
   }
   
@@ -1485,7 +1503,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 		   "p[0] = %1.4g, p[1] = %1.4g, p[2] = %1.4g; }\n",
 		   cep,
 		   _jesFit->GetParameter(0), _jesFit->GetParameter(1),
-		   fixOff ? fixOff : _jesFit->GetParameter(2));
+		   fixOff&&njesFit==2 ? fixOff : _jesFit->GetParameter(2));
       fout.close();
     }
   }

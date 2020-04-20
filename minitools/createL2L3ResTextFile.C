@@ -1,4 +1,5 @@
 #include "TString.h"
+#include "TF1.h"
 
 #include <iostream>
 #include <fstream>
@@ -37,6 +38,7 @@ void createL2L3ResTextFiles(string set) {
   //////////e/////////////////////////////////////////
   const int np = 3;
   double p[np] = {0,0,0};
+  /*
   if (set=="BCDEF SimpleL1") { p[0] = 0.9809, p[1] = 0.04856, p[2] = -0.586; }
   if (set=="B SimpleL1") { p[0] = 0.9870, p[1] = 0.08822, p[2] = -0.586; }
   if (set=="C SimpleL1") { p[0] = 0.9851, p[1] = 0.04675, p[2] = -0.586; }
@@ -50,6 +52,21 @@ void createL2L3ResTextFiles(string set) {
   if (set=="D ComplexL1") { p[0] = 0.9836, p[1] = 0.04383, p[2] = -0.586; }
   if (set=="E ComplexL1") { p[0] = 0.9811, p[1] = 0.04080, p[2] = -0.586; }
   if (set=="F ComplexL1") { p[0] = 0.9739, p[1] = 0.04800, p[2] = -0.586; }
+  */
+  if (set=="BCDEF SimpleL1") { p[0] = 0.9804, p[1] = 0.06827, p[2] = -0.6035; }
+  if (set=="B SimpleL1") { p[0] = 0.9892, p[1] = 0.09754, p[2] = -0.6035; }
+  if (set=="C SimpleL1") { p[0] = 0.9852, p[1] = 0.0658, p[2] = -0.6035; }
+  if (set=="D SimpleL1") { p[0] = 0.9828, p[1] = 0.06517, p[2] = -0.6035; }
+  if (set=="E SimpleL1") { p[0] = 0.9801, p[1] = 0.06367, p[2] = -0.6035; }
+  if (set=="F SimpleL1") { p[0] = 0.9727, p[1] = 0.07193, p[2] = -0.6035; }
+  // Complex cloned from Simple above for now
+  if (set=="BCDEF ComplexL1") { p[0] = 0.9804, p[1] = 0.06827, p[2] = -0.6035; }
+  if (set=="B ComplexL1") { p[0] = 0.9892, p[1] = 0.09754, p[2] = -0.6035; }
+  if (set=="C ComplexL1") { p[0] = 0.9852, p[1] = 0.0658, p[2] = -0.6035; }
+  if (set=="D ComplexL1") { p[0] = 0.9828, p[1] = 0.06517, p[2] = -0.6035; }
+  if (set=="E ComplexL1") { p[0] = 0.9801, p[1] = 0.06367, p[2] = -0.6035; }
+  if (set=="F ComplexL1") { p[0] = 0.9727, p[1] = 0.07193, p[2] = -0.6035; }
+
   assert(!(p[0]==0 && p[1]==0 && p[2]==0));
   
   /////////////////////////////////////////////////////////////
@@ -60,8 +77,19 @@ void createL2L3ResTextFiles(string set) {
   cout << "Processing " << run << "_" << l1 << endl;
   
   ifstream fin(Form("textFiles/UL17V2-L2Res+JERSF/%s/Run%s/Summer19UL17_V1_%s_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt",l1,run,l1));
-  ofstream fout(Form("textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_Run%s_V2M2_%s_DATA_L2L3Residual_AK4PFchs.txt",run,l1));
+  //ofstream fout(Form("textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_Run%s_V2M2_%s_DATA_L2L3Residual_AK4PFchs.txt",run,l1));
+  ofstream fout(Form("textFiles/UL17V2MX-L2L3Res+JERSF/Summer19UL17_Run%s_V2M3_%s_DATA_L2L3Residual_AK4PFchs.txt",run,l1));
 
+  // Print out L1 function to copy below by hand
+  TF1 *fl1 = new TF1("fl1","1-([0]+[1]*log(x)+[2]*pow(log(x),2))/x",10,3500);
+  fl1->SetParameters(0.350077, 0.553560, -0.0527681);
+  if (set=="BCDEF SimpleL1")
+    cout << Form("[8]*(%1.5f-(%1.5f+TMath::Log(x)*(%1.5f%+1.5f*TMath::Log(x)))"
+		 "/x)",
+		 1-fl1->Eval(208.),
+		 fl1->GetParameter(0),
+		 fl1->GetParameter(1),
+		 fl1->GetParameter(2)) << endl;
 
   /////////////////////////////////
   /////////////////////////////////
@@ -72,7 +100,8 @@ void createL2L3ResTextFiles(string set) {
   string header;
   getline(fin, header);
   if (debug) cout << header << endl;
-  header = "{ 1 JetEta 1 JetPt [2]*([3]*([4]+[5]*TMath::Log(max([0],min([1],x))))*1./([6]+[7]*100./3.*(TMath::Max(0.,1.03091-0.051154*pow(x,-0.154227))-TMath::Max(0.,1.03091-0.051154*TMath::Power(208.,-0.154227)))+[8]*1.72396*(1./208.-1./x))) Correction L2Relative}";
+  //header = "{ 1 JetEta 1 JetPt [2]*([3]*([4]+[5]*TMath::Log(max([0],min([1],x))))*1./([6]+[7]*100./3.*(TMath::Max(0.,1.03091-0.051154*pow(x,-0.154227))-TMath::Max(0.,1.03091-0.051154*TMath::Power(208.,-0.154227)))+[8]*1.72396*(1./208.-1./x))) Correction L2Relative}";
+header = "{ 1 JetEta 1 JetPt [2]*([3]*([4]+[5]*TMath::Log(max([0],min([1],x))))*1./([6]+[7]*100./3.*(TMath::Max(0.,1.03091-0.051154*pow(x,-0.154227))-TMath::Max(0.,1.03091-0.051154*TMath::Power(208.,-0.154227)))+[8]*(0.00866-(0.35008+TMath::Log(x)*(0.55356-0.05277*TMath::Log(x)))/x))) Correction L2Relative}";
   if (debug) cout << header << endl;
   fout << header << endl;
   
