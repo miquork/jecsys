@@ -178,10 +178,35 @@ Double_t ptresPlusNSC(Double_t *x, Double_t *p) {
 void resolution(string type="MC",string file="") {
 
   //_ismcjer = true;
+  string era("");
   _jer_iov = run1;
   if (TString(file.c_str()).Contains("Fall18")) _jer_iov = run2018;
   if (TString(file.c_str()).Contains("17nov17")) _jer_iov = run2017;
   if (TString(file.c_str()).Contains("Legacy16")) _jer_iov = run2016;
+  if (TString(file.c_str()).Contains("UL17")) {
+    _jer_iov = ul17;
+    // _rho values from output-DATA-2b-UL17V4_X.root/Standard/Eta_0.0-1.3/prho
+    // fit in range [686,2116] (jt500 range)
+    if (TString(file.c_str()).Contains("UL17V4_BCDEF")) {
+      era = "BCDEF"; _jer_iov = ul17; _rho = 21.773364;
+    }
+    else if (TString(file.c_str()).Contains("UL17V4_B")) {
+      era = "B"; _jer_iov = ul17b; _rho = 18.615008;
+    }
+    if (TString(file.c_str()).Contains("UL17V4_C")) {
+      era = "C";  _jer_iov = ul17c; _rho = 18.43395;
+    }
+    if (TString(file.c_str()).Contains("UL17V4_D")) {
+      era = "D";  _jer_iov = ul17d; _rho = 18.224222;
+    }
+    if (TString(file.c_str()).Contains("UL17V4_E")) {
+      era = "E"; _jer_iov = ul17e; _rho = 23.395639;
+    }
+    if (TString(file.c_str()).Contains("UL17V4_F")) {
+      era = "F"; _jer_iov = ul17f; _rho = 25.271713;
+    }
+  }
+  const char *cera = era.c_str();
   jer_iov jer_ref = _jer_iov;
 
   TDirectory *curdir = gDirectory;
@@ -221,7 +246,7 @@ void resolution(string type="MC",string file="") {
 
   TH1D *h3 = new TH1D("h3",";p_{T}^{ptcl} (GeV);Resolution",2480,20,2500);
   h3->SetMinimum(0);
-  h3->SetMaximum(0.25);
+  h3->SetMaximum(0.30);//0.25);
   h3->GetXaxis()->SetMoreLogLabels();
   h3->GetXaxis()->SetNoExponent();
   h3->Draw("AXIS");
@@ -237,7 +262,7 @@ void resolution(string type="MC",string file="") {
 
   TH1D *h3e = new TH1D("h3e",";E (GeV);Resolution",3480,20,3500);
   h3e->SetMinimum(0);
-  h3e->SetMaximum(0.25);
+  h3e->SetMaximum(0.30);//0.25);
   h3e->GetXaxis()->SetMoreLogLabels();
   h3e->GetXaxis()->SetNoExponent();
   h3e->Draw("AXIS");
@@ -263,7 +288,7 @@ void resolution(string type="MC",string file="") {
     const double etamid = 0.5*(etamin+etamax);
     const double ptmin = 15.;//20;
     const double fitxmin = 20;//37.;
-    const double emax = 3000.;
+    const double emax = 4000;//3000.;
     const double ptmax = emax/cosh(etamin);
 
     assert(din5->cd(Form("Eta_%1.1f-%1.1f", etamin, etamax)));
@@ -277,8 +302,10 @@ void resolution(string type="MC",string file="") {
 
     // Plot and fit resolution
     TCanvas *c1 = new TCanvas(Form("c1_%d",iy),Form("c1_%d",iy),8*150,5*150);
-    c1->Divide(8,5,-1,-1);
-    const int nmax = 8*5;
+    //c1->Divide(8,5,-1,-1);
+    //const int nmax = 8*5;
+    c1->Divide(10,6,-1,-1);
+    const int nmax = 10*6;
     
     TH1D *h = new TH1D(Form("h_%d",iy),";p_{T}^{reco} / p_{T}^{gen};"
 		       "1/N/dR_{jet}",200,0,2);
@@ -291,9 +318,11 @@ void resolution(string type="MC",string file="") {
     TGraphErrors *gr5 = new TGraphErrors();
     TGraphErrors *gr5a = new TGraphErrors();
     TGraphErrors *gr5b = new TGraphErrors();
+    TGraphErrors *gr5c = new TGraphErrors();
     //
     TGraphErrors *gs5 = new TGraphErrors();
     TGraphErrors *gs5a = new TGraphErrors();
+    TGraphErrors *gs5c = new TGraphErrors();
 
     //const int nskip = h2r5->GetXaxis()->FindBin(21.)-1;
     const int nskip = h2r5->GetXaxis()->FindBin(ptmin)-1;
@@ -361,20 +390,29 @@ void resolution(string type="MC",string file="") {
       fg5->SetLineStyle(kDotted);
       fg5->DrawClone("SAME");
 
-      int n = gr5->GetN();
-      double k5 = max(1.,sqrt(fg5->GetChisquare()/fg5->GetNDF()));
-      gr5->SetPoint(n, ptave, fg5->GetParameter(1));
-      gr5->SetPointError(n, errpt, fg5->GetParError(1)*k5);
-      gr5a->SetPoint(n, ptave, hpr5->GetMean());
-      gr5a->SetPointError(n, errpt, hpr5->GetMeanError());
-      gr5b->SetPoint(n, ptave, 0.5*(hpr5->GetMean()+fg5->GetParameter(1)));
-      gr5b->SetPointError(n, errpt, tools::oplus(0.5*hpr5->GetMeanError(),
-						 0.5*fg5->GetParError(1)*k5));
-
-      gs5->SetPoint(n, ptave, fg5->GetParameter(2));
-      gs5->SetPointError(n, errpt, fg5->GetParError(2)*k5);
-      gs5a->SetPoint(n, ptave, hpr5->GetRMS());
-      gs5a->SetPointError(n, errpt, hpr5->GetRMSError());
+      if (ptave < ptmax) {
+	int n = gr5->GetN();
+	double k5 = max(1.,sqrt(fg5->GetChisquare()/fg5->GetNDF()));
+	gr5->SetPoint(n, ptave, fg5->GetParameter(1));
+	gr5->SetPointError(n, errpt, fg5->GetParError(1)*k5);
+	gr5a->SetPoint(n, ptave, hpr5->GetMean());
+	gr5a->SetPointError(n, errpt, hpr5->GetMeanError());
+	gr5b->SetPoint(n, ptave, 0.5*(hpr5->GetMean()+fg5->GetParameter(1)));
+	gr5b->SetPointError(n, errpt, tools::oplus(0.5*hpr5->GetMeanError(),
+						   0.5*fg5->GetParError(1)*k5));
+	double k5c = min(3.,max(1.,sqrt(fcb2->GetChisquare()/fcb2->GetNDF())));
+	gr5c->SetPoint(n, ptave, fcb2->GetParameter(5));
+	gr5c->SetPointError(n, errpt, min(fg5->GetParError(2)*k5*1.5,
+					  fcb2->GetParError(5)*k5c));
+	
+	gs5->SetPoint(n, ptave, fg5->GetParameter(2));
+	gs5->SetPointError(n, errpt, fg5->GetParError(2)*k5);
+	gs5a->SetPoint(n, ptave, hpr5->GetRMS());
+	gs5a->SetPointError(n, errpt, hpr5->GetRMSError());
+	gs5c->SetPoint(n, ptave, fcb2->GetParameter(6));
+	gs5c->SetPointError(n, errpt, min(fg5->GetParError(2)*k5*1.5,
+					  fcb2->GetParError(6)*k5));
+      }
 
       TLegend *leg1 = new TLegend(0.05,1.0,0.6,5,"","br");
       leg1->SetFillStyle(kNone);
@@ -495,16 +533,14 @@ void resolution(string type="MC",string file="") {
 	gPad->RedrawAxis();
 	//if ( b1) c0->SaveAs("pdf/resolution_jertails_97-114GeV.pdf");
 	//if (!b1) c0->SaveAs("pdf/resolution_jertails_967-1032GeV.pdf");
-	if ( b1) c0->SaveAs(Form("pdf/resolution_jertails_97-114GeV_%s.pdf",
-				 cf));
-	if (!b1) c0->SaveAs(Form("pdf/resolution_jertails_967-1032GeV_%s.pdf",
-				 cf));
+	if ( b1) c0->SaveAs(Form("pdf/%s/resolution_jertails_97-114GeV_%s.pdf",cera,cf));
+	if (!b1) c0->SaveAs(Form("pdf/%s/resolution_jertails_967-1032GeV_%s.pdf",cera,cf));
       }
 
     } // for ibin
     
     //c1->SaveAs(Form("pdf/resolution_Rap%d_gausfits.pdf",iy));
-    c1->SaveAs(Form("pdf/resolution_Rap%d_gausfits_%s.pdf",iy,cf));
+    c1->SaveAs(Form("pdf/%s/resolution_Rap%d_gausfits_%s.pdf",cera,iy,cf));
 
     TCanvas *c2 = new TCanvas(Form("c2_%d",iy),Form("c2_%d",iy),500,750);
     c2->Divide(1,3);
@@ -516,7 +552,7 @@ void resolution(string type="MC",string file="") {
     c2->cd(1);
     gPad->SetLogx();
     h2->SetMinimum(0.98);//0.98);
-    h2->SetMaximum(1.05);//1.02);
+    h2->SetMaximum(1.08);//1.05);//1.02);
     h2->GetXaxis()->SetMoreLogLabels();
     h2->GetXaxis()->SetNoExponent();
     h2->DrawClone("AXIS");
@@ -535,15 +571,19 @@ void resolution(string type="MC",string file="") {
     gr5->Draw("SAMEP");
     gr5a->SetMarkerColor(kBlue);
     gr5a->SetMarkerStyle(kOpenCircle);
-    gr5a->Draw("SAMEP");
+    gr5a->Draw("SAMEPz");
     gr5b->SetLineColor(kBlue);
     gr5b->Draw("SAMELx");
+    gr5c->SetMarkerColor(kBlue+1);
+    gr5c->SetMarkerStyle(kFullDiamond);
+    gr5c->Draw("SAMEPz");
 
     TLegend *leg1 = new TLegend(0.25,0.70,0.45,0.90,"","brNDC");
     leg1->SetBorderSize(0);
     leg1->SetFillStyle(kNone);
     leg1->SetTextSize(0.045);
-    leg1->AddEntry(gr5,Form("#mu(%s)",c5),"P");
+    leg1->AddEntry(gr5,Form("#mu_{gaus}(%s)",c5),"P");
+    leg1->AddEntry(gr5c,Form("#mu_{CB,2s}(%s)",c5),"P");
     leg1->AddEntry(gr5a,Form("MEAN(%s)",c5),"P");
     leg1->Draw();
 
@@ -556,7 +596,7 @@ void resolution(string type="MC",string file="") {
     c2->cd(2);
     gPad->SetLogx();
     h2->SetMinimum(0.0);
-    h2->SetMaximum(0.25);
+    h2->SetMaximum(0.30);//0.25);
     h2->GetXaxis()->SetMoreLogLabels();
     h2->GetXaxis()->SetNoExponent();
     h2->GetYaxis()->SetTitle("Resolution");
@@ -566,7 +606,10 @@ void resolution(string type="MC",string file="") {
     gs5->Draw("SAMEP");
     gs5a->SetMarkerColor(kBlue);
     gs5a->SetMarkerStyle(kOpenCircle);
-    gs5a->Draw("SAMEP");
+    gs5a->Draw("SAMEPz");
+    gs5c->SetMarkerColor(kBlue+1);
+    gs5c->SetMarkerStyle(kFullDiamond);
+    gs5c->Draw("SAMEPz");
 
     //TF1 *fs = new TF1("fs",ptreso,ptmin,ptmax,2);
     _usejme = false;
@@ -636,8 +679,8 @@ void resolution(string type="MC",string file="") {
     TF1 *fs5 = new TF1(Form("fs5_%d",iy),"sqrt(abs([0])*[0]/(x*x)"
 		       "+ [1]*[1]/x*pow(x,[2])"
 		       "+ [3]*[3])",
-		       //fitxmin, ptmax);
-		       fitxmin, emax);
+		       fitxmin, ptmax);
+    //fitxmin, emax);
     fs5->SetParameters(1,0.8,0.2,0.04);
     fs5->FixParameter(2,0.);
     gs5->Fit(fs5,"QRN");
@@ -653,7 +696,8 @@ void resolution(string type="MC",string file="") {
     leg2->SetFillStyle(kNone);
     leg2->SetTextSize(0.045);
     //leg2->AddEntry(fs,"QCD-11-004","L");
-    leg2->AddEntry(gs5,Form("#sigma(%s)",c5),"P");
+    leg2->AddEntry(gs5,Form("#sigma_{gaus}(%s)",c5),"P");
+    leg2->AddEntry(gs5c,Form("#sigma_{CB,2s}(%s)",c5),"P");
     leg2->AddEntry(gs5a,Form("RMS(%s)",c5),"P");
     leg2->Draw();
 
@@ -674,7 +718,7 @@ void resolution(string type="MC",string file="") {
     c0b->cd(1);
     gPad->SetLogx();
     if (iy==0) h2->DrawClone("AXIS");
-    TGraphErrors *gs5b = (TGraphErrors*)gs5->DrawClone("SAMEP");
+    TGraphErrors *gs5b = (TGraphErrors*)gs5->DrawClone("SAMEPz");
     gs5b->SetLineColor(colors[iy]);
     gs5b->SetMarkerColor(colors[iy]);
     TF1 *fs5b = (TF1*)fs5->DrawClone("SAME");
@@ -704,7 +748,7 @@ void resolution(string type="MC",string file="") {
       gs5ar->SetPoint(i, gs5a->GetX()[i], gs5a->GetY()[i]/sfit);
       gs5ar->SetPointError(i, gs5a->GetEX()[i], gs5a->GetEY()[i]/sfit);
     }
-    gs5ar->Draw("SAMEP");
+    gs5ar->Draw("SAMEPz");
 
     TGraph *gsrun1r = (TGraph*)gsrun1->Clone();
     for (int i = 0; i != gsrun1->GetN(); ++i) {
@@ -736,10 +780,18 @@ void resolution(string type="MC",string file="") {
     }
     gs5r->Draw("SAMEP");
 
+    TGraphErrors *gs5cr = (TGraphErrors*)gs5c->Clone();
+    for (int i = 0; i != gs5c->GetN(); ++i) {
+      double sfit = fs5->Eval(gs5c->GetX()[i]);
+      gs5cr->SetPoint(i, gs5c->GetX()[i], gs5c->GetY()[i]/sfit);
+      gs5cr->SetPointError(i, gs5c->GetEX()[i], gs5c->GetEY()[i]/sfit);
+    }
+    gs5cr->Draw("SAMEPz");
+
     tex->DrawLatex(0.75,0.85,cf);
 
     //c2->SaveAs(Form("pdf/resolution_Rap%d.pdf",iy));
-    c2->SaveAs(Form("pdf/resolution_Rap%d_%s.pdf",iy,cf));
+    c2->SaveAs(Form("pdf/%s/resolution_Rap%d_%s.pdf",cera,iy,cf));
 
 
     c3->cd();
@@ -776,7 +828,7 @@ void resolution(string type="MC",string file="") {
   }
   
   //c0b->SaveAs("pdf/resolution_summary.pdf");
-  c0b->SaveAs(Form("pdf/resolution_summary_%s.pdf",cf));
+  c0b->SaveAs(Form("pdf/%s/resolution_summary_%s.pdf",cera,cf));
 
   // Print out fit parameters
   cout << "// Fit of JER for " << c5 << " file " << cf << endl;
@@ -788,7 +840,7 @@ void resolution(string type="MC",string file="") {
 		 //0.5*iy, 0.5*(iy+1),
 		 vchi5[iy], vndf5[iy]) << endl;
   }
-}
+} // resolution()
 
 // redoJER() is copied from qcdjet/ak7ak5resolution.C (24 April 2015 version)
 // Assumes JER SF are independent of pT, and symmetric over +/-eta
@@ -880,6 +932,22 @@ void redoJER(string run="") {
      1.2079-0.9921, 1.264-1.0212, 1.2652-1.0372, 1.5334-1.0592,
      1.5509-1.1327, 1.9796-1.578, 1.3112-1.0626, 1.341-1.0434};
 
+  // Summer19UL17_JRV2_MC/Summer19UL17_JRV2_MC_SF_AK4PFchs.txt
+  const int nbinsul17 = 14;
+  const double binsul17[nbinsul17+1] =
+  // cat *.txt | awk '{print $2, "}'
+    {0.000, 0.522, 0.783, 1.131, 1.305, 1.740, 1.930, 2.043, 2.322, 
+     2.500, 2.650, 2.853, 2.964, 3.139, 5.191}; // extra 2.650
+  const double valsul17[nbinsul17+1] =
+  // cat *.txt | awk '{print $4, "}'
+    {1.1082, 1.1285, 1.0916, 1.1352, 1.2116, 1.0637, 1.0489, 1.1170, 
+     1.1952, 1.0792, 1.3141, 1.4113, 1.2679, 1.0378};
+  // cat *.txt | awk '{print $6"-"$5", "}
+  const double errsul17[nbinsul17+1] =
+    {1.1644-1.0519, 1.1538-1.1033, 1.1163-1.0669, 1.1970-1.0735, 1.2801-1.1430, 
+     1.1450-0.9825, 1.1277-0.9700, 1.2041-1.0299, 1.2863-1.1040, 
+     1.2105-0.9478, 1.4107-1.2174, 1.6427-1.1798, 1.3226-1.2132, 1.1046-0.9710};
+
   // Inclusive jet analysis bins
   const int nbins = 8;
   const double bins[nbins+1] = {0,0.5,1,1.5,2,2.5,3,3.2,4.7};
@@ -889,6 +957,13 @@ void redoJER(string run="") {
   //jer_iov jer_ref(none);
   _ismcjer = true;
   _usejme = false;
+  if (run=="RunUL17") {
+    _jer_iov = ul17;
+    nbins0 = nbinsul17;
+    bins0 = &binsul17[0];
+    vals0 = &valsul17[0];
+    errs0 = &errsul17[0];
+  }
   if (run=="Run2018ABC") {
     _jer_iov = run2018abc;
     nbins0 = nbins18;
@@ -944,7 +1019,8 @@ void redoJER(string run="") {
   }
 
   // Take y histogram from data and average JER SF over y bin using that
-  TFile *f = new TFile("rootfiles/output-DATA-1-Fall18V8-D.root","READ");
+  //TFile *f = new TFile("rootfiles/output-DATA-1-Fall18V8-D.root","READ");
+  TFile *f = new TFile("rootfiles/output-DATA-1-UL17V4_E.root","READ");
   assert(f && !f->IsZombie());
   TH1D *heta(0);
   TGraphErrors *gjer2 = new TGraphErrors(0);

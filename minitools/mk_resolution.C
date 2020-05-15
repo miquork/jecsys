@@ -13,6 +13,12 @@
   //resolution("P8CP5","17nov17-DE");
   //resolution("MC","Legacy16-GH");
   //resolution("HW","Legacy16-GH");
+  resolution("MC","UL17V4_BCDEF");
+  resolution("MC","UL17V4_B");
+  resolution("MC","UL17V4_C");
+  resolution("MC","UL17V4_D");
+  resolution("MC","UL17V4_E");
+  resolution("MC","UL17V4_F");
 
   //redoJER("Run2018");
   //redoJER("Run2018ABC");
@@ -20,6 +26,7 @@
   //redoJER("Run2017");
   //redoJER("Run2016");
   //redoJER("Run1");
+  redoJER("RunUL17");
 
   //redoECALprefire(2.0,run2016);
   //redoECALprefire(2.5,run2016);
