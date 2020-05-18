@@ -32,7 +32,7 @@ const double _lumi = 2065.;//19800.;
 const double ptrec_zjet = 8.9;//5.;
 const double ptrec_gjet = 8.9;//15.;
 
-bool debug = true;
+bool debug = false;
 bool dodijet = false;
 bool domultijet = false; // =dodijet at |eta|<1.3
 bool dropZee = true; // clean up plots a bit (leave Zll)
@@ -66,7 +66,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   TFile *finout = new TFile(Form("rootfiles/jecdata%s.root",epoch.c_str()),
 			    "UPDATE");
   assert(finout && !finout->IsZombie());
-  
+  curdir->cd();
+
   const int ndirs = 3;
   const char* dirs[ndirs] = {"data", "mc", "ratio"};
   const int nmethods = 2;

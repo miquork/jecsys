@@ -59,7 +59,11 @@
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="B"||epoch=="ABC"||epoch=="D"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "gam_zll", "PtBalMPF");
-  globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
+  //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
+  if (epoch=="BCDEF")
+    globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
+  else
+    globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_inc_gam_zll", "PtBalMPF");
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_zll", "PtBalMPF");
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "zll", "PtBalMPF");
 
