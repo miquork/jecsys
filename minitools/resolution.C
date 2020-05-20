@@ -237,6 +237,10 @@ void resolution(string type="MC",string file="") {
   double vchi5[ny];
   int vndf5[ny];
 
+  double vmu5[ny][3];
+  double vmuchi5[ny];
+  int vmundf5[ny];
+
   // Summary plots of AK5 and AK7 JEC
   TCanvas *c0b = new TCanvas("c0b","c0b",1200,600);
   c0b->Divide(2);
@@ -577,6 +581,23 @@ void resolution(string type="MC",string file="") {
     gr5c->SetMarkerColor(kBlue+1);
     gr5c->SetMarkerStyle(kFullDiamond);
     gr5c->Draw("SAMEPz");
+    
+    // Log-gaussian fit to response at low pT
+    TF1 *flogg = new TF1(Form("flogg_%d",iy),
+			 "1+[0]*exp(-0.5*pow(log(x)-[1],2)/([2]*[2]))",
+			 ptmin,50.);
+    flogg->SetParameters(0.10,log(15.),log(21./15.));
+    flogg->FixParameter(1,log(15.));
+    gr5->Fit(flogg,"QRN");
+    flogg->SetLineColor(kBlue+1);
+    flogg->SetLineWidth(2);
+    flogg->Draw("SAME");
+
+    vmu5[iy][0] = flogg->GetParameter(0);
+    vmu5[iy][1] = flogg->GetParameter(1);
+    vmu5[iy][2] = flogg->GetParameter(2);
+    vmuchi5[iy] = flogg->GetChisquare();
+    vmundf5[iy] = flogg->GetNDF();
 
     TLegend *leg1 = new TLegend(0.25,0.70,0.45,0.90,"","brNDC");
     leg1->SetBorderSize(0);
@@ -839,6 +860,14 @@ void resolution(string type="MC",string file="") {
 		 iy==ny-1 ? "};" : ", ", ybins[iy],ybins[iy+1],
 		 //0.5*iy, 0.5*(iy+1),
 		 vchi5[iy], vndf5[iy]) << endl;
+  }
+  cout << "// Fit of JES for " << c5 << " file " << cf << endl;
+  for (int iy = 0; iy != ny; ++iy) {
+    cout << Form("  %s{%1.4f, %1.3f, %1.4f}%s // y %1.1f-%1.1f, chi2 %1.1f/%d",
+		 iy==0 ? "{" : " ",
+		 vmu5[iy][0], vmu5[iy][1], vmu5[iy][2],
+		 iy==ny-1 ? "};" : ", ", ybins[iy],ybins[iy+1],
+		 vmuchi5[iy], vmundf5[iy]) << endl;
   }
 } // resolution()
 
