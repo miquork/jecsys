@@ -17,13 +17,14 @@
 #include "TMatrixD.h"
 #include "TMath.h"
 #include "TLine.h"
+#include "TProfile.h"
 
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
 #include "tools.h"
-#include "tdrstyle_mod14.C"
+#include "tdrstyle_mod15.C"
 
 #include <string>
 #include <iostream>
@@ -50,9 +51,12 @@ bool correctUncert = false;  // ll mass uncertainty => globalFitSyst.C
 //
 // Which binning to use for multijets ("leading", "recoil" or "ptave")
 string multijetMode = "ptave"; // check also multijetModeS in globalFitSyst.C
-bool correctMultijetLeading = true; // correct for difference to JER-hybrid
+bool correctMultijetLeading = true; // correct for diference to JER-hybrid
 bool patchMultijetPtAveMCMJBPt20 = false;
 //bool patchMultijetStatOverPt = 1684; // RMSfit/sqrt(N); zero for none
+//
+// Which binning to use for PF composition ("tp","pt", "both" or "none" (off))
+string pfMode = "tp"; // "both" not supported at the moment
 
 bool confirmWarnings=false;//true; //if active, deficiencies in input files are patched after confirmation via pushing "any key to continue"
 bool confirmedGamJet=false; // to avoid too many confirmations
@@ -77,6 +81,7 @@ double valueGamScale = 1.01;//1.;
 //double fpbalptmin(175);//105);//30);//105);//85);//30);//100.); // photon+jet pTbal
 double fzeeptmin(30.);   // Zee+jet both methods
 double fzmmptmin(30.);//30.);   // Zmm+jet both methods
+double fzptmin(30.);  // Z+jet both methods
 // Additional cuts to Z+jet MPF / balance methods
 //double fzmpfptmin(30.);   // Z+jet MPF
 //double fzbalptmin(30.);//100);//30.);   // Z+jet pTbal
@@ -87,6 +92,8 @@ double fzmmptmin(30.);//30.);   // Zmm+jet both methods
 // 20200330: 49:238.3/84, 64:164.6/82, 84:143.5/80, 114:131.4/78,
 // ...20200330: 153:125.4/76 196:108.5/74 245:107.7/72
 // ...20200419 ptave: 300:
+double fpfjetptmin(15.);
+double fpfjetptmax(2116.);
 double fincjetptmin(15.);
 double fincjetptmax(2116.);//4037.);
 double fmultijetptmin(114);//300);//114);//114);//49);//64);//84);114);//153);
@@ -119,67 +126,32 @@ double fpmpfptmax(1500.); // photon+jet MPF
 double fpbalptmax(700);//1500);//700.);  // photon+jet pTbal
 double fzeeptmax(700.);   // Zee+jet
 double fzmmptmax(700.);   // Zmm+jet
+double fzptmax(700.);   // Z+jet
 // Additional cuts to Z+jet MPF / balance methods
 //double fzmpfptmax(700);//500.);  // Z+jet MPF
 //double fzbalptmax(500);//300.);  // Z+jet pTbal
 
 // Regular settings for fits with Z+jet
-double fpmpfptmin(230.); double fpbalptmin(230.); double fzmpfptmin(30); double fzbalptmin(80.);/*30);*/ double fzmpfptmax(700); double fzbalptmax(500); // UL17
-//double fpmpfptmin(100.); double fpbalptmin(100.); double fzmpfptmin(40); double fzbalptmin(100); double fzmpfptmax(500); double fzbalptmax(300); // EOY17 settings (incl. effective 40 GeV from bug and gamma+jet min pT)
+double fpmpfptmin(230.); double fpbalptmin(230.); double fzllmpfptmin(30);/*40);30);*/ double fzmpfptmin(30);/*40);30);*/ double fzllbalptmin(80);/*105.);80.);*/ double fzbalptmin(105.);/*30);*/ double fzllmpfptmax(700); double fzmpfptmax(700); double fzllbalptmax(500); double fzbalptmax(500); // UL17
+//double fpmpfptmin(100.); double fpbalptmin(100.); double fzllmpfptmin(40); double fzllbalptmin(100); double fzllmpfptmax(500); double fzllbalptmax(300); // EOY17 settings (incl. effective 40 GeV from bug and gamma+jet min pT)
 
 // Special setting for "multijet only" fit 
-//double fzmpfptmin(130); double fzbalptmin(130); double fzmpfptmax(175); double fzbalptmax(175); // option B
-//double fzmpfptmin(175); double fzbalptmin(175); double fzmpfptmax(230); double fzbalptmax(230); // option A
+//double fzllmpfptmin(130); double fzllbalptmin(130); double fzllmpfptmax(175); double fzllbalptmax(175); // option B
+//double fzllmpfptmin(175); double fzllbalptmin(175); double fzllmpfptmax(230); double fzllbalptmax(230); // option A
 
 
 
 //minimum event counts
 const double neventsmin = 20.;
 
-// Invert JEC to get differences as a function of pTcorr
-// Helper functions to find JEC for corrected pt
-void setEtaPtRho(FactorizedJetCorrector *jec, double eta, double pt,
-                 double rho){
-
-  assert(jec);
-  jec->setJetEta(eta);
-  jec->setJetPt(pt);
-  jec->setRho(rho);
-  jec->setJetA(0.50265);
-
-  return;
-}
-
+// Helper functions to handle JEC
 FactorizedJetCorrector *_thejec(0);
 TF1 *fCorrPt(0);
-Double_t funcCorrPt(Double_t *x, Double_t *p) {
-  
-  double eta = p[0];
-  double pt = x[0];
-  double rho = p[1];
-  setEtaPtRho(_thejec, eta, pt, rho);
-
-  return (_thejec->getCorrection() * pt);
-}
-
-//const double _rhoDE = 19.21; // EOY17 DE jt450
+FactorizedJetCorrector *getFJC(string l1, string l2="", string res="");
+void setEtaPtRho(FactorizedJetCorrector *jec, double eta,double pt,double rho);
+Double_t funcCorrPt(Double_t *x, Double_t *p);
 double getJEC(FactorizedJetCorrector *jec, double eta, double ptcorr,
-	      double rho = gRho) {
-
-
-  // terate to solve ptreco for given ptcorr
-  _thejec = jec;
-  if (!fCorrPt) fCorrPt = new TF1("fCorrPt",funcCorrPt,5,6500,2);
-  fCorrPt->SetParameters(eta, rho);
-  // Find ptreco that gives pTreco*JEC = pTcorr
-  double ptreco = fCorrPt->GetX(ptcorr,5,6500);
-
-  setEtaPtRho(jec, eta, ptreco, rho);
-
-  return (jec->getCorrection());
-} // getEtaPtE
-
-
+	      double rho = gRho);
 
 // put all the different methods in a single file for easy access for everybody
 void reprocess(string epoch="") {
@@ -311,6 +283,14 @@ void reprocess(string epoch="") {
   TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ"); // Update JER SF V2 + MC truth JER per IOV
   assert(fij && !fij->IsZombie());
 
+  TFile *fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL17V4_%s.root",
+				epoch.c_str()),"READ");
+  assert((fpfdt && !fpfdt->IsZombie()) || pfMode=="none");
+  TFile *fpfmc = new TFile(Form("rootfiles/output-MC80NU-2b-UL17V4_%s.root",
+//TFile *fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
+				epoch.c_str()),"READ");
+  assert((fpfmc && !fpfmc->IsZombie()) || pfMode=="none");
+
   // Hugues Lattaud, 2017 V27 inputs with L2Res (not incl. JER SF as in V28)
   // https://indico.cern.ch/event/765393/#47-l3res-gammajets-with-fall17
   //map<string,const char*> fp_files;
@@ -373,6 +353,13 @@ void reprocess(string epoch="") {
   TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1b
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
+
+  TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_vX.root","READ");
+  assert(fz && !fz->IsZombie());
+  // JES correction for zjet
+  TFile *fzjes = new TFile("rootfiles/jecdataBCDEF_V4.root","READ");
+  assert(fzjes && !fzjes->IsZombie());
+  TH1D *hzjes = (TH1D*)fzjes->Get("ratio/eta00-13/herr_ref"); assert(hzjes);
 
   // UL2017-v1
   fzmm->cd(Form("Run2017%s",fz_files[epoch])); fzmm = (TFile*)gDirectory;
@@ -538,16 +525,22 @@ void reprocess(string epoch="") {
 
   // Store pointers to all files in a map for easy handling later
   map<string, TFile*> files;
+  files["pfjet_data"] = fpfdt;
+  files["pfjet_mc"] = fpfmc;
   files["dijet"] = fdj;
   files["incjet"] = fij;
   files["multijet"] = fmj;
   files["gamjet"] = fp;
   files["zeejet"] = fzee;
   files["zmmjet"] = fzmm;
+  files["zjet"] = fz;
 
 
   // Map variable names used in different files to common scheme
   map<string, map<string, const char*> > rename;
+
+  //rename["pfjet"]["mpfchs1"] = "tp";
+  //rename["pfjet"]["ptchs"] = ""; // "pt"
 
   // Note: non-CHS results are not available for all samples, so not used
   rename["dijet"]["mpfchs"] = "mpfchs";
@@ -642,11 +635,26 @@ void reprocess(string epoch="") {
   rename["zmmjet"]["mpfchs1"] = "MPF_CHS"; 
   rename["zmmjet"]["ptchs"] = "PtBal_CHS"; 
   rename["zmmjet"]["counts"] = "RawNEvents_CHS";
+
+  // Results from Sami's Z+b analysis
+  rename["zjet"]["ratio"] = "data"; // missing => PATCH
+  rename["zjet"]["data"] = "data";
+  rename["zjet"]["mc"] = "mc";
+  rename["zjet"]["mpfchs"] = "mpfchs";
+  rename["zjet"]["mpfchs1"] = "mpfchs"; 
+  rename["zjet"]["ptchs"] = "ptchs"; 
+  rename["zjet"]["counts"] = "statistics_mpfchs";
   
 
   // color and style codes
   map<string, map<string, int> > style;
 
+  style["pfjet"]["chf"] = kFullCircle;
+  style["pfjet"]["nhf"] = kFullDiamond;
+  style["pfjet"]["nef"] = kFullSquare;
+  style["pfjet_mc"]["chf"] = kOpenCircle;
+  style["pfjet_mc"]["nhf"] = kOpenDiamond;
+  style["pfjet_mc"]["nef"] = kOpenSquare;
   style["dijet"]["mpfchs1"] = kFullDiamond;//kFullCircle;
   style["dijet"]["ptchs"] = kOpenDiamond;//kOpenSquare;
   style["incjet"]["mpfchs1"] = kFullDiamond;
@@ -661,8 +669,14 @@ void reprocess(string epoch="") {
   style["zmmjet"]["ptchs"] = kOpenStar;
   style["zlljet"]["mpfchs1"] = kFullDiamond;
   style["zlljet"]["ptchs"] = kOpenDiamond;
+  style["zjet"]["mpfchs1"] = kFullDiamond;
+  style["zjet"]["ptchs"] = kOpenDiamond;
 
   map<string, int> color;
+  color["pfjet"] = kBlack;
+  color["pfjet_chf"] = kRed;
+  color["pfjet_nhf"] = kGreen+2;
+  color["pfjet_nef"] = kBlue;
   color["dijet"] = kBlack;
   color["incjet"] = kOrange+2;//kBlack;
   color["multijet"] = kBlack;
@@ -670,12 +684,15 @@ void reprocess(string epoch="") {
   color["zeejet"] = kGreen+2;
   color["zmmjet"] = kRed;
   color["zlljet"] = kMagenta+2;
+  color["zjet"] = kRed+1;
 
   map<double, double> size;
   size[0.10] = 0.6;
   size[0.15] = 0.8;
   size[0.20] = 1.0;
   size[0.30] = 1.2;
+  size[0.50] = 1.2; // zjet only
+  size[1.00] = 1.2; // zjet only
 
 
   // Select which subsets of data to process:
@@ -692,6 +709,13 @@ void reprocess(string epoch="") {
   //types.push_back("mpfchs"); // raw MET
   types.push_back("mpfchs1"); // Type-I MET
   types.push_back("ptchs");
+  // for pfjet only (activate puf, cef, muf later?)
+  types.push_back("chf");
+  types.push_back("nef");
+  types.push_back("nhf");
+  //types.push_back("cef");
+  //types.push_back("muf");
+  //types.push_back("puf");
 
   vector<string> sets;
   sets.push_back("dijet");
@@ -701,6 +725,8 @@ void reprocess(string epoch="") {
   sets.push_back("zeejet");
   sets.push_back("zmmjet");
   sets.push_back("zlljet");
+  sets.push_back("zjet");
+  sets.push_back("pfjet");
 
   vector<pair<double,double> > etas;
   // reference region |eta|<1.3
@@ -745,6 +771,8 @@ void reprocess(string epoch="") {
   alphas.push_back(0.15);
   alphas.push_back(0.20); //  => patch because of a20 missing for Z+jet
   alphas.push_back(0.30);
+  alphas.push_back(0.50); // for zjet only
+  alphas.push_back(1.00); // for zjet only
 
   ///////////////////////////////////////////
   // Rename selected graphs and store them //
@@ -800,16 +828,25 @@ void reprocess(string epoch="") {
 	  const char* ss = s.c_str();
 	  
 	  TFile *f = files[s];
+	  // pfjet has two files
+	  if (!f && s=="pfjet") f = files[s+"_"+d];
+	  if (s=="pfjet" && pfMode=="none") continue;
 
 	  // Take pT and MPF from different files for gamma+jet (or not)
 	  //if (s=="gamjet" && f==0) {
 	  //if (t=="mpfchs" || t=="mpfchs1") f = fp;//fp1;
 	  //if (t=="ptchs") f = fp;//fp2;
 	  //}
-	  assert(f || s=="zlljet");
+	  assert(f || s=="zlljet" || (s=="pfjet" && d=="ratio"));
 
 	  // C_recoil is only meant for multijets
 	  if (t=="crecoil" && s!="multijet") continue;
+
+	  // fractions are only for pfjet, and only fractions are for pfjet
+	  if ((t=="chf"||t=="nef"||t=="nhf"||t=="cef"||t=="muf"||t=="puf")
+	      && s!="pfjet") continue;
+	  if (!(t=="chf"||t=="nef"||t=="nhf"||t=="cef"||t=="muf"||t=="puf")
+	      && s=="pfjet") continue;
 
 	  for (unsigned int ialpha = 0; ialpha != alphas.size(); ++ialpha) {
 
@@ -833,15 +870,20 @@ void reprocess(string epoch="") {
 	    //if (s=="zeejet") f = fzee2; // GH only
 	    //if (s=="zmmjet") f = fzmm2; // GH only
 	    }
-	    assert(f || s=="zlljet");
+	    assert(f || s=="zlljet" || (s=="pfjet"&&d=="ratio"));
 
+	    if (alpha>0.35 && s!="zjet") continue;
 
-            if (t=="counts" && s!="zmmjet" && s!="zeejet" && s!="gamjet")
+            if (t=="counts" && s!="zmmjet" && s!="zeejet" && s!="gamjet"
+		&& s!="zjet")
               continue; // counts available only for z+jet and gamjet, so far
 
+	    if (s=="pfjet" && !(fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1
+				&& fabs(alpha-0.30)<0.01))
+	      continue; // barrel only, no specific alpha
 	    if (s=="incjet" && !(fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1
 				 && fabs(alpha-0.30)<0.01)) // && t=="mpfchs1"))
-	      continue; // barrel only, no specific pt
+	      continue; // barrel only, no specific pt or alpha
 	    if (s=="multijet" && (!((epoch!="L4" &&
 				     fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1) ||
 				    (epoch=="L4" &&
@@ -856,6 +898,10 @@ void reprocess(string epoch="") {
 	    // Reconstruct naming scheme used in each of the files
 	    // If non-conventional naming schemes, patch here
 	    const char *c(0);
+	    if (s=="pfjet") {
+	      c = Form("Standard/Eta_%02.1f-%02.1f/p%s%s",
+                       eta1, eta2, tt, pfMode=="tp" ? "tp" : ""); 
+	    }
 	    if (s=="dijet") {
 	      c = Form("%s/eta_%02.0f_%02.0f/%s_%s_a%1.0f",
                        dd, 10.001*eta1, 10.001*eta2, rename[s][t], ss, 100.*alpha); 
@@ -889,11 +935,20 @@ void reprocess(string epoch="") {
 		c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2L3Res",
 			 rename[s][d], rename[s][t], 100.*alpha,
 			 10.01*eta1, 10.01*eta2);
-	    } // Z+jet
-	    assert(c || s=="zlljet");
+	    } // Zll+jet
+	    if (s=="zjet") {
+	      c = Form("%s/eta_%02.0f_%02.0f/%s_zmmjet_a%1.0f",
+	    	       rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha);
+	    }
+	    //assert(c || s=="zlljet");
 
-	    TObject *obj = (s=="zlljet" ? 0 : f->Get(c));
-	    if (!obj && s!="zlljet") {
+	    TObject *obj = ((s=="zlljet"||(s=="pfjet"&&d=="ratio")
+			     //||(s=="zjet"&&d=="ratio")
+			     ) ? 0 :
+			    f->Get(c));
+	    if (!obj && !(s=="zlljet" || (s=="pfjet"&&d=="ratio")
+			  //|| (s=="zjet"&&d=="ratio")
+			  )) {
 	      cout << "Graph " << c << " not found for "
 		   << s << " " << t << " " << d << "!" <<endl << flush;
 	      cout << "File: " << f->GetName() << endl << flush;
@@ -913,11 +968,30 @@ void reprocess(string epoch="") {
 	      TGraphErrors *g = tools::mergeGraphs(gee, gmm);
 	      obj = (TObject*)g;
 	    }
-	    
+	    // Calculate data-MC diff
+	    if (s=="pfjet" && d=="ratio") {
+	      TGraphErrors *gd = grs["data"][t][s][ieta][ialpha];
+	      TGraphErrors *gm = grs["mc"][t][s][ieta][ialpha];
+	      assert(gd);
+	      assert(gm);
+
+	      TGraphErrors *g = tools::diffGraphs(gd, gm);
+	      obj = (TObject*)g;
+	    }
+	    // Calculate data/MC ratio
+	    if (s=="zjet" && d=="ratio" && (t=="mpfchs1"||t=="ptchs")) {
+	      TGraphErrors *gd = grs["data"][t][s][ieta][ialpha];
+	      TGraphErrors *gm = grs["mc"][t][s][ieta][ialpha];
+	      assert(gd);
+	      assert(gm);
+
+	      TGraphErrors *g = tools::ratioGraphs(gd, gm);
+	      obj = (TObject*)g;
+	    }
+
 	    assert(obj);
 
-
-            if (t=="counts" && (s=="zmmjet" || s=="zeejet" || s=="gamjet") ){ // write out counts to jecdata.root (as TH1F)
+            if (t=="counts" && (s=="zmmjet" || s=="zeejet" || s=="gamjet" || s=="zjet") ){ // write out counts to jecdata.root (as TH1F)
               assert(obj->InheritsFrom("TH1D") ||obj->InheritsFrom("TH1F"));
 	      dout->cd();
 	      TH1D *h = (TH1D*)obj;
@@ -942,6 +1016,13 @@ void reprocess(string epoch="") {
 	      obj = new TGraphErrors((TH1D*)obj);
 	    }
 
+	    // If data stored in TProfile instead of TGraphErrors, patch here
+	    // Patch for pfjet file that has TProfiles's instead of graphs
+	    if (obj->InheritsFrom("TProfile")) {
+	      //obj = new TGraphErrors((TProfile*)obj);
+	      obj = new TGraphErrors(((TProfile*)obj)->ProjectionX());
+	    }
+
 	    assert(obj->InheritsFrom("TGraphErrors"));
 	    TGraphErrors *g = (TGraphErrors*)obj;
 
@@ -962,6 +1043,9 @@ void reprocess(string epoch="") {
 	      else if (s=="dijet" && t=="mpfchs1" &&
 		       (g->GetX()[i]<fdijetmpfptmin || g->GetX()[i]>fdijetptmax))
 		g->RemovePoint(i);
+	      else if (s=="pfjet" &&
+		       (g->GetX()[i]<fpfjetptmin || g->GetX()[i]>fpfjetptmax))
+		g->RemovePoint(i);
 	      else if (s=="dijet" && t=="ptchs" &&
 		       (g->GetX()[i]<fdijetbalptmin || g->GetX()[i]>fdijetptmax))
 		g->RemovePoint(i);
@@ -979,13 +1063,22 @@ void reprocess(string epoch="") {
 	      else if (s=="zmmjet" && 
 		       (g->GetX()[i]<fzmmptmin || g->GetX()[i]>fzmmptmax))
 		g->RemovePoint(i);
+	      else if (s=="zjet" && 
+		       (g->GetX()[i]<fzptmin || g->GetX()[i]>fzptmax))
+		g->RemovePoint(i);
 	      else if ((s=="zmmjet" || s=="zeejet") && t=="mpfchs1" &&
+		       (g->GetX()[i]<fzllmpfptmin || g->GetX()[i]>fzllmpfptmax))
+		g->RemovePoint(i);
+	      else if (s=="zjet" && t=="mpfchs1" &&
 		       (g->GetX()[i]<fzmpfptmin || g->GetX()[i]>fzmpfptmax))
 		g->RemovePoint(i);
 	      else if ((s=="zmmjet" || s=="zeejet") && t=="ptchs" &&
+		       (g->GetX()[i]<fzllbalptmin || g->GetX()[i]>fzllbalptmax))
+		g->RemovePoint(i);
+	      else if (s=="zjet" && t=="ptchs" &&
 		       (g->GetX()[i]<fzbalptmin || g->GetX()[i]>fzbalptmax))
 		g->RemovePoint(i);
-              else if (s=="zmmjet" || s=="zeejet" || s=="gamjet"){ // patch: clean away points with low statistics based on event counts histograms, currently Z+jet
+              else if (s=="zmmjet" || s=="zeejet" || s=="gamjet" || s=="zjet"){ // patch: clean away points with low statistics based on event counts histograms, currently Z+jet
                 assert(counts[d][s][ieta][ialpha]);
                 double pt = g->GetX()[i];
                 int ipt = counts[d][s][ieta][ialpha]->FindBin(pt);
@@ -1026,6 +1119,17 @@ void reprocess(string epoch="") {
 	    	g->SetPointError(i, ex, y!=0 ? ey/(y*y) : 0);
 	      }
 	    }
+
+	    // patch L1L2L3Res to L1L2Res for "zjet" data
+	    // (ratio calculated on the fly from data so patched also)
+	    if (s=="zjet" && d=="data" && (t=="mpfchs1" || t=="ptchs")) {
+	      assert(hzjes);
+	      for (int i = 0; i != g->GetN(); ++i) {
+		double x = g->GetX()[i];
+		double jes = hzjes->GetBinContent(hzjes->FindBin(x));
+		g->SetPoint(i, x, g->GetY()[i]*jes);
+	      } // for i
+	    } // patch zjet
 	    
 	    // PATCH new Jan15 EGamma corrections for Legacy 2016
 	    /*
@@ -1257,6 +1361,11 @@ void reprocess(string epoch="") {
 	    g->SetMarkerStyle(style[s][t]);
 	    g->SetMarkerColor(color[s]);
 	    g->SetLineColor(color[s]);
+	    if (s=="pfjet") {
+	      g->SetMarkerStyle(d=="mc" ? style[s+"_"+d][t] : style[s][t]);
+	      g->SetMarkerColor(color[s+"_"+t]);
+	      g->SetLineColor(color[s+"_"+t]);
+	    }
 	    g->SetMarkerSize(size[alpha]);
 	    g->SetDrawOption("SAMEP");
 
@@ -1287,6 +1396,7 @@ void reprocess(string epoch="") {
   //{ fp1->Close(); fp2->Close(); } // two files
   fzee->Close();
   fzmm->Close();
+  fz->Close();
   curdir->cd();
 
 
@@ -1304,241 +1414,78 @@ void reprocess(string epoch="") {
     
     // New JEC for plotting on the back
     FactorizedJetCorrector *jec;
-    FactorizedJetCorrector *jecc(0), *jecd(0), *jece(0), *jecf(0); // for BCDEF
+    FactorizedJetCorrector *jecb(0), *jecc(0), *jecd(0), *jece(0), *jecf(0);
     double jecwb(1), jecwc(0), jecwd(0), jecwe(0), jecwf(0);       // for BCDEF
-    /*
-    FactorizedJetCorrector *jecc(0), *jecde(0), *jecf(0); // for BCDEF
-    double jecwb(1), jecwc(0), jecwde(0), jecwf(0);       // for BCDEF
-    */
     {
-      //s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      //       epoch=="BCDEF" ? "B" : 
-      //       (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str());
-      //s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="DE" ? "E" : epoch.c_str());
-      //s = Form("textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_Run%s_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",epoch=="BCDEF" ? "B" : epoch.c_str());
-      //s = Form("textFiles/UL17V2MX-L2L3Res+JERSF/Summer19UL17_Run%s_V2M4_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",epoch=="BCDEF" ? "B" : epoch.c_str());
-      s = Form("textFiles/UL17V2M5-L2L3Res+JERSF/Summer19UL17_Run%s_V2M5_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",epoch=="BCDEF" ? "B" : epoch.c_str());
-
-      cout << s << endl;
-      JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> vpar;
-      vpar.push_back(*par_l2l3res);
-      jec = new FactorizedJetCorrector(vpar);
-
+      jec = getFJC("","",
+		   Form("Summer19UL17_Run%s_V2M5_SimpleL1_DATA_L2L3Residual",
+			epoch=="BCDEF" ? "B" : epoch.c_str()));
+      
       if (epoch=="BCDEF") {
 
 	// luminosity from Hugues Lattaud, photon+jet 11 June 2018
 	double lumtot = 4.8+9.6+4.2+9.3+13.4; // 41.3/fb
-	jecwb = 4.8/lumtot;
 
-	//s=Form("%s/Fall17_17Nov2017C_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s = Form("%s/Summer19UL17_RunC_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunC_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
-	//s = "textFiles/UL17V2MX-L2L3Res+JERSF/Summer19UL17_RunC_V2M4_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
-	s = "textFiles/UL17V2M5-L2L3Res+JERSF/Summer19UL17_RunC_V2M5_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
-	cout << s << endl;
-	JetCorrectorParameters *par_c = new JetCorrectorParameters(s);
-	vector<JetCorrectorParameters> vpar_c;
-	vpar_c.push_back(*par_c);
-	jecc = new FactorizedJetCorrector(vpar_c);
-	jecwc = 9.6/lumtot;
-
-
-	//s=Form("%s/Fall17_17Nov2017D_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s = Form("%s/Summer19UL17_RunD_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
-	//s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunD_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
-	//s = "textFiles/UL17V2MX-L2L3Res+JERSF/Summer19UL17_RunD_V2M4_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
-	s = "textFiles/UL17V2M5-L2L3Res+JERSF/Summer19UL17_RunD_V2M5_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
-	cout << s << endl;
-	JetCorrectorParameters *par_d = new JetCorrectorParameters(s);
-	vector<JetCorrectorParameters> vpar_d;
-	vpar_d.push_back(*par_d);
-	jecd = new FactorizedJetCorrector(vpar_d);
-	jecwd = 4.2/lumtot;
-
-	//s=Form("%s/Fall17_17Nov2017E_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s = Form("%s/Summer19UL17_RunE_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
-	//s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunE_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
-	//s = "textFiles/UL17V2MX-L2L3Res+JERSF/Summer19UL17_RunE_V2M4_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
-	s = "textFiles/UL17V2M5-L2L3Res+JERSF/Summer19UL17_RunE_V2M5_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
-	cout << s << endl;
-	JetCorrectorParameters *par_e = new JetCorrectorParameters(s);
-	vector<JetCorrectorParameters> vpar_e;
-	vpar_e.push_back(*par_e);
-	jece = new FactorizedJetCorrector(vpar_e);
-	jecwe = 9.3/lumtot;
-	
+	jecb =getFJC("","","Summer19UL17_RunB_V2M5_SimpleL1_DATA_L2L3Residual");
+	jecc =getFJC("","","Summer19UL17_RunC_V2M5_SimpleL1_DATA_L2L3Residual");
+	jecd =getFJC("","","Summer19UL17_RunD_V2M5_SimpleL1_DATA_L2L3Residual");
+	jece =getFJC("","","Summer19UL17_RunE_V2M5_SimpleL1_DATA_L2L3Residual");
+	jecf =getFJC("","","Summer19UL17_RunF_V2M5_SimpleL1_DATA_L2L3Residual");
 	/*
-	s=Form("%s/Fall17_17Nov2017DE_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	cout << s << endl;
-	JetCorrectorParameters *par_de = new JetCorrectorParameters(s);
-	vector<JetCorrectorParameters> vpar_de;
-	vpar_de.push_back(*par_de);
-	jecde = new FactorizedJetCorrector(vpar_de);
-	jecwde = (4.2+9.3)/lumtot;
+	jecb =getFJC("","","Summer19UL17_RunB_V4_DATA_L2L3Residual");
+	jecc =getFJC("","","Summer19UL17_RunC_V4_DATA_L2L3Residual");
+	jecd =getFJC("","","Summer19UL17_RunD_V4_DATA_L2L3Residual");
+	jece =getFJC("","","Summer19UL17_RunE_V4_DATA_L2L3Residual");
+	jecf =getFJC("","","Summer19UL17_RunF_V4_DATA_L2L3Residual");
 	*/
-
-	//s=Form("%s/Fall17_17Nov2017F_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s=Form("%s/Fall17_17Nov2017F_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	//s = Form("%s/Summer19UL17_RunF_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
-	//s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunF_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
-	//s = "textFiles/UL17V2MX-L2L3Res+JERSF/Summer19UL17_RunF_V2M4_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
-	s = "textFiles/UL17V2M5-L2L3Res+JERSF/Summer19UL17_RunF_V2M5_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
-	cout << s << endl;
-	JetCorrectorParameters *par_f = new JetCorrectorParameters(s);
-	vector<JetCorrectorParameters> vpar_f;
-	vpar_f.push_back(*par_f);
-	jecf = new FactorizedJetCorrector(vpar_f);
+	jecwb = 4.8/lumtot;
+	jecwc = 9.6/lumtot;
+	jecwd = 4.2/lumtot;
+	jecwe = 9.3/lumtot;
 	jecwf = 13.4/lumtot;
       }
     }
 
-    // Reference Run I JEC for plotting on the back
-    FactorizedJetCorrector *jecrun1;
-    {
-      s = Form("%s/Winter14_V8_DATA_L2L3Residual_AK5PFchs.txt",cd);
-      cout << s << endl;
-      JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> vpar;
-      vpar.push_back(*par_l2l3res);
-      jecrun1 = new FactorizedJetCorrector(vpar);
-    }
+    FactorizedJetCorrector *jecrun1, *jecold, *jecl1flat,*jecl1rcdt, *jecl1pt,
+      *jecl1mc, *jecl1rcmc, *jecl1dt, *jecl1c, *jecl1s, *jecl1rc,
+      *jecl2c, *jecl2s;
 
+    // Reference Run I JEC for plotting on the back
+    jecrun1 =   getFJC("","","Winter14_V8_DATA_L2L3Residual_AK5PFchs"); 
     // Store old JEC for undoing it in global fit
     // NB: global fit ideally needs a temporary pT-flat L3Res as input
     // But even with this pT-dependent L2Res can cause problems
-    FactorizedJetCorrector *jecold;
-    {
-      //s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L2L3Residual_AK4PFchs.txt",cd,
-      //epoch=="BCDEF"||epoch=="L4" ? "B" :
-      //(epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
-      //s = Form("%s/Summer19UL17_Run%s_V1_ComplexL1_DATA_L2Residual_AK4PFchs.txt", cd, "C");
-      s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L2Residual_AK4PFchs.txt",cd, "C");
-      cout << s << endl;
-      JetCorrectorParameters *par_old = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> v;
-      v.push_back(*par_old);
-      jecold = new FactorizedJetCorrector(v);
-    }
+    jecold =    getFJC("","","Summer19UL17_RunC_V1_SimpleL1_DATA_L2Residual");
 
     // Difference between pT-dependent and flat L1
-    FactorizedJetCorrector *jecl1flat, *jecl1rcdt;
-    {
-      //s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L1RC_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
-      //s = Form("%s/Summer19UL17_Run%s_V1_ComplexL1_DATA_L1RC_AK4PFchs.txt",
-      s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L1RC_AK4PFchs.txt",
-	       cd,"C");
-      cout << s << endl << flush;
-      JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> v;
-      v.push_back(*l1);
-      jecl1flat = new FactorizedJetCorrector(v);
-      jecl1rcdt = new FactorizedJetCorrector(v);
-    }
-    FactorizedJetCorrector *jecl1pt;
-    {
-      //s = Form("%s/Fall17_17Nov2017%s_V32_DATA_L1FastJet_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="L4" ? "B" : (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str()); // Fall17
-      //s = Form("%s/Summer19UL17_Run%s_V1_ComplexL1_DATA_L1FastJet_AK4PFchs.txt",cd,"C");
-      s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L1FastJet_AK4PFchs.txt",
-	       cd,"C");
-      cout << s << endl << flush;
-      JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> v;
-      v.push_back(*l1);
-      jecl1pt = new FactorizedJetCorrector(v);
-    }
-    FactorizedJetCorrector *jecl1mc;
-    {
-      //s = Form("%s/Fall17_17Nov2017_V32_MC_L1FastJet_AK4PFchs.txt",cd); // Fall17
-      //s = Form("%s/Summer19UL17_V1_ComplexL1_MC_L1FastJet_AK4PFchs.txt",cd);
-      s = Form("%s/Summer19UL17_V1_SimpleL1_MC_L1FastJet_AK4PFchs.txt",cd);
-      cout << s << endl << flush;
-      JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> v;
-      v.push_back(*l1);
-      jecl1mc = new FactorizedJetCorrector(v);
-    }
-    FactorizedJetCorrector *jecl1rcmc;
-    {
-      s = Form("%s/Summer19UL17_V1_SimpleL1_MC_L1RC_AK4PFchs.txt",cd);
-      cout << s << endl << flush;
-      JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> v;
-      v.push_back(*l1);
-      jecl1rcmc = new FactorizedJetCorrector(v);
-    }
+    jecl1flat = getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1RC");
+    jecl1rcdt = getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1RC");
+    jecl1pt =   getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1FastJet");
+    jecl1mc =   getFJC("Summer19UL17_V1_SimpleL1_MC_L1FastJet");
+    jecl1rcmc = getFJC("Summer19UL17_V1_SimpleL1_MC_L1RC");
+    jecl1dt =   getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1FastJet");
 
-    FactorizedJetCorrector *jecl1dt;
-    {
-      s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L1FastJet_AK4PFchs.txt",
-	       cd,"C");
-      cout << s << endl << flush;
-      JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> v;
-      v.push_back(*l1);
-      jecl1dt = new FactorizedJetCorrector(v);
-    }
-    FactorizedJetCorrector *jecl1c;
-    {
-      s = Form("%s/Summer19UL17_V1_ComplexL1_MC_L1FastJet_AK4PFchs.txt",cd);
-      cout << s << endl << flush;
-      JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
-      //s = Form("%s/Summer19UL17_V1_ComplexL1_MC_L2Relative_AK4PFchs.txt",cd);
-      // This is on purpose SimpleL1_L2 for ComplexL1_L1
-      // Need L1C L2 on same footing with L1S and L1RC
-      s = Form("%s/Summer19UL17_V1_SimpleL1_MC_L2Relative_AK4PFchs.txt",cd);
-      cout << s << endl << flush;
-      JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> v;
-      v.push_back(*l1);
-      v.push_back(*l2);
-      jecl1c = new FactorizedJetCorrector(v);
-    }
-    FactorizedJetCorrector *jecl1s;
-    {
-      s = Form("%s/Summer19UL17_V1_SimpleL1_MC_L1FastJet_AK4PFchs.txt",cd);
-      cout << s << endl << flush;
-      JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
-      s = Form("%s/Summer19UL17_V1_SimpleL1_MC_L2Relative_AK4PFchs.txt",cd);
-      cout << s << endl << flush;
-      JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> v;
-      v.push_back(*l1);
-      v.push_back(*l2);
-      jecl1s = new FactorizedJetCorrector(v);
-    }
-    FactorizedJetCorrector *jecl1rc;
-    {
-      s = Form("%s/Summer19UL17_V1_SimpleL1_MC_L1RC_AK4PFchs.txt",cd);
-      cout << s << endl << flush;
-      JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
-      s = Form("%s/Summer19UL17_V1_SimpleL1_MC_L2Relative_AK4PFchs.txt",cd);
-      cout << s << endl << flush;
-      JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> v;
-      v.push_back(*l1);
-      v.push_back(*l2);
-      jecl1rc = new FactorizedJetCorrector(v);
-    }
-    FactorizedJetCorrector *jecl2c;
-    {
-      s = Form("%s/Summer19UL17_V1_ComplexL1_MC_L2Relative_AK4PFchs.txt",cd);
-      cout << s << endl << flush;
-      JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> v;
-      v.push_back(*l2);
-      jecl2c = new FactorizedJetCorrector(v);
-    }
-    FactorizedJetCorrector *jecl2s;
-    {
-      s = Form("%s/Summer19UL17_V1_SimpleL1_MC_L2Relative_AK4PFchs.txt",cd);
-      cout << s << endl << flush;
-      JetCorrectorParameters *l2 = new JetCorrectorParameters(s);
-      vector<JetCorrectorParameters> v;
-      v.push_back(*l2);
-      jecl2s = new FactorizedJetCorrector(v);
-    }
+    // With L2Relative included
+    jecl1c =    getFJC("Summer19UL17_V1_ComplexL1_MC_L1FastJet",
+		       // This is on purpose SimpleL1_L2 for ComplexL1_L1
+		       // Need L1C L2 on same footing with L1S and L1RC
+		       "Summer19UL17_V1_SimpleL1_MC_L2Relative");
+    jecl1s =    getFJC("Summer19UL17_V1_SimpleL1_MC_L1FastJet",
+		       "Summer19UL17_V1_SimpleL1_MC_L2Relative");
+    jecl1rc =   getFJC("Summer19UL17_V1_SimpleL1_MC_L1RC",
+		       "Summer19UL17_V1_SimpleL1_MC_L2Relative");
+    jecl2c =    getFJC("","Summer19UL17_V1_ComplexL1_MC_L2Relative");
+    jecl2s =    getFJC("","Summer19UL17_V1_SimpleL1_MC_L2Relative");
 
+    // New additions (RC: mean vs median; L1: Simple vs SemiSimple)
+    FactorizedJetCorrector *jrcdnom, *jrcmnom, *jrcdalt, *jrcmalt; // 1
+    FactorizedJetCorrector *jsfdnom, *jsfmnom, *jsfdalt, *jsfmalt; // 2a
+    FactorizedJetCorrector *jl1dnom, *jl1mnom, *jl1dalt, *jl1malt; // 2b,2c
+
+    jrcdnom = getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1RC");
+    jrcmnom = getFJC("Summer19UL17_V1_SimpleL1_MC_L1RC");
+    jrcdalt = getFJC("UL17_MED_RunBCDEF_V1_DATA_L1RC");
+    jrcmalt = getFJC("UL17_MED_RunBCDEF_V1_MC_L1RC");
 
     // Run I uncertainty => 80XV6 uncertainty
     s = Form("%s/Winter14_V8_DATA_UncertaintySources_AK5PFchs.txt",cd); // V8 Run I
@@ -1664,6 +1611,18 @@ void reprocess(string epoch="") {
 			      "JEC L2 of L1Complex MC / L1Simple MC;",
 			      npt, &ptbins[0]);
 
+      // New additions
+      TH1D *hl1mpf = new TH1D("hl1mpf",";p_{T} (GeV);"
+			      "(RC_{dt,nom}/RC_{MC,nom}) / "
+			      "(RC_{dt,alt}/RC_{MC,alt})",
+			      npt, &ptbins[0]);
+      TH1D *hl1mpfdt = new TH1D("hl1mpfdt",";p_{T} (GeV);"
+				"RC_{dt,nom} / RC_{dt,alt}",
+				npt, &ptbins[0]);
+      TH1D *hl1mpfmc = new TH1D("hl1mpfmc",";p_{T} (GeV);"
+				"RC_{MC,nom} / RC_{MC,alt}",
+				npt, &ptbins[0]);
+
       if(rp_debug) cout << "create reference JES bands" << endl;
       for (int ipt = 1; ipt != herr->GetNbinsX()+1; ++ipt) {
 
@@ -1686,6 +1645,7 @@ void reprocess(string epoch="") {
 	double sumvall1dt(0), sumvall1c(0), sumvall1s(0), sumvall1rc(0);
 	double sumvall1rcdt(0), sumvall1rcmc(0);
 	double sumvall2c(0), sumvall2s(0);
+	double sumvalrcdnom(0),sumvalrcmnom(0), sumvalrcdalt(0),sumvalrcmalt(0);
 	double sumerr2_pt(0), sumerr2_hcal(0), sumerr2_ecal(0), sumerr2_pu(0);
 	double sumerr2_noflv(0), sumerr2_ref(0), sumerr2_ref1(0);
 	for (int jeta = 0; jeta != neta; ++jeta) {
@@ -1703,49 +1663,20 @@ void reprocess(string epoch="") {
 	  }
 
 	  // JEC central values first
-	  //jec->setJetEta(eta);
-	  //jec->setJetPt(pt);
-	  //double val = (epoch=="L4" ? 1 : 1./jec->getCorrection());
 	  double val = (epoch=="L4" ? 1 : 1./getJEC(jec,eta,pt));
 
 	  if (epoch=="BCDEF") {
 
-	    assert(jecc); assert(jecd); assert(jece); assert(jecf);
+	    assert(jecb);assert(jecc);assert(jecd);assert(jece);assert(jecf);
 	    assert(fabs(jecwb+jecwc+jecwd+jecwe+jecwf-1)<1e-4);
-	    /*
-	    assert(jecc); assert(jecde); assert(jecf);
-	    assert(fabs(jecwb+jecwc+jecwde+jecwf-1)<1e-4);
-	    */
-	    double valb = val;
 
-	    //jecc->setJetEta(eta);
-	    //jecc->setJetPt(pt);
-	    //double valc = 1./jecc->getCorrection();
+	    double valb = 1./getJEC(jecb,eta,pt);
 	    double valc = 1./getJEC(jecc,eta,pt);
-
-	    //jecd->setJetEta(eta);
-	    //jecd->setJetPt(pt);
-	    //double vald = 1./jecd->getCorrection();
 	    double vald = 1./getJEC(jecd,eta,pt);
-
-	    //jece->setJetEta(eta);
-	    //jece->setJetPt(pt);
-	    //double vale = 1./jece->getCorrection();
 	    double vale = 1./getJEC(jece,eta,pt);
-	    /*
-	    jecde->setJetEta(eta);
-	    jecde->setJetPt(pt);
-	    double valde = 1./jecde->getCorrection();
-	    */
-	    //jecf->setJetEta(eta);
-	    //jecf->setJetPt(pt);
-	    //double valf = 1./jecf->getCorrection();
 	    double valf = 1./getJEC(jecf,eta,pt);
 
 	    val = jecwb*valb +jecwc*valc +jecwd*vald +jecwe*vale +jecwf*valf;
-	    /*
-	    val = jecwb*valb +jecwc*valc +jecwde*valde +jecwf*valf;
-	    */
 	  }
           //if(rp_debug) cout << "ABC/ABCD special treatment done" << endl;
           if(CorLevel=="L1L2L3Res")val = 1.0; //to get proper bands during closure test
@@ -1754,102 +1685,32 @@ void reprocess(string epoch="") {
 	  sumw += w; // sum weights only once
 	  
 	  // reference JEC
-	  //jecrun1->setJetEta(eta);
-	  //jecrun1->setJetPt(pt);
-	  //double jesrun1 = (epoch=="L4" ? 1 : 1./jecrun1->getCorrection());
 	  double jesrun1 = (epoch=="L4" ? 1 : 1./getJEC(jecrun1,eta,pt));
 	  sumrun1 += w*jesrun1;
 
 	  // old JEC
-	  //jecold->setJetEta(eta);
-	  //jecold->setJetPt(pt);
-	  //double jes = (epoch=="L4" ? 1 : 1./jecold->getCorrection());
 	  double jes = (epoch=="L4" ? 1 : 1./getJEC(jecold,eta,pt));
 	  sumjes += w*jes;
 
-	  //jecl1flat->setJetEta(eta);
-	  //jecl1flat->setJetPt(pt);
-	  //jecl1flat->setRho(gRho);
-	  //jecl1flat->setJetA(TMath::Pi()*0.4*0.4);
-	  //double vall1flat = 1./jecl1flat->getCorrection();
-	  double vall1flat = 1./getJEC(jecl1flat,eta,pt);
-	  sumvall1flat += w*vall1flat;
-	  //
-	  double vall1rcdt = 1./getJEC(jecl1rcdt,eta,pt);
-	  sumvall1rcdt += w*vall1rcdt;
-	  //
-	  //jecl1pt->setJetEta(eta);
-	  //jecl1pt->setJetPt(pt);
-	  //jecl1pt->setRho(gRho);
-	  //jecl1pt->setJetA(TMath::Pi()*0.4*0.4);
-	  //double vall1pt = 1./jecl1pt->getCorrection();
-	  double vall1pt = 1./getJEC(jecl1pt,eta,pt);
-	  sumvall1pt += w*vall1pt;
-	  //
-	  //jecl1mc->setJetEta(eta);
-	  //jecl1mc->setJetPt(pt);
-	  //jecl1mc->setRho(gRho);
-	  //jecl1mc->setJetA(TMath::Pi()*0.4*0.4);
-	  //double vall1mc = 1./jecl1mc->getCorrection();
-	  double vall1mc = 1./getJEC(jecl1mc,eta,pt);
-	  sumvall1mc += w*vall1mc;
-	  //
-	  double vall1rcmc = 1./getJEC(jecl1rcmc,eta,pt);
-	  sumvall1rcmc += w*vall1rcmc;
-	  //
-	  //jecl1pt->setJetEta(eta);
-	  //jecl1pt->setJetPt(pt);
-	  //jecl1pt->setRho(gRho+1);
-	  //jecl1pt->setJetA(TMath::Pi()*0.4*0.4);
-	  //double vall1rho = 1./jecl1pt->getCorrection();
-	  double vall1rho = 1./getJEC(jecl1pt,eta,pt,gRho+1);
-	  sumvall1rho += w*vall1rho;
-	  //
-	  //
-	  //jecl1dt->setJetEta(eta);
-	  //jecl1dt->setJetPt(pt);
-	  //jecl1dt->setRho(gRho);
-	  //jecl1dt->setJetA(TMath::Pi()*0.4*0.4);
-	  //double vall1dt = 1./jecl1dt->getCorrection();
-	  double vall1dt = 1./getJEC(jecl1dt,eta,pt);
-	  sumvall1dt += w*vall1dt;
-	  //
-	  //jecl1c->setJetEta(eta);
-	  //jecl1c->setJetPt(pt);
-	  //jecl1c->setRho(gRho);
-	  //jecl1c->setJetA(TMath::Pi()*0.4*0.4);
-	  //double vall1c = 1./jecl1c->getCorrection();
-	  double vall1c = 1./getJEC(jecl1c,eta,pt);
-	  sumvall1c += w*vall1c;
-	  //
-	  //jecl1s->setJetEta(eta);
-	  //jecl1s->setJetPt(pt);
-	  //jecl1s->setRho(gRho);
-	  //jecl1s->setJetA(TMath::Pi()*0.4*0.4);
-	  //double vall1s = 1./jecl1s->getCorrection();
-	  double vall1s = 1./getJEC(jecl1s,eta,pt);
-	  sumvall1s += w*vall1s;
-	  //
-	  //jecl1rc->setJetEta(eta);
-	  //jecl1rc->setJetPt(pt);
-	  //jecl1rc->setRho(gRho);
-	  //jecl1rc->setJetA(TMath::Pi()*0.4*0.4);
-	  //double vall1rc = 1./jecl1rc->getCorrection();
-	  double vall1rc = 1./max(0.0001,getJEC(jecl1rc,eta,pt));
-	  sumvall1rc += w*vall1rc;
-	  //
-	  //jecl2c->setJetEta(eta);
-	  //jecl2c->setJetPt(pt);
-	  //double vall2c = 1./jecl2c->getCorrection();
-	  double vall2c = 1./getJEC(jecl2c,eta,pt);
-	  sumvall2c += w*vall2c;
-	  //
-	  //jecl2s->setJetEta(eta);
-	  //jecl2s->setJetPt(pt);
-	  //double vall2s = 1./jecl2s->getCorrection();
-	  double vall2s = 1./getJEC(jecl2s,eta,pt);
-	  sumvall2s += w*vall2s;
+	  // Various JEC for systematics
+	  sumvall1flat += w/     getJEC(jecl1flat, eta,pt);
+	  sumvall1rcdt += w/     getJEC(jecl1rcdt, eta,pt);
+	  sumvall1pt   += w/     getJEC(jecl1pt,   eta,pt);
+	  sumvall1mc   += w/     getJEC(jecl1mc,   eta,pt);
+	  sumvall1rcmc += w/     getJEC(jecl1rcmc, eta,pt);
+	  sumvall1rho  += w/     getJEC(jecl1pt,   eta,pt,gRho+1);
+	  sumvall1dt   += w/     getJEC(jecl1dt,   eta,pt);
+	  sumvall1c    += w/     getJEC(jecl1c,    eta,pt);
+	  sumvall1s    += w/     getJEC(jecl1s,    eta,pt);
+	  sumvall1rc   += w/max( getJEC(jecl1rc,   eta,pt),0.0001);
+	  sumvall2c    += w/     getJEC(jecl2c,    eta,pt);
+	  sumvall2s    += w/     getJEC(jecl2s,    eta,pt);
 
+	  // New additions
+	  sumvalrcdnom += w/     getJEC(jrcdnom,    eta,pt);
+	  sumvalrcmnom += w/     getJEC(jrcmnom,    eta,pt);
+	  sumvalrcdalt += w/     getJEC(jrcdalt,    eta,pt);
+	  sumvalrcmalt += w/     getJEC(jrcmalt,    eta,pt);
 
 	  // JEC uncertainties
 	  unc->setJetEta(eta);
@@ -1962,6 +1823,15 @@ void reprocess(string epoch="") {
 	double l2c = (sumvall2c / sumw);
 	double l2s = (sumvall2s / sumw);
 	hl2cos->SetBinContent(ipt, (1./l2c) / (1./l2s));
+
+	// New additions
+	double rcdnom = (sumvalrcdnom / sumw);
+	double rcmnom = (sumvalrcmnom / sumw);
+	double rcdalt = (sumvalrcdalt / sumw);
+	double rcmalt = (sumvalrcmalt / sumw);
+	hl1mpf->SetBinContent(ipt, (rcdalt/rcmalt) / (rcdnom/rcmnom));
+	hl1mpfdt->SetBinContent(ipt, rcdalt/rcdnom);
+	hl1mpfmc->SetBinContent(ipt, rcmalt/rcmnom);
       } // ipt
       if(rp_debug) cout << "done creating reference JES bands" << endl;
 
@@ -2018,6 +1888,11 @@ void reprocess(string epoch="") {
       hl1cos->Write();
       hl1rcos->Write();
       hl2cos->Write();
+
+      // New additions
+      hl1mpf->Write();
+      hl1mpfdt->Write();
+      hl1mpfmc->Write();
     } // ieta
   } // JEC+sys
 
@@ -2025,5 +1900,84 @@ void reprocess(string epoch="") {
 
 } // reprocess
 
+// Helper function to retrieve FactorizedJetCorrector
+FactorizedJetCorrector *getFJC(string l1, string l2, string res) {
 
+  // Set default jet algo
+  if (l1!="" && !(TString(l1.c_str()).Contains("_AK")))
+    l1 += "_AK4PFchs";
+  if (l2!="" && !(TString(l2.c_str()).Contains("_AK")))
+    l2 += "_AK4PFchs";
+  if (res!="" && !(TString(res.c_str()).Contains("_AK")))
+    res += "_AK4PFchs";
 
+  string path = "CondFormats/JetMETObjects/data";
+  const char *cd = path.c_str();
+  const char *cl1 = l1.c_str();
+  const char *cl2 = l2.c_str();
+  const char *cres = res.c_str();
+  string s("");
+
+  vector<JetCorrectorParameters> v;
+  if (l1!=""){
+    s = Form("%s/%s.txt",cd,cl1);
+    cout << s << endl << flush;
+    JetCorrectorParameters *pl1 = new JetCorrectorParameters(s);
+    v.push_back(*pl1);
+  }
+  if (l2!="") {
+    s = Form("%s/%s.txt",cd,cl2);
+    JetCorrectorParameters *pl2 = new JetCorrectorParameters(s);
+    cout << s << endl << flush;
+    v.push_back(*pl2);
+  }
+  if (res!="") {
+    s = Form("%s/%s.txt",cd,cres);
+    JetCorrectorParameters *pres = new JetCorrectorParameters(s);
+    cout << s << endl << flush;
+    v.push_back(*pres);
+  }
+  FactorizedJetCorrector *jec = new FactorizedJetCorrector(v);
+
+  return jec;
+} // getJFC
+
+// Invert JEC to get differences as a function of pTcorr
+// Helper functions to find JEC for corrected pt
+void setEtaPtRho(FactorizedJetCorrector *jec, double eta, double pt,
+                 double rho){
+
+  assert(jec);
+  jec->setJetEta(eta);
+  jec->setJetPt(pt);
+  jec->setRho(rho);
+  jec->setJetA(0.50265);
+
+  return;
+}
+
+Double_t funcCorrPt(Double_t *x, Double_t *p) {
+  
+  double eta = p[0];
+  double pt = x[0];
+  double rho = p[1];
+  setEtaPtRho(_thejec, eta, pt, rho);
+
+  return (_thejec->getCorrection() * pt);
+}
+
+//const double _rhoDE = 19.21; // EOY17 DE jt450
+double getJEC(FactorizedJetCorrector *jec, double eta, double ptcorr,
+	      double rho) {
+
+  // iterate to solve ptreco for given ptcorr
+  _thejec = jec;
+  if (!fCorrPt) fCorrPt = new TF1("fCorrPt",funcCorrPt,5,6500,2);
+  fCorrPt->SetParameters(eta, rho);
+  // Find ptreco that gives pTreco*JEC = pTcorr
+  double ptreco = fCorrPt->GetX(ptcorr,5,6500);
+
+  setEtaPtRho(jec, eta, ptreco, rho);
+
+  return (jec->getCorrection());
+} // getEtaPtE

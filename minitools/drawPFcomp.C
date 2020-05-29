@@ -27,12 +27,24 @@ const  bool doscale = false;//true;
 const  bool dodelta = false;//true;
 //bool doscale = true;
 
-void drawPFcompMC();
+void drawPFcompMC(string era="E", string tp="");
 void drawPFcompIOV(string sf, string seta, string tp="tp");
 
 void drawPFcomp() {
-  drawPFcompMC();
   /*
+  drawPFcompMC("B","");
+  drawPFcompMC("C","");
+  drawPFcompMC("D","");
+  drawPFcompMC("E","");
+  drawPFcompMC("F","");
+  drawPFcompMC("BCDEF","");
+  drawPFcompMC("B","tp");
+  drawPFcompMC("C","tp");
+  drawPFcompMC("D","tp");
+  drawPFcompMC("E","tp");
+  drawPFcompMC("F","tp");
+  drawPFcompMC("BCDEF","tp");
+  */
   drawPFcompIOV("chf","barrel","tp");
   drawPFcompIOV("nef","barrel","tp");
   drawPFcompIOV("nhf","barrel","tp");
@@ -41,7 +53,7 @@ void drawPFcomp() {
   drawPFcompIOV("nef","barrel","");
   drawPFcompIOV("nhf","barrel","");
   drawPFcompIOV("puf","barrel","");
-  */
+
   /*
   drawPFcompIOV("chf","endcap");
   drawPFcompIOV("nef","endcap");
@@ -49,18 +61,26 @@ void drawPFcomp() {
   */
 }
 
-void drawPFcompMC() {
+void drawPFcompMC(string era, string tp) {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
+  const char *cera = era.c_str();
+  const char *ctp = tp.c_str();
 
   //TFile *fd = new TFile("rootfiles/output-DATA-2b-UL17V2_BCDEF.root","READ");
   //TFile *fd = new TFile("rootfiles/output-DATA-2b-UL17V4_BCDEF.root","READ");
-  TFile *fd = new TFile("rootfiles/output-DATA-2b-UL17V4_E.root","READ");
+  //TFile *fd = new TFile("rootfiles/output-DATA-2b-UL17V4_E.root","READ");
+  //TFile *fd = new TFile("rootfiles/output-DATA-2b-UL17V4_BCDEF.root","READ");
+  TFile *fd = new TFile(Form("rootfiles/output-DATA-2b-UL17V4_%s.root",cera),
+			"READ");
   assert(fd && !fd->IsZombie());
   //TFile *fm = new TFile("rootfiles/output-MCNU-2b-UL17V2_BCDEF.root","READ");
   //TFile *fm = new TFile("rootfiles/output-MCNU-2b-UL17V4_BCDEF.root","READ");
-  TFile *fm = new TFile("rootfiles/output-MC80NU-2b-UL17V4_E.root","READ");
+  //TFile *fm = new TFile("rootfiles/output-MC80NU-2b-UL17V4_E.root","READ");
+  //TFile *fm = new TFile("rootfiles/output-MC80NU-2b-UL17V4_BCDEF.root","READ");
+  TFile *fm = new TFile(Form("rootfiles/output-MC80NU-2b-UL17V4_%s.root",cera),
+			"READ");
   assert(fm && !fm->IsZombie());
 
   vector<string> vf;
@@ -69,21 +89,25 @@ void drawPFcompMC() {
   vf.push_back("nef");
   vf.push_back("cef");
   vf.push_back("muf");
+  vf.push_back("puf");
 
   map<string, int> color;
   color["chf"] = kRed;
+  color["puf"] = kRed+2;
   color["nhf"] = kGreen+2;
   color["nef"] = kBlue;
   color["muf"] = kMagenta+2;
   color["cef"] = kCyan+2;
   map<string, int> markerd;
   markerd["chf"] = kFullCircle;
+  markerd["puf"] = kOpenCircle;
   markerd["nhf"] = kFullDiamond;
   markerd["nef"] = kFullSquare;
   markerd["muf"] = kDot;
   markerd["cef"] = kDot;
   map<string, int> markerm;
   markerm["chf"] = kOpenCircle;
+  markerm["puf"] = kOpenDiamond;
   markerm["nhf"] = kOpenDiamond;
   markerm["nef"] = kOpenSquare;
   markerm["muf"] = kDot;
@@ -94,6 +118,7 @@ void drawPFcompMC() {
   legendm["nef"] = "Photons";
   legendm["muf"] = "Muons";
   legendm["cef"] = "Electrons";
+  legendm["puf"] = "Charged PU";
 
   /*
   map<string, double> scale;
@@ -150,8 +175,8 @@ void drawPFcompMC() {
 
     string sf = vf[i];
     const char *cf = sf.c_str();
-    TProfile *pd = (TProfile*)fd->Get(Form("%sp%stp",cd,cf)); assert(pd);
-    TProfile *pm = (TProfile*)fm->Get(Form("%sp%stp",cd,cf)); assert(pm);
+    TProfile *pd = (TProfile*)fd->Get(Form("%sp%s%s",cd,cf,ctp)); assert(pd);
+    TProfile *pm = (TProfile*)fm->Get(Form("%sp%s%s",cd,cf,ctp)); assert(pm);
 
     TH1D *hd = pd->ProjectionX(Form("hd_%s",cf));
     TH1D *hm = pm->ProjectionX(Form("hm_%s",cf));
@@ -177,7 +202,7 @@ void drawPFcompMC() {
 
     //if (!hmsum) hmsum = pm->ProjectionX("hmsum");
     if (!hmsum) hmsum = (TH1D*)hm2->Clone("hmsum");
-    else hmsum->Add(hm2);//pm);
+    else if (sf!="puf") hmsum->Add(hm2);//pm);
 
     vd[sf] = hd;
     vm[sf] = hm;
@@ -206,24 +231,28 @@ void drawPFcompMC() {
   for (unsigned int i = 0; i != vf.size(); ++i) {
     string sf = vf[i];
     //hr->Add(vr[sf]);
-    hr->Add(vs[sf]);
+    if (sf!="puf") hr->Add(vs[sf]);
   }
 
   curdir->cd();
 
   TH1D *hu = new TH1D("hu",";p_{T,tag} (GeV);Probe E fraction",3485,15,3500);
+  if (tp=="") hu->SetXTitle("p_{T,probe}");
   hu->GetXaxis()->SetMoreLogLabels();
   hu->GetXaxis()->SetNoExponent();
   hu->SetMaximum(0.75);
   hu->SetMinimum(0.00);
 
   TH1D *hd = new TH1D("hd",";p_{T,tag} (GeV);Data-MC (10^{-2})",3485,15,3500);
+  if (tp=="") hd->SetXTitle("p_{T,probe}");
   hd->GetXaxis()->SetMoreLogLabels();
   hd->GetXaxis()->SetNoExponent();
   hd->SetMaximum(+1.2);
   hd->SetMinimum(-1.2);
 
-  lumi_13TeV = "UL17 BCDEF";
+  //lumi_13TeV = "UL17 BCDEF";
+  string lum = Form("UL17 %s",cera);
+  lumi_13TeV = lum.c_str();//"UL17 E";
   TCanvas *c1 = tdrDiCanvas("c1",hu,hd,4,11);
 
   c1->cd(1);
@@ -273,7 +302,7 @@ void drawPFcompMC() {
     c1->SaveAs("pdf/drawPFComp_corr.pdf");
   }
 
-  c1->SaveAs("pdf/drawPFCompMC.pdf");
+  c1->SaveAs(Form("pdf/drawPFCompMC%s_%s.pdf",ctp,cera));
 } // drawPFcompMC
 
 // Evolution in fractions over time
@@ -390,7 +419,8 @@ void drawPFcompIOV(string sf, string seta, string tp) {
     TFile *fd = new TFile(Form("rootfiles/output-DATA-2b-UL17V4_%s.root",
 			       cera), "READ");
     assert(fd && !fd->IsZombie());
-    TFile *fm = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
+    //TFile *fm = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
+    TFile *fm = new TFile(Form("rootfiles/output-MC80NU-2b-UL17V4_%s.root",
 			       cera), "READ");
     assert(fm && !fm->IsZombie());
     

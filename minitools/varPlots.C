@@ -32,7 +32,8 @@ void varPlots() {
   _leg = leg;
   curdir->cd();
 
-  //varPlotsResp();
+  varPlotsResp();
+
   varPlotsComp("nhf");
   varPlotsComp("gammaf");
   varPlotsComp("chf");
@@ -52,6 +53,20 @@ void varPlotsResp() {
   //TFile *f3 = new TFile("rootfiles/varPlots_Mikael_5M_20200511.root","READ");
   TFile *f3 = new TFile("rootfiles/varPlots_Mikael_5M_20200514.root","READ");
   assert(f3 && !f3->IsZombie());
+
+  TFile *fd1 = new TFile("rootfiles/output-DATA-2b-UL17V4_F_sub2p7.root","READ");
+  assert(fd1 && !fd1->IsZombie());
+  TFile *fd2 = new TFile("rootfiles/output-DATA-2b-UL17V4_F.root","READ");
+  assert(fd2 && !fd2->IsZombie());
+  TFile *fd3 = new TFile("rootfiles/output-DATA-2b-UL17V4_F_plus2p7.root","READ");
+  assert(fd3 && !fd3->IsZombie());
+
+  TFile *fm1 = new TFile("rootfiles/output-P8CP5-1-EOY17_DE.root","READ");
+  assert(fm1 && !fm1->IsZombie());
+  //TFile *fm2 = new TFile("rootfiles/output-HW-1-EOY17_DE.root","READ");
+  TFile *fm2 = new TFile("rootfiles/output-P8M1-1-EOY17_DE.root","READ");
+  assert(fm2 && !fm2->IsZombie());
+
   curdir->cd();
 
   //TH1D *hcp3 = (TH1D*)f2->Get("h_Rjet_Cp3"); assert(hcp3);
@@ -71,6 +86,49 @@ void varPlotsResp() {
   //TH1D *hp = (TH1D*)f3->Get("h_Rjet_ECALm3"); assert(hp); // 20200511
   TH1D *hp = (TH1D*)f3->Get("h_Rjet_Photonm3"); assert(hp); // 20200514
   curdir->cd();
+
+  // Difference in RunF high and low tracking efficiency regions
+  TProfile *pd1 = (TProfile*)fd1->Get("Standard/Eta_0.0-1.3/ppt_probepertag");
+  assert(pd1);
+  TProfile *pd2 = (TProfile*)fd2->Get("Standard/Eta_0.0-1.3/ppt_probepertag");
+  assert(pd2);
+  TProfile *pd3 = (TProfile*)fd3->Get("Standard/Eta_0.0-1.3/ppt_probepertag");
+  assert(pd3);
+
+  // option: p2r_guw and p2r_g (guw is smoother)
+  TProfile *pm1 = (TProfile*)fm1->Get("Standard/Eta_0.0-1.3/mc/p2r_guw");
+  assert(pm1);
+  TProfile *pm2 = (TProfile*)fm2->Get("Standard/Eta_0.0-1.3/mc/p2r_guw");
+  assert(pm2);
+
+  TH1D *hd = pd2->ProjectionX("hd_ppt_probpertag");
+  //hd->Add(pd2,pd1,100,-100);
+  for (int i = 1; i != hd->GetNbinsX()+1; ++i) {
+    double y1 = pd1->GetBinContent(i); // phi<2.7
+    double ey1 = pd1->GetBinError(i);
+    double y2 = pd2->GetBinContent(i); // all
+    double ey2 = pd2->GetBinError(i);
+    double y3 = pd3->GetBinContent(i); // phi>2.7
+    double ey3 = pd3->GetBinError(i);
+    // y2 = (pi+2.7)/2pi*y1+(pi-2.7)/2pi*y3
+    //double y3 = (y2 - (TMath::Pi()+2.7)/TMath::TwoPi()*y1)*TMath::TwoPi()/(TMath::Pi()-2.7); // out
+    //double ey3 = (ey2 - (TMath::Pi()+2.7)/TMath::TwoPi()*ey1)*TMath::TwoPi()/(TMath::Pi()-2.7);
+    //double ey3 = sqrt(TMath::TwoPi()/(TMath::Pi()-2.7))*ey2;
+    double k = 0.15;//0.2;
+    hd->SetBinContent(i, k*100.*(y3-y1));
+    hd->SetBinError(i, k*100.*ey3);
+  }
+
+  TH1D *hm = pm2->ProjectionX("hm_p2r_g");
+  for (int i = 1; i != hd->GetNbinsX()+1; ++i) {
+    double y1 = pm1->GetBinContent(i); // P8CP5
+    double ey1 = pm1->GetBinError(i);
+    double y2 = pm2->GetBinContent(i); // Herwig++
+    double ey2 = pm2->GetBinError(i);
+    hm->SetBinContent(i, 100.*(y2-y1));
+    hm->SetBinError(i, 100.*sqrt(ey2*ey2+ey1*ey1));
+  }
+
 
   ht = (TH1D*)ht->Clone("ht");
   hp = (TH1D*)hp->Clone("hp");
@@ -201,6 +259,9 @@ void varPlotsResp() {
   //tdrDraw(hcxp,"P",kOpenCircle,kBlack);
   //tdrDraw(hcp03,"P",kOpenCircle,kOrange+2);
 
+  tdrDraw(hd,"P",kOpenSquare,kGreen+2); hd->SetMarkerSize(0.7);
+  tdrDraw(hm,"P",kOpenDiamond,kMagenta+1);
+
   // Min corresponds to 10% (NHF) times 3% uncertainty = 0.3%
   // Max corresponds to 75% (hadrons) * 80% (HCAL fraction) times 3% = 1.8%,
   // where HCAL fraction at high pT is 35%*100% + 65%*68% = 79% ~ 80%
@@ -294,6 +355,23 @@ void varPlotsResp() {
   ft->SetLineColor(kGreen+2);
   ft->Draw("SAME");
 
+  TF1 *fd = new TF1("fd","[0]+[1]*pow(x/208.,[2])+[3]/x",ptmin,ptmax);
+  fd->SetParameters(ft->GetParameter(0),ft->GetParameter(1),
+		    ft->GetParameter(2),0.5);
+  hd->Fit(fd,"QRN");
+  fd->SetLineColor(kGreen+2);
+  fd->SetLineWidth(2);
+  fd->SetLineStyle(kDashed);
+  fd->Draw("SAME");
+
+  TF1 *fm = new TF1("fm","[0]+[1]*pow(x/208.,[2])+[3]/x",25,ptmax);
+  fm->SetParameters(1.5,-0.5,+0.3,0);
+  hm->Fit(fm,"QRN");
+  fm->SetLineColor(kMagenta+1);
+  fm->SetLineWidth(2);
+  fm->SetLineStyle(kDashed);
+  fm->Draw("SAME");
+
   TF1 *fp = new TF1("fp","[0]",ptmin,ptmax);
   fp->SetParameters(0);
   hp->Fit(fp,"QRN");
@@ -333,9 +411,12 @@ void varPlotsResp() {
   //TLegend *leg2 = tdrLeg(0.17,0.15,0.47,0.33);
   TLegend *leg2 = tdrLeg(0.17,0.150,0.47,0.305);
   leg2->SetTextSize(0.040);
-  leg2->SetHeader("SPR modified");
+  //leg2->SetHeader("SPR modified");
   leg2->AddEntry(hcx,"log-lin -3% to +3%","PL");
   leg2->AddEntry(fhb,"Run I SPRH","L");
+  leg2->AddEntry(hd,"RunF Trk#times0.15","PLE");
+  //leg2->AddEntry(hm,"H++ vs P8CP5","PLE");
+  leg2->AddEntry(hm,"P8M1 vs CP5","PLE");
   //leg2->AddEntry(hcp03,Form("+3%% #Delta -%1.1f%%",dc),"PL");
 
   cout << endl;
@@ -375,11 +456,24 @@ void varPlotsResp() {
   cout << Form("  ft->SetParameters(%1.4g, %1.4g, %1.4g); // toyPF\n\n",
 	       ft->GetParameter(0), ft->GetParameter(1), ft->GetParameter(2));
 
+  cout << "  // Tracking -1% variation in data" << endl;
+  cout << Form("  if (!fd) fd = new TF1(\"fd\",\"%s\",15,4500);\n",
+	       fd->GetExpFormula().Data());
+  cout << Form("  fd->SetParameters(%1.4g, %1.4g, %1.4g, %1.4g); // Data\n\n",
+	       fd->GetParameter(0), fd->GetParameter(1), fd->GetParameter(2),
+	       fd->GetParameter(3));
+
   cout << "  // Photon -3% variation" << endl;
   cout << Form("  if (!fp) fp = new TF1(\"fp\",\"%s\",15,4500);\n",
 	       fp->GetExpFormula().Data());
   cout << Form("  fp->SetParameter(0,%1.4g); // toyPF\n\n",
 	       fp->GetParameter(0));
+
+  cout << "  // H++ vs  P8CP5" << endl;
+  cout << Form("  if (!fm) fm = new TF1(\"fp\",\"%s\",15,4500);\n",
+	       fm->GetExpFormula().Data());
+  cout << Form("  fm->SetParameter(0,%1.4g); // FullMC\n\n",
+	       fm->GetParameter(0));
 
   TLatex *tex = new TLatex();
   tex->SetNDC(); tex->SetTextSize(0.045);
@@ -401,6 +495,7 @@ void scaleStat(TH1D *h, double k) {
 
 void varPlotsComp(string sf) {
 
+  const char *ctp = "";//"tp" for tag-and-probe or "" for direct match
   setTDRStyle();
 
   TDirectory *curdir = gDirectory;  
@@ -412,6 +507,19 @@ void varPlotsComp(string sf) {
   //assert(f2 && !f2->IsZombie());
   //f2->cd("Standard/Eta_0.0-1.3");
   //TDirectory *d = gDirectory;
+
+  TFile *fd1 = new TFile("rootfiles/output-DATA-2b-UL17V4_F_sub2p7.root","READ");
+  assert(fd1 && !fd1->IsZombie());
+  TFile *fd2 = new TFile("rootfiles/output-DATA-2b-UL17V4_F.root","READ");
+  assert(fd2 && !fd2->IsZombie());
+  TFile *fd3 = new TFile("rootfiles/output-DATA-2b-UL17V4_F_plus2p7.root","READ");
+  assert(fd3 && !fd3->IsZombie());
+
+  TFile *fm1 = new TFile("rootfiles/output-P8CP5-2b-EOY17_DE.root","READ");
+  assert(fm1 && !fm1->IsZombie());
+  //TFile *fm2 = new TFile("rootfiles/output-HW-2b-EOY17_DE.root","READ");
+  TFile *fm2 = new TFile("rootfiles/output-P8M1-2b-EOY17_DE.root","READ");
+  assert(fm2 && !fm2->IsZombie());
 
   curdir->cd();
 
@@ -427,6 +535,47 @@ void varPlotsComp(string sf) {
   TH1D *ht1 = (TH1D*)f->Get(Form("h%s_Trkm1",cf)); assert(ht1);
   TH1D *ht3 = (TH1D*)f->Get(Form("h%s_Trkm3",cf)); assert(ht3);
   TH1D *hp = (TH1D*)f->Get(Form("h%s_ECALm3",cf)); assert(hp);
+
+  // Difference in RunF high and low tracking efficiency regions
+  TProfile *pd1 = (TProfile*)fd1->Get(Form("Standard/Eta_0.0-1.3/p%s%s",cf2,ctp));
+  assert(pd1);
+  TProfile *pd2 = (TProfile*)fd2->Get(Form("Standard/Eta_0.0-1.3/p%s%s",cf2,ctp));
+  assert(pd2);
+  TProfile *pd3 = (TProfile*)fd3->Get(Form("Standard/Eta_0.0-1.3/p%s%s",cf2,ctp));
+  assert(pd3);
+
+  TProfile *pm1 = (TProfile*)fm1->Get(Form("Standard/Eta_0.0-1.3/p%s%s",cf2,ctp));
+  assert(pm1);
+  TProfile *pm2 = (TProfile*)fm2->Get(Form("Standard/Eta_0.0-1.3/p%s%s",cf2,ctp));
+  assert(pm2);
+
+  TH1D *hd = pd2->ProjectionX(Form("hd_%s",cf));
+  //hd->Add(pd2,pd1,100,-100);
+  for (int i = 1; i != hd->GetNbinsX()+1; ++i) {
+    double y1 = pd1->GetBinContent(i); // phi<2.7
+    double ey1 = pd1->GetBinError(i);
+    double y2 = pd2->GetBinContent(i); // all
+    double ey2 = pd2->GetBinError(i);
+    double y3 = pd3->GetBinContent(i); // phi>2.7
+    double ey3 = pd3->GetBinError(i);
+    // y2 = (pi+2.7)/2pi*y1+(pi-2.7)/2pi*y3
+    //double y3 = (y2 - (TMath::Pi()+2.7)/TMath::TwoPi()*y1)*TMath::TwoPi()/(TMath::Pi()-2.7); // out
+    //double ey3 = (ey2 - (TMath::Pi()+2.7)/TMath::TwoPi()*ey1)*TMath::TwoPi()/(TMath::Pi()-2.7);
+    //double ey3 = sqrt(TMath::TwoPi()/(TMath::Pi()-2.7))*ey2;
+    double k = 0.15;//0.2;
+    hd->SetBinContent(i, k*100.*(y3-y1));
+    hd->SetBinError(i, k*100.*ey3);
+  }
+
+  TH1D *hm = pm2->ProjectionX(Form("hd_%s",cf));
+  for (int i = 1; i != hm->GetNbinsX()+1; ++i) {
+    double y1 = pm1->GetBinContent(i); // P8CP5
+    double ey1 = pm1->GetBinError(i);
+    double y2 = pm2->GetBinContent(i); // H++
+    double ey2 = pm2->GetBinError(i);
+    hm->SetBinContent(i, 100.*(y2-y1));
+    hm->SetBinError(i, 100.*sqrt(ey2*ey2+ey1*ey1));
+  }
 
   //TProfile *p = (TProfile*)d->Get(Form("p%stp",cf2)); assert(p);
   //TGraphErrors *g = new TGraphErrors(p->ProjectionX(Form("p%s",cf2)));
@@ -496,12 +645,15 @@ void varPlotsComp(string sf) {
   ha->Add(ha,hh,1,-1.5);
   //ha->Add(ha,ht1,1,0.5);
 
-  TH1D *h = tdrHist("hComp",
+  TH1D *h = tdrHist(Form("hComp_%s",cf2),
 		    //Form("Composition change for %s (%%)",cf),
 		    Form("Composition change for %s (10^{-2})",cf2),
-		    -2.,3.,"p_{T} (GeV)",ptmin,ptmax);
+		    //-2.,3.,"p_{T} (GeV)",ptmin,ptmax);
+		    -0.7,1.3,"p_{T} (GeV)",ptmin,ptmax);
+  if (string(ctp)=="")   h->SetXTitle("p_{T,probe} (GeV)");
+  if (string(ctp)=="tp") h->SetXTitle("p_{T,tag} (GeV)");
   lumi_13TeV = "toyPF";
-  TCanvas *c1 = tdrCanvas("c1Comp",h,4,11,kSquare);
+  TCanvas *c1 = tdrCanvas(Form("c1Comp_%s",cf2),h,4,11,kSquare);
   gPad->SetLogx();
 
   TLine *l = new TLine();
@@ -514,15 +666,18 @@ void varPlotsComp(string sf) {
   tdrDraw(hh,"Pz",kOpenTriangleUp,kRed);   hh->SetMarkerSize(0.7);
   tdrDraw(he,"Pz",kOpenTriangleUp,kBlue);  he->SetMarkerSize(0.7);
   //tdrDraw(ht,"Pz",kFullSquare,kBlue);      ht->SetMarkerSize(0.7);
-  tdrDraw(ht3,"Pz",kFullSquare,kBlue);      ht1->SetMarkerSize(0.7);
-  tdrDraw(ht1,"Pz",kFullSquare,kBlue-9);    ht3->SetMarkerSize(0.7);
+  //tdrDraw(ht3,"Pz",kFullSquare,kBlue);      ht3->SetMarkerSize(0.7);
+  tdrDraw(ht1,"Pz",kFullSquare,kBlue-9);    ht1->SetMarkerSize(0.7);
   tdrDraw(hp,"Pz",kFullDiamond,kCyan+2); 
+
+  tdrDraw(hd,"Pz",kOpenSquare,kBlue-9); hd->SetMarkerSize(0.7);
+  tdrDraw(hm,"Pz",kOpenDiamond,kMagenta+1);
 
   //tdrDraw(ha,"Pz",kFullDiamond,kOrange+2);
 
   TLegend *leg = tdrLeg(0.62,0.615,0.90,0.90);
   //TLegend *leg = tdrLeg(0.62,0.66,0.90,0.90);
-  leg->AddEntry(ht3,"Tracker -3%","PLE");
+  //leg->AddEntry(ht3,"Tracker -3%","PLE");
   leg->AddEntry(ht1,"Tracker -1%","PLE");
   leg->AddEntry(hh,"HCAL-h +3%","PLE");
   leg->AddEntry(hcp,"SPR +3%","PLE");
@@ -531,9 +686,139 @@ void varPlotsComp(string sf) {
   leg->AddEntry(he,"ECAL-h -3%","PLE");
 
   //TLegend *leg2 = tdrLeg(0.20,0.57,0.48,0.66);
-  TLegend *leg2 = tdrLeg(0.20,0.66,0.48,0.75);
+  //TLegend *leg2 = tdrLeg(0.20,0.66,0.48,0.75);
+  TLegend *leg2 = tdrLeg(0.20,0.66,0.48,0.795);
   leg2->AddEntry(hcx,"SPR #pm3%","PLE");
   //leg2->AddEntry(ha,"T1+P3+H3+SPR#pm3%","PLE");
+  leg2->AddEntry(hd,"RunF Trk#times0.15","PLE");
+  leg2->AddEntry(hm,"P8M1 vs CP5","PLE");
+
+  // Fit variations
+  TF1 *ft3 = new TF1(Form("ft3_%s",cf2),
+		     "[0]+[1]*(1+(pow(x/[2],[3])-1)/(pow(x/[2],[3])+1))"
+		     "+[4]*pow(x,-0.3)",
+		     ptmin,ptmax);
+  ft3->SetLineColor(kBlue);
+  if (sf2=="chf") ft3->SetParameters(-1.5,+0.2,1000.,0.);//1.3,1,0.);
+  if (sf2=="nhf") ft3->SetParameters(1.0,-0.3,1000.,1.3);
+  if (sf2=="nef") ft3->SetParameters(0.4,+0.1,1000.,1.3);
+  ht3->Fit(ft3,"QRN");
+  //ft3->Draw("SAME");
+
+  TF1 *ft1 = new TF1(Form("ft3_%s",cf2),
+		     "[0]+[1]*(1+(pow(x/[2],[3])-1)/(pow(x/[2],[3])+1))"
+		     "+[4]*pow(x,-0.3)",
+		     ptmin,ptmax);
+  ft1->SetParameters(ft3->GetParameter(0)/3.,ft3->GetParameter(1)/3.,
+		     ft3->GetParameter(2),ft3->GetParameter(3),
+		     ft3->GetParameter(4)/3.);
+  ft1->SetLineColor(kBlue-9);
+  ft1->Draw("SAME");
+
+  TF1 *fd = new TF1(Form("fd_%s",cf2),
+		     "[0]+[1]*(1+(pow(x/[2],[3])-1)/(pow(x/[2],[3])+1))"
+		     "+[4]*pow(x,+0.3)",
+		     ptmin,ptmax);
+  fd->SetParameters(ft3->GetParameter(0)/3.,ft3->GetParameter(1)/3.,
+  		    ft3->GetParameter(2),ft3->GetParameter(3),
+  		    ft3->GetParameter(4)/3.);
+  //if (sf2=="chf") fd->SetParameters(-1.5/3.,+0.2/3.,1000.,0./3.);
+  //if (sf2=="nhf") fd->SetParameters(1.0/3.,-0.3/3.,1000.,1.3/3.);
+  //if (sf2=="nef") fd->SetParameters(0.4/3.,+0.1/3.,1000.,1.3/3.);
+  //if (sf2=="chf") fd->SetParameters(-0.62, +0.1,1000.,1.3, +0.6);
+  //if (sf2=="nhf") fd->SetParameters(1.0/3.,-0.3/3.,1000.,1.3/3.);
+  //if (sf2=="nef") fd->SetParameters(0.4/3.,+0.1/3.,1000.,1.3/3.);
+  hd->Fit(fd,"QRN");
+  fd->SetLineColor(kBlue-9);
+  fd->SetLineWidth(2);
+  fd->SetLineStyle(kDashed);
+  fd->Draw("SAME");
+
+  TF1 *fm = new TF1(Form("fm_%s",cf2),
+		    "[0]+[1]*pow(x,[2])+[3]/x",
+		    //"[0]+[1]*(1+(pow(x/[2],[3])-1)/(pow(x/[2],[3])+1))"
+		    //"+[4]*pow(x,[5])",
+		     ptmin,ptmax);
+  if (sf2=="chf") fm->SetParameters(-0.2,0.,0.3,0);
+  if (sf2=="nhf") fm->SetParameters(0.14,4.,0.3,0);
+  if (sf2=="nef") fm->SetParameters(0,-5,0.3,0);
+  hm->Fit(fm,"QRN");
+  fm->SetLineColor(kMagenta+1);
+  fm->SetLineWidth(2);
+  fm->SetLineStyle(kDashed);
+  fm->Draw("SAME");
+
+  TF1 *fp = new TF1(Form("fp_%s",cf2),
+		    "[0]+[1]*(1+(pow(x/[2],[3])-1)/(pow(x/[2],[3])+1))"
+		    "+[4]*pow(x,[5])",
+		    ptmin,ptmax);
+  fp->SetLineColor(kCyan+2);
+  if (sf2!="chf") fp->FixParameter(1,0);
+  if (sf2=="chf") fp->SetParameters(0.4,0.0,1000,1.3,-0.1,0.3);
+  if (sf2=="nhf") fp->SetParameters(0.1,0.,1000.,1.3,+0.3,0.3);
+  if (sf2=="nef") fp->SetParameters(-0.2,0.0,1000.,1.3,-0.3);
+  hp->Fit(fp,"QRN");
+  fp->Draw("SAME");
+
+  TF1 *fcx = new TF1(Form("fcx_%s",cf2),
+		     "[0]+[1]*(1+(pow(x/[2],[3])-1)/(pow(x/[2],[3])+1))"
+		     "+[4]*pow(x,[5])",
+		     ptmin,ptmax);
+  fcx->SetLineColor(kBlack);
+  if (sf2=="chf") fcx->SetParameters(-0.1,0,400.,1.3,2,-0.3);
+  if (sf2=="nhf") fcx->SetParameters(-0.1,0,400.,1.3,2,+0.3);
+  if (sf2=="nef") fcx->SetParameters(0.0,0,1000.,1.3,-2,+0.3);
+  hcx->Fit(fcx,"QRN");
+  fcx->Draw("SAME");
+
+  TF1 *fh = new TF1(Form("fh_%s",cf2),
+		    "[0]+[1]*(1+(pow(x/[2],[3])-1)/(pow(x/[2],[3])+1))"
+		    "+[4]*pow(x,[5])",
+		    ptmin,ptmax);
+  fh->SetLineColor(kRed);
+  if (sf2=="chf") fh->SetParameters(-0.2,0.1,1000.,1.3,0.,0.3);
+  if (sf2=="nhf") fh->SetParameters(0.14,0,1000,1.3,4.,0.3);
+  if (sf2=="nef") fh->SetParameters(0,0,1000,1.3,-5,0.3);
+  hh->Fit(fh,"QRN");
+  fh->Draw("SAME");
+
+  TF1 *fe = new TF1(Form("fe_%s",cf2),
+		    "[0]+[1]*(1+(pow(x/[2],[3])-1)/(pow(x/[2],[3])+1))"
+		    "+[4]*pow(x,[5])",
+		    ptmin,ptmax);
+  fe->SetLineColor(kBlue);
+  fe->FixParameter(1,0);
+  if (sf2=="chf") fe->SetParameters(0.05,0.,1000.,1.3,-0.5,0.3);
+  if (sf2=="nhf") fe->SetParameters(0.0,0,1000,1.3,4.,0.3);
+  if (sf2=="nef") fe->SetParameters(0,0,1000,1.3,-4.,0.3);
+  he->Fit(fe,"QRN");
+  fe->Draw("SAME");
+
+  vector<TF1*> vf1;
+  vf1.push_back(ft3);
+  vf1.push_back(fp);
+  vf1.push_back(fcx);
+  vf1.push_back(fh);
+  vf1.push_back(fe);
+  vf1.push_back(fd);
+  vf1.push_back(fm);
+
+  cout << endl;
+  cout << " // Fits from minitools/varPlots.C" << endl;
+  for (unsigned int i = 0; i != vf1.size(); ++i) {
+    TF1 *f1 = vf1[i];
+    cout << Form("  TF1 *%s = new TF1(\"%s\",\"%s\",%1.0f,%1.0f);\n",
+		 f1->GetName(),f1->GetName(),f1->GetExpFormula().Data(),
+		 ptmin,ptmax);
+    cout << Form("  %s->SetParameters(",f1->GetName());
+    for (int j = 0; j != f1->GetNpar()-1; ++j)
+      cout << Form("%1.4g, ",f1->GetParameter(j));
+    cout << Form("%1.4g); // %1.1f/%d\n",
+		 f1->GetParameter(f1->GetNpar()-1),
+		 f1->GetChisquare(), f1->GetNDF());
+  }
+  cout << endl;
+
 
   c1->SaveAs(Form("pdf/varPlotsComp_%s.pdf",cf2));
 

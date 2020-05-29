@@ -19,7 +19,7 @@
 #include "TLine.h"
 
 //#include "../tools.h"
-#include "tdrstyle_mod14.C"
+#include "tdrstyle_mod15.C"
 
 #include <string>
 #include <iostream>
@@ -29,7 +29,8 @@
 
 const double _lumi = 2065.;//19800.;
 // UL17: adjust threhsolds bit for FSR fits
-const double ptrec_zjet = 8.9;//5.;
+const double ptrec_zlljet = 8.9;//5.;
+const double ptrec_zjet = 15;
 const double ptrec_gjet = 8.9;//15.;
 
 bool debug = false;
@@ -74,8 +75,12 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   const char* methods[nmethods] = {"mpfchs1", "ptchs"};
   //  const int nsamples = (dodijet ? 4 : 3);
   //const char* samples[4] = {"zeejet", "zmmjet", "zlljet", "dijet"};
-  const int nsamples = (dodijet ? 5 : 4);
-  const char* samples[5] = {"gamjet","zeejet", "zmmjet", "zlljet",
+  //const int nsamples = (dodijet ? 5 : 4);
+  const int nsamples = (dodijet ? 6 : 5);
+  //const char* samples[5] = {"gamjet","zeejet", "zmmjet", "zlljet",
+  //const char* samples[5] = {"gamjet","zeejet", "zmmjet", "zjet",
+  //			    domultijet ? "multijet" : "dijet"};
+  const char* samples[6] = {"gamjet","zeejet", "zmmjet", "zlljet", "zjet",
 			    domultijet ? "multijet" : "dijet"};
   //const int nsamples = (dodijet ? 4 : 3);
   //const char* samples[4] = {"gamjet","zeejet", "zmmjet", "dijet"};
@@ -89,13 +94,22 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   const int nalphas = 4;
   const int alphas[nalphas] = {30, 20, 15, 10};
 
-  // Z+jet bins
+  // Zll+jet bins
   const double ptbins1[] =
     {30, 40, 50, 60, 85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 1500};
   const int npt1 = sizeof(ptbins1)/sizeof(ptbins1[0])-1;
   double ptmax1 = ptbins1[npt1];
   TH1D *hpt1 = new TH1D("hpt1","",npt1,&ptbins1[0]);
   TProfile *ppt1 = new TProfile("ppt1","",npt1,&ptbins1[0]);
+
+  // Z+jet bins
+  const double ptbins1b[] =
+    {30, 40, 50, 60, 70,85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 1500};
+  const int npt1b = sizeof(ptbins1b)/sizeof(ptbins1b[0])-1;
+  double ptmax1b = ptbins1b[npt1];
+  TH1D *hpt1b = new TH1D("hpt1b","",npt1b,&ptbins1b[0]);
+  TProfile *ppt1b = new TProfile("ppt1b","",npt1b,&ptbins1b[0]);
+
 
   // gamma+jet bins
   const double ptbins2[] = {40, 50, 60, 85, 105, 130, 175, 230, 300, 400,
@@ -132,6 +146,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   texlabel["zmmjet"] = "Z(#rightarrow#mu#mu)+jet";// TB";
   //texlabel["zmmjet"] = "Z(#rightarrow#mu#mu)+jet RS";
   texlabel["zlljet"] = "Z(#rightarrowl^{+}l^{-})+jet";
+  texlabel["zjet"] = "Z+jet";
   texlabel["dijet"] = "Dijet";
   texlabel["multijet"] = "Multijet";
   texlabel["ptchs"] = "p_{T} balance (CHS)";
@@ -186,6 +201,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
         const char *cd = dirs[idir];
         const char *cm = methods[imethod];
         const char *cs = samples[isample];
+	string ss = samples[isample];
 
 	for (int  ialpha = 0; ialpha != nalphas; ++ialpha) {
 	  const int a = alphas[ialpha];
@@ -193,7 +209,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  string s = Form("%s/%s/%s_%s_a%d",dirs[idir],bin,cm,cs,a);
 	  TGraphErrors *g = (TGraphErrors*)finout->Get(s.c_str());
 	  if (!g) cout << "Missing " << s << endl << flush;
-	  if (!g && string(cs)=="multijet" && a==10) g = new TGraphErrors(0);
+	  if (!g && ss=="multijet" && a==10) g = new TGraphErrors(0);
 	  assert(g);
 
 	  // Clean out empty points
@@ -203,14 +219,15 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  for (int i = g->GetN()-1; i != -1; --i) {
             //cout << g->GetX()[i] << " ";
 	    if (g->GetY()[i]==0 || g->GetEY()[i]==0 ||
-		(string(cs)=="dijet" && g->GetX()[i]<70.)  ||
-		(string(cs)=="multijet" && g->GetX()[i]>ptmax5)  ||
-		//(string(cs)=="multijet" && g->GetX()[i]<49.)  ||
-		//(string(cs)=="multijet" && g->GetX()[i]<84.)  ||
-		(string(cs)=="gamjet" && g->GetX()[i]>ptmax2) ||
-		(string(cs)=="zeejet" && g->GetX()[i]>ptmax1) ||
-		(string(cs)=="zmmjet" && g->GetX()[i]>ptmax1) ||
-		(string(cs)=="zlljet" && g->GetX()[i]>ptmax1))
+		(ss=="dijet" && g->GetX()[i]<70.)  ||
+		(ss=="multijet" && g->GetX()[i]>ptmax5)  ||
+		//(ss=="multijet" && g->GetX()[i]<49.)  ||
+		//(ss=="multijet" && g->GetX()[i]<84.)  ||
+		(ss=="gamjet" && g->GetX()[i]>ptmax2) ||
+		(ss=="zeejet" && g->GetX()[i]>ptmax1) ||
+		(ss=="zmmjet" && g->GetX()[i]>ptmax1) ||
+		(ss=="zlljet" && g->GetX()[i]>ptmax1) ||
+		(ss=="zjet" && g->GetX()[i]>ptmax1b))
 	      g->RemovePoint(i);
 	  }
 
@@ -219,12 +236,14 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  // Sort points into new graphs vs alpha
 	  //TH1D *hpt = (isample==0 ? hpt2 : hpt1);
 	  //TProfile *ppt = (isample==0 ? ppt2 : ppt1);
-	  TH1D *hpt = (string(cs)=="gamjet" ? hpt2 : hpt1);
-	  TProfile *ppt = (string(cs)=="gamjet" ? ppt2 : ppt1);
+	  TH1D *hpt = (ss=="gamjet" ? hpt2 : 
+		       (ss=="zjet" ? hpt1b : hpt1));
+	  TProfile *ppt = (ss=="gamjet" ? ppt2 : 
+			   (ss=="zjet" ? ppt1b : ppt1));
 	  //if (isample==3) { hpt = hpt4; ppt = ppt4; } // pas-v6
 	  //if (isample==idj) { hpt = hpt4; ppt = ppt4; } // pas-v6
-	  if (string(cs)=="dijet") { hpt = hpt4; ppt = ppt4; } // pas-v6
-	  if (string(cs)=="multijet") { hpt = hpt5; ppt = ppt5; }
+	  if (ss=="dijet") { hpt = hpt4; ppt = ppt4; } // pas-v6
+	  if (ss=="multijet") { hpt = hpt5; ppt = ppt5; }
 	  for (int i = 0; i != g->GetN(); ++i) {
 	    
 	    double pt = g->GetX()[i];
@@ -306,7 +325,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 	  const char *cs = samples[isample];
 	  string ss = cs;
-	  if (etamin==0 && string(cs)=="dijet") continue;
+	  if (etamin==0 && ss=="dijet") continue;
 
 	  const int a = alphas[ialpha];
 	  TGraphErrors *g = gemap[cd][cm][cs][a]; assert(g);
@@ -392,7 +411,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  
 	  const char *cs = samples[isample];
 	  string ss = cs;
-	  if (string(cs)=="dijet") continue;
+	  if (ss=="dijet") continue;
 	  TGraphErrors *g = gemap[cd][cm][cs][30];
 	  if (!g) cout << cd <<"_"<< cm <<"_"<< cs <<"_30"<< endl << flush;
 	  assert(g);
@@ -458,6 +477,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	leg->AddEntry(gemap[cd][cm]["zeejet"][30], texlabel["zeejet"], "P");
 	leg->AddEntry(gemap[cd][cm]["zmmjet"][30], texlabel["zmmjet"], "P");
 	leg->AddEntry(gemap[cd][cm]["zlljet"][30], texlabel["zlljet"], "P");
+	leg->AddEntry(gemap[cd][cm]["zjet"][30],   texlabel["zjet"], "P");
 	if (domultijet)
 	  leg->AddEntry(gemap[cd][cm]["multijet"][30],texlabel["multijet"],"P");
 	else if (dodijet)
@@ -492,14 +512,15 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 			    "(x>2)*[1]",-1,1);
 	  f1->SetLineColor(ga->GetLineColor());
 	  f1->SetParameters(1,0);
-	  double minalpha = (isample==0 ? ptrec_gjet/ipt : ptrec_zjet/ipt);
+	  double minalpha = (isample==0 ? ptrec_gjet/ipt :
+			     (ss=="zjet" ? ptrec_zjet/ipt : ptrec_zlljet/ipt));
 	  if (ss=="multijet") minalpha=0.145; // 0.15 included
 	  // Constrain slope to within reasonable values
 	  // in the absence of sufficient data using priors
 	  // apply at max(ptrec_gjet,ptrec_zjet)/0.15 = 59.3 GeV ~ 60 GeV
 	  if (ipt<60) { // use priors
 	    int n = ga->GetN();
-	    bool iszjet = (ss=="zeejet"||ss=="zmmjet"||ss=="zlljet");
+	    bool iszjet=(ss=="zeejet"||ss=="zmmjet"||ss=="zlljet"||ss=="zjet");
 	    if (mm=="ptchs") {
 	      // For pT balance in UL17, looking at higher pT:
 	      // Best fit for Z+jet data is -30%, MC -25%, ratio -7%
@@ -570,6 +591,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      //if (isample==idj) { ppt = ppt4; } // pas-v6
 	      if (ss=="gamjet") { ppt = ppt2; }
 	      if (ss=="zlljet")   { ppt = ppt1; }
+	      if (ss=="zjet")     { ppt = ppt1b; }
 	      if (ss=="zeejet")   { ppt = ppt1; }
 	      if (ss=="zmmjet")   { ppt = ppt1; }
 	      if (ss=="dijet")    { ppt = ppt4; }
@@ -648,7 +670,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 	  TF1 *fk(0);
 	  // For UL17_V2
-	  if ((ss=="zlljet" || ss=="zeejet" || ss=="zmmjet")) {
+	  if ((ss=="zlljet" || ss=="zeejet" || ss=="zmmjet")||ss=="zjet") {
 	    // Log-lin works well, except maybe for zlljet pTbal in data
 	    // Want to reduce freedom a bit at the edges of phase space
 	    if (sm=="ptchs")
@@ -769,9 +791,12 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  TDirectory *dout3 = dout2->GetDirectory("fsr"); assert(dout3);
 	  dout3->cd();
 
-	  TH1D *hk = (TH1D*)(isample==0 ? hpt2->Clone() : hpt1->Clone());
-	  TProfile *ppt = (isample==0 ? ppt2 : ppt1);
-          if (isample==idj) { hk = (TH1D*)hpt4->Clone(); ppt = ppt4; } 
+	  TH1D *hk = (TH1D*)(isample==0 ? hpt2->Clone() : 
+			     (ss=="zjet" ? hpt1b->Clone() : hpt1->Clone()));
+	  TProfile *ppt = (isample==0 ? ppt2 :
+			   (ss=="zjet" ? ppt1b : ppt1));
+          //if (isample==idj) { hk = (TH1D*)hpt4->Clone(); ppt = ppt4; } 
+	  if (ss=="dijet") { hk = (TH1D*)hpt4->Clone(); ppt = ppt4; } 
           if (ss=="multijet") { hk = (TH1D*)hpt5->Clone(); ppt = ppt5; } 
 
 	  hk->SetName(Form("hkfsr_%s_%s",cm,cs));
