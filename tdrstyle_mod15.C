@@ -1,4 +1,6 @@
 // Collect all the #includes here
+#ifndef __TDRSTYLEMOD15__
+#define __TDRSTYLEMOD15__
 #include "TROOT.h"
 #include "TGraph.h"
 #include "TLegend.h"
@@ -31,6 +33,7 @@ void tdrDraw(TH1* h, string opt,
 	     int marker=kFullCircle, int mcolor = kBlack,
 	     int lstyle=kSolid, int lcolor=-1,
 	     int fstyle=1001, int fcolor=kYellow+1) {
+  if (h==0) return;
   h->SetMarkerStyle(marker);
   h->SetMarkerColor(mcolor);
   h->SetLineStyle(lstyle);
@@ -44,6 +47,7 @@ void tdrDraw(TGraph* g, string opt,
 	     int marker=kFullCircle, int mcolor = kBlack,
 	     int lstyle=kSolid, int lcolor=-1,
 	     int fstyle=1001, int fcolor=kYellow+1) {
+  if (g==0) return;
   g->SetMarkerStyle(marker);
   g->SetMarkerColor(mcolor);
   g->SetLineStyle(lstyle);
@@ -60,6 +64,21 @@ TLegend *tdrLeg(double x1, double y1, double x2, double y2) {
   leg->SetTextSize(0.045);
   leg->Draw();
   return leg;
+}
+
+TH1D *tdrHist(string name="h", string ylabel="Response",
+	      double y1=0, double y2=1,
+	      string xlabel="p_{T} (GeV)",
+	      double x1=15, double x2=3500) {
+
+  TH1D *h = new TH1D(name.c_str(), Form(";%s;%s",xlabel.c_str(),ylabel.c_str()),
+		     max(1,int(fabs(x2-x1))), x1, x2);
+  h->GetXaxis()->SetMoreLogLabels();
+  h->GetXaxis()->SetNoExponent();
+  h->SetMinimum(y1);
+  h->SetMaximum(y2);
+  
+  return h;
 }
 
 //////////////////////////////////////////
@@ -630,3 +649,5 @@ TCanvas* tdrDiCanvas(const char* canvName, TH1D *hup, TH1D *hdw,
   
   return canv;
 }
+
+#endif /* __TDRSTYLEMOD15__ */
