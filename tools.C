@@ -108,6 +108,42 @@ TGraphErrors *tools::makeGraph(TH1 *hx, TH1 *hy, double scale ) {
 
   return g;
 }
+TGraphErrors *tools::diffGraphs(TGraphErrors *g1, TGraphErrors *g2) {
+
+  assert(g1); assert(g2);
+  TGraphErrors *g = new TGraphErrors(0);
+  g->SetName(Form("diff_%s_%s",g1->GetName(),g2->GetName()));
+  g->SetMarkerStyle(g1->GetMarkerStyle());
+  g->SetMarkerColor(g1->GetMarkerColor());
+  g->SetLineColor(g1->GetLineColor());
+
+  // take diff only of points that are closer to each other than any others
+  for (int i = 0, j = 0; (i != g1->GetN() && j != g2->GetN());) {
+    
+    double x1m, x1p, x2m, x2p, y, ex, ey;
+    GetPoint(g1, max(i-1,0), x1m, y, ex, ey);
+    GetPoint(g1, min(i+1,g1->GetN()-1), x1p, y, ex, ey);
+    GetPoint(g2, max(j-1,0), x2m, y, ex, ey);
+    GetPoint(g2, min(j+1,g2->GetN()-1), x2p, y, ex, ey);
+    double x1, y1, ex1, ey1;
+    GetPoint(g1, i, x1, y1, ex1, ey1);
+    double x2, y2, ex2, ey2;
+    GetPoint(g2, j, x2, y2, ex2, ey2);
+
+    if (fabs(x1-x2)<=fabs(x1-x2m) && fabs(x1-x2)<=fabs(x1-x2p) &&
+	fabs(x1-x2)<=fabs(x2-x1m) && fabs(x1-x2)<=fabs(x2-x1p)) {
+
+      int n = g->GetN();
+      SetPoint(g, n, 0.5*(x1+x2), y1-y2, 0.5*fabs(x1-x2),
+	       oplus(ey1, ey2));
+      ++i, ++j;
+    }
+    else
+      (x1<x2 ? ++i : ++j);
+  } // for i, j
+
+  return g;
+} // ratioGraphs
 TGraphErrors *tools::ratioGraphs(TGraphErrors *g1, TGraphErrors *g2,
 				 double erry) {
 
@@ -314,3 +350,52 @@ void tools::Hadd(TH1 *h1, TH1 *h2, double ptmax, bool syserr) {
   } // for i
 
 } // Hadd
+
+
+// Generic error calculation using differentials
+void tools::drawErrBand(TF1 *f1, TFitResultPtr &fp, double xmin, double xmax) {
+
+  TMatrixDSym emat = fp->GetCovarianceMatrix();
+
+  TGraph *ge = new TGraphErrors(int(xmax-xmin)+1);
+  TGraph *ge_up = new TGraphErrors(int(xmax-xmin)+1);
+  TGraph *ge_dw = new TGraphErrors(int(xmax-xmin)+1);
+  vector<double> dfdp(f1->GetNpar());
+  //vector<double> dp(f1->GetNpar());
+  for (int i = 0; i != ge->GetN(); ++i) {
+
+    double x = xmin + (xmax-xmin)*i/(ge->GetN()-1);
+    double y = f1->Eval(x);
+    for (int j = 0; j != f1->GetNpar(); ++j) {
+
+      double p = f1->GetParameter(j);
+      double ep = f1->GetParError(j);
+      double dp = 0.1*ep;
+      f1->SetParameter(j, p+0.1*ep);
+      double yup = f1->Eval(x);
+      f1->SetParameter(j, p-0.1*ep);
+      double ydw = f1->Eval(x);
+      f1->SetParameter(j, p);
+      dfdp[j] = (dp!=0 ? 0.5*(yup-ydw)/dp : 0);
+      //dp[j] = ep;
+    } // for j
+    
+    double e2(0);
+    for (int j = 0; j != f1->GetNpar(); ++j) {
+      for (int k = 0; k != f1->GetNpar(); ++k) {
+	e2 += dfdp[j]*dfdp[k]*emat[j][k];
+      } // for k
+    } //  for j
+    
+    double err = sqrt(e2);
+    ge->SetPoint(i, x, err);
+    ge_up->SetPoint(i, x, y+err);
+    ge_dw->SetPoint(i, x, y-err);
+  } // for i
+
+  ge_up->SetLineStyle(kDotted);
+  ge_up->Draw("SAMEL");
+  ge_dw->SetLineStyle(kDotted);
+  ge_dw->Draw("SAMEL");
+
+} // drawErr

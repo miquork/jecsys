@@ -5,6 +5,8 @@
 #include "TGraphErrors.h"
 #include "TH1.h"
 #include "TF1.h"
+#include "TFitResult.h"
+#include "TMatrixDSym.h"
 
 #include <string>
 #include <vector>
@@ -28,6 +30,7 @@ namespace tools {
   void SetPoint(TGraphErrors *g, int n, double x, double y,
 		double ex, double ey);
   TGraphErrors *makeGraph(TH1 *hx, TH1 *hy, double scale = 1.);
+  TGraphErrors *diffGraphs(TGraphErrors *g1, TGraphErrors *g2);
   TGraphErrors *ratioGraphs(TGraphErrors *g1, TGraphErrors *g2, double erry=1.);
   TGraphErrors *ratioGraphs(TGraphErrors *g1, TF1 *f2);
   int findPoint(TGraph *g, double x);
@@ -39,6 +42,8 @@ namespace tools {
   TH1D *Rebin(const TH1D *h, const TH1D* href);
 
   void Hadd(TH1 *h1, TH1 *h2, double ptmax=0, bool syserr = false);
+
+  void drawErrBand(TF1 *f1, TFitResultPtr &fp, double xmin, double xmax);
 } // namespace tools
 
 #endif
