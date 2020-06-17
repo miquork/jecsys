@@ -35,17 +35,23 @@ using namespace std;
 
 // rho used to calculate l1bias
 //const double gRho = 15.36; // 2017-06-02 for 2016 data
-const double gRho = 19.21; // EOY17 DE jt450
+//const double gRho = 19.21; // EOY17 DE jt450
+// These values from Z(mm)+jet UL17BCDEF |eta|<1.3 at close to 202.5 GeV
+// Maximilian: [MC,Data]_Rho_CHS_a30_eta_00_13_L1L2Res at 198 GeV (alpha<1.0)
+// Sami:       h_Zpt_rho_alpha100_eta00_13 at 208 GeV (alpha<0.3)
+const double gRhoDT = 21.39; // +/-0.04 (21.39+/-0.05) (18.41+/-0.04)
+const double gRhoMC = 20.60; // +/-0.03 (20.60+/-0.09) (20.67+/-0.03)
+const double gRho = 21.00; // +/-0.40 Average of gRhoDT and gRhoMC
 const bool _dcsonly = false;
 const bool rp_debug = true; // verbose messages
 
 // Appy mass corrections to Z+jet
 // Update 20200325: start moving these to globalFitSyst.C as syst. eigenvectors
 // Need to correct Zee and Zmm here to combine them, but photon could be later
-bool useFixedFit = true; // with minitools/drawZmass.C
+bool useFixedFit = true; // with minitools/drawZmass.C (def:true)
 double fitUncMin = 0.00000; // Some bug if unc<0?
-bool correctZmmMass = true; // pT with mumu mass
-bool correctZeeMass = true; // pT with ee mass
+bool correctZmmMass = true; // pT with mumu mass (def:true)
+bool correctZeeMass = true; // pT with ee mass (def:true)
 bool correctGamMass = true; //!!UL17_V3 false, pT with ee mass at 2*pT
 bool correctUncert = false;  // ll mass uncertainty => globalFitSyst.C
 //
@@ -81,7 +87,7 @@ double valueGamScale = 1.01;//1.;
 //double fpbalptmin(175);//105);//30);//105);//85);//30);//100.); // photon+jet pTbal
 double fzeeptmin(30.);   // Zee+jet both methods
 double fzmmptmin(30.);//30.);   // Zmm+jet both methods
-double fzptmin(30.);  // Z+jet both methods
+double fzptmin(40.);//30.);  // Z+jet both methods
 // Additional cuts to Z+jet MPF / balance methods
 //double fzmpfptmin(30.);   // Z+jet MPF
 //double fzbalptmin(30.);//100);//30.);   // Z+jet pTbal
@@ -94,7 +100,7 @@ double fzptmin(30.);  // Z+jet both methods
 // ...20200419 ptave: 300:
 double fpfjetptmin(15.);
 double fpfjetptmax(2116.);
-double fincjetptmin(15.);
+double fincjetptmin(21);//18)15.);
 double fincjetptmax(2116.);//4037.);
 double fmultijetptmin(114);//300);//114);//114);//49);//64);//84);114);//153);
 // 2640 good for BCDEF, but destabilizes some IOVs? For F, go down to 2116
@@ -273,19 +279,22 @@ void reprocess(string epoch="") {
   //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200419_UL2017%s_SimpleL1_jecV2_jerV1.root",fm_files[epoch]),"READ"); // UL2017_V2
   //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200420_UL2017%s_SimpleL1_jecV3_jerV1.root",fm_files[epoch]),"READ");
   //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200421_UL2017%s_SimpleL1_jecV3_jerV1.root",fm_files[epoch]),"READ");
-  TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200422_UL2017%s_SimpleL1_jecV3_jerV1.root",fm_files[epoch]),"READ");
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200423_UL2017%s_SimpleL1_jecV3_jerV1.root",fm_files[epoch]),"READ");
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200422_UL2017%s_SimpleL1_jecV3_jerV1.root",fm_files[epoch]),"READ"); // V2M5
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200423_UL2017%s_SimpleL1_jecV3_jerV1.root",fm_files[epoch]),"READ"); // NG, pTave trigger too high
+  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200526_UL2017%s_SimpleL1V4JRV2Sigma80MB_jecV4_jerV2.root",fm_files[epoch]),"READ"); // 80 mb - NG
+  TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200526_UL2017%s_SimpleL1V4JRV2_jecV4_jerV2.root",fm_files[epoch]),"READ"); // 69.2 mb
   assert(fmj && !fmj->IsZombie());
   //TFile *fmj =0;
 
   //TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v2.root","READ");
   //TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v3.root","READ"); // Update JER SF V2 + MC truth JER per IOV
-  TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ"); // Update JER SF V2 + MC truth JER per IOV
+  TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ"); // Update JER SF V2 + MC truth JER per IOV (V2M5 input)
   assert(fij && !fij->IsZombie());
 
   TFile *fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL17V4_%s.root",
 				epoch.c_str()),"READ");
   assert((fpfdt && !fpfdt->IsZombie()) || pfMode=="none");
+  // MC80NU 80mb chi2=189.2/137, MCNU 69.2mb=218.137/137
   TFile *fpfmc = new TFile(Form("rootfiles/output-MC80NU-2b-UL17V4_%s.root",
 //TFile *fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
 				epoch.c_str()),"READ");
@@ -354,7 +363,11 @@ void reprocess(string epoch="") {
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
-  TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_vX.root","READ");
+  //TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_vX.root","READ");
+  //TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_v22.root","READ");
+  //TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_vRawChsMET.root","READ");
+  //TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_v24.root","READ");
+  TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_v25.root","READ");
   assert(fz && !fz->IsZombie());
   // JES correction for zjet
   TFile *fzjes = new TFile("rootfiles/jecdataBCDEF_V4.root","READ");
@@ -375,6 +388,7 @@ void reprocess(string epoch="") {
 
   // Link to Z mass files (same as above now) and histograms
   // This is used for scaling Z mass back to 1 for Zee and Zmm
+  TFile *fmz = fz;
   TFile *fmzee = fzee;
   TFile *fmzmm = fzmm;
   assert(fmzee && !fmzee->IsZombie());
@@ -409,6 +423,17 @@ void reprocess(string epoch="") {
   assert(hmzee_mc);
   assert(hmzmm_mc);
 
+  // v24 has _eta_00_13, v25 not
+  TH2D *h2mz = (TH2D*)fmz->Get("data/eta_00_13/h_Zpt_mZ_alpha30");
+  TH2D *h2mz_dt = (TH2D*)fmz->Get("data/eta_00_13/h_Zpt_mZ_alpha30");
+  TH2D *h2mz_mc = (TH2D*)fmz->Get("mc/eta_00_13/h_Zpt_mZ_alpha30");
+  assert(h2mz);
+  assert(h2mz_dt);
+  assert(h2mz_mc);
+  TH1D *hmz_dt = h2mz_dt->ProfileX("h2mz_dt")->ProjectionX("hmz_dt");
+  TH1D *hmz_mc = h2mz_mc->ProfileX("h2mz_mc")->ProjectionX("hmz_mc");
+  TH1D *hmz = h2mz->ProfileX("h2mz")->ProjectionX("hmz");
+  hmz->Divide(hmz_mc);
 
   // Extra functions for gamma+jet, modified from Zee+jet
   TF1 *f1mgam = new TF1("f1mgam","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
@@ -632,6 +657,7 @@ void reprocess(string epoch="") {
   rename["zmmjet"]["data"] = "Data";
   rename["zmmjet"]["mc"] = "MC";
   rename["zmmjet"]["mpfchs"] = "MPF-notypeI_CHS";
+  //rename["zmmjet"]["mpfchs1"] = "MPF-notypeI_CHS"; //TEMP TEMP TEMP!!!
   rename["zmmjet"]["mpfchs1"] = "MPF_CHS"; 
   rename["zmmjet"]["ptchs"] = "PtBal_CHS"; 
   rename["zmmjet"]["counts"] = "RawNEvents_CHS";
@@ -644,7 +670,12 @@ void reprocess(string epoch="") {
   rename["zjet"]["mpfchs1"] = "mpfchs"; 
   rename["zjet"]["ptchs"] = "ptchs"; 
   rename["zjet"]["counts"] = "statistics_mpfchs";
-  
+  rename["zjet"]["chf"] = "chHEF";
+  rename["zjet"]["nef"] = "neEmEF";
+  rename["zjet"]["nhf"] = "neHEF";
+  rename["zjet"]["cef"] = "chEmEF";
+  rename["zjet"]["muf"] = "muEF";
+
 
   // color and style codes
   map<string, map<string, int> > style;
@@ -652,9 +683,13 @@ void reprocess(string epoch="") {
   style["pfjet"]["chf"] = kFullCircle;
   style["pfjet"]["nhf"] = kFullDiamond;
   style["pfjet"]["nef"] = kFullSquare;
+  style["pfjet"]["cef"] = kFullDiamond;
+  style["pfjet"]["muf"] = kFullDiamond;
   style["pfjet_mc"]["chf"] = kOpenCircle;
   style["pfjet_mc"]["nhf"] = kOpenDiamond;
   style["pfjet_mc"]["nef"] = kOpenSquare;
+  style["pfjet_mc"]["cef"] = kOpenDiamond;
+  style["pfjet_mc"]["muf"] = kOpenDiamond;
   style["dijet"]["mpfchs1"] = kFullDiamond;//kFullCircle;
   style["dijet"]["ptchs"] = kOpenDiamond;//kOpenSquare;
   style["incjet"]["mpfchs1"] = kFullDiamond;
@@ -671,12 +706,24 @@ void reprocess(string epoch="") {
   style["zlljet"]["ptchs"] = kOpenDiamond;
   style["zjet"]["mpfchs1"] = kFullDiamond;
   style["zjet"]["ptchs"] = kOpenDiamond;
+  style["zjet"]["chf"] = kFullCircle;
+  style["zjet"]["nhf"] = kFullDiamond;
+  style["zjet"]["nef"] = kFullSquare;
+  style["zjet"]["cef"] = kFullDiamond;
+  style["zjet"]["muf"] = kFullDiamond;
+  style["zjet_mc"]["chf"] = kOpenCircle;
+  style["zjet_mc"]["nhf"] = kOpenDiamond;
+  style["zjet_mc"]["nef"] = kOpenSquare;
+  style["zjet_mc"]["cef"] = kOpenDiamond;
+  style["zjet_mc"]["muf"] = kOpenDiamond;
 
   map<string, int> color;
   color["pfjet"] = kBlack;
   color["pfjet_chf"] = kRed;
   color["pfjet_nhf"] = kGreen+2;
   color["pfjet_nef"] = kBlue;
+  color["pfjet_cef"] = kCyan+1;
+  color["pfjet_muf"] = kMagenta+1;
   color["dijet"] = kBlack;
   color["incjet"] = kOrange+2;//kBlack;
   color["multijet"] = kBlack;
@@ -685,6 +732,11 @@ void reprocess(string epoch="") {
   color["zmmjet"] = kRed;
   color["zlljet"] = kMagenta+2;
   color["zjet"] = kRed+1;
+  color["zjet_chf"] = kRed;
+  color["zjet_nhf"] = kGreen+2;
+  color["zjet_nef"] = kBlue;
+  color["zjet_cef"] = kCyan+1;
+  color["zjet_muf"] = kMagenta+1;
 
   map<double, double> size;
   size[0.10] = 0.6;
@@ -713,8 +765,8 @@ void reprocess(string epoch="") {
   types.push_back("chf");
   types.push_back("nef");
   types.push_back("nhf");
-  //types.push_back("cef");
-  //types.push_back("muf");
+  types.push_back("cef");
+  types.push_back("muf");
   //types.push_back("puf");
 
   vector<string> sets;
@@ -804,6 +856,7 @@ void reprocess(string epoch="") {
       assert(dout0->cd(dd0));
       //TDirectory *dout = gDirectory; // broke in ROOT 6.04/08
       TDirectory *dout = dout0->GetDirectory(dd0); assert(dout);
+      dout->mkdir("orig");
       dout->cd();
 
       // Save background histogram for easy drawing from root file
@@ -843,10 +896,12 @@ void reprocess(string epoch="") {
 	  if (t=="crecoil" && s!="multijet") continue;
 
 	  // fractions are only for pfjet, and only fractions are for pfjet
-	  if ((t=="chf"||t=="nef"||t=="nhf"||t=="cef"||t=="muf"||t=="puf")
-	      && s!="pfjet") continue;
-	  if (!(t=="chf"||t=="nef"||t=="nhf"||t=="cef"||t=="muf"||t=="puf")
-	      && s=="pfjet") continue;
+	  // (now adding fractions to zjet)
+	  bool isfrac = (t=="chf"||t=="nef"||t=="nhf"||
+			 t=="cef"||t=="muf"||t=="puf");
+	  if (isfrac && s!="pfjet" && s!="zjet") continue; // v25
+	  //if (isfrac && s!="pfjet") continue; // v24
+	  if (!isfrac && s=="pfjet") continue;
 
 	  for (unsigned int ialpha = 0; ialpha != alphas.size(); ++ialpha) {
 
@@ -918,7 +973,8 @@ void reprocess(string epoch="") {
 	    //if (s=="gamjet" && t=="counts" && d=="ratio")continue;
 	    if (s=="gamjet" && t=="counts") {
 	      c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f_%s",
-		       rename[s]["mpfchs1"], d=="ratio" ? rename[s]["data"] :rename[s][d],
+		       rename[s]["mpfchs1"],
+		       d=="ratio" ? rename[s]["data"] : rename[s][d],
 		       100.*alpha, 10.*eta1, 10.*eta2, rename[s][t]);
 	    }
 	    else if (s=="gamjet") {
@@ -939,6 +995,10 @@ void reprocess(string epoch="") {
 	    if (s=="zjet") {
 	      c = Form("%s/eta_%02.0f_%02.0f/%s_zmmjet_a%1.0f",
 	    	       rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha);
+	      if (isfrac) {
+		//c = Form("%s/eta_%02.0f_%02.0f/h_Zpt_%s_alpha%1.0f_eta_%02.0f_%02.0f",rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha,10*eta1,10*eta2); // v24
+		c = Form("%s/eta_%02.0f_%02.0f/h_Zpt_%s_alpha%1.0f",rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha);
+	      }
 	    }
 	    //assert(c || s=="zlljet");
 
@@ -988,6 +1048,16 @@ void reprocess(string epoch="") {
 	      TGraphErrors *g = tools::ratioGraphs(gd, gm);
 	      obj = (TObject*)g;
 	    }
+	    // Calculate data-MC diff
+	    if (s=="zjet" && d=="ratio" && isfrac) {
+	      TGraphErrors *gd = grs["data"][t][s][ieta][ialpha];
+	      TGraphErrors *gm = grs["mc"][t][s][ieta][ialpha];
+	      assert(gd);
+	      assert(gm);
+
+	      TGraphErrors *g = tools::diffGraphs(gd, gm);
+	      obj = (TObject*)g;
+	    }
 
 	    assert(obj);
 
@@ -1010,6 +1080,12 @@ void reprocess(string epoch="") {
               continue; // counts reliably available only for z+jet, so far. For gamma+jet MC events contain weights
             }
 
+	    // If data stored in TH2D instead of TGrapherrors, patch her
+	    // Patch for zjet that has PF fractions in TH2D (v24)
+	    if (obj->InheritsFrom("TH2")) {
+	      obj = new TGraphErrors(((TH2D*)obj)->ProfileX()->ProjectionX());
+	    }
+
 	    // If data stored in TH1D instead of TGraphErrors, patch here
 	    // Patch for dijet file that has TH1D's instead of graphs
 	    if (obj->InheritsFrom("TH1")) {
@@ -1018,6 +1094,7 @@ void reprocess(string epoch="") {
 
 	    // If data stored in TProfile instead of TGraphErrors, patch here
 	    // Patch for pfjet file that has TProfiles's instead of graphs
+	    // Patch for zjet file that has TProfiles instead of graphs
 	    if (obj->InheritsFrom("TProfile")) {
 	      //obj = new TGraphErrors((TProfile*)obj);
 	      obj = new TGraphErrors(((TProfile*)obj)->ProjectionX());
@@ -1031,8 +1108,18 @@ void reprocess(string epoch="") {
               assert(i<=g->GetN()-1);
 	      // Clean out spurious empty pooints
 	      if (g->GetY()[i]==0 && g->GetEY()[i]==0) g->RemovePoint(i);
+	    } // for i
+
+	    // Make a copy of raw data before cleaning cuts and corrections
+	    // for documenting it
+	    TGraphErrors *g_orig = (TGraphErrors*)g->Clone();
+	    g_orig->SetName(Form("%s_%s_a%1.0f",tt,ss,100.*alphas[ialpha]));
+	    
+	    // Select stable range and good statistics points for global fit
+	    for (int i = g->GetN()-1; i != -1; --i) {
+              assert(i<=g->GetN()-1);
               // remove points with large error (more than 0.2 right now)
-              else if (g->GetEY()[i]>0.2)  g->RemovePoint(i);
+              if (g->GetEY()[i]>0.2)  g->RemovePoint(i);
 	      // Clean out point outside good ranges
 	      else if (s=="gamjet" && t=="mpfchs1" &&
 		       (g->GetX()[i]<fpmpfptmin || g->GetX()[i]>fpmpfptmax))
@@ -1123,6 +1210,7 @@ void reprocess(string epoch="") {
 	    // patch L1L2L3Res to L1L2Res for "zjet" data
 	    // (ratio calculated on the fly from data so patched also)
 	    if (s=="zjet" && d=="data" && (t=="mpfchs1" || t=="ptchs")) {
+	      //if (s=="zjet" && d=="data" && (t=="ptchs")) {
 	      assert(hzjes);
 	      for (int i = 0; i != g->GetN(); ++i) {
 		double x = g->GetX()[i];
@@ -1352,6 +1440,9 @@ void reprocess(string epoch="") {
 	      }
 	    }
 
+	    dout->cd("orig");
+	    g_orig->Write();
+
 	    dout->cd();
 
 	    // Set uniform naming scheme and graphical style
@@ -1361,7 +1452,7 @@ void reprocess(string epoch="") {
 	    g->SetMarkerStyle(style[s][t]);
 	    g->SetMarkerColor(color[s]);
 	    g->SetLineColor(color[s]);
-	    if (s=="pfjet") {
+	    if (s=="pfjet" || (s=="zjet" && isfrac)) {
 	      g->SetMarkerStyle(d=="mc" ? style[s+"_"+d][t] : style[s][t]);
 	      g->SetMarkerColor(color[s+"_"+t]);
 	      g->SetLineColor(color[s+"_"+t]);
@@ -1384,12 +1475,15 @@ void reprocess(string epoch="") {
   fout->cd("ratio/eta00-13");
   hmzee->Write("mass_zeejet_a30");
   hmzmm->Write("mass_zmmjet_a30");
+  hmz->Write("mass_zjet_a30");
   fout->cd("data/eta00-13");
   hmzee_dt->Write("mass_zeejet_a30");
   hmzmm_dt->Write("mass_zmmjet_a30");
+  hmz_dt->Write("mass_zjet_a30");
   fout->cd("mc/eta00-13");
   hmzee_mc->Write("mass_zeejet_a30");
   hmzmm_mc->Write("mass_zmmjet_a30");
+  hmz_mc->Write("mass_zjet_a30");
 
   fdj->Close();
   fp->Close(); // single file
@@ -1479,13 +1573,48 @@ void reprocess(string epoch="") {
 
     // New additions (RC: mean vs median; L1: Simple vs SemiSimple)
     FactorizedJetCorrector *jrcdnom, *jrcmnom, *jrcdalt, *jrcmalt; // 1
-    FactorizedJetCorrector *jsfdnom, *jsfmnom, *jsfdalt, *jsfmalt; // 2a
+    FactorizedJetCorrector *jl1dnomsf, *jl1daltsf; // 2a
     FactorizedJetCorrector *jl1dnom, *jl1mnom, *jl1dalt, *jl1malt; // 2b,2c
 
-    jrcdnom = getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1RC");
-    jrcmnom = getFJC("Summer19UL17_V1_SimpleL1_MC_L1RC");
-    jrcdalt = getFJC("UL17_MED_RunBCDEF_V1_DATA_L1RC");
-    jrcmalt = getFJC("UL17_MED_RunBCDEF_V1_MC_L1RC");
+    //jrcdnom = getFJC("Summer19UL17_RunE_V1_SimpleL1_DATA_L1RC"); // (1)
+    //jrcmnom = getFJC("Summer19UL17_V1_SimpleL1_MC_L1RC"); // (1)
+    // Use consistent BCDEF files instead of the official files above
+    jrcdnom = getFJC("UL17_RunBCDEF_V1_DATA_L1RC"); // (1)
+    jrcmnom = getFJC("UL17_RunBCDEF_V1_MC_L1RC"); // (1)
+    jrcdalt = getFJC("UL17_MED_RunBCDEF_V1_DATA_L1RC"); // (1)
+    jrcmalt = getFJC("UL17_MED_RunBCDEF_V1_MC_L1RC"); // (1)
+
+    // Use place-holder for the missing custom data files
+    jl1dnomsf = getFJC("Summer19UL17_RunE_V1_SimpleL1_DATA_L1FastJet"); // (2a) -- placeholder for the two below
+    //jl1dnomsf = getFJC("UL17_RunBCDEF_V1_SimpleL1_DATA_L1FastJet"); // (2a)
+    //jl1daltsf = getFJC("UL17_MED_RunBCDEF_V1_SimpleL1_DATA_L1FastJet"); // (2a)
+
+    // Shell magic to create new new data file from old data and MC files:
+    //   cp -pi [Summer19UL17...MC...] mc.txt
+    //   cp -pi [Summer19UL17...DATA...] dt.txt
+    //   cat dt.txt | awk '{print "     "$12"    "$13}' > sf.txt
+    //   paste mc.txt sf.txt > dt1.txt
+    //   sed -e "s/^M//" dt1.txt > dt2.txt
+    // (above, use Ctrl+V Ctrl+M to produce the carriage return ^M)
+    //   sed -e "s/8       0/10       0/" dt2.txt > dt3.txt
+    //   head -n1 dt.txt > dt4.txt
+    //   tail -n82 dt3.txt >> dt4.txt
+
+    // List of data files still needed (RunE->RunBCDEF, SimpleL1->SemiSimpleL1)
+    //jl1dnom = getFJC("Summer19UL17_RunBCDEF_V1_SimpleL1_DATA_L1FastJet",
+    jl1dnom = getFJC("Summer19UL17_RunE_V1_SimpleL1_DATA_L1FastJet", // (2b)--PH
+		     "Summer19UL17_V1_SimpleL1_MC_L2Relative"); // (2b)
+    jl1mnom = getFJC("Summer19UL17_V1_SimpleL1_MC_L1FastJet", // (2b)
+		     "Summer19UL17_V1_SimpleL1_MC_L2Relative"); // (2b)
+    //jl1dalt = getFJC("Summer19UL17_RunBCDEF_V1_SemiSimpleL1_DATA_L1FastJet",
+    //jl1dalt = getFJC("ParallelMCL1_L1FastJet_AK4PFchs_L1SemiSimple",//(2b)--PH
+    jl1dalt = getFJC("ParallelMCL1_RunE_L1SemiSimple_DATA_L1FastJet",//(2b)--PH
+		     "ParallelMCL1_L2Relative_AK4PFchs_L1SemiSimple"
+		     "_L2L3Splines_ptclip8"); // (2b)
+    jl1malt = getFJC("ParallelMCL1_L1FastJet_AK4PFchs_L1SemiSimple", // (2b)
+		     "ParallelMCL1_L2Relative_AK4PFchs_L1SemiSimple"
+		     "_L2L3Splines_ptclip8"); // (2b)
+    
 
     // Run I uncertainty => 80XV6 uncertainty
     s = Form("%s/Winter14_V8_DATA_UncertaintySources_AK5PFchs.txt",cd); // V8 Run I
@@ -1612,16 +1741,80 @@ void reprocess(string epoch="") {
 			      npt, &ptbins[0]);
 
       // New additions
-      TH1D *hl1mpf = new TH1D("hl1mpf",";p_{T} (GeV);"
-			      "(RC_{dt,nom}/RC_{MC,nom}) / "
-			      "(RC_{dt,alt}/RC_{MC,alt})",
+      TH1D *hrcmpf = new TH1D("hsys1_rcmpf",";p_{T} (GeV);"
+			      "(RC_{dt,alt}/RC_{MC,alt}) / "
+			      "(RC_{dt,nom}/RC_{MC,nom})",
 			      npt, &ptbins[0]);
-      TH1D *hl1mpfdt = new TH1D("hl1mpfdt",";p_{T} (GeV);"
-				"RC_{dt,nom} / RC_{dt,alt}",
+      TH1D *hrcmpfdt = new TH1D("hrcmpfdt",";p_{T} (GeV);"
+				"RC_{dt,alt} / RC_{dt,nom}",
 				npt, &ptbins[0]);
-      TH1D *hl1mpfmc = new TH1D("hl1mpfmc",";p_{T} (GeV);"
-				"RC_{MC,nom} / RC_{MC,alt}",
+      TH1D *hrcmpfmc = new TH1D("hrcmpfmc",";p_{T} (GeV);"
+				"RC_{MC,alt} / RC_{MC,nom}",
 				npt, &ptbins[0]);
+      TH1D *hrcdt = new TH1D("hrcdt",";p_{T} (GeV);"
+			     "RC_{dt,nom}",
+			     npt, &ptbins[0]);
+      TH1D *hrcmc = new TH1D("hrcmc",";p_{T} (GeV);"
+			     "RC_{MC,nom}",
+			     npt, &ptbins[0]);
+      //
+      TH1D *hl1sf = new TH1D("hsys2a_l1sf",";p_{T} (GeV);"
+			     "L1_{dt,altsf}/L1_{dt,nomsf}",
+			     npt, &ptbins[0]);
+      TH1D *hl1sfnom = new TH1D("hl1sfnom",";p_{T} (GeV);"
+				"SF_{dt,nom} = RC_{dt,nom}/RC_{mc,nom}",
+				npt, &ptbins[0]);
+      TH1D *hl1sfalt = new TH1D("hl1sfalt",";p_{T} (GeV);"
+				"SF_{dt,alt} = RC_{dt,alt}/RC_{mc,alt}",
+				npt, &ptbins[0]);
+      TH1D *hl1offdt = new TH1D("hl1offdt",";p_{T} (GeV);"
+				"L1offdt = p_{T,corr}*(L1_{dt,nomsf}-1)",
+				npt, &ptbins[0]);
+      TH1D *hl1dt = new TH1D("hl1dt",";p_{T} (GeV);"
+			     "L1_{dt,nom} = p_{T,corr}/(p_{T,corr}+L1offdt)",
+			     npt, &ptbins[0]);
+      //
+      TH1D *hl1 = new TH1D("hsys2b_l1",";p_{T} (GeV);"
+			   "(L1_{dt,alt}/L1_{mc,alt}) /"
+			   "(L1_{dt,nom}/L1_{mc,nom})",
+			   npt, &ptbins[0]);
+      TH1D *hl1d = new TH1D("hl1d",";p_{T} (GeV);"
+			    "(L1_{dt,alt}/L1_{dt,nom})",
+			    npt, &ptbins[0]);
+      TH1D *hl1m = new TH1D("hl1m",";p_{T} (GeV);"
+			    "(L1_{mc,alt}/L1_{mc,nom})",
+			    npt, &ptbins[0]);
+      TH1D *hl1dnom = new TH1D("hl1dnom",";p_{T} (GeV);"
+			       "L1_{dt,nom})",
+			       npt, &ptbins[0]);
+      TH1D *hl1mnom = new TH1D("hl1mnom",";p_{T} (GeV);"
+			       "L1_{mc,nom})",
+			       npt, &ptbins[0]);
+      //
+      TH1D *hl1sfr = new TH1D("hsys3a_l1sfr",";p_{T} (GeV);"
+			       "[L1_{dt,altsf}/L1_{dt,nomsf}](#LT#rho#GT+20%) /"
+			       "[L1_{dt,altsf}/L1_{dt,nomsf}](#LT#rho#GT) ",
+			       npt, &ptbins[0]);
+      TH1D *hl1sf20 = new TH1D("hl1sfp20",";p_{T} (GeV);"
+			       "[L1_{dt,altsf}/L1_{dt,nomsf}](#LT#rho#GT+20%)",
+			       npt, &ptbins[0]);
+      TH1D *hl1dt20 = new TH1D("hl1dt20",";p_{T} (GeV);"
+			       "(p_{T,corr}+L1offdt(#LT#rho#GT+20%)) /"
+			       "(p_{T,corr}+L1offdt(#LT#rho#GT))",
+			       npt, &ptbins[0]);
+      //
+      TH1D *hl1r = new TH1D("hsys3b_l1r",";p_{T} (GeV);"
+			    "[(L1_{dt,alt}/L1_{mc,alt})/"
+			    "(L1_{dt,nom}/L1_{mc,nom})] "
+			    "(#LT#rho#GT+20%) / (#LT#rho#GT)",
+			    npt, &ptbins[0]);
+      TH1D *hl120 = new TH1D("hl120",";p_{T} (GeV);"
+			     "[(L1_{dt,alt}/L1_{mc,alt})](#LT#rho#GT+20%) /"
+			     "[(L1_{dt,nom}/L1_{mc,nom})](#LT#rho#GT)",
+			     npt, &ptbins[0]);
+      TH1D *hl1d20 = new TH1D("hl1d20",";p_{T} (GeV);"
+			      "[(L1_{dt,alt}/L1_{dt,nom})](#LT#rho#GT+20%)",
+			      npt, &ptbins[0]);
 
       if(rp_debug) cout << "create reference JES bands" << endl;
       for (int ipt = 1; ipt != herr->GetNbinsX()+1; ++ipt) {
@@ -1645,9 +1838,18 @@ void reprocess(string epoch="") {
 	double sumvall1dt(0), sumvall1c(0), sumvall1s(0), sumvall1rc(0);
 	double sumvall1rcdt(0), sumvall1rcmc(0);
 	double sumvall2c(0), sumvall2s(0);
-	double sumvalrcdnom(0),sumvalrcmnom(0), sumvalrcdalt(0),sumvalrcmalt(0);
 	double sumerr2_pt(0), sumerr2_hcal(0), sumerr2_ecal(0), sumerr2_pu(0);
 	double sumerr2_noflv(0), sumerr2_ref(0), sumerr2_ref1(0);
+
+	// New additions
+	double sumvalrcdnom(0),sumvalrcmnom(0), sumvalrcdalt(0),sumvalrcmalt(0);
+	double sumvall1dnomsf(0), sumvall1daltsf(0);
+	double sumvall1dnom(0),sumvall1mnom(0), sumvall1dalt(0),sumvall1malt(0);
+	double sumvall1dnomsf20(0), sumvall1daltsf20(0);
+	double sumvall1dnom20(0),sumvall1mnom20(0);
+	double sumvall1dalt20(0),sumvall1malt20(0);
+
+
 	for (int jeta = 0; jeta != neta; ++jeta) {
 
 	  assert(eta2 > eta1);
@@ -1707,10 +1909,26 @@ void reprocess(string epoch="") {
 	  sumvall2s    += w/     getJEC(jecl2s,    eta,pt);
 
 	  // New additions
-	  sumvalrcdnom += w/     getJEC(jrcdnom,    eta,pt);
-	  sumvalrcmnom += w/     getJEC(jrcmnom,    eta,pt);
-	  sumvalrcdalt += w/     getJEC(jrcdalt,    eta,pt);
-	  sumvalrcmalt += w/     getJEC(jrcmalt,    eta,pt);
+	  sumvalrcdnom += w/     getJEC(jrcdnom,    eta,pt,gRhoDT);
+	  sumvalrcmnom += w/     getJEC(jrcmnom,    eta,pt,gRhoMC);
+	  sumvalrcdalt += w/     getJEC(jrcdalt,    eta,pt,gRhoDT);
+	  sumvalrcmalt += w/     getJEC(jrcmalt,    eta,pt,gRhoMC);
+	  //
+	  sumvall1dnomsf += w/   getJEC(jl1dnomsf, eta,pt,gRhoDT);
+	  //sumvall1daltsf += w/   getJEC(jl1daltsf, eta,pt);
+	  //
+	  sumvall1dnom += w/     getJEC(jl1dnom, eta,pt,gRhoDT);
+	  sumvall1mnom += w/     getJEC(jl1mnom, eta,pt,gRhoMC);
+	  sumvall1dalt += w/     getJEC(jl1dalt, eta,pt,gRhoDT);
+	  sumvall1malt += w/     getJEC(jl1malt, eta,pt,gRhoMC);
+	  //
+	  sumvall1dnomsf20 += w/ getJEC(jl1dnomsf, eta,pt,gRhoDT*1.2);
+	  //sumvall1daltsf20 += w/     getJEC(jl1daltsf, eta,pt);
+	  //
+	  sumvall1dnom20 += w/   getJEC(jl1dnom, eta,pt,gRhoDT*1.2);
+	  sumvall1mnom20 += w/   getJEC(jl1mnom, eta,pt,gRhoMC*1.2);
+	  sumvall1dalt20 += w/   getJEC(jl1dalt, eta,pt,gRhoDT*1.2);
+	  sumvall1malt20 += w/   getJEC(jl1malt, eta,pt,gRhoMC*1.2);
 
 	  // JEC uncertainties
 	  unc->setJetEta(eta);
@@ -1829,9 +2047,58 @@ void reprocess(string epoch="") {
 	double rcmnom = (sumvalrcmnom / sumw);
 	double rcdalt = (sumvalrcdalt / sumw);
 	double rcmalt = (sumvalrcmalt / sumw);
-	hl1mpf->SetBinContent(ipt, (rcdalt/rcmalt) / (rcdnom/rcmnom));
-	hl1mpfdt->SetBinContent(ipt, rcdalt/rcdnom);
-	hl1mpfmc->SetBinContent(ipt, rcmalt/rcmnom);
+	hrcmpf->SetBinContent(ipt, (rcdalt/rcmalt) / (rcdnom/rcmnom)); //(1)
+	hrcmpfdt->SetBinContent(ipt, rcdalt/rcdnom); //xtra
+	hrcmpfmc->SetBinContent(ipt, rcmalt/rcmnom); //xtra
+	hrcdt->SetBinContent(ipt, rcdnom); //xtra
+	hrcmc->SetBinContent(ipt, rcmnom); //xtra
+	//
+	// JES*pTcorr = pTcorr + offset => offset = pTcorr*(JES-1)
+	double l1dnomsf = (sumvall1dnomsf / sumw);
+	//double sfdalt = (sumvallsfalt / sumw);
+	//hl1sf->SetBinContent(ipt, sfdalt/sfdnom);
+	double offl1 = pt * (l1dnomsf - 1);
+	double offrcdnom = pt * (rcdnom - 1);
+	double offrcdalt = pt * (rcdalt - 1);
+	double offrcmnom = pt * (rcmnom - 1);
+	double offrcmalt = pt * (rcmalt - 1);
+	double sfnom = offrcdnom / offrcmnom;
+	double sfalt = offrcdalt / offrcmalt;
+	hl1sf->SetBinContent(ipt, (pt+offl1*sfalt-offl1*sfnom)/pt); //(2a)
+	hl1sfnom->SetBinContent(ipt, sfnom); //xtra
+	hl1sfalt->SetBinContent(ipt, sfalt); //xtra
+	hl1offdt->SetBinContent(ipt, offl1); //xtra
+	hl1dt->SetBinContent(ipt, pt/(pt+offl1)); //xtra
+	//
+	double l1dnom = (sumvall1dnom / sumw);
+	double l1mnom = (sumvall1mnom / sumw);
+	double l1dalt = (sumvall1dalt / sumw);
+	double l1malt = (sumvall1malt / sumw);
+	hl1->SetBinContent(ipt, (l1dalt/l1malt)/(l1dnom/l1mnom)); //(2b)
+	hl1d->SetBinContent(ipt, l1dalt/l1dnom); //xtra
+	hl1m->SetBinContent(ipt, l1malt/l1mnom); //xtra
+	hl1dnom->SetBinContent(ipt, l1dnom); //xtra
+	hl1mnom->SetBinContent(ipt, l1mnom); //xtra
+	//hl1dalt->SetBinContent(ipt, l1dalt); //xtra
+	//hl1malt->SetBinContent(ipt, l1malt); //xtra
+	//
+	double l1dnomsf20 = (sumvall1dnomsf20 / sumw);
+	//double l1daltsf20 = (sumvall1daltsf20 / sumw);
+	//hl1sf->SetBinContent(ipt, l1daltsf20/l1dnomsf20);
+	double offl120 = pt * (l1dnomsf20 - 1);
+	hl1sfr->SetBinContent(ipt, ((pt+offl120*sfalt-offl120*sfnom)/pt)
+			      / ((pt+offl1*sfalt-offl1*sfnom)/pt)); //(3a)
+	hl1sf20->SetBinContent(ipt, (pt+offl120*sfalt-offl120*sfnom)/pt); //xtra
+	hl1dt20->SetBinContent(ipt, (pt+offl120)/(pt+offl1)); //xtra
+	//
+	double l1dnom20 = (sumvall1dnom20 / sumw);
+	double l1mnom20 = (sumvall1mnom20 / sumw);
+	double l1dalt20 = (sumvall1dalt20 / sumw);
+	double l1malt20 = (sumvall1malt20 / sumw);
+	hl1r->SetBinContent(ipt, ((l1dalt20/l1malt20)/(l1dnom20/l1mnom20)) /
+			    ((l1dalt/l1malt)/(l1dnom/l1mnom))); //(3b)
+	hl120->SetBinContent(ipt, (l1dalt20/l1malt20)/(l1dnom20/l1mnom20)); //xtra
+	hl1d20->SetBinContent(ipt, l1dalt20/l1dnom20); //xtra
       } // ipt
       if(rp_debug) cout << "done creating reference JES bands" << endl;
 
@@ -1890,9 +2157,31 @@ void reprocess(string epoch="") {
       hl2cos->Write();
 
       // New additions
-      hl1mpf->Write();
-      hl1mpfdt->Write();
-      hl1mpfmc->Write();
+      hrcmpf->Write(); // (1)
+      hrcmpfdt->Write(); //xtra
+      hrcmpfmc->Write(); //xtra
+      hrcdt->Write(); //xtra
+      hrcmc->Write(); //xtra
+      //
+      hl1sf->Write(); // (2a)
+      hl1sfnom->Write(); //xtra
+      hl1sfalt->Write(); //xtra
+      hl1offdt->Write(); //xtra
+      hl1dt->Write(); //xtra
+      //
+      hl1->Write(); // (2b)
+      hl1d->Write(); //xtra
+      hl1m->Write(); //xtra
+      hl1dnom->Write(); //xtra
+      hl1mnom->Write(); //xtra
+      //
+      hl1sfr->Write(); // (3a)
+      hl1sf20->Write(); //xtra
+      hl1dt20->Write(); //xtra
+      //
+      hl1r->Write(); // (3b)
+      hl120->Write(); //xtra
+      hl1d20->Write(); //xtra
     } // ieta
   } // JEC+sys
 
