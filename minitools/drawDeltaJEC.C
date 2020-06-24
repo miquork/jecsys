@@ -31,9 +31,10 @@ const bool getDetData = false; // detector level data
 const bool getFwd = true; // forward unfolded instead of Dagostini unfolded
 //const bool correctFilterEff = false;
 
+bool plotNLO = true; // patch 0.0-1.3
 bool plotMC = true; // 0.0-1.3 missing still
 bool plot2015 = false;
-bool plotVs17UL = false; // set to true for 17UL
+bool plotVs17UL = true;//false; // set to true for 17UL
 
 // "Rebin(2)"
 const int nptb = 51+10+6;
@@ -234,7 +235,11 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M4res.root","READ");
   //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M4res_hotzone.root","READ");
   //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M4res_hotzone_scaled.root","READ");
-  TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M4res_hotzone_scaled2p.root","READ");
+  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M4res_hotzone_scaled2p.root","READ");
+  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M5res_hotzone.root","READ");
+  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M5res_hotzone_jes.root","READ"); // add MC JES in unfolding per IOV (20200610)
+  TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M5res_hotzone-2.root","READ");
+  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M5res_hotzone_jes-2.root","READ"); // add MC JES in unfolding per IOV (20200610)
   assert(fin2ul && !fin2ul->IsZombie());
 
   //TFile *finh = new TFile("rootfiles/outHdata-Hdata-lowpu.root","READ");
@@ -628,8 +633,118 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 
   ///////////////////////////////////////////////////////////////////
 
+  // Load reference NLO
+  TH1D *hnlo(0);
+  if (plotNLO) {
+    TFile *f = new TFile("rootfiles/cmsJetsNLO_AK4.root","READ");
+    assert(f && !f->IsZombie());
+    TFile *f2 = new TFile("rootfiles/Ratio_Theory/Ratio_NLO_Fig5b.root","READ");
+    assert(f2 && !f2->IsZombie());
+    TFile *f3 = new TFile("rootfiles/np_ew.root","READ");
+    assert(f3 && !f3->IsZombie());
+
+    if (sy!="0.0-1.3" && eta<2.0) {
+      hnlo = (TH1D*)f->Get(Form("histCT14nlo_PDF_Cnt_y%d",int(eta/0.5)));
+      assert(hnlo);
+    }
+    if (sy=="0.0-1.3") {
+      // NLO prediction
+      TH1D *hnlo1 = (TH1D*)f->Get("histCT14nlo_PDF_Cnt_y0");
+      assert(hnlo1);
+      TH1D *hnlo2 = (TH1D*)f->Get("histCT14nlo_PDF_Cnt_y1");
+      assert(hnlo2);
+      TH1D *hnlo3 = (TH1D*)f->Get("histCT14nlo_PDF_Cnt_y2");
+      assert(hnlo3);
+      hnlo = (TH1D*)hnlo3->Clone("hnlo");
+
+      // Corrections for R-dependence, (+NP, EW). Only for |y|<0.5 but flat vs y
+      TH1D *h8lo = (TH1D*)f2->Get("Cross_section_ratio_ak8_by_ak4_ybin1_LO");
+      TH1D *h8nlo = (TH1D*)f2->Get("Cross_section_ratio_ak8_by_ak4_ybin1_NLO");
+      TH1D *hr = (TH1D*)h8lo->Clone("hr");
+      hr->Divide(h8nlo);
+      // Smooth out ratio, NLO has low stats and up to 2% fluctuations
+      TF1 *f1 = new TF1("f1","[p0]+log(0.01*x)*([p1]+[p2]*log(0.01*x))",5,7000);
+      f1->SetParameters(8.45577e-01, 5.51566e-02, -7.10071e-03);
+      hr->Fit(f1,"QRNW");
+      
+      // EW corrections, NP corrections
+      TH1D *hew1 = (TH1D*)f3->Get("ew16_ak4_y0");
+      assert(hew1);
+      TH1D *hew2 = (TH1D*)f3->Get("ew16_ak4_y1");
+      assert(hew2);
+      TH1D *hew3 = (TH1D*)f3->Get("ew16_ak4_y2");
+      assert(hew3);
+
+      // NP corrections
+      TH1D *hnp1 = (TH1D*)f3->Get("np16_ak4_y0");
+      assert(hnp1);
+      TH1D *hnp2 = (TH1D*)f3->Get("np16_ak4_y1");
+      assert(hnp2);
+      TH1D *hnp3 = (TH1D*)f3->Get("np16_ak4_y2");
+      assert(hnp3);
+
+      // NLL kFactor
+      TH1D *hk1 = (TH1D*)f3->Get("kFactorNLL_ak4_y0");
+      assert(hk1);
+      TH1D *hk2 = (TH1D*)f3->Get("kFactorNLL_ak4_y1");
+      assert(hk2);
+      TH1D *hk3 = (TH1D*)f3->Get("kFactorNLL_ak4_y2");
+      assert(hk3);
+
+      // NNLO kFactor
+      TH1D *hn1 = (TH1D*)f3->Get("kFactorNNLO_ak4_y0");
+      assert(hn1);
+      TH1D *hn2 = (TH1D*)f3->Get("kFactorNNLO_ak4_y1");
+      assert(hn2);
+      TH1D *hn3 = (TH1D*)f3->Get("kFactorNNLO_ak4_y2");
+      assert(hn3);
+
+      
+      for (int i = 0; i != hnlo3->GetNbinsX()+1; ++i) {
+	double x = hnlo->GetBinCenter(i);
+	double xr = min(max(x,hr->GetBinLowEdge(1)+1e-3),
+			hr->GetBinLowEdge(hr->GetNbinsX()+1));
+	double xew = min(max(x,hew3->GetBinLowEdge(1)),
+			 hew3->GetBinLowEdge(hew3->GetNbinsX()+1));
+	// First bin set to 1.0 for AK4 NPF
+	double xnp = min(max(x,hnp3->GetBinLowEdge(2)+1e-2),
+			 hnp3->GetBinLowEdge(hnp3->GetNbinsX()+1));
+	// Only [97,2238] GeV available for kfactor y2
+	double xk = min(max(x,hk3->GetBinLowEdge(3)+1e-2),
+			hk3->GetBinLowEdge(22));//hnp3->GetNbinsX()+1));
+	// Only [97,2238] GeV available for kfactor y2
+	double xn = min(max(x,hn3->GetBinLowEdge(3)+1e-2),
+			hn3->GetBinLowEdge(22));//hnp3->GetNbinsX()+1));
+
+	// R with NLO/LO
+	//double kr = f1->Eval(x); // radius correction wrt AK8 (fit)
+	//double kr = hr->GetBinContent(hr->FindBin(xr)); // (hist)
+	double kew = (1.0*hew1->GetBinContent(hew1->FindBin(xew)) +
+		      1.0*hew2->GetBinContent(hew2->FindBin(xew)) +
+		      0.6*hew3->GetBinContent(hew3->FindBin(xew))) / 2.6;
+	double knp = (1.0*hnp1->GetBinContent(hnp1->FindBin(xnp)) +
+		      1.0*hnp2->GetBinContent(hnp2->FindBin(xnp)) +
+		      0.6*hnp3->GetBinContent(hnp3->FindBin(xnp))) / 2.6;
+	//double knp = 1;
+	// R with NLL
+	//double kr = (1.0*hk1->GetBinContent(hk1->FindBin(xk)) +
+	//	     1.0*hk2->GetBinContent(hk2->FindBin(xk)) +
+	//	     0.6*hk3->GetBinContent(hk3->FindBin(xk))) / 2.6;
+	// R with NLO
+	double kr = (1.0*hn1->GetBinContent(hn1->FindBin(xn)) +
+		     1.0*hn2->GetBinContent(hn2->FindBin(xn)) +
+		     0.6*hn3->GetBinContent(hn3->FindBin(xn))) / 2.6;
+	hnlo->SetBinContent(i, (1.0*hnlo1->GetBinContent(hnlo1->FindBin(x)) +
+				1.0*hnlo2->GetBinContent(hnlo2->FindBin(x)) +
+				0.6*hnlo3->GetBinContent(hnlo3->FindBin(x)))
+			    / 2.6 * kr * kew * knp);
+      } // for i
+    } // |eta|<1.3
+  } // plotNLO
+
   // Load reference MC
   TH1D *hmc(0);
+  TH1D *hmc1(0);
   TH1D *hmc2(0);
   TH1D *hmc3(0);
   if (plotMC) {
@@ -638,6 +753,8 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
     //TFile *fmc = new TFile("rootfiles/common2018_V19-5.root","READ");
     //TFile *fmc = new TFile("../jecsys2018/rootfiles/output-MC-1-Fall18V8-D.root","READ");
     assert(fmc && !fmc->IsZombie());
+    TFile *fmc1 = new TFile("rootfiles/pThat15_P8_dijet_5M_pt.root","READ");
+    assert(fmc1 && !fmc1->IsZombie());
     //TFile *fmc2 = new TFile("rootfiles/P8_dijet_5000000_ptw.root","READ");
     TFile *fmc2 = new TFile("rootfiles/pThat10_P8_dijet_5M_pt.root","READ");
     assert(fmc2 && !fmc2->IsZombie());
@@ -650,6 +767,8 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
       hmc = (TH1D*)fmc->Get(Form("ak4/Eta_%s/hpt_P8CP5_2018_A_gen","0.5-1.0"));
     assert(hmc);
     //hmc = (TH1D*)fmc->Get(Form("Standard/Eta_%s/mc/hpt_g0",cy));
+    hmc1 = (TH1D*)fmc1->Get(Form("Eta_%s",cy)); // ptw
+    assert(hmc1);
     hmc2 = (TH1D*)fmc2->Get(Form("Eta_%s",cy)); // ptw
     assert(hmc2);
     hmc3 = (TH1D*)fmc3->Get(Form("Eta_%s",cy)); // ptw
@@ -660,6 +779,13 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
     //hmc->SetMarkerStyle(kOpenDiamond);
     //hmc->SetMarkerColor(kGreen+3);
     //hmc->SetLineColor(kGreen+3);
+
+    double sumwp8m2pt15 = 332261;
+    double xsecp8m2pt15 = 2.125688e+09;
+    double kp8m2pt15 = 0.8;
+    hmc1->Scale(kp8m2pt15*xsecp8m2pt15/sumwp8m2pt15,"width");
+    if (eta>=3.2) hmc1->Scale(1./3.);
+    if (sy=="0.0-1.3") hmc1->Scale(1./2.6);
 
     //hmc2 = (TH1D*)hmc2->Clone(Form("hmc_%s",cy));
     //hmc->Scale(eta<3.2 ? 0.8 : 0.6);
@@ -1152,6 +1278,7 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 
   // Fit gen MC with powerlaw
   assert(hmc || !plotMC);
+  assert(hmc1 || !plotMC);
   assert(hmc2 || !plotMC);
   assert(hmc3 || !plotMC);
   TF1 *fmc = new TF1("fmc",
@@ -1282,9 +1409,38 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   TH1D *hr50ns7 = (plot2015 ? (TH1D*)h50ns7->Clone("hr50ns7") : 0);
   if (plot2015) hr50ns7->Divide(fref);//f50ns7);//fref);
 
+  TH1D *hrnlo = (plotNLO&&hnlo ? (TH1D*)hnlo->Clone("hrnlo") : 0);
+  if (plotNLO&&hnlo) {
+    //hrnlo->Divide(href);
+    // For different x-axis binning
+    for (int i = 1; i != hnlo->GetNbinsX()+1; ++i) {
+      //double x = hnlo->GetBinCenter(i);
+      //int j = href->FindBin(x);
+      //if (href->GetBinContent(j)!=0)
+      //hrnlo->SetBinContent(i, hnlo->GetBinContent(i) 
+      //		     / href->GetBinContent(j));
+      //else 
+      //hrnlo->SetBinContent(i, 0);
+      double xmin = hnlo->GetBinLowEdge(i);
+      double xmax = hnlo->GetBinLowEdge(i+1);
+      double yref = 0;
+      for (int j = 1; j != href->GetNbinsX()+1; ++j) {
+	double x = href->GetBinLowEdge(j);
+	if (x+0.5>=xmin && x+0.5<xmax) yref += href->GetBinContent(j) *
+					 href->GetBinWidth(j);
+      }
+      yref /= (xmax-xmin);
+      hrnlo->SetBinContent(i, yref!=0 ? hnlo->GetBinContent(i) / yref : 0);
+    } // for i
+  }
+
   TH1D *hrmc = (plotMC ? (TH1D*)hmc->Clone("hrmc") : 0);
   //hrmc->Divide(fref);
   if (plotMC) hrmc->Divide(href);
+
+  TH1D *hrmc1 = (plotMC ? (TH1D*)hmc1->Clone("hrmc1") : 0);
+  //hrmc1->Divide(fref);
+  if (plotMC) hrmc1->Divide(href);
 
   TH1D *hrmc2 = (plotMC ? (TH1D*)hmc2->Clone("hrmc2") : 0);
   //hrmc2->Divide(fref);
@@ -1332,9 +1488,15 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
       h1s[iera]->SetMarkerSize(1.5);
   }
   //tdrDraw(h50ns4,"Pz",kOpenDiamond,kGreen+2,kSolid,kGreen+2);
+  if (plotNLO&&hnlo) {
+    tdrDraw(hmc3,"Pz",kFullDiamond,kBlack,kSolid,kBlack);
+    hnlo->SetMarkerSize(0.7);
+  }
   if (plotMC) {
     tdrDraw(hmc3,"Pz",kOpenDiamond,kRed+2,kSolid,kRed+2);
     hmc3->SetMarkerSize(0.7);
+    tdrDraw(hmc1,"Pz",kOpenDiamond,kMagenta+1,kSolid,kMagenta+1);
+    hmc1->SetMarkerSize(0.7);
     tdrDraw(hmc2,"Pz",kOpenDiamond,kOrange+2,kSolid,kOrange+2);
     hmc2->SetMarkerSize(0.7);
     tdrDraw(hmc,"Pz",kOpenDiamond,kGreen+3,kSolid,kGreen+3);
@@ -1348,7 +1510,7 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   //leg->AddEntry(h1s[iera],label[iera],"PL");
   //}
   const int nmax = 6;
-  const int nx = 3;//2;//(eta<3.0 ? 2 : 1);
+  const int nx = 4;//3;//2;//(eta<3.0 ? 2 : 1);
   TLegend *leg1 = tdrLeg(0.50,0.90-0.06*min(nmax-1,nera+nx),0.8,0.9);
   TLegend *leg2 = tdrLeg(0.70,0.90-0.06*max(2,min(nmax,nera+nx-nmax+1)),1.0,0.9);
   for (int iera = 0; iera != nera; ++iera) {
@@ -1370,6 +1532,11 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
     if (nera<nmax-nx-1)  leg1->AddEntry(hmc3,"P8M2-5","PL");
     if (nera>=nmax-nx-1) leg2->AddEntry(hmc3,"P8M2-5","PL");
   }
+  if (plotNLO&&hnlo) {
+    if (nera<nmax-nx-1)  leg1->AddEntry(hnlo,"NLO CT14","PL");
+    if (nera>=nmax-nx-1) leg2->AddEntry(hnlo,"NLO CT14","PL");
+  }
+
   //leg->AddEntry(h50ns4,"74X 50 ns AK4","PL");
   //leg->AddEntry(h50ns7,"74X 50 ns AK7","PL");
 
@@ -1384,6 +1551,10 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
     hrs[iera]->GetXaxis()->SetRangeUser(ptmin,ptmax);
   }
   //tdrDraw(hr50ns4,"Pz",kOpenDiamond,kGreen+2,kSolid,kGreen+2);
+  if (plotNLO&&hnlo) {
+    tdrDraw(hrnlo,"Pz",kFullDiamond,kBlack,kSolid,kBlack);
+    hrnlo->SetMarkerSize(0.7);
+  }
   if (plotMC) {
     tdrDraw(hrmc3,"Pz",kOpenDiamond,kRed+2,kSolid,kRed+2);
     hrmc3->SetMarkerSize(0.7);
@@ -1642,10 +1813,16 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   if (plotMC) {
     tdrDraw(hrmc3,"Pz",kOpenDiamond,kRed+2,kSolid,kRed+2);
     hrmc3->SetMarkerSize(0.7);
+    tdrDraw(hrmc1,"Pz",kOpenDiamond,kMagenta+1,kSolid,kMagenta+1);
+    hrmc1->SetMarkerSize(0.7);
     tdrDraw(hrmc2,"Pz",kOpenDiamond,kOrange+2,kSolid,kOrange+2);
     hrmc2->SetMarkerSize(0.7);
     tdrDraw(hrmc,"Pz",kOpenDiamond,kGreen+3,kSolid,kGreen+3);
     hrmc->SetMarkerSize(0.7);
+  }
+  if (plotNLO&&hnlo) {
+    tdrDraw(hrnlo,"Pz",kFullDiamond,kBlack,kSolid,kBlack);
+    hrnlo->SetMarkerSize(0.7);
   }
   gPad->SetLogx();
 
@@ -1659,10 +1836,16 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   if (plotMC) {
     if (nera<nmax-nx-1)  leg1b->AddEntry(hmc,"MC","PL");
     if (nera>=nmax-nx-1) leg2b->AddEntry(hmc,"MC","PL");
+    if (nera<nmax-nx-1)  leg1b->AddEntry(hmc1,"P8M2-15","PL");
+    if (nera>=nmax-nx-1) leg2b->AddEntry(hmc1,"P8M2-15","PL");
     if (nera<nmax-nx-1)  leg1b->AddEntry(hmc2,"P8M2-10","PL");
     if (nera>=nmax-nx-1) leg2b->AddEntry(hmc2,"P8M2-10","PL");
     if (nera<nmax-nx-1)  leg1b->AddEntry(hmc3,"P8M2-5","PL");
     if (nera>=nmax-nx-1) leg2b->AddEntry(hmc3,"P8M2-5","PL");
+  }
+  if (plotNLO&&hnlo) {
+    if (nera<nmax-nx-1) leg1b->AddEntry(hnlo,"NLO CT14","PL");
+    if (nera>=nmax-nx-1) leg2b->AddEntry(hnlo,"NLO CT14","PL");
   }
 
   TLegend *leg3b = tdrLeg(0.57,0.15,0.87,0.19);
@@ -1832,6 +2015,7 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 int cnt_a = 0;
 const int nk = 3; // number of kernel parameters (excluding pt, eta)
 bool _dojes = true;
+bool _iseta13 = false;
 Double_t smearedAnsatzKernel(Double_t *x, Double_t *p) {
 
   if (++cnt_a%1000000==0) {
@@ -1842,8 +2026,15 @@ Double_t smearedAnsatzKernel(Double_t *x, Double_t *p) {
   const double ptmeas = p[0]; // measured pT
   const double eta = p[4]; // rapidity
 
-  double res = ptresolution(pt, eta+1e-3) * pt;
-  double jes = (_dojes ? ptresponse(pt, eta+1e-3) : 1);
+  double res(0), jes(0);
+  if (_iseta13) {
+    res = ptresolution(pt, 0, 1.3) * pt;
+    jes = (_dojes ? ptresponse(pt, 0, 1.3) : 1);
+  }
+  else {
+    res = ptresolution(pt, eta+1e-3) * pt;
+    jes = (_dojes ? ptresponse(pt, eta+1e-3) : 1);
+  }
   const double s = TMath::Gaus(ptmeas, jes*pt, res, kTRUE);
   const double f = p[1] * pow(pt, p[2])
     * pow(1 - pt*cosh(eta) / emax, p[3]);
@@ -1930,7 +2121,8 @@ void unfold(string sy = "0.0-1.3", int ieta = 0) {
      {1,-4.77036,8.65309,1.5},
      {1,-4.6652,8.09749,2},
      {1,-4.97904,6.4373,2.5},
-     {1,-5.72102,4.34217,3.2}};
+     {1,-5.72102,4.34217,3.2},
+    };
   int i = max(0,ieta-1);
   double eta = p[i][nk];
   double maxpt = emax/cosh(eta);
@@ -1941,6 +2133,7 @@ void unfold(string sy = "0.0-1.3", int ieta = 0) {
   _ismcjer = false;
   _usejme = false;
   _jer_iov = run2016;
+  _iseta13 = (sy=="0.0-1.3");
   
   // Initial fit of the NLO curve to a histogram
   TF1 *fus = new TF1(Form("fus%s",cy),

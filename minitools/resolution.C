@@ -230,8 +230,8 @@ void resolution(string type="MC",string file="") {
   t->SetTextSize(0.045);
 
   const int ny0 = 0;
-  const int ny = 8;//6;
-  const double ybins[ny+1] = {0,0.5,1,1.5,2,2.5,3,3.2,4.7};
+  const int ny = 10;//8;//6;
+  const double ybins[ny+1] = {0,0.5,1,1.5,2,2.5,3,3.2,4.7,0,1.3};
 
   double vpar5[ny][3];
   double vchi5[ny];
@@ -277,10 +277,10 @@ void resolution(string type="MC",string file="") {
   leg3e->SetTextSize(0.045);
   leg3e->Draw();
 
-  int colors[8] = {kBlack, kGray+1, kRed, kRed+1, kBlue, kBlue+1,
-		   kOrange+1, kOrange+3};
-  int styles[8] = {kSolid, kSolid, kSolid, kDashed, kDashed, kDotted,
-		   kDashDotted, kDashDotted};
+  int colors[ny] = {kBlack, kGray+1, kRed, kRed+1, kBlue, kBlue+1,
+		    kOrange+1, kOrange+3, 0, kMagenta+1};
+  int styles[ny] = {kSolid, kSolid, kSolid, kDashed, kDashed, kDotted,
+		    kDashDotted, kDashDotted, 0, kMagenta+1};
 
   for (int iy = ny0; iy != ny; ++iy) {
 
@@ -295,6 +295,8 @@ void resolution(string type="MC",string file="") {
     const double emax = 4000;//3000.;
     const double ptmax = emax/cosh(etamin);
 
+    if (etamax < etamin) continue;
+    
     assert(din5->cd(Form("Eta_%1.1f-%1.1f", etamin, etamax)));
     assert(gDirectory->cd("mc"));
     TDirectory *d5 = gDirectory;
@@ -978,8 +980,8 @@ void redoJER(string run="") {
      1.2105-0.9478, 1.4107-1.2174, 1.6427-1.1798, 1.3226-1.2132, 1.1046-0.9710};
 
   // Inclusive jet analysis bins
-  const int nbins = 8;
-  const double bins[nbins+1] = {0,0.5,1,1.5,2,2.5,3,3.2,4.7};
+  const int nbins = 10;
+  const double bins[nbins+1] = {0,0.5,1,1.5,2,2.5,3,3.2,4.7,0.0,1.3};
 
   int nbins0(0);
   const double *bins0(0), *vals0(0), *errs0(0);
@@ -1059,6 +1061,7 @@ void redoJER(string run="") {
   TGraphErrors *gk20 = new TGraphErrors(0);
   for (int i = 0; i != nbins; ++i) {
     double y1 = bins[i]; double y2 = bins[i+1];
+    if (y2<y1) continue;
     TH1D *hy = (TH1D*)f->Get(Form("Standard/Eta_%1.1f-%1.1f/jt40/hy",y1,y2));
     assert(hy);
     curdir->cd();
@@ -1171,6 +1174,7 @@ void redoJER(string run="") {
 
     double y1 = gk2->GetX()[i] - gk2->GetEX()[i];
     double y2 = gk2->GetX()[i] + gk2->GetEX()[i];
+    if (y2<y1 || (y1==0 && y2==0)) continue;
     double val =  gk2->GetY()[i];
     double eval = gk2->GetEY()[i];
     cout << Form(" {%1.3f, %1.3f}, // %1.1f-%1.1f",

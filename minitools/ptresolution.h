@@ -136,15 +136,16 @@ const double kpar2018d[_nres][2] = {
 };
 
 // JER SF produced with minitools/resolution.C:redoJER("RunUL17")
-const double kparul17[_nres][2] = {
+const double kparul17[_nres+1][2] = {
  {1.108, 0.056}, // 0.0-0.5
  {1.112, 0.027}, // 0.5-1.0
  {1.149, 0.053}, // 1.0-1.5
  {1.145, 0.074}, // 1.5-2.0
  {1.132, 0.087}, // 2.0-2.5
  {1.257, 0.128}, // 2.5-3.0
- {1.248, 0.056}, // 3.0-3.2
+ {1.238, 0.056}, // 3.0-3.2 (fixed)
  {1.038, 0.067}, // 3.2-4.7
+ {1.111, 0.042}, // 0.0-1.3 (new)
 };
 
 // Resolutions with Pythia Z2* + ak5ak7resolution12.C
@@ -356,6 +357,11 @@ double ptresolution(double pt, double eta, double eta2=0) {
   int iy = min(_nres-1, int(fabs(eta) / 0.5));
   //if (fabs(eta)>3.2) iy = _nres-1; // 3.2-4.7 bin instead of 3.5-4.7
   if (eta<0.5 && eta2>1.0) int iy = _nres; // 0.0-1.3 (UL17)
+  // Only supported for UL17 for now
+  if (iy==_nres) {
+    assert(_jer_iov==ul17 || _jer_iov==ul17b || _jer_iov==ul17c || 
+	   _jer_iov==ul17d || _jer_iov==ul17e || _jer_iov==ul17f);
+  }
   double res = 0;
 
   // New scaling for 2018 JER SF
@@ -566,6 +572,11 @@ double ptresponse(double pt, double eta, double eta2=0) {
   int iy = min(_nres-1, int(fabs(eta) / 0.5));
   //if (fabs(eta)>3.2) iy = _nres-1; // 3.2-4.7 bin instead of 3.5-4.7
   if (eta<0.5 && eta2>1.0) int iy = _nres; // 0.0-1.3 (UL17)
+  // Only supported for UL17 for now
+  if (iy==_nres) {
+    assert(_jer_iov==ul17 || _jer_iov==ul17b || _jer_iov==ul17c || 
+	   _jer_iov==ul17d || _jer_iov==ul17e || _jer_iov==ul17f);
+  }
 
   const double *p;
   p = &vjesul17[iy][0];
