@@ -112,8 +112,11 @@ void hotjets2018() {
   // Remove also HEM1516
   //TBox HEP17(1.31,-0.5236,2.96,-0.8727); // centered at 28*dphi+/-2
   TBox HEM1516(-2.96,-0.8727,-1.31,-1.5708);
-  TBox HBP2(0,0.5236,1.31,0.8727); // HCAL barrel wedge 2
+  //TBox HBP2(0,0.5236,1.31,0.8727); // HCAL barrel wedge 2
+  TBox HBP2(0,0.4363,1.31,0.7854); // HCAL barrel wedge 2 minus 1 tower
   TH2D *h2hem1516 = (TH2D*)h2sum->Clone("h2hot_ul18_plus_hem1516");
+  TH2D *h2hbp2 = (TH2D*)h2sum->Clone("h2hot_ul18_plus_hbp2");
+  TH2D *h2both = (TH2D*)h2sum->Clone("h2hot_ul18_plus_hem15_and_hbp2");
   for (int i = 1; i != h2sum->GetNbinsX()+1; ++i) {
     for (int j = 1; j != h2sum->GetNbinsY()+1; ++j) {
       double eta = h2sum->GetXaxis()->GetBinCenter(i);
@@ -121,14 +124,34 @@ void hotjets2018() {
       if (eta>HEM1516.GetX1() && eta<HEM1516.GetX2() &&
 	  phi>HEM1516.GetY1() && phi<HEM1516.GetY2())
 	h2hem1516->SetBinContent(i, j, 10);
+      if (eta>HBP2.GetX1() && eta<HBP2.GetX2() &&
+	  phi>HBP2.GetY1() && phi<HBP2.GetY2())
+	h2hbp2->SetBinContent(i, j, 10);
+      if ((eta>HEM1516.GetX1() && eta<HEM1516.GetX2() &&
+	   phi>HEM1516.GetY1() && phi<HEM1516.GetY2()) ||
+	  (eta>HBP2.GetX1() && eta<HBP2.GetX2() &&
+	   phi>HBP2.GetY1() && phi<HBP2.GetY2()))
+	h2both->SetBinContent(i, j, 10);
     } // for i
   } // for j
+
+  h2both->SetLineColor(kMagenta-9);
+  h2both->SetLineStyle(kNone);
+  h2both->SetFillStyle(1001);
+  h2both->SetFillColor(kNone);
+  h2both->DrawClone("SAMEBOX");
 
   h2hem1516->SetLineColor(kRed-9);
   h2hem1516->SetLineStyle(kNone);
   h2hem1516->SetFillStyle(1001);
   h2hem1516->SetFillColor(kNone);
   h2hem1516->DrawClone("SAMEBOX");
+
+  h2hbp2->SetLineColor(kOrange-9);
+  h2hbp2->SetLineStyle(kNone);
+  h2hbp2->SetFillStyle(1001);
+  h2hbp2->SetFillColor(kNone);
+  h2hbp2->DrawClone("SAMEBOX");
 
   h2sum->SetLineColor(kBlack);
   h2sum->SetLineWidth(2);
@@ -140,8 +163,9 @@ void hotjets2018() {
   h2em->DrawClone("SAMEBOX");
 
   //TLegend *leg = tdrLeg(0.43,0.60,0.63,0.90);
-TLegend *leg = tdrLeg(0.27,0.78,0.47,0.90);
-  leg->AddEntry(h2all,"hot","F");
+  TLegend *leg = tdrLeg(0.27,0.78,0.47,0.90);
+  //leg->AddEntry(h2all,"hot","F");
+  leg->AddEntry(h2sum,"hot","F");
   /*
   leg->AddEntry(h2b,"B","F");
   leg->AddEntry(h2c,"C","F");
@@ -224,7 +248,8 @@ TLegend *leg = tdrLeg(0.27,0.78,0.47,0.90);
   tex->SetTextColor(kRed+2);
   tex->DrawLatex(0.28,0.42,"HEM15/16");
   tex->SetTextColor(kOrange+2);
-  tex->DrawLatex(0.53,0.67,"HBP2: BPIX?");
+  //tex->DrawLatex(0.53,0.67,"HBP2: BPIX?");
+  tex->DrawLatex(0.50,0.63,"HBP2-1: BPIX?");
   
   gPad->Paint();
 
@@ -233,5 +258,7 @@ TLegend *leg = tdrLeg(0.27,0.78,0.47,0.90);
   TFile *fout = new TFile("rootfiles/hotjets-UL18.root","RECREATE");
   h2sum->Write();
   h2hem1516->Write();
+  h2hbp2->Write();
+  h2both->Write();
   fout->Close();
 }
