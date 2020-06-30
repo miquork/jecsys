@@ -99,7 +99,7 @@ void hotjets2018() {
   h2em->Draw("SAMEBOX");
 
   // combination of regions
-  TH2D *h2sum = (TH2D*)h2all->Clone("h2hot_ul17");
+  TH2D *h2sum = (TH2D*)h2all->Clone("h2hot_ul18");
   /*
   h2sum->Add(h2c);
   h2sum->Add(h2d);
