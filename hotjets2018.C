@@ -113,10 +113,10 @@ void hotjets2018() {
   //TBox HEP17(1.31,-0.5236,2.96,-0.8727); // centered at 28*dphi+/-2
   TBox HEM1516(-2.96,-0.8727,-1.31,-1.5708);
   //TBox HBP2(0,0.5236,1.31,0.8727); // HCAL barrel wedge 2
-  TBox HBP2(0,0.4363,1.31,0.7854); // HCAL barrel wedge 2 minus 1 tower
+  TBox HBP2m1(0,0.4363,1.31,0.7854); // HCAL barrel wedge 2 minus 1 tower
   TH2D *h2hem1516 = (TH2D*)h2sum->Clone("h2hot_ul18_plus_hem1516");
-  TH2D *h2hbp2 = (TH2D*)h2sum->Clone("h2hot_ul18_plus_hbp2");
-  TH2D *h2both = (TH2D*)h2sum->Clone("h2hot_ul18_plus_hem1516_and_hbp2");
+  TH2D *h2hbp2m1 = (TH2D*)h2sum->Clone("h2hot_ul18_plus_hbp2m1");
+  TH2D *h2both = (TH2D*)h2sum->Clone("h2hot_ul18_plus_hem1516_and_hbp2m1");
   for (int i = 1; i != h2sum->GetNbinsX()+1; ++i) {
     for (int j = 1; j != h2sum->GetNbinsY()+1; ++j) {
       double eta = h2sum->GetXaxis()->GetBinCenter(i);
@@ -124,13 +124,13 @@ void hotjets2018() {
       if (eta>HEM1516.GetX1() && eta<HEM1516.GetX2() &&
 	  phi>HEM1516.GetY1() && phi<HEM1516.GetY2())
 	h2hem1516->SetBinContent(i, j, 10);
-      if (eta>HBP2.GetX1() && eta<HBP2.GetX2() &&
-	  phi>HBP2.GetY1() && phi<HBP2.GetY2())
-	h2hbp2->SetBinContent(i, j, 10);
+      if (eta>HBP2m1.GetX1() && eta<HBP2m1.GetX2() &&
+	  phi>HBP2m1.GetY1() && phi<HBP2m1.GetY2())
+	h2hbp2m1->SetBinContent(i, j, 10);
       if ((eta>HEM1516.GetX1() && eta<HEM1516.GetX2() &&
 	   phi>HEM1516.GetY1() && phi<HEM1516.GetY2()) ||
-	  (eta>HBP2.GetX1() && eta<HBP2.GetX2() &&
-	   phi>HBP2.GetY1() && phi<HBP2.GetY2()))
+	  (eta>HBP2m1.GetX1() && eta<HBP2m1.GetX2() &&
+	   phi>HBP2m1.GetY1() && phi<HBP2m1.GetY2()))
 	h2both->SetBinContent(i, j, 10);
     } // for i
   } // for j
@@ -147,11 +147,11 @@ void hotjets2018() {
   h2hem1516->SetFillColor(kNone);
   h2hem1516->DrawClone("SAMEBOX");
 
-  h2hbp2->SetLineColor(kOrange-9);
-  h2hbp2->SetLineStyle(kNone);
-  h2hbp2->SetFillStyle(1001);
-  h2hbp2->SetFillColor(kNone);
-  h2hbp2->DrawClone("SAMEBOX");
+  h2hbp2m1->SetLineColor(kOrange-9);
+  h2hbp2m1->SetLineStyle(kNone);
+  h2hbp2m1->SetFillStyle(1001);
+  h2hbp2m1->SetFillColor(kNone);
+  h2hbp2m1->DrawClone("SAMEBOX");
 
   h2sum->SetLineColor(kBlack);
   h2sum->SetLineWidth(2);
@@ -239,9 +239,9 @@ void hotjets2018() {
   HEM1516.SetLineColor(kRed+2);
   HEM1516.Draw("SAME");
 
-  HBP2.SetFillStyle(kNone);
-  HBP2.SetLineColor(kOrange+2);
-  HBP2.Draw("SAME");
+  HBP2m1.SetFillStyle(kNone);
+  HBP2m1.SetLineColor(kOrange+2);
+  HBP2m1.Draw("SAME");
 
   TLatex *tex = new TLatex();
   tex->SetNDC(); tex->SetTextSize(0.045);
@@ -258,7 +258,7 @@ void hotjets2018() {
   TFile *fout = new TFile("rootfiles/hotjets-UL18.root","RECREATE");
   h2sum->Write();
   h2hem1516->Write();
-  h2hbp2->Write();
+  h2hbp2m1->Write();
   h2both->Write();
   fout->Close();
 }
