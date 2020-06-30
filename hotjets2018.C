@@ -116,7 +116,7 @@ void hotjets2018() {
   TBox HBP2(0,0.4363,1.31,0.7854); // HCAL barrel wedge 2 minus 1 tower
   TH2D *h2hem1516 = (TH2D*)h2sum->Clone("h2hot_ul18_plus_hem1516");
   TH2D *h2hbp2 = (TH2D*)h2sum->Clone("h2hot_ul18_plus_hbp2");
-  TH2D *h2both = (TH2D*)h2sum->Clone("h2hot_ul18_plus_hem15_and_hbp2");
+  TH2D *h2both = (TH2D*)h2sum->Clone("h2hot_ul18_plus_hem1516_and_hbp2");
   for (int i = 1; i != h2sum->GetNbinsX()+1; ++i) {
     for (int j = 1; j != h2sum->GetNbinsY()+1; ++j) {
       double eta = h2sum->GetXaxis()->GetBinCenter(i);
