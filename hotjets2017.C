@@ -33,6 +33,9 @@ void hotjets2017() {
   TFile *f0 = new TFile("../jecsys2017/rootfiles/hotjets-17runBCDEF.root","READ");
   assert(f0 && !f0->IsZombie());
 
+  TFile *fmc = new TFile("rootfiles/hotjetsmc-17BCDEF_v2.root","READ");
+  assert(fmc && !fmc->IsZombie());
+
 
   TFile *f1 = new TFile("rootfiles/hotjets-17runB_v2.root","READ");
   assert(f1 && !f1->IsZombie());
@@ -64,6 +67,7 @@ void hotjets2017() {
   TH2D *h2old = (TH2D*)f0->Get("h2hotfilter"); assert(h2old);
   //TH2D *h2em = (TH2D*)fem->Get("h2hole"); assert(h2em);
   TH2D *h2em = (TH2D*)fem->Get("all/h2hole"); assert(h2em);
+  TH2D *h2mc = (TH2D*)fmc->Get("h2hotfilter"); assert(h2mc);
 
   TH1D *h = new TH1D("h",";#eta_{jet};#phi_{jet}",100,-4.7,4.7);
   h->SetMaximum(+TMath::Pi());
@@ -87,6 +91,13 @@ void hotjets2017() {
   l->DrawLine(-etaec,-TMath::Pi(),-etaec,+TMath::Pi());
   l->DrawLine(+etaec,-TMath::Pi(),+etaec,+TMath::Pi());
 
+  rezero(h2mc);
+  h2mc->GetZaxis()->SetRangeUser(-10,10);
+  h2mc->SetLineColor(kMagenta);
+  h2mc->SetFillStyle(1001);
+  h2mc->SetFillColor(kNone);
+  h2mc->SetFillColorAlpha(kMagenta-9, 0.35); // 35% transparent
+  h2mc->Draw("SAMEBOX");
 
   rezero(h2all);
   h2all->GetZaxis()->SetRangeUser(-10,10);
@@ -163,7 +174,8 @@ void hotjets2017() {
 
   // Remove also HEP17
   TBox HEP17(1.31,-0.5236,2.96,-0.8727); // centered at 28*dphi+/-2
-  TBox HBPw89(0,2.793,1.4835,3.1416); // centered at 8.5*4*dphi+/-2, wide barrel
+//TBox HBPw89(0,2.793,1.4835,3.1416); // centered at 8.5*4*dphi+/-2, wide barrel
+  TBox HBPw89(0,2.705,1.4835,3.1416); // centered at 8.5*4*dphi+/-2, v2
   TH2D *h2hep17 = (TH2D*)h2sum->Clone("h2hot_ul17_plus_hep17");
   TH2D *h2hbpw89 = (TH2D*)h2sum->Clone("h2hot_ul17_plus_hbpw89");
   TH2D *h2both = (TH2D*)h2sum->Clone("h2hot_ul17_plus_hep17_plus_hbpw89");
@@ -218,7 +230,7 @@ void hotjets2017() {
   //TLegend *leg = tdrLeg(0.43,0.64,0.63,0.84);
   //TLegend *leg = tdrLeg(0.43,0.60,0.63,0.90);
   //TLegend *leg = tdrLeg(0.45,0.48,0.65,0.78);
-  TLegend *leg = tdrLeg(0.15,0.50,0.35,0.90);
+  TLegend *leg = tdrLeg(0.15,0.45,0.35,0.90);
   //leg->AddEntry(h2all,"BCDEF","F");
   //leg->AddEntry(h2all,"non-UL","F");
   leg->AddEntry(h2em,"Cold","F");
@@ -231,6 +243,7 @@ void hotjets2017() {
   //leg->AddEntry(h2em,"EM mask","F");
   leg->AddEntry(h2sum,"UL (min. 2)","F");
   //leg->AddEntry(h2sum,"UL (min. 1)","F");
+  leg->AddEntry(h2mc,"MC hot","F");
 
   // Count fraction of towers in the veto map
   /*
