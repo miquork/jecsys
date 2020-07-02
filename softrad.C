@@ -94,17 +94,19 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   const int nalphas = 4;
   const int alphas[nalphas] = {30, 20, 15, 10};
 
-  // Zll+jet bins
+  // Zll+jet bins (45 extra vs Z+jet)
   const double ptbins1[] =
-    {30, 40, 50, 60, 85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 1500};
+    //{30, 40, 50, 60, 85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 1500};
+    {15,20,25,30,35,40,45,50,60,85,105,130,175,230,300,400,500,700, 1000, 1500};
   const int npt1 = sizeof(ptbins1)/sizeof(ptbins1[0])-1;
   double ptmax1 = ptbins1[npt1];
   TH1D *hpt1 = new TH1D("hpt1","",npt1,&ptbins1[0]);
   TProfile *ppt1 = new TProfile("ppt1","",npt1,&ptbins1[0]);
 
-  // Z+jet bins
+  // Z+jet bins (70 extra vs Zll+jet)
   const double ptbins1b[] =
-    {30, 40, 50, 60, 70,85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 1500};
+    //{30,40,50, 60, 70,85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 1500};
+    {15,20,25,30,35,40,50,60,70,85,105,130,175,230,300,400,500,700, 1000, 1500};
   const int npt1b = sizeof(ptbins1b)/sizeof(ptbins1b[0])-1;
   double ptmax1b = ptbins1b[npt1];
   TH1D *hpt1b = new TH1D("hpt1b","",npt1b,&ptbins1b[0]);
@@ -157,7 +159,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   TCanvas *c1 = new TCanvas("c1","c1",ndirs*400,nmethods*400);
   c1->Divide(ndirs,nmethods);
 
-  TH1D *h1 = new TH1D("h1",";p_{T} (GeV);Response",2610,30,2640);
+  TH1D *h1 = new TH1D("h1",";p_{T} (GeV);Response",2625,15,2640);
   h1->GetXaxis()->SetNoExponent();
   h1->GetXaxis()->SetMoreLogLabels();
 
@@ -179,7 +181,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   c3->Divide(ndirs,nmethods);
 
   TH1D *h3 = new TH1D("h3",";p_{T,ref} (GeV);FSR sensitivity: -dR/d#alpha [%]",
-		      2610,30,2640);
+		      2625,15,2640);
   h3->GetXaxis()->SetNoExponent();
   h3->GetXaxis()->SetMoreLogLabels();
 
@@ -205,6 +207,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 	for (int  ialpha = 0; ialpha != nalphas; ++ialpha) {
 	  const int a = alphas[ialpha];
+	  if (a==100 && (ss=="gamjet"||ss=="multijet"||ss=="dijet")) continue;
 	  // Get graph made vs pT
 	  string s = Form("%s/%s/%s_%s_a%d",dirs[idir],bin,cm,cs,a);
 	  TGraphErrors *g = (TGraphErrors*)finout->Get(s.c_str());
@@ -328,6 +331,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  if (etamin==0 && ss=="dijet") continue;
 
 	  const int a = alphas[ialpha];
+	  if (a==100 && (ss=="dijet"||ss=="multijet"||ss=="gamjet")) continue;
 	  TGraphErrors *g = gemap[cd][cm][cs][a]; assert(g);
 
 	  // Clean out points with very large uncertainty for plot readability
@@ -349,7 +353,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	TH1D *h = new TH1D(Form("h_5%s_%s",cd,cm),
 			   Form(";p_{T} (GeV);Response (%s)",cd),
 			   //1470,30,1500);
-			   1270,30,1300); // Run I paper
+			   1285,15,1300); // Run I paper
 	h->GetXaxis()->SetMoreLogLabels();
 	h->GetXaxis()->SetNoExponent();
 	h->SetMinimum(0.88);//0.83);//0.88);
@@ -675,13 +679,13 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	    // Want to reduce freedom a bit at the edges of phase space
 	    if (sm=="ptchs")
 	      fk = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
-			   "[0]+[1]*log(0.01*x)",30,3000);
+			   "[0]+[1]*log(0.01*x)",15,3000);
 			   //"[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",30,3000);
 			   //"[0]+[1]/log(x/0.218)",30,3000);
 	    if (sm=="mpfchs1")
 	      // Similar to ptchs, but now scaled to pt>15 GeV part only
 	      fk = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
-			   "([0]+[1]*log(0.01*x))*(15./x)/0.3",30,3000);
+			   "([0]+[1]*log(0.01*x))*(15./x)/0.3",15,3000);
 			   //"([0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2))*(15./x)/0.3",30,3000);
 			   //"([0]+[1]/log(x/0.218))*(15./x)/0.3",30,3000);
 	  }
@@ -753,7 +757,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  TMatrixD emat(n,n);
 	  gMinuit->mnemat(emat.GetMatrixArray(), n);
 	  TF1 *fke = new TF1(Form("fk_%s_%s_%s",cd,cm,cs),
-			     sr_fitError, 30, 2640, 1);
+			     sr_fitError, 15, 2640, 1);
 	  _sr_fitError_func = fk;
 	  _sr_fitError_emat = &emat;
 
@@ -828,6 +832,16 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	    hk->SetBinContent(ipt, fk->Eval(pt));
 	    hk->SetBinError(ipt, fabs(fke->Eval(pt)-fk->Eval(pt)));
 	  }
+	  // Make an exception for Zll+jet to recover alpha<1.0 range
+	  if (ss=="zlljet") {
+	    for (int ipt = 1; ipt != hk->GetNbinsX()+1; ++ipt) {
+	      double pt = hk->GetBinCenter(ipt);
+	      if (hk->GetBinContent(ipt)==0 && pt<50) {
+		hk->SetBinContent(ipt, fk->Eval(pt));
+		hk->SetBinError(ipt, fabs(fke->Eval(pt)-fk->Eval(pt)));
+	      }
+	    }
+	  }
 
 	  hk->Write(hk->GetName(), TObject::kOverwrite);
 
@@ -858,6 +872,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	    TH1D *hke = (TH1D*)hk->Clone(Form("%s_eig%d",hk->GetName(),ieig));
 	    hke->Reset();
 
+	    // Set non-zero values only for points in graphs
 	    for (int i = 0; i != gk->GetN(); ++i) {
 
 	      double pt = gk->GetX()[i];
@@ -867,6 +882,16 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      hke->SetBinContent(ipt, fkeig->Eval(pt)-fk->Eval(pt));
 	      hke->SetBinError(ipt, fabs(fkeig->Eval(pt)-fk->Eval(pt)));
 	    }
+	    // Make an exception for Zll+jet to recover alpha<1.0 range
+	    if (ss=="zlljet") {
+	      for (int ipt = 1; ipt != hke->GetNbinsX()+1; ++ipt) {
+		double pt = hke->GetBinCenter(ipt);
+		if (hke->GetBinContent(ipt)==0 && pt<50) {
+		  hke->SetBinContent(ipt, fkeig->Eval(pt)-fk->Eval(pt));
+		  hke->SetBinError(ipt, fabs(fkeig->Eval(pt)-fk->Eval(pt)));
+		}
+	      } // if ipt
+	    } // zlljet
 	    hke->Write(hke->GetName(), TObject::kOverwrite);
 	  }
 
