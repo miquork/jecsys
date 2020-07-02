@@ -85,9 +85,9 @@ double valueGamScale = 1.01;//1.;
 // 85: 141.1, 105: 124.7/72, 135: 122.4/70
 //double fpmpfptmin(175);//105);//85);//30);//100.); // photon+jet MPF
 //double fpbalptmin(175);//105);//30);//105);//85);//30);//100.); // photon+jet pTbal
-double fzeeptmin(30.);   // Zee+jet both methods
-double fzmmptmin(30.);//30.);   // Zmm+jet both methods
-double fzptmin(40.);//30.);  // Z+jet both methods
+double fzeeptmin(15.);   // Zee+jet both methods
+double fzmmptmin(15.);//30.);   // Zmm+jet both methods
+double fzptmin(15.);//40.);//30.);  // Z+jet both methods
 // Additional cuts to Z+jet MPF / balance methods
 //double fzmpfptmin(30.);   // Z+jet MPF
 //double fzbalptmin(30.);//100);//30.);   // Z+jet pTbal
@@ -138,7 +138,7 @@ double fzptmax(700.);   // Z+jet
 //double fzbalptmax(500);//300.);  // Z+jet pTbal
 
 // Regular settings for fits with Z+jet
-double fpmpfptmin(230.); double fpbalptmin(230.); double fzllmpfptmin(30);/*40);30);*/ double fzmpfptmin(30);/*40);30);*/ double fzllbalptmin(80);/*105.);80.);*/ double fzbalptmin(105.);/*30);*/ double fzllmpfptmax(700); double fzmpfptmax(700); double fzllbalptmax(500); double fzbalptmax(500); // UL17
+double fpmpfptmin(230.); double fpbalptmin(230.); double fzllmpfptmin(15);/*40);30);*/ double fzmpfptmin(15);/*40);30);*/ double fzllbalptmin(80);/*15);*//*80);*//*105.);80.);*/ double fzbalptmin(105);/*15);*//*105.);*//*30);*/ double fzllmpfptmax(700); double fzmpfptmax(700); double fzllbalptmax(500); double fzbalptmax(500); // UL17
 //double fpmpfptmin(100.); double fpbalptmin(100.); double fzllmpfptmin(40); double fzllbalptmin(100); double fzllmpfptmax(500); double fzllbalptmax(300); // EOY17 settings (incl. effective 40 GeV from bug and gamma+jet min pT)
 
 // Special setting for "multijet only" fit 
@@ -295,8 +295,8 @@ void reprocess(string epoch="") {
 				epoch.c_str()),"READ");
   assert((fpfdt && !fpfdt->IsZombie()) || pfMode=="none");
   // MC80NU 80mb chi2=189.2/137, MCNU 69.2mb=218.137/137
-  TFile *fpfmc = new TFile(Form("rootfiles/output-MC80NU-2b-UL17V4_%s.root",
-//TFile *fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
+  //TFile *fpfmc = new TFile(Form("rootfiles/output-MC80NU-2b-UL17V4_%s.root",
+  TFile *fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
 				epoch.c_str()),"READ");
   assert((fpfmc && !fpfmc->IsZombie()) || pfMode=="none");
 
@@ -358,8 +358,10 @@ void reprocess(string epoch="") {
   //TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
   //TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
   //TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
-  TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1b
-  TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1b
+  //TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1b (for V4)
+  //TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1b (for V4)
+  TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV4_L1L2Res-2.root","READ"); // 20200622
+  TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV4_L1L2Res-2.root","READ"); // 20200622
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
@@ -367,7 +369,8 @@ void reprocess(string epoch="") {
   //TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_v22.root","READ");
   //TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_vRawChsMET.root","READ");
   //TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_v24.root","READ");
-  TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_v25.root","READ");
+  //TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_v25.root","READ");
+  TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_v26_DYJets.root","READ");
   assert(fz && !fz->IsZombie());
   // JES correction for zjet
   TFile *fzjes = new TFile("rootfiles/jecdataBCDEF_V4.root","READ");
@@ -424,6 +427,8 @@ void reprocess(string epoch="") {
   assert(hmzmm_mc);
 
   // v24 has _eta_00_13, v25 not
+  // v26 missing Z mass again
+  /*
   TH2D *h2mz = (TH2D*)fmz->Get("data/eta_00_13/h_Zpt_mZ_alpha30");
   TH2D *h2mz_dt = (TH2D*)fmz->Get("data/eta_00_13/h_Zpt_mZ_alpha30");
   TH2D *h2mz_mc = (TH2D*)fmz->Get("mc/eta_00_13/h_Zpt_mZ_alpha30");
@@ -434,6 +439,7 @@ void reprocess(string epoch="") {
   TH1D *hmz_mc = h2mz_mc->ProfileX("h2mz_mc")->ProjectionX("hmz_mc");
   TH1D *hmz = h2mz->ProfileX("h2mz")->ProjectionX("hmz");
   hmz->Divide(hmz_mc);
+  */
 
   // Extra functions for gamma+jet, modified from Zee+jet
   TF1 *f1mgam = new TF1("f1mgam","[0]+[1]*log(0.01*x)+[2]*pow(log(0.01*x),2)",
@@ -652,6 +658,11 @@ void reprocess(string epoch="") {
   rename["zeejet"]["mpfchs1"] = "MPF_CHS"; 
   rename["zeejet"]["ptchs"] = "PtBal_CHS"; 
   rename["zeejet"]["counts"] = "RawNEvents_CHS";
+  rename["zeejet"]["chf"] = "PFjetCHF_CHS";
+  rename["zeejet"]["nef"] = "PFjetPF_CHS";
+  rename["zeejet"]["nhf"] = "PFjetNHF_CHS";
+  rename["zeejet"]["cef"] = "PFjetEF_CHS";
+  rename["zeejet"]["muf"] = "PFjetMF_CHS";
 
   rename["zmmjet"]["ratio"] = "Ratio";
   rename["zmmjet"]["data"] = "Data";
@@ -661,6 +672,11 @@ void reprocess(string epoch="") {
   rename["zmmjet"]["mpfchs1"] = "MPF_CHS"; 
   rename["zmmjet"]["ptchs"] = "PtBal_CHS"; 
   rename["zmmjet"]["counts"] = "RawNEvents_CHS";
+  rename["zmmjet"]["chf"] = "PFjetCHF_CHS";
+  rename["zmmjet"]["nef"] = "PFjetPF_CHS";
+  rename["zmmjet"]["nhf"] = "PFjetNHF_CHS";
+  rename["zmmjet"]["cef"] = "PFjetEF_CHS";
+  rename["zmmjet"]["muf"] = "PFjetMF_CHS";
 
   // Results from Sami's Z+b analysis
   rename["zjet"]["ratio"] = "data"; // missing => PATCH
@@ -705,7 +721,17 @@ void reprocess(string epoch="") {
   style["zlljet"]["mpfchs1"] = kFullDiamond;
   style["zlljet"]["ptchs"] = kOpenDiamond;
   style["zjet"]["mpfchs1"] = kFullDiamond;
-  style["zjet"]["ptchs"] = kOpenDiamond;
+  style["zlljet"]["ptchs"] = kOpenDiamond;
+  style["zlljet"]["chf"] = kFullCircle;
+  style["zlljet"]["nhf"] = kFullDiamond;
+  style["zlljet"]["nef"] = kFullSquare;
+  style["zlljet"]["cef"] = kFullDiamond;
+  style["zlljet"]["muf"] = kFullDiamond;
+  style["zlljet_mc"]["chf"] = kOpenCircle;
+  style["zlljet_mc"]["nhf"] = kOpenDiamond;
+  style["zlljet_mc"]["nef"] = kOpenSquare;
+  style["zlljet_mc"]["cef"] = kOpenDiamond;
+  style["zlljet_mc"]["muf"] = kOpenDiamond;
   style["zjet"]["chf"] = kFullCircle;
   style["zjet"]["nhf"] = kFullDiamond;
   style["zjet"]["nef"] = kFullSquare;
@@ -731,6 +757,11 @@ void reprocess(string epoch="") {
   color["zeejet"] = kGreen+2;
   color["zmmjet"] = kRed;
   color["zlljet"] = kMagenta+2;
+  color["zlljet_chf"] = kRed;
+  color["zlljet_nhf"] = kGreen+2;
+  color["zlljet_nef"] = kBlue;
+  color["zlljet_cef"] = kCyan+1;
+  color["zlljet_muf"] = kMagenta+1;
   color["zjet"] = kRed+1;
   color["zjet_chf"] = kRed;
   color["zjet_nhf"] = kGreen+2;
@@ -899,7 +930,9 @@ void reprocess(string epoch="") {
 	  // (now adding fractions to zjet)
 	  bool isfrac = (t=="chf"||t=="nef"||t=="nhf"||
 			 t=="cef"||t=="muf"||t=="puf");
-	  if (isfrac && s!="pfjet" && s!="zjet") continue; // v25
+	  if (isfrac && s!="pfjet" && //s!="zjet" && // v26
+	      s!="zeejet" && s!="zmmjet" && s!="zlljet") continue; // v25
+	  //if (isfrac && s!="pfjet" && s!="zjet") continue; // v25
 	  //if (isfrac && s!="pfjet") continue; // v24
 	  if (!isfrac && s=="pfjet") continue;
 
@@ -927,7 +960,8 @@ void reprocess(string epoch="") {
 	    }
 	    assert(f || s=="zlljet" || (s=="pfjet"&&d=="ratio"));
 
-	    if (alpha>0.35 && s!="zjet") continue;
+	    //if (alpha>0.35 && s!="zjet") continue;
+	    if (alpha>0.35 && (s!="zjet" && s!="zeejet" && s!="zmmjet" && s!="zlljet")) continue;
 
             if (t=="counts" && s!="zmmjet" && s!="zeejet" && s!="gamjet"
 		&& s!="zjet")
@@ -1049,7 +1083,10 @@ void reprocess(string epoch="") {
 	      obj = (TObject*)g;
 	    }
 	    // Calculate data-MC diff
-	    if (s=="zjet" && d=="ratio" && isfrac) {
+	    // (for zlljet, replace original ratio)
+	    if ((s=="zjet" && d=="ratio" && isfrac) ||
+		((s=="zeejet" || s=="zmmjet" || s=="zlljet") &&
+		 d=="ratio" && isfrac)) {
 	      TGraphErrors *gd = grs["data"][t][s][ieta][ialpha];
 	      TGraphErrors *gm = grs["mc"][t][s][ieta][ialpha];
 	      assert(gd);
@@ -1452,7 +1489,8 @@ void reprocess(string epoch="") {
 	    g->SetMarkerStyle(style[s][t]);
 	    g->SetMarkerColor(color[s]);
 	    g->SetLineColor(color[s]);
-	    if (s=="pfjet" || (s=="zjet" && isfrac)) {
+	    if (s=="pfjet" || (s=="zjet" && isfrac) ||
+		(s=="zlljet" && isfrac)) {
 	      g->SetMarkerStyle(d=="mc" ? style[s+"_"+d][t] : style[s][t]);
 	      g->SetMarkerColor(color[s+"_"+t]);
 	      g->SetLineColor(color[s+"_"+t]);
@@ -1475,15 +1513,15 @@ void reprocess(string epoch="") {
   fout->cd("ratio/eta00-13");
   hmzee->Write("mass_zeejet_a30");
   hmzmm->Write("mass_zmmjet_a30");
-  hmz->Write("mass_zjet_a30");
+  //hmz->Write("mass_zjet_a30"); // v26
   fout->cd("data/eta00-13");
   hmzee_dt->Write("mass_zeejet_a30");
   hmzmm_dt->Write("mass_zmmjet_a30");
-  hmz_dt->Write("mass_zjet_a30");
+  //hmz_dt->Write("mass_zjet_a30");
   fout->cd("mc/eta00-13");
   hmzee_mc->Write("mass_zeejet_a30");
   hmzmm_mc->Write("mass_zmmjet_a30");
-  hmz_mc->Write("mass_zjet_a30");
+  //hmz_mc->Write("mass_zjet_a30");
 
   fdj->Close();
   fp->Close(); // single file
@@ -1573,7 +1611,7 @@ void reprocess(string epoch="") {
 
     // New additions (RC: mean vs median; L1: Simple vs SemiSimple)
     FactorizedJetCorrector *jrcdnom, *jrcmnom, *jrcdalt, *jrcmalt; // 1
-    FactorizedJetCorrector *jl1dnomsf, *jl1daltsf; // 2a
+    FactorizedJetCorrector *jl1dnomsf, *jl1daltsf, *jl1mnomsf; // 2a
     FactorizedJetCorrector *jl1dnom, *jl1mnom, *jl1dalt, *jl1malt; // 2b,2c
 
     //jrcdnom = getFJC("Summer19UL17_RunE_V1_SimpleL1_DATA_L1RC"); // (1)
@@ -1585,9 +1623,10 @@ void reprocess(string epoch="") {
     jrcmalt = getFJC("UL17_MED_RunBCDEF_V1_MC_L1RC"); // (1)
 
     // Use place-holder for the missing custom data files
-    jl1dnomsf = getFJC("Summer19UL17_RunE_V1_SimpleL1_DATA_L1FastJet"); // (2a) -- placeholder for the two below
-    //jl1dnomsf = getFJC("UL17_RunBCDEF_V1_SimpleL1_DATA_L1FastJet"); // (2a)
-    //jl1daltsf = getFJC("UL17_MED_RunBCDEF_V1_SimpleL1_DATA_L1FastJet"); // (2a)
+    //jl1dnomsf = getFJC("Summer19UL17_RunE_V1_SimpleL1_DATA_L1FastJet"); // (2a) -- placeholder for the two below
+    jl1dnomsf = getFJC("UL17_RunBCDEF_L1Simple_L1FastJet_AK4PFchs"); // (2a)
+    jl1daltsf = getFJC("UL17_RunBCDEF_L1Simple_L1FastJet_AK4PFMEDchs"); // (2a)
+    jl1mnomsf = getFJC("Summer19UL17_V1_SimpleL1_MC_L1FastJet"); //xtra
 
     // Shell magic to create new new data file from old data and MC files:
     //   cp -pi [Summer19UL17...MC...] mc.txt
@@ -1597,18 +1636,22 @@ void reprocess(string epoch="") {
     //   sed -e "s/^M//" dt1.txt > dt2.txt
     // (above, use Ctrl+V Ctrl+M to produce the carriage return ^M)
     //   sed -e "s/8       0/10       0/" dt2.txt > dt3.txt
+    // ( sed -e "s/9       0/11       0/" dt2.txt > dt3.txt )
     //   head -n1 dt.txt > dt4.txt
+    // ( head -n1 mc.txt > dt4.txt )
+    // ( and by hand modificatinos for L1SemiSimple )
     //   tail -n82 dt3.txt >> dt4.txt
 
     // List of data files still needed (RunE->RunBCDEF, SimpleL1->SemiSimpleL1)
-    //jl1dnom = getFJC("Summer19UL17_RunBCDEF_V1_SimpleL1_DATA_L1FastJet",
-    jl1dnom = getFJC("Summer19UL17_RunE_V1_SimpleL1_DATA_L1FastJet", // (2b)--PH
+  //jl1dnom = getFJC("Summer19UL17_RunE_V1_SimpleL1_DATA_L1FastJet", // (2b)--PH
+    jl1dnom = getFJC("UL17_RunBCDEF_L1Simple_L1FastJet", //(2b)
 		     "Summer19UL17_V1_SimpleL1_MC_L2Relative"); // (2b)
     jl1mnom = getFJC("Summer19UL17_V1_SimpleL1_MC_L1FastJet", // (2b)
 		     "Summer19UL17_V1_SimpleL1_MC_L2Relative"); // (2b)
     //jl1dalt = getFJC("Summer19UL17_RunBCDEF_V1_SemiSimpleL1_DATA_L1FastJet",
-    //jl1dalt = getFJC("ParallelMCL1_L1FastJet_AK4PFchs_L1SemiSimple",//(2b)--PH
-    jl1dalt = getFJC("ParallelMCL1_RunE_L1SemiSimple_DATA_L1FastJet",//(2b)--PH
+  //jl1dalt = getFJC("ParallelMCL1_L1FastJet_AK4PFchs_L1SemiSimple",//(2b)--PH
+  //jl1dalt = getFJC("ParallelMCL1_RunE_L1SemiSimple_DATA_L1FastJet",//(2b)--PH
+    jl1dalt = getFJC("UL17_RunBCDEF_L1SemiSimple_L1FastJet", //(2b)
 		     "ParallelMCL1_L2Relative_AK4PFchs_L1SemiSimple"
 		     "_L2L3Splines_ptclip8"); // (2b)
     jl1malt = getFJC("ParallelMCL1_L1FastJet_AK4PFchs_L1SemiSimple", // (2b)
@@ -1678,9 +1721,11 @@ void reprocess(string epoch="") {
       cout << "Eta bin:" << eta1 <<"-"<< eta2 << endl;
 
       
-      const double ptbins[] = {15, 16, 17, 18, 19, 20, 22, 24, 26, 28,
-			       30, 40, 50, 60, 75, 100, 125, 155, 180,
+      //const double ptbins[] = {15, 16, 17, 18, 19, 20, 22, 24, 26, 28,
+			       //30, 40, 50, 60, 75, 100, 125, 155, 180,
       //const double ptbins[] = {29,30, 40, 50, 60, 75, 100, 125, 155, 180,
+      const double ptbins[] = {15, 16, 18, 20, 22, 25,
+			       30, 35, 40, 50, 60, 75, 100, 125, 155, 180,
 			       210, 250, 300, 350, 400, 500, 600, 800, 1000,
 			       1200, 1500, //1600, 1601};
 			       //1800, 2100, 2500, 3000, 3500, 3501};
@@ -1762,16 +1807,17 @@ void reprocess(string epoch="") {
 			     "L1_{dt,altsf}/L1_{dt,nomsf}",
 			     npt, &ptbins[0]);
       TH1D *hl1sfnom = new TH1D("hl1sfnom",";p_{T} (GeV);"
-				"SF_{dt,nom} = RC_{dt,nom}/RC_{mc,nom}",
+				"SF_{dt,nom} = L1_{dt,nomsf}/L1_{mc,nom}",
 				npt, &ptbins[0]);
       TH1D *hl1sfalt = new TH1D("hl1sfalt",";p_{T} (GeV);"
-				"SF_{dt,alt} = RC_{dt,alt}/RC_{mc,alt}",
+				"SF_{dt,alt} = L1_{dt,altsf}/L1_{mc,nom}",
 				npt, &ptbins[0]);
       TH1D *hl1offdt = new TH1D("hl1offdt",";p_{T} (GeV);"
 				"L1offdt = p_{T,corr}*(L1_{dt,nomsf}-1)",
 				npt, &ptbins[0]);
       TH1D *hl1dt = new TH1D("hl1dt",";p_{T} (GeV);"
-			     "L1_{dt,nom} = p_{T,corr}/(p_{T,corr}+L1offdt)",
+			     //"L1_{dt,nom} = p_{T,corr}/(p_{T,corr}+L1offdt)",
+			     "L1_{dt,nomsf}",
 			     npt, &ptbins[0]);
       //
       TH1D *hl1 = new TH1D("hsys2b_l1",";p_{T} (GeV);"
@@ -1822,7 +1868,9 @@ void reprocess(string epoch="") {
 	double pt = herr->GetBinCenter(ipt);
 
 	int jpt = h2eta->GetXaxis()->FindBin(pt);
-	jpt = max(0,min(jpt, h2eta->GetXaxis()->GetNbins()));
+	//jpt = max(0,min(jpt, h2eta->GetXaxis()->GetNbins()));
+	// 20200622: avoid underflow bin for pT<30 GeV
+	jpt = max(1,min(jpt, h2eta->GetXaxis()->GetNbins()));
 
 	// Take Z+jet eta,pT distribution for correctly averaging JEC
 	TH1D *heta = h2eta->ProjectionY(Form("heta_%d",ipt), jpt, jpt);
@@ -1843,7 +1891,7 @@ void reprocess(string epoch="") {
 
 	// New additions
 	double sumvalrcdnom(0),sumvalrcmnom(0), sumvalrcdalt(0),sumvalrcmalt(0);
-	double sumvall1dnomsf(0), sumvall1daltsf(0);
+	double sumvall1dnomsf(0), sumvall1daltsf(0), sumvall1mnomsf(0);
 	double sumvall1dnom(0),sumvall1mnom(0), sumvall1dalt(0),sumvall1malt(0);
 	double sumvall1dnomsf20(0), sumvall1daltsf20(0);
 	double sumvall1dnom20(0),sumvall1mnom20(0);
@@ -1915,7 +1963,8 @@ void reprocess(string epoch="") {
 	  sumvalrcmalt += w/     getJEC(jrcmalt,    eta,pt,gRhoMC);
 	  //
 	  sumvall1dnomsf += w/   getJEC(jl1dnomsf, eta,pt,gRhoDT);
-	  //sumvall1daltsf += w/   getJEC(jl1daltsf, eta,pt);
+	  sumvall1daltsf += w/   getJEC(jl1daltsf, eta,pt,gRhoDT);
+	  sumvall1mnomsf += w/   getJEC(jl1mnomsf, eta,pt,gRhoMC);
 	  //
 	  sumvall1dnom += w/     getJEC(jl1dnom, eta,pt,gRhoDT);
 	  sumvall1mnom += w/     getJEC(jl1mnom, eta,pt,gRhoMC);
@@ -1923,7 +1972,7 @@ void reprocess(string epoch="") {
 	  sumvall1malt += w/     getJEC(jl1malt, eta,pt,gRhoMC);
 	  //
 	  sumvall1dnomsf20 += w/ getJEC(jl1dnomsf, eta,pt,gRhoDT*1.2);
-	  //sumvall1daltsf20 += w/     getJEC(jl1daltsf, eta,pt);
+	  sumvall1daltsf20 += w/ getJEC(jl1daltsf, eta,pt,gRhoDT*1.2);
 	  //
 	  sumvall1dnom20 += w/   getJEC(jl1dnom, eta,pt,gRhoDT*1.2);
 	  sumvall1mnom20 += w/   getJEC(jl1mnom, eta,pt,gRhoMC*1.2);
@@ -2055,8 +2104,16 @@ void reprocess(string epoch="") {
 	//
 	// JES*pTcorr = pTcorr + offset => offset = pTcorr*(JES-1)
 	double l1dnomsf = (sumvall1dnomsf / sumw);
-	//double sfdalt = (sumvallsfalt / sumw);
-	//hl1sf->SetBinContent(ipt, sfdalt/sfdnom);
+	double l1daltsf = (sumvall1daltsf / sumw);
+	double l1mnomsf = (sumvall1mnomsf / sumw);
+	double offl1dnomsf = pt*(l1dnomsf-1);
+	hl1sf->SetBinContent(ipt, l1daltsf/l1dnomsf); //(2a)
+	hl1sfnom->SetBinContent(ipt, (l1dnomsf-1)/(l1mnomsf-1)); //xtra
+	hl1sfalt->SetBinContent(ipt, (l1daltsf-1)/(l1mnomsf-1)); //xtra
+	hl1offdt->SetBinContent(ipt, offl1dnomsf); //xtra
+	hl1dt->SetBinContent(ipt, l1dnomsf); //xtra
+	/*
+	double l1dnomsf = (sumvall1dnomsf / sumw);
 	double offl1 = pt * (l1dnomsf - 1);
 	double offrcdnom = pt * (rcdnom - 1);
 	double offrcdalt = pt * (rcdalt - 1);
@@ -2069,6 +2126,7 @@ void reprocess(string epoch="") {
 	hl1sfalt->SetBinContent(ipt, sfalt); //xtra
 	hl1offdt->SetBinContent(ipt, offl1); //xtra
 	hl1dt->SetBinContent(ipt, pt/(pt+offl1)); //xtra
+	*/
 	//
 	double l1dnom = (sumvall1dnom / sumw);
 	double l1mnom = (sumvall1mnom / sumw);
@@ -2083,13 +2141,18 @@ void reprocess(string epoch="") {
 	//hl1malt->SetBinContent(ipt, l1malt); //xtra
 	//
 	double l1dnomsf20 = (sumvall1dnomsf20 / sumw);
-	//double l1daltsf20 = (sumvall1daltsf20 / sumw);
-	//hl1sf->SetBinContent(ipt, l1daltsf20/l1dnomsf20);
+	double l1daltsf20 = (sumvall1daltsf20 / sumw);
+	hl1sfr->SetBinContent(ipt, (l1daltsf20/l1dnomsf20)
+			      / (l1daltsf/l1dnomsf) ); //(3a)
+	hl1sf20->SetBinContent(ipt, l1daltsf20/l1dnomsf20); //xtra
+	hl1dt20->SetBinContent(ipt, l1dnomsf20); //xtra
+	/*
 	double offl120 = pt * (l1dnomsf20 - 1);
 	hl1sfr->SetBinContent(ipt, ((pt+offl120*sfalt-offl120*sfnom)/pt)
 			      / ((pt+offl1*sfalt-offl1*sfnom)/pt)); //(3a)
 	hl1sf20->SetBinContent(ipt, (pt+offl120*sfalt-offl120*sfnom)/pt); //xtra
 	hl1dt20->SetBinContent(ipt, (pt+offl120)/(pt+offl1)); //xtra
+	*/
 	//
 	double l1dnom20 = (sumvall1dnom20 / sumw);
 	double l1mnom20 = (sumvall1mnom20 / sumw);
