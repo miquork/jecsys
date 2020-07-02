@@ -741,8 +741,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
       string s = Form("%s_%s_a%02.0f",cm,cs,
 		      ss=="multijet" ? ptmj : alpha*100);
-      if (useZJet50  && ss=="zjet") s = Form("%s_%s_a%02.0f",cm,cs,50);
-      if (useZJet100 && ss=="zjet") s = Form("%s_%s_a%02.0f",cm,cs,100);
+      if (useZJet50  && (ss=="zjet"||ss=="zeejet"||ss=="zmmjet"||ss=="zlljet"))
+	s = Form("%s_%s_a%02.0f",cm,cs,50.);
+      if (useZJet100 && (ss=="zjet"||ss=="zeejet"||ss=="zmmjet"||ss=="zlljet"))
+	s = Form("%s_%s_a%02.0f",cm,cs,100.);
       TGraphErrors *g = (TGraphErrors*)d->Get(s.c_str());
       if (!g) cout << "Graph "<<s<<" not found!" << endl << flush;
       assert(g);
@@ -1372,8 +1374,15 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   TLatex *tex = new TLatex();
   tex->SetNDC(); tex->SetTextSize(0.045);
   if (isl3) {
-    tex->DrawLatex(0.20,0.73,Form("|#eta|<%1.1f, #alpha<0.3%s",etamax,
-				  dofsr ? "#rightarrow0" : ""));
+    if (useZJet100) 
+      tex->DrawLatex(0.20,0.73,Form("|#eta|<%1.1f, #alpha<1.0%s",etamax,
+				    dofsr ? "#rightarrow0" : ""));
+    else if (useZJet50) 
+      tex->DrawLatex(0.20,0.73,Form("|#eta|<%1.1f, #alpha<0.5%s",etamax,
+				    dofsr ? "#rightarrow0" : ""));
+    else
+      tex->DrawLatex(0.20,0.73,Form("|#eta|<%1.1f, #alpha<0.3%s",etamax,
+				    dofsr ? "#rightarrow0" : ""));
   }
   else {
     assert(dofsr);
@@ -1503,7 +1512,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   legi->Draw();
 
   if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1)) {
-    if (epoch!="L4") tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3");
+    if (epoch!="L4") {
+      if (useZJet100) 
+	tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<1.0");
+      else if (useZJet50) 
+	tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.5");
+      else
+	tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3");
+    }
     if (epoch=="L4") tex->DrawLatex(0.20,0.73,"|#eta|<2.4, #alpha<0.3");
   }
   else tex->DrawLatex(0.20,0.73,Form("%1.3f#leq|#eta|<%1.3f",etamin,etamax));
@@ -1707,9 +1723,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       //h2emat->GetYaxis()->SetBinLabel(i+1,Form("%s (%d)",cp,i));
       //h2cov->GetYaxis()->SetBinLabel(i+1,Form("%s (%d)",cp,i));
       //h1par->GetXaxis()->SetBinLabel(i+1,Form("%s (%d)",cp,i));
-      h2emat->GetYaxis()->SetBinLabel(i+1,Form("%s",cp,i));
-      h2cov->GetYaxis()->SetBinLabel(i+1,Form("%s",cp,i));
-      h1par->GetXaxis()->SetBinLabel(i+1,Form("%s",cp,i));
+      h2emat->GetYaxis()->SetBinLabel(i+1,Form("%s",cp));
+      h2cov->GetYaxis()->SetBinLabel(i+1,Form("%s",cp));
+      h1par->GetXaxis()->SetBinLabel(i+1,Form("%s",cp));
     } // for i
     // Store to /sys folder
     if (storeJesFit || epoch=="BCDEF") {
@@ -1883,7 +1899,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	      6500./cosh(etamin));
 
   if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1)) {
-    if (epoch!="L4") tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3#rightarrow0");
+    if (epoch!="L4") {
+      if (useZJet100)
+	tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<1.0#rightarrow0");
+      else if (useZJet50)
+	tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.5#rightarrow0");
+      else
+	tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<0.3#rightarrow0");
+    }
     if (epoch=="L4") tex->DrawLatex(0.20,0.73,"|#eta|<2.4, #alpha<0.3#rightarrow0");
   }
   else tex->DrawLatex(0.20,0.73,Form("%1.3f#leq|#eta|<%1.3f",etamin,etamax));
@@ -2023,13 +2046,18 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
     //tex->DrawLatex(0.25,0.70,Form("Full 9-par model"));
     tex->DrawLatex(0.54,0.70-0.09,Form("Full 9-par model"));
+
+    double ts_orig = tex->GetTextSize();
+    double ts_new = 0.025;
+    tex->SetTextSize(ts_new);
     for (int i = 0; i != njesFit; ++i) {
-      tex->DrawLatex(0.25,0.70-i*0.03,
+      tex->DrawLatex(0.30,0.70-i*ts_new,
 		     Form("p%d(%s)=%1.3f #pm %1.3f",
 			  i,name[i],
 			  _jesFit->GetParameter(i),
 			  sqrt(emat[i][i])));
     }
+    tex->SetTextSize(ts_orig);
 
   }
   else if (!_paper) {
