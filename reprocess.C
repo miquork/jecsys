@@ -102,6 +102,8 @@ double fpfjetptmin(15.);
 double fpfjetptmax(2116.);
 double fincjetptmin(21);//18)15.);
 double fincjetptmax(2116.);//4037.);
+double fhadwptmin(30.);
+double fhadwptmax(200.);
 double fmultijetptmin(114);//300);//114);//114);//49);//64);//84);114);//153);
 // 2640 good for BCDEF, but destabilizes some IOVs? For F, go down to 2116
 double fmultijetptmax(2116);//2366);//2116);//2640.);//1890.);//1800.);//3000.);
@@ -299,6 +301,9 @@ void reprocess(string epoch="") {
   TFile *fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
 				epoch.c_str()),"READ");
   assert((fpfmc && !fpfmc->IsZombie()) || pfMode=="none");
+
+  TFile *fw = new TFile("rootfiles/hadW.root","READ");
+  assert(fw && !fw->IsZombie());
 
   // Hugues Lattaud, 2017 V27 inputs with L2Res (not incl. JER SF as in V28)
   // https://indico.cern.ch/event/765393/#47-l3res-gammajets-with-fall17
@@ -560,6 +565,7 @@ void reprocess(string epoch="") {
   files["pfjet_mc"] = fpfmc;
   files["dijet"] = fdj;
   files["incjet"] = fij;
+  files["hadw"] = fw;
   files["multijet"] = fmj;
   files["gamjet"] = fp;
   files["zeejet"] = fzee;
@@ -643,6 +649,10 @@ void reprocess(string epoch="") {
   //rename["incjet"]["ptchs"] = "jet_Run17UL%s_fwd2"; // copy
   rename["incjet"]["ptchs"] = "jet_Run17UL%s_fwd3"; // copy
 
+  rename["hadw"]["mpfchs1"] = "mass_ptboth";
+  rename["hadw"]["ptchs"] = "mass_ptave";
+  rename["hadw"]["counts"] = "nevents_ptboth";
+
   rename["gamjet"]["ratio"] = "";
   rename["gamjet"]["data"] = "_DATA"; 
   rename["gamjet"]["mc"] = "_MC"; 
@@ -710,6 +720,8 @@ void reprocess(string epoch="") {
   style["dijet"]["ptchs"] = kOpenDiamond;//kOpenSquare;
   style["incjet"]["mpfchs1"] = kFullDiamond;
   style["incjet"]["ptchs"] = kOpenDiamond;
+  style["hadw"]["mpfchs1"] = kFullCircle;
+  style["hadw"]["ptchs"] = kOpenCircle;
   style["multijet"]["mpfchs1"] = kFullTriangleUp;
   style["multijet"]["ptchs"] = kOpenTriangleUp;
   style["gamjet"]["mpfchs1"] = kFullSquare;
@@ -721,6 +733,7 @@ void reprocess(string epoch="") {
   style["zlljet"]["mpfchs1"] = kFullDiamond;
   style["zlljet"]["ptchs"] = kOpenDiamond;
   style["zjet"]["mpfchs1"] = kFullDiamond;
+  style["zjet"]["ptchs"] = kOpenDiamond;
   style["zlljet"]["ptchs"] = kOpenDiamond;
   style["zlljet"]["chf"] = kFullCircle;
   style["zlljet"]["nhf"] = kFullDiamond;
@@ -752,6 +765,7 @@ void reprocess(string epoch="") {
   color["pfjet_muf"] = kMagenta+1;
   color["dijet"] = kBlack;
   color["incjet"] = kOrange+2;//kBlack;
+  color["hadw"] = kGreen+2;
   color["multijet"] = kBlack;
   color["gamjet"] = kBlue;
   color["zeejet"] = kGreen+2;
@@ -809,6 +823,7 @@ void reprocess(string epoch="") {
   sets.push_back("zmmjet");
   sets.push_back("zlljet");
   sets.push_back("zjet");
+  sets.push_back("hadw");
   sets.push_back("pfjet");
 
   vector<pair<double,double> > etas;
@@ -964,7 +979,7 @@ void reprocess(string epoch="") {
 	    if (alpha>0.35 && (s!="zjet" && s!="zeejet" && s!="zmmjet" && s!="zlljet")) continue;
 
             if (t=="counts" && s!="zmmjet" && s!="zeejet" && s!="gamjet"
-		&& s!="zjet")
+		&& s!="zjet" && s!="hadw")
               continue; // counts available only for z+jet and gamjet, so far
 
 	    if (s=="pfjet" && !(fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1
@@ -972,6 +987,9 @@ void reprocess(string epoch="") {
 	      continue; // barrel only, no specific alpha
 	    if (s=="incjet" && !(fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1
 				 && fabs(alpha-0.30)<0.01)) // && t=="mpfchs1"))
+	      continue; // barrel only, no specific pt or alpha
+	    if (s=="hadw" && !(fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1
+			       && fabs(alpha-0.30)<0.01)) // && t=="mpfchs1"))
 	      continue; // barrel only, no specific pt or alpha
 	    if (s=="multijet" && (!((epoch!="L4" &&
 				     fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1) ||
@@ -998,6 +1016,9 @@ void reprocess(string epoch="") {
 	    if (s=="incjet") {
 	      //c = Form("jet_Run17UL%s",epoch=="BCDEF" ? "" : epoch.c_str());
 	      c = Form(rename[s][t],epoch=="BCDEF" ? "" : epoch.c_str());
+	    }
+	    if (s=="hadw") {
+	      c = Form("%s_%s_%s_fitprob02_L1L2L3",dd,rename[s][t],ss);
 	    }
 	    if (s=="multijet") {
 	      //c = Form("%s/Pt%1.0f/%s", rename[s][d], 100.*alpha, rename[s][t]);
@@ -1098,7 +1119,7 @@ void reprocess(string epoch="") {
 
 	    assert(obj);
 
-            if (t=="counts" && (s=="zmmjet" || s=="zeejet" || s=="gamjet" || s=="zjet") ){ // write out counts to jecdata.root (as TH1F)
+            if (t=="counts" && (s=="zmmjet" || s=="zeejet" || s=="gamjet" || s=="zjet" || s=="hadw") ){ // write out counts to jecdata.root (as TH1F)
               assert(obj->InheritsFrom("TH1D") ||obj->InheritsFrom("TH1F"));
 	      dout->cd();
 	      TH1D *h = (TH1D*)obj;
@@ -1175,6 +1196,9 @@ void reprocess(string epoch="") {
 		g->RemovePoint(i);
 	      else if (s=="incjet" &&
 		       (g->GetX()[i]<fincjetptmin || g->GetX()[i]>fincjetptmax))
+		g->RemovePoint(i);
+	      else if (s=="hadw" &&
+		       (g->GetX()[i]<fhadwptmin || g->GetX()[i]>fhadwptmax))
 		g->RemovePoint(i);
 	      else if (s=="multijet" &&
 		       (g->GetX()[i]<fmultijetptmin ||
@@ -1549,27 +1573,31 @@ void reprocess(string epoch="") {
     FactorizedJetCorrector *jecb(0), *jecc(0), *jecd(0), *jece(0), *jecf(0);
     double jecwb(1), jecwc(0), jecwd(0), jecwe(0), jecwf(0);       // for BCDEF
     {
+      /*
       jec = getFJC("","",
 		   Form("Summer19UL17_Run%s_V2M5_SimpleL1_DATA_L2L3Residual",
 			epoch=="BCDEF" ? "B" : epoch.c_str()));
-      
+      */
+      jec = getFJC("","",
+		   Form("Summer19UL17_Run%s_V4_DATA_L2L3Residual",
+			epoch=="BCDEF" ? "B" : epoch.c_str()));
       if (epoch=="BCDEF") {
 
 	// luminosity from Hugues Lattaud, photon+jet 11 June 2018
 	double lumtot = 4.8+9.6+4.2+9.3+13.4; // 41.3/fb
-
+	/*
 	jecb =getFJC("","","Summer19UL17_RunB_V2M5_SimpleL1_DATA_L2L3Residual");
 	jecc =getFJC("","","Summer19UL17_RunC_V2M5_SimpleL1_DATA_L2L3Residual");
 	jecd =getFJC("","","Summer19UL17_RunD_V2M5_SimpleL1_DATA_L2L3Residual");
 	jece =getFJC("","","Summer19UL17_RunE_V2M5_SimpleL1_DATA_L2L3Residual");
 	jecf =getFJC("","","Summer19UL17_RunF_V2M5_SimpleL1_DATA_L2L3Residual");
-	/*
+	*/
 	jecb =getFJC("","","Summer19UL17_RunB_V4_DATA_L2L3Residual");
 	jecc =getFJC("","","Summer19UL17_RunC_V4_DATA_L2L3Residual");
 	jecd =getFJC("","","Summer19UL17_RunD_V4_DATA_L2L3Residual");
 	jece =getFJC("","","Summer19UL17_RunE_V4_DATA_L2L3Residual");
 	jecf =getFJC("","","Summer19UL17_RunF_V4_DATA_L2L3Residual");
-	*/
+
 	jecwb = 4.8/lumtot;
 	jecwc = 9.6/lumtot;
 	jecwd = 4.2/lumtot;

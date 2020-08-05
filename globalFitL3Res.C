@@ -62,7 +62,8 @@ bool useP4HadE = true;//false; // nn3
 bool useP5Frag = true;//false; // nn3
 bool useP6L1RC = true;//false;
 bool useP7TrkD = true;
-bool useP8MB80 = false; // (def:false)
+bool useP8MB80pf = false; // (def:false)
+bool useP8MB80fit = false; // (def:false)
 //
 bool useZJet50 = false; // Use Z+jet with alpha<0.50 (def:false)
 bool useZJet100 = false; // Use Z+jet with alpha<1.00 (def:false)
@@ -77,6 +78,7 @@ bool dol1bias = false; // correct MPF to L1L2L3-L1 from L1L2L3-RC (def:false)
 bool _paper = false; // switch of plotting fit parameters
 bool _useZoom = true; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
 bool plotIncJet = true; // plot inclusive jet data
+bool plotHadW = true; // plot hadronic W data
 bool plotMultijetDown = true; // plot gray downward points for multijets
 double ptmaxMultijetDown = 300; // max pT for downward multijet points
 double shiftPtBal = 0.975; // move x-axis for pTbal, 0 or 1 for none
@@ -297,7 +299,7 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 	    + (useP5Frag ? 0.3*p[5]*0.01*fhw->Eval(pt) : 0) // Herwig fragmentation (rough estimate of impact on Z+jet)
 	    + (useP6L1RC ? p[6]*(fl1->Eval(pt)-1) : 0) // L1RC-L1Simple diff.
 	    + (useP7TrkD ? p[7]*0.01*3*(ftd->Eval(pt)-ftm->Eval(pt)) : 0) // Tracker Data-MC ('3%' vs '1%' for useP0Trk)
-	    + (useP8MB80 ? p[8]*0.01*fm80->Eval(pt) : 0)
+	    + (useP8MB80fit ? p[8]*0.01*fm80->Eval(pt) : 0)
 	    );
   } // nJesFit==9
 
@@ -327,6 +329,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   TFile *ffsr = new TFile(Form("rootfiles/jecdata%s.root","BCDEF"),
 			  epoch=="BCDEF" ? "UPDATE" : "READ");
+  TFile *fout = new TFile(Form("rootfiles/jecdata%s.root",cep),"UPDATE");
+  assert(fout && !fout->IsZombie());
+
   bool fsrcombo = (dofsrcombo1||dofsrcombo2);
   assert((ffsr && !ffsr->IsZombie()) || (!fsrcombo && epoch!="BCDEF"));
   if (dofsrcombo1) cout << "Use input FSR from BCDEF for all IOVs\n";
@@ -337,6 +342,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   //TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v3.root","READ");
   TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ");
   assert((fij && !fij->IsZombie()) || ! plotIncJet);
+  //TFile *fw = new TFile("rootfiles/hadW.root","READ");
+  //assert((fw && !fw->IsZombie()) || ! plotHadW);
 
   curdir->cd();
 
@@ -366,6 +373,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   map<string, int > izeemap;
   map<string, int > izmmmap;
   map<string, int > izllmap;
+  map<string, int > iwmhmap;
   // Normal global fit with all four samples (multijet/dijet, gamma+jet, Z+jets)
   samplesmap["Standard_MJDJ_gam_zee_zmm"] =   {(isl3 ? "multijet" : "dijet"),
 					     "gamjet", "zeejet", "zmmjet"};
@@ -455,6 +463,23 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   izmmmap["MJDJ_inc_gam_zll"] = -1;
   izllmap["MJDJ_inc_gam_zll"] = 1;
 
+  // Global fit with: multijets/dijets, gamma+jet, merged Z+jet, hadronic w
+  samplesmap["MJDJ_gam_zll_hadw"] =   { (isl3 ? "multijet" : "dijet"),"gamjet", "zlljet","hadw"};
+  nsample0map["MJDJ_gam_zll_hadw"] = 1;
+  igjmap["MJDJ_gam_zll_hadw"] = 0;
+  izeemap["MJDJ_gam_zll_hadw"] = -1;
+  izmmmap["MJDJ_gam_zll_hadw"] = -1;
+  izllmap["MJDJ_gam_zll_hadw"] = 1;
+  iwmhmap["MJDJ_gam_zll_hadw"] = 2;
+
+  // Global fit with: multijets/dijets, gamma+jet, merged Z+jet, hadronic w
+  samplesmap["MJDJ_gam_z_hadw"] =   { (isl3 ? "multijet" : "dijet"),"gamjet", "zjet","hadw"};
+  nsample0map["MJDJ_gam_z_hadw"] = 1;
+  igjmap["MJDJ_gam_z_hadw"] = 0;
+  izeemap["MJDJ_gam_z_hadw"] = -1;
+  izmmmap["MJDJ_gam_z_hadw"] = -1;
+  izllmap["MJDJ_gam_z_hadw"] = 1;
+  iwmhmap["MJDJ_gam_z_hadw"] = 2;
 
   // Global fit without photon+jet
   samplesmap["MJDJ_zee_zmm"] =   {(etamin==0 && (etamax==1.3||etamax==2.4)? "multijet" : "dijet"),
@@ -503,6 +528,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   const int izee = izeemap[selectSample];
   const int izmm = izmmmap[selectSample];
   const int izll = izllmap[selectSample];
+  const int iwmh = iwmhmap[selectSample];
 
   _nsamples = nsamples; // for multijets in global fit
   
@@ -529,6 +555,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     dfsr = dfsrin1->GetDirectory(bin); assert(dfsr);
     curdir->cd();
   } // fsrcombo
+
+  assert(fout->cd(ct));
+  TDirectory *dout1 = fout->GetDirectory(ct); assert(dout1);
+  assert(dout1->cd(bin));
+  TDirectory *dout = dout1->GetDirectory(bin); assert(dout);
+  curdir->cd();
 
   assert(f->cd(ct));
   TDirectory *din1 = f->GetDirectory(ct); assert(din1);
@@ -695,7 +727,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     _mpf["chf"][5] = (useP5Frag ? fhw_chf : 0); // fragmentation
     _mpf["chf"][6] = 0;//(useP6L1RC ? 0 : 0);
     _mpf["chf"][7] = 0;//(useP7TrkD ? 0 : 0);
-    _mpf["chf"][8] = (useP8MB80 ? fm80_chf : 0); // fragmentation
+    _mpf["chf"][8] = (useP8MB80pf ? fm80_chf : 0); // fragmentation
     //
     //_mpf["nhf"][0] = ft3_nhf; // tracking in MC
     _mpf["nhf"][0] = (useP0Trk  ? ftmg_nhf : 0); // tracking in data+MC
@@ -707,7 +739,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     _mpf["nhf"][5] = (useP5Frag ? fhw_nhf : 0);
     _mpf["nhf"][6] = 0;//(useP6L1RC ? 0 : 0);
     _mpf["nhf"][7] = 0;//(useP7TrkD ? 0 : 0);
-    _mpf["nhf"][8] = (useP8MB80 ? fm80_nhf : 0);
+    _mpf["nhf"][8] = (useP8MB80pf ? fm80_nhf : 0);
     //
     //_mpf["nef"][0] = ft3_nef; // tracking in MC
     _mpf["nef"][0] = (useP0Trk ? ftmg_nef : 0); // tracking in data+MC
@@ -719,7 +751,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     _mpf["nef"][5] = (useP5Frag ? fhw_nef : 0);
     _mpf["nef"][6] = 0;//(useP6L1RC ? 0 : 0);
     _mpf["nef"][7] = 0;//(useP7TrkD ? 0 : 0);
-    _mpf["nef"][8] = (useP8MB80 ? fm80_nef : 0);
+    _mpf["nef"][8] = (useP8MB80pf ? fm80_nef : 0);
   } // usePF
 
 
@@ -857,6 +889,15 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       gij->SetPoint(i, gij->GetX()[i], gij->GetY()[i] * jes);
     } // for i
   }
+
+  // Load hadronic W data (if being used)
+  TH1D *hw(0);
+  if (sampleset.find("hadw")!=sampleset.end()) {// && plotHadW) {
+    //assert(fw);
+    //hw = (TH1D*)fw->Get("data_nevents_hadw_fitprob02_L1L2L3");
+    hw = (TH1D*)d->Get("counts_hadw_a30");
+    assert(hw);
+  }
   
   // Load FSR (JESref) corrections, and correct data
   vector<TH1D*> hks(nsamples*nmethods,0);
@@ -874,6 +915,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       // No FSR corrections for inclusive jets
       if (ss=="incjet") {
 	hfsr = (TH1D*)hij->Clone(Form("bm%d_%s",(1<<ibm),hij->GetName()));
+	hfsr->Reset();
+	hks[ibm] = hfsr;
+      }
+      // fitProb-based FSR uncertaity for hadronic W, but first zero
+      else if (ss=="hadw") {
+	assert(hw);
+	hfsr = (TH1D*)hw->Clone(Form("bm%d_%s",(1<<ibm),hw->GetName()));
 	hfsr->Reset();
 	hks[ibm] = hfsr;
       }
@@ -1012,6 +1060,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	if (ss=="incjet" && !h && hij) {
 	  h = (TH1D*)hij->Clone(Form("bm%d_inactive_hkfsr_%s_%s_eig%d",
 	  			   (1<<ibm),cm,cs,ieig));
+	  h->Reset();
+	  // Store also empty ones for now to have FSR plots work
+	  hs.push_back(h);
+	  continue;
+	}
+	if (ss=="hadw" && !h && hw) {
+	  h = (TH1D*)hw->Clone(Form("bm%d_inactive_hkfsr_%s_%s_eig%d",
+				    (1<<ibm),cm,cs,ieig));
 	  h->Reset();
 	  // Store also empty ones for now to have FSR plots work
 	  hs.push_back(h);
@@ -1279,7 +1335,37 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       ++neig;
       */
     }
-  }
+  } // incjet syst.
+
+  // Uncertainty sources for hadronic W
+  if (sampleset.find("hadw")!=sampleset.end()) {
+
+    const int n0 = nsample0;
+    const int n1 = nsamples+nsample0;
+
+    assert(string(samples[n0+iwmh])=="hadw");
+
+    string sa = "sys/hadw_ptave_fitprob";
+    TH1D *ha = (TH1D*)dsys->Get(sa.c_str());
+    if (!ha) cout << "Histo "<<sa<<" not found!" << endl << flush;
+    assert(ha);
+
+    string sb = "sys/hadw_ptboth_fitprob";
+    TH1D *hb = (TH1D*)dsys->Get(sb.c_str());
+    if (!hb) cout << "Histo "<<sb<<" not found!" << endl << flush;
+    assert(hb);
+
+    // JER uncertainty applies for both MPF and MJB
+    //h->SetName(Form("bm%d_hadw_fitprob",
+    //		    ((1<<0) | (1<<nsamples)))); // bug!
+    //   	    ((1<<0+iwmh) | (1<<nsamples+iwmh)))); // fixed
+
+    // Separate systematics for pTave and pTboth
+    ha->SetName(Form("bm%d_hadw_ptave_fitprob",1<<(n0+iwmh)));
+    hs.push_back(ha);
+    hb->SetName(Form("bm%d_hadw_ptboth_fitprob",1<<(n1+iwmh)));
+    hs.push_back(hb);
+  } // hadw syst.
 
   // Uncertainty sources for gamma+jet EM energy scale from Zee fit
   if (true) {
@@ -1355,6 +1441,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   map<string, const char*> texlabel;
   texlabel["multijet"] = "Multijet";
   texlabel["incjet"] = "Incl. jet";
+  texlabel["hadw"] = "W>qq'";
   texlabel["dijet"] = "Dijet";
   texlabel["gamjet"] = "#gamma+jet";
   texlabel["zeejet"] = "Zee+jet";
@@ -1476,6 +1563,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if (ss=="gamjet")   { g2->SetMarkerSize(0.7); }
     if (ss=="zlljet")   { g2->SetMarkerColor(kRed); g2->SetLineColor(kRed); }
     if (ss=="zjet")     { g2->SetMarkerColor(kRed); g2->SetLineColor(kRed); }
+    if (ss=="hadw")     { g2->SetMarkerSize(0.5); }
     
     g2->DrawClone("SAMEPz");
   }
@@ -1485,12 +1573,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     legp->AddEntry(hrun1," ","");
     legm->AddEntry(hrun1,"Run I","FL");
     legp->AddEntry(herr_ref," ","");
-    if (!_paper) legm->AddEntry(herr_ref,"UL17V2M5 IOV","FL");
+    //if (!_paper) legm->AddEntry(herr_ref,"UL17V2M5 IOV","FL");
+    if (!_paper) legm->AddEntry(herr_ref,"UL17V4 IOV","FL");
     if ( _paper) legm->AddEntry(herr_ref,"Run II","FL");
   }
   else {
     legp->AddEntry(herr," ","FL");
-    if (!_paper) legm->AddEntry(herr_ref,"UL17V2M5","FL");
+    //if (!_paper) legm->AddEntry(herr_ref,"UL17V2M5","FL");
+    if (!_paper) legm->AddEntry(herr_ref,"UL17V4","FL");
     if ( _paper) legm->AddEntry(herr_ref,"Syst. (tot,abs)","FL");
    }
 
@@ -1594,6 +1684,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if (ss=="gamjet")   { g3->SetMarkerSize(0.7); }
     if (ss=="zlljet")   { g3->SetMarkerColor(kRed); g3->SetLineColor(kRed); }
     if (ss=="zjet")     { g3->SetMarkerColor(kRed); g3->SetLineColor(kRed); }
+    if (ss=="hadw")     { g3->SetMarkerSize(0.5); }
 
     // Skip multijet downward points
     g3->DrawClone("SAMEPz");
@@ -1729,13 +1820,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     } // for i
     // Store to /sys folder
     if (storeJesFit || epoch=="BCDEF") {
-      djes->cd("sys");
-      emat.Write("emat");
-      vpar.Write("vpar");
-      verr.Write("verr");
-      h2emat->Write();
-      h2cov->Write();
-      h1par->Write();
+      dout->cd("sys");
+      emat.Write("emat",TObject::kOverwrite);
+      vpar.Write("vpar",TObject::kOverwrite);
+      verr.Write("verr",TObject::kOverwrite);
+      h2emat->Write("h2emat",TObject::kOverwrite);
+      h2cov->Write("h2cov",TObject::kOverwrite);
+      h1par->Write("h1par",TObject::kOverwrite);
     }
     // And to separate file
     femat->cd();
@@ -2017,6 +2108,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if (ss=="gamjet")   { g2->SetMarkerSize(0.7); }
     if (ss=="zlljet")   { g2->SetMarkerColor(kRed); g2->SetLineColor(kRed); }
     if (ss=="zjet")     { g2->SetMarkerColor(kRed); g2->SetLineColor(kRed); }
+    if (ss=="hadw")     { g2->SetMarkerSize(0.5); }
 
     g2->DrawClone("SAMEPz");
   }
@@ -2240,6 +2332,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
       // No FSR correction for inclusive jets
       if (ss=="incjet") continue;
+      // No FSR correction for hadronic W
+      if (ss=="hadw") continue;
 
       int ibm = isample + nsamples*imethod;
       TH1D *hk = hks[ibm]; assert(hk);
@@ -2251,6 +2345,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       if (ss=="gamjet") { minx=230; maxx = 1500; }
       if (ss=="multijet") { minx=114; maxx = 2116; }//2640; }
       if (ss=="incjet") { minx=15; maxx = 2116; }//2640; }
+      if (ss=="hadw") { minx=30; maxx = 200; }
       hk->GetXaxis()->SetRangeUser(minx,maxx);
 
       /*
@@ -2342,7 +2437,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
       // Store scaled FSR eigenvectors and central value for BCDEF
       if (epoch=="BCDEF") {
-	dfsr->cd("fsr");
+	dout->cd("fsr");
 	hke->Write(Form("hkfsr2_%s_%s",cm,cs),TObject::kOverwrite);
 	for (int ieig = 0; ieig != neigmax; ++ieig) {
 	  int ie = ibm+ieig*nsamples*nmethods;
@@ -2361,7 +2456,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     //if (epoch=="BCDEF") {
     //dsys->cd("sys");
     if (storeJesFit || epoch=="BCDEF") {
-      djes->cd("sys");
+      dout->cd("sys");
       hjesfit->Write("hjesfit",TObject::kOverwrite);
       for (int ieig = 0; ieig != np; ++ieig) {
 	vhkeig[ieig]->Write(Form("hjesfit_eig%d",ieig),TObject::kOverwrite);
@@ -2484,11 +2579,17 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 		    cep,10*etamin,10*etamax));
 
   curdir->cd();
-  f->Close();
   if (ffsr) {
     //if (epoch=="BCDEF") ffsr->Write();
     ffsr->Close();
   }
+  if (fjes) {
+    fjes->Close();
+  }
+  if (fout) {
+    fout->Close();
+  }
+  f->Close();
 
 } // globalFitL3Res
 

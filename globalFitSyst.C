@@ -12,6 +12,8 @@ string multijetModeS = "leading"; // defined in reprocess.C => check consistency
 
 const bool doGamMass = true; // photon scale from Zee
 
+const bool doHadWfitProb = true; // hadronic W fitProb
+
 void globalFitSyst(string run = "BCDEF") {
 
   TFile *f = new TFile(Form("rootfiles/jecdata%s.root",run.c_str()),
@@ -145,10 +147,48 @@ void globalFitSyst(string run = "BCDEF") {
 	hke->SetBinContent(i, fkeig->Eval(2*pt));
 	//hke->SetBinError(i, fabs(fkeig->Eval(pt)));
       }
+      d3->cd();
       hke->Write(hke->GetName(), TObject::kOverwrite);
     } // for ieig
   } // doGamMass
 
+
+  if (doHadWfitProb) {
+    // fitProb scanning done in minitools/hadW.C::DrawFP()
+
+    // histogram to get correct binning
+    TH1D *hk = (TH1D*)d2->Get("counts_hadw_a30"); assert(hk);
+
+    // Fit from minitools/hadW.C::DrawFP()
+    //TF1 *fhadw = new TF1("fse","[0]+[1]/(log(x/0.218) * x)",30,200);
+    //fhadw->SetParameters(0, 125.54);
+
+    TF1 *fhadw_a = new TF1("fhadw_ptave","[0]+[1]/(log(x/0.218) * x)",30,200);
+    fhadw_a->SetParameters(0.20652, 86.857);
+    TF1 *fhadw_b = new TF1("fhadw_ptboth","[0]+[1]/(log(x/0.218) * x)",30,200);
+    fhadw_b->SetParameters(0, 125.54);
+
+    TH1D *hkea = (TH1D*)hk->Clone("hadw_ptave_fitprob");
+    hkea->Reset();
+    TH1D *hkeb = (TH1D*)hk->Clone("hadw_ptboth_fitprob");
+    hkeb->Reset();
+      
+    // uncertainty sources are signed, and in %'s
+    for (int i = 1; i != hkea->GetNbinsX()+1; ++i) {
+      double pt = hkea->GetBinCenter(i);
+      hkea->SetBinContent(i, 0.01*fhadw_a->Eval(pt));
+    }
+    for (int i = 1; i != hkeb->GetNbinsX()+1; ++i) {
+      double pt = hkeb->GetBinCenter(i);
+      hkeb->SetBinContent(i, 0.01*fhadw_b->Eval(pt));
+    }
+
+    d3->cd();
+    //hke->Write("hadw_fitprob", TObject::kOverwrite);
+    hkea->Write("hadw_ptave_fitprob", TObject::kOverwrite);
+    hkeb->Write("hadw_ptboth_fitprob", TObject::kOverwrite);
+  } // doHadWfitProb
+  
   f->Close();
 } // globalFitSyst
 
