@@ -57,7 +57,7 @@ bool correctUncert = false;  // ll mass uncertainty => globalFitSyst.C
 //
 // Which binning to use for multijets ("leading", "recoil" or "ptave")
 string multijetMode = "ptave"; // check also multijetModeS in globalFitSyst.C
-bool correctMultijetLeading = true; // correct for diference to JER-hybrid
+bool correctMultijetLeading = false;//true; // correct for diference to JER-hybrid (UL17 true, UL18 false)
 bool patchMultijetPtAveMCMJBPt20 = false;
 //bool patchMultijetStatOverPt = 1684; // RMSfit/sqrt(N); zero for none
 //
@@ -100,15 +100,19 @@ double fzptmin(15.);//40.);//30.);  // Z+jet both methods
 // ...20200419 ptave: 300:
 double fpfjetptmin(15.);
 double fpfjetptmax(2116.);
-double fincjetptmin(21);//18)15.);
+double fincjetptmin(21);//18)15.); // UL17 21
 double fincjetptmax(2116.);//4037.);
-double fhadwptmin(30.);
-double fhadwptmax(200.);
-double fmultijetptmin(114);//300);//114);//114);//49);//64);//84);114);//153);
-// 2640 good for BCDEF, but destabilizes some IOVs? For F, go down to 2116
-double fmultijetptmax(2116);//2366);//2116);//2640.);//1890.);//1800.);//3000.);
-double fmultijetptmax2(1890);//1684
-
+double fhadwptamin(35);//35.);//30.); // UL17 30.
+double fhadwptamax(200);//200.); // UL17 200
+double fhadwptbmin(35);//40.);//30.); // UL17 30.
+double fhadwptbmax(175);//200.); // UL17 200
+// 200.5/141 => 188.0/139 => 172.9/135 => 175.0/137 => 207.5/141 => 201.4/141
+// 174.1/138
+double fmultijetptmin(507);//300);//153);//114); // 114 in UL17, 430 UL18
+double fmultijetptmax(2640);//2116); // 2116 in UL17
+double fmultijetptmax2(1890);//2366);//1890); // 1890 in UL17
+double fmultijetmjbptmin(1032); // avoid FSR bias in UL18 with 1032
+// 124.5/113 => 776.2/149 => 164.8/125 => 137.3/117 => 105.7/111 => 117.1/119
 
 //for fine etabins deactivate ptbal
 double fdijetmpfptmin(30);
@@ -264,69 +268,104 @@ void reprocess(string epoch="") {
   fm_files["DE"] = "DE"; // also update multijet.C
   fm_files["F"] = "F"; // also update multijet.C
   fm_files["BCDEF"] = "BCDEF"; // also update multijet.C
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_P8CP5_jecV17_jerV7.root",fm_files[epoch]),"READ"); // LO Pythia8 off by 2.5% on multijet scale
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190911_Run2018%s_MGP8CP5_jecV17_jerV4.root",fm_files[epoch]),"READ"); // MadGraph much better match to data than LO P8 (just not JER V4)
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190912_Run2018%s_MC_jecV17_jerV7.root",fm_files[epoch]),"READ"); // All MC in one file (JERV4+ABC only for MG)
-  //
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_Rebin2_20190920_Run2018%s_jecV17_jerV7.root",fm_files[epoch]),"READ"); // All MC in one file (JERV4+ABC only for MG) EOY2017
-  //if (!fmj || fmj->IsZombie()) 
-  //fmj = new TFile(Form("rootfiles/multijet_20190911_JEC_Autunm18_V17_JER_Autumn18_V7/multijet_20190912_Run2018%s_MC_jecV17_jerV7.root",fm_files[epoch]),"READ"); // All MC in one file (JERV4+ABC only for MG) EOY2017
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200312_UL2017%s_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200318_UL2017%s_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200320_UL2017%s_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200330_UL2017%s_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017 (TProfile means?)
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200404_UL2017%s_ComplexL1_jecV1_jerV1.root",fm_files[epoch]),"READ"); // UL2017 (Complex+new JER etc.)
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200404_UL2017%s_SimpleL1_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017 (Simple+old JER)
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200404_UL2017%s_ComplexL1_jecV1_jerV3.root",fm_files[epoch]),"READ"); // UL2017 (Complex+new JER, partially complete)
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200419_UL2017%s_SimpleL1_jecV2_jerV1.root",fm_files[epoch]),"READ"); // UL2017_V2
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200420_UL2017%s_SimpleL1_jecV3_jerV1.root",fm_files[epoch]),"READ");
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200421_UL2017%s_SimpleL1_jecV3_jerV1.root",fm_files[epoch]),"READ");
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200422_UL2017%s_SimpleL1_jecV3_jerV1.root",fm_files[epoch]),"READ"); // V2M5
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200423_UL2017%s_SimpleL1_jecV3_jerV1.root",fm_files[epoch]),"READ"); // NG, pTave trigger too high
-  //TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200526_UL2017%s_SimpleL1V4JRV2Sigma80MB_jecV4_jerV2.root",fm_files[epoch]),"READ"); // 80 mb - NG
-  TFile *fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200526_UL2017%s_SimpleL1V4JRV2_jecV4_jerV2.root",fm_files[epoch]),"READ"); // 69.2 mb
+  fm_files["2018ABCD"] = "ABCD";
+  fm_files["2018A"] = "A";
+  fm_files["2018B"] = "B";
+  fm_files["2018C"] = "C";
+  fm_files["2018D"] = "D";
+  TFile *fmj(0);
+  bool isUL18 = (epoch=="2018ABCD" || epoch=="2018A" || 
+		 epoch=="2018B" || epoch=="2018C" || epoch=="2018D");
+  //if (epoch=="2018ABCD" ||
+  //epoch=="2018A" || epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
+  if (isUL18) {
+    //fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200526_UL2017%s_SimpleL1V4JRV2_jecV4_jerV2.root","BCDEF"),"READ"); // placeholder
+    fmj = new TFile(Form("rootfiles/multijet_UL2018%s_jecDTV3MCV2_jerUL17V2-2.root",fm_files[epoch]),"READ");
+  }
+  else { // UL17
+    //fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200526_UL2017%s_SimpleL1V4JRV2Sigma80MB_jecV4_jerV2.root",fm_files[epoch]),"READ"); // 80 mb - NG
+    fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200526_UL2017%s_SimpleL1V4JRV2_jecV4_jerV2.root",fm_files[epoch]),"READ"); // 69.2 mb
+  }
   assert(fmj && !fmj->IsZombie());
   //TFile *fmj =0;
 
   //TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v2.root","READ");
   //TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v3.root","READ"); // Update JER SF V2 + MC truth JER per IOV
-  TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ"); // Update JER SF V2 + MC truth JER per IOV (V2M5 input)
+  map<string,const char*> fij_eras;
+  fij_eras["2018A"] = "A";
+  fij_eras["2018B"] = "B";
+  fij_eras["2018C"] = "C";
+  fij_eras["2018D"] = "D";
+  fij_eras["2018ABCD"] = "";
+  TFile *fij = (isUL18 ? 
+		new TFile("rootfiles/drawDeltaJEC_18UL_JECV3.root","READ") :
+		new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ")); // Update JER SF V2 + MC truth JER per IOV (V2M5 input)
   assert(fij && !fij->IsZombie());
 
-  TFile *fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL17V4_%s.root",
-				epoch.c_str()),"READ");
+  map<string,const char*> fpf_files;
+  fpf_files["2018A"] = "A";
+  fpf_files["2018B"] = "B";
+  fpf_files["2018C"] = "C";
+  fpf_files["2018D"] = "D";
+  fpf_files["2018ABCD"] = "ABCD";
+  TFile *fpfdt(0), *fpfmc(0);
+  //if (epoch=="2018ABCD" ||
+  //  epoch=="2018A" || epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
+  if (isUL18) {
+    fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL18V2V3-%s.root",
+			   fpf_files[epoch]),"READ");
+    fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL18V2V3-%s.root",
+			   fpf_files[epoch]),"READ");
+  }
+  else { // UL17
+    fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL17V4_%s.root",
+			   epoch.c_str()),"READ");
+    // MC80NU 80mb chi2=189.2/137, MCNU 69.2mb=218.137/137
+    //TFile *fpfmc = new TFile(Form("rootfiles/output-MC80NU-2b-UL17V4_%s.root",
+    fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
+			   epoch.c_str()),"READ");
+  }
+
   assert((fpfdt && !fpfdt->IsZombie()) || pfMode=="none");
-  // MC80NU 80mb chi2=189.2/137, MCNU 69.2mb=218.137/137
-  //TFile *fpfmc = new TFile(Form("rootfiles/output-MC80NU-2b-UL17V4_%s.root",
-  TFile *fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
-				epoch.c_str()),"READ");
   assert((fpfmc && !fpfmc->IsZombie()) || pfMode=="none");
 
-  TFile *fw = new TFile("rootfiles/hadW.root","READ");
+  map<string,const char*> fw_files;
+  fw_files["2018A"] = "A";
+  fw_files["2018B"] = "B";
+  fw_files["2018C"] = "C";
+  fw_files["2018D"] = "D";
+  fw_files["2018ABCD"] = "ABCD";
+  TFile *fw = new TFile(Form("rootfiles/hadW%s%s.root",
+			     isUL18 ? "UL18" : "",
+			     isUL18 ? fw_files[epoch] : ""),
+			"READ");
+  //	       new TFile("rootfiles/hadW.root","READ"));
   assert(fw && !fw->IsZombie());
-
-  // Hugues Lattaud, 2017 V27 inputs with L2Res (not incl. JER SF as in V28)
-  // https://indico.cern.ch/event/765393/#47-l3res-gammajets-with-fall17
-  //map<string,const char*> fp_files;
-  //fp_files["B"] = "B_B";
-  //fp_files["C"] = "C_C";
-  //fp_files["D"] = "D_D";
-  //fp_files["E"] = "E_E";
-  //fp_files["F"] = "F_F";
-  //fp_files["BCDEF"] = "BCDEF";
-  //TFile *fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V27_L2res_%s.root", fp_files[epoch]),"READ");
 
   map<string,const char*> fp_files;
   fp_files["B"] = "B";
-  fp_files["C"] = "C";//"E";
+  fp_files["C"] = "C";
   fp_files["BC"] = "BC";
   fp_files["D"] = "D";
   fp_files["E"] = "E";
   fp_files["DE"] = "DE";
   fp_files["F"] = "F";
-  fp_files["BCDEF"] = "BCDEF";//"E";
-  TFile *fp = new TFile(Form("rootfiles/2020-04-02/SimpleL1_only_L2Res/Gjet_combinationfile_SimpleL1_only_L2Res_%s_SimpleL1_only_L2Res.root",fp_files[epoch]),"READ");
-  //TFile *fp = new TFile(Form("rootfiles/2020-04-02/ComplexL1_only_L2Res/Gjet_combinationfile_ComplexL1_only_L2Res_%s_ComplexL1_only_L2Res.root",fp_files[epoch]),"READ");
+  fp_files["BCDEF"] = "BCDEF";
+  fp_files["2018A"] = "A";
+  fp_files["2018B"] = "B";
+  fp_files["2018C"] = "C";
+  fp_files["2018D"] = "D";
+  fp_files["2018ABCD"] = "ABCD";
+  TFile *fp(0);
+  //if (epoch=="2018ABCD" ||
+  //  epoch=="2018A" || epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
+  if (isUL18) {
+    fp = new TFile(Form("../JERCProtoLab/Summer19UL18/L3Residual_gamma/Gjet_combinationfile_only_L2Res_%s_only_L2Res.root",fp_files[epoch]),"READ");
+  }
+  else { // UL17
+    fp = new TFile(Form("rootfiles/2020-04-02/SimpleL1_only_L2Res/Gjet_combinationfile_SimpleL1_only_L2Res_%s_SimpleL1_only_L2Res.root",fp_files[epoch]),"READ");
+  //fp = new TFile(Form("rootfiles/2020-04-02/ComplexL1_only_L2Res/Gjet_combinationfile_ComplexL1_only_L2Res_%s_ComplexL1_only_L2Res.root",fp_files[epoch]),"READ");
+  }
 
   if(CorLevel=="L1L2L3Res"){
     assert(false); // re-enable later
@@ -345,28 +384,29 @@ void reprocess(string epoch="") {
 
   assert(fp && !fp->IsZombie());
 
-  // Daniel Savoiu, 2017 V28 inputs with L2Res (incl. JER SF on top of V27)
-  // https://indico.cern.ch/event/763555/#31-l3res-and-closure-test-resu
   map<string,const char*> fz_files;
   fz_files["B"] = "B";
   fz_files["C"] = "C";
   fz_files["D"] = "D";
   fz_files["E"] = "E";
   fz_files["F"] = "F";
-  fz_files["BCDEF"] = "BCDEF"; // 20200317 update
-  //fz_files["BCDEF"] = "B"; // UL2017-v1
-  //TFile *fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV28_Zmm_%s_2018-10-08.root",fz_files[epoch]),"READ"); // EOY2017
-  //TFile *fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV28_Zee_%s_2018-10-08.root",fz_files[epoch]),"READ"); // EOY2017
-  //TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1
-  //TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1
-  //TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
-  //TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
-  //TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
-  //TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_ComplexL1.root","READ"); // UL2017-v1b
-  //TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1b (for V4)
-  //TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV1_SimpleL1.root","READ"); // UL2017-v1b (for V4)
-  TFile *fzmm = new TFile("rootfiles/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV4_L1L2Res-2.root","READ"); // 20200622
-  TFile *fzee = new TFile("rootfiles/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV4_L1L2Res-2.root","READ"); // 20200622
+  fz_files["BCDEF"] = "BCDEF";
+  fz_files["2018A"] = "A";
+  fz_files["2018B"] = "B";
+  fz_files["2018C"] = "C";
+  fz_files["2018D"] = "D";
+  fz_files["2018ABCD"] = "ABCD";
+  TFile *fzmm(0), *fzee(0);
+  //if (epoch=="2018ABCD" ||
+  //  epoch=="2018A" || epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
+  if (isUL18) {
+    fzmm = new TFile("../JERCProtoLab/Summer19UL18/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV3_L1L2Res.root","READ"); // UL18-v1
+    fzee = new TFile("../JERCProtoLab/Summer19UL18/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV3_L1L2Res.root","READ"); // UL18-v1
+  }
+  else { // UL17
+    fzmm = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV4_L1L2Res.root","READ"); // V4 as above, V5 new and worse
+    fzee = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV4_L1L2Res.root","READ"); // V4 as above, V5 new and worse
+  }
   assert(fzmm && !fzmm->IsZombie());
   assert(fzee && !fzee->IsZombie());
 
@@ -383,9 +423,16 @@ void reprocess(string epoch="") {
   TH1D *hzjes = (TH1D*)fzjes->Get("ratio/eta00-13/herr_ref"); assert(hzjes);
 
   // UL2017-v1
-  fzmm->cd(Form("Run2017%s",fz_files[epoch])); fzmm = (TFile*)gDirectory;
-  fzee->cd(Form("Run2017%s",fz_files[epoch])); fzee = (TFile*)gDirectory;
-
+  //if (epoch=="2018ABCD" ||
+  //  epoch=="2018A" || epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
+  if (isUL18) {
+    fzmm->cd(Form("Run2018%s",fz_files[epoch])); fzmm = (TFile*)gDirectory;
+    fzee->cd(Form("Run2018%s",fz_files[epoch])); fzee = (TFile*)gDirectory;
+  }
+  else { // UL17
+    fzmm->cd(Form("Run2017%s",fz_files[epoch])); fzmm = (TFile*)gDirectory;
+    fzee->cd(Form("Run2017%s",fz_files[epoch])); fzee = (TFile*)gDirectory;
+  }
 
   if(CorLevel=="L1L2L3Res"){
     // Monday 22 Oct V31 closure
@@ -431,6 +478,19 @@ void reprocess(string epoch="") {
   assert(hmzee_mc);
   assert(hmzmm_mc);
 
+  TH1D *hmzee1 = (TH1D*)fmzee->Get(Form("Ratio_ZMass_CHS_a100_%s_L1L2Res",cr));
+  TH1D *hmzmm1 = (TH1D*)fmzmm->Get(Form("Ratio_ZMass_CHS_a100_%s_L1L2Res",cr));
+  assert(hmzee1);
+  assert(hmzmm1);
+  TH1D *hmzee1_dt =(TH1D*)fmzee->Get(Form("Data_ZMass_CHS_a100_%s_L1L2Res",cr));
+  TH1D *hmzmm1_dt =(TH1D*)fmzmm->Get(Form("Data_ZMass_CHS_a100_%s_L1L2Res",cr));
+  assert(hmzee1_dt);
+  assert(hmzmm1_dt);
+  TH1D *hmzee1_mc = (TH1D*)fmzee->Get(Form("MC_ZMass_CHS_a100_%s_L1L2Res",cr));
+  TH1D *hmzmm1_mc = (TH1D*)fmzmm->Get(Form("MC_ZMass_CHS_a100_%s_L1L2Res",cr));
+  assert(hmzee1_mc);
+  assert(hmzmm1_mc);
+
   // v24 has _eta_00_13, v25 not
   // v26 missing Z mass again
   /*
@@ -467,39 +527,32 @@ void reprocess(string epoch="") {
 			fzeeptmin, fzeeptmax);
   if (correctZeeMass || correctGamMass) {
     if (useFixedFit) {
-      // 17Nov17_V10 BCDEF (EOY2017)
-      //f1mzee->SetParameters(1.00246, 0.00214, 0.00116);
-      //f1ezee->SetParameters(+3.73e-08, +1.17e-07, +2.02e-07,
-      //                     +1.5e-08, -5.07e-08, -6.39e-08);
-      // UL17 RunB fit with minitools/drawZmass.C (3 free)
-      //f1mzee->SetParameters(0.99904, 0.00170, 0.00156);
-      //f1ezee->SetParameters(+1.94e-07, +5.65e-07, +9.65e-07,
-      //                    +8.95e-08, -2.53e-07,  -2.2e-07);
-      // UL17 RunB fit with minitools/drawZmass.C (p1,p2 fixed to EOY2017)
-      //f1mzee->SetParameters(0.99917, 0.00214, 0.00116);
-      //f1ezee->SetParameters(+1.26e-07,        +0,        +0,
-      //                           +0,        +0,        +0);
-      // UL17 RunC fit with minitools/drawZmass.C (p1,p2 fixed to EOY2017)
-      //f1mzee->SetParameters(0.99772, 0.00214, 0.00116);
-      //f1mzee->SetParameters(0.997557, 0.00214, 0.00116); // p0 from B+C+D+E+F
-      //f1ezee->SetParameters( +6.8e-08,        +0,        +0,
-      //                           +0,        +0,        +0);
-      // UL17 RunBCDEF fit with minitools/drawZmass.C
-      f1mzee->SetParameters(0.99780, 0.00225, 0.00031);
-      f1ezee->SetParameters( +6.1e-08, +1.66e-07, +3.27e-07,
-                            +2.56e-08,  -8.5e-08, -5.39e-08);
 
-      // 17Nov17_V10 BCDEF (EOY2017)
-      //f1mgam->SetParameters(1.00246, 0.00214, 0.00116);
-      //f1egam->SetParameters(+3.73e-08, +1.17e-07, +2.02e-07,
-      //		    +1.5e-08, -5.07e-08, -6.39e-08);
-      // UL17 RunBCDEF Zee from above
-      f1mgam->SetParameters(0.99780, 0.00225, 0.00031);
-      f1egam->SetParameters( +6.1e-08, +1.66e-07, +3.27e-07,
-                            +2.56e-08,  -8.5e-08, -5.39e-08);
+      //if (epoch=="2018ABCD" || epoch=="2018A" || 
+      //  epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
+      if (isUL18) {
+	// UL18 Run2018ABCD fit with minitools/drawZmass.C
+	f1mzee->SetParameters(1.00153, 0.00214, -0.00012);
+	f1ezee->SetParameters( +5.5e-08,  +1.5e-07, +3.01e-07,
+			       +2.35e-08, -7.73e-08, -4.34e-08);
+	// UL18 Run2018ABCD Zee from above
+	f1mgam->SetParameters(1.00153, 0.00214, -0.00012);
+	f1egam->SetParameters( +5.5e-08,  +1.5e-07, +3.01e-07,
+			       +2.35e-08, -7.73e-08, -4.34e-08);
+      }
+      else {
+	assert(false); // CHECK
+	// UL17 RunBCDEF fit with minitools/drawZmass.C
+	f1mzee->SetParameters(0.99780, 0.00225, 0.00031);
+	f1ezee->SetParameters( +6.1e-08, +1.66e-07, +3.27e-07,
+			       +2.56e-08,  -8.5e-08, -5.39e-08);
+	// UL17 RunBCDEF Zee from above
+	f1mgam->SetParameters(0.99780, 0.00225, 0.00031);
+	f1egam->SetParameters( +6.1e-08, +1.66e-07, +3.27e-07,
+			       +2.56e-08,  -8.5e-08, -5.39e-08);
+      }
       // No correction
       //f1mgam->SetParameters(1,0,0);
-
     }
     else
       hmzee->Fit(f1mzee);
@@ -514,17 +567,22 @@ void reprocess(string epoch="") {
 			fzeeptmin, fzeeptmax);
   if (correctZmmMass) {
     if (useFixedFit) {
-      // 17Nov17_V10 BCDEF (EOY2017)
-      //f1mzmm->SetParameters(0.99854, 0.00000, 0.00000);
-      //f1ezmm->SetParameters(+1.53e-08,        +0,        +0,
-      //                           +0,        +0,        +0);
-      // UL17 C fit with minitools/drawZmass.C
-      //f1mzmm->SetParameters(0.99829, 0.00000, 0.00000);
-      //f1mzmm->SetParameters(0.998235, 0.00000, 0.00000); // p0 from B+C+D+E+F
-      // UL17 BCDEF fit with minitools/drawZmass.C
-      f1mzmm->SetParameters(0.99821, 0.00000, 0.00000);
-      f1ezmm->SetParameters(+3.43e-08,        +0,        +0,
-                                   +0,        +0,        +0);
+      
+      //if (epoch=="2018ABCD" || epoch=="2018A" || 
+      //  epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
+      if (isUL18) {
+	// UL18 ABCD fit with minitools/drawZmass.C
+	f1mzmm->SetParameters(0.99839, 0.00000, 0.00000);
+	f1ezmm->SetParameters(+1.64e-08,        +0,        +0,
+			             +0,        +0,        +0);	
+      }
+      else {
+	assert(false); // CHECK
+	// UL17 BCDEF fit with minitools/drawZmass.C
+	f1mzmm->SetParameters(0.99821, 0.00000, 0.00000);
+	f1ezmm->SetParameters(+3.43e-08,        +0,        +0,
+			             +0,        +0,        +0);
+      }
     }
     else
       hmzmm->Fit(f1mzmm);
@@ -614,44 +672,77 @@ void reprocess(string epoch="") {
     rename["multijet"]["mcptchs"] = "MJB_leading_MG";
   }
   else if (multijetMode=="recoil") {
-    rename["multijet"]["ratiompfchs1"] = "MPF_recoil_L1L2Res";
-    rename["multijet"]["ratioptchs"] = "MJB_recoil_L1L2Res";
-    rename["multijet"]["datampfchs1"] = "MPF_recoil_L1L2Res";
-    rename["multijet"]["dataptchs"] = "MJB_recoil_L1L2Res";
-    rename["multijet"]["mcmpfchs1"] = "MPF_recoil_MG";
-    rename["multijet"]["mcptchs"] = "MJB_recoil_MG";
+    if (isUL18) {
+      rename["multijet"]["ratiompfchs1"] = "MPF_recoil_L1L2res";
+      rename["multijet"]["ratioptchs"] = "MJB_recoil_L1L2res";
+      rename["multijet"]["ratiocrecoil"] = "CRecoil_L1L2res";
+      rename["multijet"]["datampfchs1"] = "MPF_recoil_L1L2res";
+      rename["multijet"]["dataptchs"] = "MJB_recoil_L1L2res";
+      rename["multijet"]["datacrecoil"] = "CRecoil_L1L2res";
+      rename["multijet"]["mcmpfchs1"] = "MPF_recoil_MG";
+      rename["multijet"]["mcptchs"] = "MJB_recoil_MG";
+      rename["multijet"]["mccrecoil"] = "CRecoil_MG";
+    }
+    else {
+      rename["multijet"]["ratiompfchs1"] = "MPF_recoil_L1L2Res";
+      rename["multijet"]["ratioptchs"] = "MJB_recoil_L1L2Res";
+      rename["multijet"]["datampfchs1"] = "MPF_recoil_L1L2Res";
+      rename["multijet"]["dataptchs"] = "MJB_recoil_L1L2Res";
+      rename["multijet"]["mcmpfchs1"] = "MPF_recoil_MG";
+      rename["multijet"]["mcptchs"] = "MJB_recoil_MG";
+    }
   }
   else if (multijetMode=="ptave") {
-    //rename["multijet"]["ratiocrecoil"] = "CRecoil_ptave";
-    //rename["multijet"]["datacrecoil"] = "CRecoil_ptave";
-    rename["multijet"]["ratiocrecoil"] = "CRecoil_ptave_L1L2Res";
-    rename["multijet"]["datacrecoil"] = "CRecoil_ptave_L1L2Res";
-    rename["multijet"]["mccrecoil"] = "CRecoil_ptave_MG";
-    //
-    //rename["multijet"]["ratiompfchs1"] = "MPF_ptave_L1L2Res";
-    rename["multijet"]["ratiompfchs1"] = "MPF_ptave_L1L2Res_metType2";
-    rename["multijet"]["ratioptchs"] = "MJB_ptave_L1L2Res";
-    //rename["multijet"]["datampfchs1"] = "MPF_ptave_L1L2Res";
-    rename["multijet"]["datampfchs1"] = "MPF_ptave_L1L2Res_metType2";
-    rename["multijet"]["dataptchs"] = "MJB_ptave_L1L2Res";
-    //rename["multijet"]["mcmpfchs1"] = "MPF_ptave_MG";
-    rename["multijet"]["mcmpfchs1"] = "MPF_ptave_MG_metType2";
-    rename["multijet"]["mcptchs"] = "MJB_ptave_MG";
+    if (isUL18) {
+      rename["multijet"]["ratiocrecoil"] = "CRecoil_ptave_L1L2res";
+      rename["multijet"]["datacrecoil"] = "CRecoil_ptave_L1L2res";
+      rename["multijet"]["mccrecoil"] = "CRecoil_ptave_MG";
+      //
+      rename["multijet"]["ratiompfchs1"] = "MPF_ptave_L1L2res_metType2";
+      rename["multijet"]["ratioptchs"] = "MJB_ptave_L1L2res";
+      rename["multijet"]["datampfchs1"] = "MPF_ptave_L1L2res_metType2";
+      rename["multijet"]["dataptchs"] = "MJB_ptave_L1L2res";
+      rename["multijet"]["mcmpfchs1"] = "MPF_ptave_MG_metType2";
+      rename["multijet"]["mcptchs"] = "MJB_ptave_MG";
+    }
+    else {
+      //rename["multijet"]["ratiocrecoil"] = "CRecoil_ptave";
+      //rename["multijet"]["datacrecoil"] = "CRecoil_ptave";
+      rename["multijet"]["ratiocrecoil"] = "CRecoil_ptave_L1L2Res";
+      rename["multijet"]["datacrecoil"] = "CRecoil_ptave_L1L2Res";
+      rename["multijet"]["mccrecoil"] = "CRecoil_ptave_MG";
+      //
+      //rename["multijet"]["ratiompfchs1"] = "MPF_ptave_L1L2Res";
+      rename["multijet"]["ratiompfchs1"] = "MPF_ptave_L1L2Res_metType2";
+      rename["multijet"]["ratioptchs"] = "MJB_ptave_L1L2Res";
+      //rename["multijet"]["datampfchs1"] = "MPF_ptave_L1L2Res";
+      rename["multijet"]["datampfchs1"] = "MPF_ptave_L1L2Res_metType2";
+      rename["multijet"]["dataptchs"] = "MJB_ptave_L1L2Res";
+      //rename["multijet"]["mcmpfchs1"] = "MPF_ptave_MG";
+      rename["multijet"]["mcmpfchs1"] = "MPF_ptave_MG_metType2";
+      rename["multijet"]["mcptchs"] = "MJB_ptave_MG";
+    }
   }
   else
     assert(false);
 
-  //rename["incjet"]["ratio"] = "Run17UL";
-  //rename["incjet"]["mpfchs1"] = "jet_Run17UL%s_fwd";
-  //rename["incjet"]["mpfchs1"] = "jet_Run17UL%s_fwd2"; // JER SF V2 + JER per IOV
-  rename["incjet"]["mpfchs1"] = "jet_Run17UL%s_fwd3"; // JER V2 + JES fix
-  //rename["incjet"]["ptchs"] = "jet_Run17UL%s_dag";
-  //rename["incjet"]["ptchs"] = "jet_Run17UL%s_fwd2"; // copy
-  rename["incjet"]["ptchs"] = "jet_Run17UL%s_fwd3"; // copy
+  if (isUL18) {
+    rename["incjet"]["mpfchs1"] = "jet_Run18UL%s_det";
+    rename["incjet"]["ptchs"] = "jet_Run18UL%s_det"; // copy
+  }
+  else {
+    //rename["incjet"]["ratio"] = "Run17UL";
+    //rename["incjet"]["mpfchs1"] = "jet_Run17UL%s_fwd";
+    //rename["incjet"]["mpfchs1"] = "jet_Run17UL%s_fwd2"; // JER SF V2 + JER per IOV
+    rename["incjet"]["mpfchs1"] = "jet_Run17UL%s_fwd3"; // JER V2 + JES fix
+    //rename["incjet"]["ptchs"] = "jet_Run17UL%s_dag";
+    //rename["incjet"]["ptchs"] = "jet_Run17UL%s_fwd2"; // copy
+    rename["incjet"]["ptchs"] = "jet_Run17UL%s_fwd3"; // copy
+  }
 
-  rename["hadw"]["mpfchs1"] = "mass_ptboth";
-  rename["hadw"]["ptchs"] = "mass_ptave";
-  rename["hadw"]["counts"] = "nevents_ptboth";
+  rename["hadw"]["mpfchs1"] = "mass_ptave";//ptboth";
+  rename["hadw"]["ptchs"] = "mass_ptboth";//ptave";
+  rename["hadw"]["counts"] = "nevents_ptave";//ptboth";
 
   rename["gamjet"]["ratio"] = "";
   rename["gamjet"]["data"] = "_DATA"; 
@@ -996,8 +1087,8 @@ void reprocess(string epoch="") {
 				    (epoch=="L4" &&
 				     fabs(eta1-0)<0.1 && fabs(eta2-2.4)<0.1))
 				  //|| fabs(alpha-0.10)<0.01 
-				  // || fabs(alpha-0.15)<0.01
-				  //|| fabs(alpha-0.20)<0.01))
+				  //|| (fabs(alpha-0.15)<0.01 && isUL18)
+				  //|| (fabs(alpha-0.20)<0.01 && isUL18)
 				  || fabs(alpha-0.10)<0.01))
 	      continue; // only barrel for multijet balance, pT=(15),(20),30
 	    if (s=="gamjet"  && fabs(eta1-3.2)<0.1) { eta1=3.0; eta2=3.2; }
@@ -1015,13 +1106,19 @@ void reprocess(string epoch="") {
 	    } // dijet
 	    if (s=="incjet") {
 	      //c = Form("jet_Run17UL%s",epoch=="BCDEF" ? "" : epoch.c_str());
-	      c = Form(rename[s][t],epoch=="BCDEF" ? "" : epoch.c_str());
+	      if (isUL18)
+		c = Form(rename[s][t],fij_eras[epoch]);
+	      else
+		c = Form(rename[s][t],epoch=="BCDEF" ? "" : epoch.c_str());
 	    }
 	    if (s=="hadw") {
 	      c = Form("%s_%s_%s_fitprob02_L1L2L3",dd,rename[s][t],ss);
 	    }
 	    if (s=="multijet") {
 	      //c = Form("%s/Pt%1.0f/%s", rename[s][d], 100.*alpha, rename[s][t]);
+	      //if (isUL18)
+	      //c = Form("%s/%s", rename[s][d], rename[s][(d+t)]);
+	      //else 
 	      c = Form("%s/Pt%1.0f/%s", rename[s][d], 100.*alpha, rename[s][(d+t)]);
 	    } // multijet
 	    
@@ -1188,22 +1285,27 @@ void reprocess(string epoch="") {
 	      else if (s=="dijet" && t=="mpfchs1" &&
 		       (g->GetX()[i]<fdijetmpfptmin || g->GetX()[i]>fdijetptmax))
 		g->RemovePoint(i);
-	      else if (s=="pfjet" &&
-		       (g->GetX()[i]<fpfjetptmin || g->GetX()[i]>fpfjetptmax))
-		g->RemovePoint(i);
 	      else if (s=="dijet" && t=="ptchs" &&
 		       (g->GetX()[i]<fdijetbalptmin || g->GetX()[i]>fdijetptmax))
+		g->RemovePoint(i);
+	      else if (s=="pfjet" &&
+		       (g->GetX()[i]<fpfjetptmin || g->GetX()[i]>fpfjetptmax))
 		g->RemovePoint(i);
 	      else if (s=="incjet" &&
 		       (g->GetX()[i]<fincjetptmin || g->GetX()[i]>fincjetptmax))
 		g->RemovePoint(i);
-	      else if (s=="hadw" &&
-		       (g->GetX()[i]<fhadwptmin || g->GetX()[i]>fhadwptmax))
+	      else if (s=="hadw" && t=="mpfchs1" &&
+		       (g->GetX()[i]<fhadwptamin || g->GetX()[i]>fhadwptamax))
+		g->RemovePoint(i);
+	      else if (s=="hadw" && t=="ptchs" &&
+		       (g->GetX()[i]<fhadwptbmin || g->GetX()[i]>fhadwptbmax))
 		g->RemovePoint(i);
 	      else if (s=="multijet" &&
 		       (g->GetX()[i]<fmultijetptmin ||
 			g->GetX()[i]>fmultijetptmax ||
-			(epoch!="BCDEF" && g->GetX()[i]>fmultijetptmax2)))
+			((epoch!="BCDEF" && epoch!="2018ABCD") &&
+			 g->GetX()[i]>fmultijetptmax2) ||
+			(t=="ptchs" && g->GetX()[i]<fmultijetmjbptmin)))
 		g->RemovePoint(i);
 	      else if (s=="zeejet" && 
 		       (g->GetX()[i]<fzeeptmin || g->GetX()[i]>fzeeptmax))
@@ -1280,6 +1382,17 @@ void reprocess(string epoch="") {
 	      } // for i
 	    } // patch zjet
 	    
+	    // PATCH hadw ratio uncertainties to 2 or sqrt(2) larger
+	    // Not sure if justified, but scatter looks too large atm
+	    if (s=="hadw" && d=="ratio" && (t=="mpfchs1" || t=="ptchs")) {
+	      double k(1);
+	      if (t=="mpfchs1") k = 2.;
+	      if (t=="ptchs")  k = sqrt(2.);
+	      for (int i = 0; i != g->GetN(); ++i) {
+		g->SetPointError(i, g->GetEX()[i], g->GetEY()[i]*k);
+	      }
+	    }
+
 	    // PATCH new Jan15 EGamma corrections for Legacy 2016
 	    /*
 	    if (s=="gamjet" && (d=="data" || d=="ratio")) {
@@ -1404,6 +1517,9 @@ void reprocess(string epoch="") {
 		  g->SetPointError(i, 0.5*fabs(xd-xm), yd!=0 && ym!=0 ?
 				   sqrt(0.5*eyd*eyd + 0.5*eym*eym
 					+ pow(yd-ym,2)) : 0);
+		  //if (isUL18) { // PATCH upside down C_recoil
+		  //g->SetPoint(i, 0.5*(xd+xm), yd*ym!=0 ? 1./g->GetY()[i] : 0);
+		  //}
 		}
 		else { // mpfchs1, ptchs
 		  g->SetPoint(i, 0.5*(xd+xm), ym ? yd / ym : 0.);
@@ -1538,14 +1654,25 @@ void reprocess(string epoch="") {
   hmzee->Write("mass_zeejet_a30");
   hmzmm->Write("mass_zmmjet_a30");
   //hmz->Write("mass_zjet_a30"); // v26
+  hmzee1->Write("mass_zeejet_a100");
+  hmzmm1->Write("mass_zmmjet_a100");
+  //hmz1->Write("mass_zjet_a100");
+
   fout->cd("data/eta00-13");
   hmzee_dt->Write("mass_zeejet_a30");
   hmzmm_dt->Write("mass_zmmjet_a30");
   //hmz_dt->Write("mass_zjet_a30");
+  hmzee1_dt->Write("mass_zeejet_a100");
+  hmzmm1_dt->Write("mass_zmmjet_a100");
+  //hmz1_dt->Write("mass_zjet_a100");
+
   fout->cd("mc/eta00-13");
   hmzee_mc->Write("mass_zeejet_a30");
   hmzmm_mc->Write("mass_zmmjet_a30");
   //hmz_mc->Write("mass_zjet_a30");
+  hmzee1_mc->Write("mass_zeejet_a100");
+  hmzmm1_mc->Write("mass_zmmjet_a100");
+  //hmz1_mc->Write("mass_zjet_a100");
 
   fdj->Close();
   fp->Close(); // single file
@@ -1580,11 +1707,21 @@ void reprocess(string epoch="") {
       */
       jec = getFJC("","",
 		   Form("Summer19UL17_Run%s_V4_DATA_L2L3Residual",
-			epoch=="BCDEF" ? "B" : epoch.c_str()));
-      if (epoch=="BCDEF") {
-
+			epoch=="BCDEF" || //epoch=="2018ABCD" ||
+			//epoch=="2018A" || epoch=="2018B" || 
+			//epoch=="2018C" || epoch=="2018D" ?
+			isUL18 ? 
+			"B" : epoch.c_str()));
+      if (epoch=="BCDEF" || //epoch=="2018ABCD" || epoch=="2018A" || 
+	  //epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
+	  isUL18) {
+	
 	// luminosity from Hugues Lattaud, photon+jet 11 June 2018
 	double lumtot = 4.8+9.6+4.2+9.3+13.4; // 41.3/fb
+	//if (epoch=="2018ABCD" || epoch=="2018A" || 
+	//  epoch=="2018B" || epoch=="2018C" || epoch=="2018D")
+	if (isUL18)
+	  lumtot = 9.6+4.2+9.3; // just CDE, drop B,F
 	/*
 	jecb =getFJC("","","Summer19UL17_RunB_V2M5_SimpleL1_DATA_L2L3Residual");
 	jecc =getFJC("","","Summer19UL17_RunC_V2M5_SimpleL1_DATA_L2L3Residual");
@@ -1603,6 +1740,12 @@ void reprocess(string epoch="") {
 	jecwd = 4.2/lumtot;
 	jecwe = 9.3/lumtot;
 	jecwf = 13.4/lumtot;
+	//if (epoch=="2018ABCD" || epoch=="2018A" || 
+	//  epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
+	if (isUL18) {
+	  jecwb = 0;
+	  jecwf = 0;
+	}
       }
     }
 
@@ -1943,11 +2086,13 @@ void reprocess(string epoch="") {
 	  // JEC central values first
 	  double val = (epoch=="L4" ? 1 : 1./getJEC(jec,eta,pt));
 
-	  if (epoch=="BCDEF") {
-
+	  //if (epoch=="BCDEF" || epoch=="2018ABCD" || epoch=="2018A" || 
+	  //  epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
+	  if (isUL18) {
+	  
 	    assert(jecb);assert(jecc);assert(jecd);assert(jece);assert(jecf);
 	    assert(fabs(jecwb+jecwc+jecwd+jecwe+jecwf-1)<1e-4);
-
+	    
 	    double valb = 1./getJEC(jecb,eta,pt);
 	    double valc = 1./getJEC(jecc,eta,pt);
 	    double vald = 1./getJEC(jecd,eta,pt);

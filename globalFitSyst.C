@@ -164,29 +164,47 @@ void globalFitSyst(string run = "BCDEF") {
     //fhadw->SetParameters(0, 125.54);
 
     TF1 *fhadw_a = new TF1("fhadw_ptave","[0]+[1]/(log(x/0.218) * x)",30,200);
-    fhadw_a->SetParameters(0.20652, 86.857);
+    //fhadw_a->SetParameters(0.20652, 86.857); // UL17
+    fhadw_a->SetParameters(0.95564, -139); // UL18
     TF1 *fhadw_b = new TF1("fhadw_ptboth","[0]+[1]/(log(x/0.218) * x)",30,200);
-    fhadw_b->SetParameters(0, 125.54);
+    //fhadw_b->SetParameters(0, 125.54); // UL17
+    fhadw_b->SetParameters(0.99556, -128.37); // UL18
 
+    TF1 *fhadw2_a = new TF1("fhadw2_ptave","[0]+fabs([1])/(log(x/0.218))",
+			    30,200);
+    fhadw2_a->SetParameters(0.57464, -2.104e-10);
+    TF1 *fhadw2_b = new TF1("fhadw2_ptboth","[0]+fabs([1])/(log(x/0.218))",
+			    30,200);
+    fhadw2_b->SetParameters(0.65814, -4.1327e-07);
+    
     TH1D *hkea = (TH1D*)hk->Clone("hadw_ptave_fitprob");
     hkea->Reset();
     TH1D *hkeb = (TH1D*)hk->Clone("hadw_ptboth_fitprob");
     hkeb->Reset();
+
+    TH1D *hkea2 = (TH1D*)hk->Clone("hadw_ptave_fitprob2");
+    hkea2->Reset();
+    TH1D *hkeb2 = (TH1D*)hk->Clone("hadw_ptboth_fitprob2");
+    hkeb2->Reset();
       
     // uncertainty sources are signed, and in %'s
     for (int i = 1; i != hkea->GetNbinsX()+1; ++i) {
       double pt = hkea->GetBinCenter(i);
       hkea->SetBinContent(i, 0.01*fhadw_a->Eval(pt));
+      hkea2->SetBinContent(i, 0.01*(fhadw2_a->Eval(pt)-fhadw_a->Eval(pt)));
     }
     for (int i = 1; i != hkeb->GetNbinsX()+1; ++i) {
       double pt = hkeb->GetBinCenter(i);
       hkeb->SetBinContent(i, 0.01*fhadw_b->Eval(pt));
+      hkeb2->SetBinContent(i, 0.01*(fhadw2_b->Eval(pt)-fhadw_b->Eval(pt)));
     }
 
     d3->cd();
     //hke->Write("hadw_fitprob", TObject::kOverwrite);
     hkea->Write("hadw_ptave_fitprob", TObject::kOverwrite);
     hkeb->Write("hadw_ptboth_fitprob", TObject::kOverwrite);
+    hkea2->Write("hadw_ptave_fitprob2", TObject::kOverwrite);
+    hkeb2->Write("hadw_ptboth_fitprob2", TObject::kOverwrite);
   } // doHadWfitProb
   
   f->Close();

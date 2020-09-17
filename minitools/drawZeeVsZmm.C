@@ -22,6 +22,14 @@ void drawZeeVsZmms(string run = "BCDEFGH") {
   gDirectory->cd("ratio");
   gDirectory->cd("eta00-13");
   TDirectory *d = gDirectory;
+
+  TFile *ffsr = new TFile(Form("rootfiles/jecdata%s.root",
+			       run=="2018ABCD" ? "2018ABCD" : "BCDEF"),"READ");
+  assert(ffsr && !ffsr->IsZombie());
+  gDirectory->cd("ratio");
+  gDirectory->cd("eta00-13");
+  TDirectory *dfsr = gDirectory;
+
   TGraphErrors *gem = (TGraphErrors*)d->Get("mpfchs1_zeejet_a30"); assert(gem);
   TGraphErrors *gep = (TGraphErrors*)d->Get("ptchs_zeejet_a30"); assert(gep);
   TGraphErrors *gmm = (TGraphErrors*)d->Get("mpfchs1_zmmjet_a30"); assert(gmm);
@@ -30,8 +38,10 @@ void drawZeeVsZmms(string run = "BCDEFGH") {
   TGraphErrors *gpm = (TGraphErrors*)d->Get("mpfchs1_gamjet_a30"); assert(gpm);
   TGraphErrors *gpp = (TGraphErrors*)d->Get("ptchs_gamjet_a30"); assert(gpp);
 
-  TH1D *hpm = (TH1D*)d->Get("fsr/hkfsr_mpfchs1_gamjet"); assert(hpm);
-  TH1D *hpp = (TH1D*)d->Get("fsr/hkfsr_ptchs_gamjet"); assert(hpp);
+  //TH1D *hpm = (TH1D*)d->Get("fsr/hkfsr_mpfchs1_gamjet"); assert(hpm);
+  //TH1D *hpp = (TH1D*)d->Get("fsr/hkfsr_ptchs_gamjet"); assert(hpp);
+  TH1D *hpm = (TH1D*)dfsr->Get("fsr/hkfsr_mpfchs1_gamjet"); assert(hpm);
+  TH1D *hpp = (TH1D*)dfsr->Get("fsr/hkfsr_ptchs_gamjet"); assert(hpp);
   for (int i = 0; i != gpm->GetN(); ++i) {
     double kfsr  = hpm->GetBinContent(hpm->FindBin(gpm->GetX()[i]));
     gpm->SetPoint(i, gpm->GetX()[i], gpm->GetY()[i]*(1. - 0.3*kfsr));
@@ -92,6 +102,7 @@ void drawZeeVsZmms(string run = "BCDEFGH") {
   lumimap["D"] = "Run2017D, 4.2 fb^{-1}";
   lumimap["E"] = "Run2017E, 9.3 fb^{-1}";
   lumimap["F"] = "Run2017F, 13.4 fb^{-1}";
+  lumimap["2018ABCD"] = "2018";
   lumi_13TeV = lumimap[run];
   TCanvas *c1 = tdrDiCanvas("c1",hdw,hup,4,11);
 
@@ -218,16 +229,26 @@ void drawZeeVsZmms(string run = "BCDEFGH") {
 			"-1)*100", 30, ptmax);
   // ABCD fit with minitools/drawZmass.C (f1mzee x 3 + f1mzmm x 1)
   //f1mzee->SetParameters(1.00276, 0.00243, 0.00021, 0.99844); // V5M2
-  // UL17 RunBCDEF fit with minitools/drawZmass.C
-  f1mzee->SetParameters(0.99781, 0.00244, 0.00014);
+  if (run=="2018ABCD")
+    // UL18 Run2018ABCD fit with minitools/drawZmass.C
+    f1mzee->SetParameters(1.00153, 0.00214, -0.00012, 0.99839); //p3=Zmm
+  else
+    // UL17 RunBCDEF fit with minitools/drawZmass.C
+    f1mzee->SetParameters(0.99780, 0.00225, 0.00031, 0.99821); //p3=Zmm
+			  //0.99781, 0.00244, 0.00014);  
 
   // Zee mass applied to gamma+jet at pT,Z=2*pT,gamma
   TF1 *f1mgam = new TF1("f1mgam","([3]/([0]+[1]*log(0.01*x*2)"
                         "+[2]*pow(log(0.01*x*2),2))"
                         "-1)*100", 30, ptmax);
   //f1mgam->SetParameters(1.00276, 0.00243, 0.00021, 0.99844); // V5M2
-  // UL17 RunBCDEF fit with minitools/drawZmass.C
-  f1mzee->SetParameters(0.99781, 0.00244, 0.00014);
+  if (run=="2018ABCD")
+    // UL18 Run2018ABCD fit with minitools/drawZmass.C
+    f1mgam->SetParameters(1.00153, 0.00214, -0.00012, 0.99839); //p3=Zmm
+  else
+    // UL17 RunBCDEF fit with minitools/drawZmass.C
+    //f1mzee->SetParameters(0.99781, 0.00244, 0.00014);
+    f1mgam->SetParameters(0.99780, 0.00225, 0.00031, 0.99821); //p3=Zmm
 
   c1->cd(1);
   f1mzee->SetLineStyle(kSolid);
@@ -253,6 +274,8 @@ void drawZeeVsZmm() {
   drawZeeVsZmms("C");
   drawZeeVsZmms("D");
   drawZeeVsZmms("E");
-  drawZeeVsZmms("F");*/
+  drawZeeVsZmms("F");
   drawZeeVsZmms("BCDEF");
+  */
+  drawZeeVsZmms("2018ABCD");
 }

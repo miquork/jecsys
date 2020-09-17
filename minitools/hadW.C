@@ -11,6 +11,8 @@
 #include "TLorentzVector.h"
 #include "TBox.h"
 #include "TGraphErrors.h"
+#include "TH2D.h"
+#include "TProfile2D.h"
 
 // For JEC
 #include "../CondFormats/JetMETObjects/src/Utilities.cc"
@@ -53,7 +55,9 @@ void hadW::Loop()
    if (fChain == 0) return;
 
    TDirectory *curdir = gDirectory;
-   TFile *fout = new TFile(Form("rootfiles/hadW%s.root",_s.c_str()),"RECREATE");
+   //TFile *fout = new TFile(Form("rootfiles/hadW%s_v2.root",_s.c_str()),
+   TFile *fout = new TFile(Form("rootfiles/hadW%s.root",_s.c_str()),
+			   "RECREATE");
 
    const int nbins = 200;
    const double xmin = 30;
@@ -61,10 +65,24 @@ void hadW::Loop()
    const int nx1 = (xmax-xmin)/5.;
    const int nx2 = (xmax-xmin)/10.;
    //const double xb[] = {30,35,40,45,50,60,80,110,150,200};
-   const double xb[] = {30,40,50,62,80,110,150,200};
+   //const double xb[] = {30,40,50,62,80,110,150,200}; // UL17?
+   const double xb[] = {30,35,40,45,50,60,70,85,105,130,175,230};
+   // UL18 Zll+jet as refernce
+   // {15, 20, 25, 30, 35, 40, 45, 50, 60, 85, 105, 130, 175, 230,}
+   // Z+jet bins (70 extra vs Zll) as reference
+   // {15,20,25,30,35,40,50,60,70,85,105,130,175,230,300,400,500,700, 1000, 1500};
    //const double xb[] = {30,42,50,62,80,110,150,200}; // => 42-50 weird
    const int nxb = sizeof(xb)/sizeof(xb[0])-1;
-   
+   // For 2D calibration in pT-eta (from deriveL2ResNarrow.C)
+   const double yb[] = {0,0.261,0.522,0.783, 1.044,1.305,1.479,
+			1.653,1.93,2.172, 2.322,2.5,5.2};//,2.65};
+   //2.853,2.964,3.139, 3.489,3.839,5.191};
+   const double nyb = sizeof(yb)/sizeof(yb[0])-1;
+   // For quick mapping to indeces
+   TH1D *hxb = new TH1D("hxb",";p_{T} (GeV)",nxb,xb);
+   TH1D *hyb = new TH1D("hyb",";#eta",nyb,yb);
+   TH2D *hxbyb = new TH2D("hxbyb",";p_{PT} (GeV);#eta",nxb,xb,nyb,yb);
+
    double mwmin = 55;//65;
    double mwmax = 105;
    TH1D *hmw = new TH1D("hmw",";m_{W}",nbins,mwmin,mwmax);
@@ -226,6 +244,18 @@ void hadW::Loop()
    TH2D *hptetaboth13b = new TH2D("hptetaboth13b",";p_{T,both};#eta_{jet}",
 				  nxb,xb,26,-1.3,1.3);
 
+
+   // 2D maps
+   //const int n2b = (nxb+2)*(nyb+2);
+   //const int n2b = nxb*nyb; // excluding over/underflow bins (assert)
+   const int n2b = (nxb+1)*nyb; // keeping overflow bin for pt only
+   TH2D *h2 = new TH2D("h2",";bin i (fwd);bin j (cnt)",n2b,0,n2b,n2b,0,n2b);
+   TProfile2D *p2 = new TProfile2D("p2",";bin i (fwd);bin j (cnt);"
+				   "m_{W,0}/m_{W,PDG}",n2b,0,n2b,n2b,0,n2b);
+   TProfile2D *p2m2 = new TProfile2D("p2m2",";bin i (fwd);bin j (cnt);"
+				     "(m_{W,0}/m_{W,PDG})^{2}",
+				     n2b,0,n2b,n2b,0,n2b);
+
    curdir->cd();
 
    Long64_t nentries = fChain->GetEntriesFast();
@@ -252,7 +282,7 @@ void hadW::Loop()
    const char *cf0 = "Autumn18_V3_MC_Pythia8_all_L2Relative_AK4PFchs";
    const char *cdref = "CondFormats/JetMETObjects/data";
    //const char *cref = "Summer19UL17_RunBCDEF_V2M5_L2L3Residual_AK4PFchs";
-   const char *cref = "Summer19UL17_Run%s_V4_DATA_L2L3Residual_AK4PFchs";
+   const char *cref = "Summer19UL18_Run%s_V3_DATA_L2Residual_AK4PFchs";
    string sfud = Form("%s/%s.txt",cd,cfud);
    cout << sfud << endl;
    string sfs = Form("%s/%s.txt",cd,cfs);
@@ -281,9 +311,12 @@ void hadW::Loop()
    v0.push_back(*pfl0);
    FactorizedJetCorrector *jec0 = new FactorizedJetCorrector(v0);
    //
-   const int nrun = 5;
-   const char* runs[nrun] = {"B","C","D","E","F"};
-   double runlums[nrun] = {4.8,9.6,4.2,9.3,13.4};
+   //const int nrun = 5;
+   //const char* runs[nrun] = {"B","C","D","E","F"};
+   //double runlums[nrun] = {4.8,9.6,4.2,9.3,13.4};
+   const int nrun = 4;
+   const char* runs[nrun] = {"A","B","C","D"};
+   double runlums[nrun] = {14.0, 7.1, 6.9, 31.9};
    vector<FactorizedJetCorrector*> jecrefs(nrun);
    for (int irun = 0; irun != nrun; ++irun) {
      string srun = Form(cref,runs[irun]);
@@ -303,6 +336,8 @@ void hadW::Loop()
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
       // if (Cut(ientry) < 0) continue;
+
+      if (jentry%100000==00) cout << "." << flush;
 
       double recoWmassOrig = recoWMass;
       double recoWmass = recoWMass;
@@ -432,6 +467,8 @@ void hadW::Loop()
 	if (pt1>50 && pt2>50) hmm50->Fill(recoWmass0);
 	if (pt1>60 && pt2>60) hmm60->Fill(recoWmass0);
 
+	bool goodw = (recoWmass>65 && recoWmass<105);
+	bool goodw0 = (recoWmass0>60 && recoWmass0<100);
 	if (fabs(eta1)<1.3 && fabs(eta2)<1.3) {
 	  if (pt1>30 && pt2>30) hmw1330->Fill(recoWmass);
 	  if (pt1>40 && pt2>40) hmw1340->Fill(recoWmass);
@@ -442,9 +479,7 @@ void hadW::Loop()
 	  if (pt1>40 && pt2>40) hmm1340->Fill(recoWmass0);
 	  if (pt1>50 && pt2>50) hmm1350->Fill(recoWmass0);
 	  if (pt1>60 && pt2>60) hmm1360->Fill(recoWmass0);
-	  //
-	  bool goodw = (recoWmass>65 && recoWmass<105);
-	  bool goodw0 = (recoWmass0>60 && recoWmass0<100);
+
 	  if (goodw || goodw0) {
 	    hptjet13->Fill(pt1);
 	    hptjet13->Fill(pt2);
@@ -506,8 +541,40 @@ void hadW::Loop()
 	    } // for i
 	  } // Wmass
 	} // barrel
-      } // fitProb>0.2
 
+	// 2D results for fitProb>0.2
+	int ix1 = hxb->FindBin(pt1);
+	int ix2 = hxb->FindBin(pt2);
+	int iy1 = hyb->FindBin(fabs(eta1));
+	int iy2 = hyb->FindBin(fabs(eta2));
+	// Remember range 0=overflow, 1,...,n, n+1 = overflow => n+2 bins
+	//int ib1 = (nxb+2)*iy1 + ix1;
+	//int ib2 = (nxb+2)*iy2 + ix2;
+	// Keep overflow for pT
+	assert(ix1>0); //assert(ix1-1<nxb);
+	assert(ix2>0); //assert(ix2-1<nxb);
+	assert(iy1>0); assert(iy1-1<nyb);
+	assert(iy2>0); assert(iy2-1<nyb);
+	int ib1 = (nxb+1)*(iy1-1) + (ix1-1);
+	int ib2 = (nxb+1)*(iy2-1) + (ix2-1);
+	// Symmetric filling of jets
+	const double mwpdg = 80.4;
+	//if (goodw0 && fitProb>0.2) {
+	//h2->Fill(ib1, ib2);
+	//h2->Fill(ib2, ib1);
+	//p2->Fill(ib1, ib2, recoWmass0 / mwpdg);
+	//p2->Fill(ib2, ib1, recoWmass0 / mwpdg);
+	//}
+	// Rapidity ordering of jets
+	int ifwd = (fabs(eta1)>=fabs(eta2) ? ib1 : ib2);
+	int icnt = (fabs(eta1)>=fabs(eta2) ? ib2 : ib1);
+	if (goodw0 && fitProb>0.2) {
+	  h2->Fill(ifwd, icnt);
+	  p2->Fill(ifwd, icnt, recoWmass0 / mwpdg);
+	  p2m2->Fill(ifwd, icnt, pow(recoWmass0 / mwpdg,2));
+	}
+      } // fitProb>0.2
+   
 
       // Fit probability variations
       if (fabs(eta1)<1.3 && fabs(eta2)<1.3) {
@@ -583,6 +650,13 @@ void hadW::Loop()
 
    // Save histograms
    fout->cd();
+   h2->Write("h2",TObject::kOverwrite);
+   p2->Write("p2",TObject::kOverwrite);
+   p2m2->Write("p2m2",TObject::kOverwrite);
+   hxb->Write("hxb",TObject::kOverwrite);
+   hyb->Write("hyb",TObject::kOverwrite);
+   hxbyb->Write("hxbyb",TObject::kOverwrite);
+   //
    hmw->Write("hmw",TObject::kOverwrite);
    hmwveto1b->Write("hmwveto1b",TObject::kOverwrite);
    hmwveto2b->Write("hmwveto2b",TObject::kOverwrite);
@@ -681,10 +755,14 @@ void hadW::Draw() {//string sdt, string smc) {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
-  TFile *fdt = new TFile("rootfiles/hadWUL17.root","READ");
+  //TFile *fdt = new TFile("rootfiles/hadWUL17.root","READ");
+  TFile *fdt = new TFile("rootfiles/hadWUL18.root","READ");
   assert(fdt && !fdt->IsZombie());
-  TFile *fmc = new TFile("rootfiles/hadWMC17.root","READ");
+  //TFile *fmc = new TFile("rootfiles/hadWMC17.root","READ");
+  TFile *fmc = new TFile("rootfiles/hadWMC18.root","READ");
   assert(fdt && !fdt->IsZombie());
+  //TFile *fout = new TFile("rootfiles/hadWUL17.root","RECREATE");
+  TFile *fout = new TFile("rootfiles/hadWUL18.root","UPDATE");
   curdir->cd();
 
   /*
@@ -772,7 +850,8 @@ void hadW::Draw() {//string sdt, string smc) {
   TH1D *hup =tdrHist("hup","#LTm_{W}#GT (GeV)",73,90,"p_{T,jets} (GeV)",30,200);
   TH1D *hdw =tdrHist("hdw","Data/MC-1 (%)",-1.5,+1.5,"p_{T,jets} (GeV)",30,200);
 
-  lumi_13TeV = "UL17 ttbar lepton+jet hadW";
+  //lumi_13TeV = "UL17 ttbar lepton+jet hadW";
+  lumi_13TeV = "UL18 ttbar lepton+jet hadW";
   TCanvas *c1 = tdrDiCanvas("c1",hup,hdw,4,11);
   
   TLine *l = new TLine();
@@ -828,7 +907,7 @@ void hadW::Draw() {//string sdt, string smc) {
   leg2->AddEntry(pb0mc,"ref<p_{T,j}<ref+1, m_{j}=0","PLE");
   */
   leg2->AddEntry(ptmc,"p_{T,j}<200 GeV, m_{j}=0#otimesR_{dj}","PLE");
-  leg2->AddEntry(pbmc,"m_{j}= & R_{dj}","PLE");
+  leg2->AddEntry(pbmc,"m_{j}=0 & R_{dj}","PLE");
   leg2->AddEntry(pt0mc,"p_{T,j}<200 GeV, m_{j}=0#otimesR_{q}#timesR_{#nu}","PLE");
   leg2->AddEntry(pb0mc,"m_{j}=0 & R_{udsc}#timesR_{#nu}","PLE");
 
@@ -918,9 +997,10 @@ void hadW::Draw() {//string sdt, string smc) {
 
   //TH1D *hup2 = tdrHist("hup2","#LTm_{W}#GT (GeV)",72.9+1e-5,83.9-1e-5,
   //TH1D *hup2 = tdrHist("hup2","#LTm_{W}#GT (GeV)",79.9+1e-5,80.9-1e-5,
-  TH1D *hup2 = tdrHist("hup2","#LTm_{W}#GT (GeV)",79.5+1e-5,81.5-1e-5,
+  //TH1D *hup2 = tdrHist("hup2","#LTm_{W}#GT (GeV)",79.5+1e-5,81.5-1e-5,
+  TH1D *hup2 = tdrHist("hup2","#LTm_{W}#GT (GeV)",79.0+1e-5,82.0-1e-5,
 		       "p_{T,jets} (GeV)",30,200);
-  TH1D *hdw2 = tdrHist("hdw2","Data/MC-1 (%)",-0.8,+0.4,
+  TH1D *hdw2 = tdrHist("hdw2","Data/MC-1 (%)",-1.6,+0.8,
 		       "p_{T,jets} (GeV)",30,200);
 
   TCanvas *c2 = tdrDiCanvas("c2",hup2,hdw2,4,11);
@@ -992,7 +1072,7 @@ void hadW::Draw() {//string sdt, string smc) {
 
   c2->SaveAs("pdf/hadW0.pdf");
   
-  TFile *fout = new TFile("rootfiles/hadW.root","RECREATE");
+  fout->cd();
   hdt->Write("data_nevents_ptboth_hadw_fitprob02_L1L2L3");
   hmc->Write("mc_nevents_ptboth_hadw_fitprob02_L1L2L3");
   hr->Write("ratio_nevents_ptboth_hadw_fitprob02_L1L2L3");
@@ -1025,9 +1105,11 @@ void hadW::DrawFP(string spt) {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
-  TFile *fdt = new TFile("rootfiles/hadWUL17.root","READ");
+  //TFile *fdt = new TFile("rootfiles/hadWUL17.root","READ");
+  TFile *fdt = new TFile("rootfiles/hadWUL18.root","READ");
   assert(fdt && !fdt->IsZombie());
-  TFile *fmc = new TFile("rootfiles/hadWMC17.root","READ");
+  //TFile *fmc = new TFile("rootfiles/hadWMC17.root","READ");
+  TFile *fmc = new TFile("rootfiles/hadWMC18.root","READ");
   assert(fdt && !fdt->IsZombie());
   curdir->cd();
 
@@ -1122,12 +1204,22 @@ void hadW::DrawFP(string spt) {
   fse->SetLineColor(kYellow+3);
   fse->Draw("SAME");
 
+  TF1 *fse2 = new TF1("fse2","[0]+fabs([1])/(log(x/0.218))",40,200);
+  hse->Fit(fse2,"RN");
+  fse2->SetLineColor(kOrange+2);
+  fse2->Draw("SAME");
+
   cout << Form("  // Fit from minitools/hadW.C::DrawFP(\"%s\")",cpt)<< endl;
   cout << Form("  TF1 *fhadw_%s = new TF1(\"fhadw_%s\","
 	       "\"[0]+[1]/(log(x/0.218) * x)\","
 	       "30,200);",cpt,cpt) << endl;
   cout << Form("  fhadw_%s->SetParameters(%1.5g, %1.5g);",
 	       cpt,fse->GetParameter(0), fse->GetParameter(1)) << endl;
+  cout << Form("  TF1 *fhadw2_%s = new TF1(\"fhadw2_%s\","
+	       "\"[0]+fabs([1])/(log(x/0.218))\","
+	       "30,200);",cpt,cpt) << endl;
+  cout << Form("  fhadw2_%s->SetParameters(%1.5g, %1.5g);",
+	       cpt,fse2->GetParameter(0), fse2->GetParameter(1)) << endl;
 
   for (int ifp = 0; ifp != nfp; ++ifp) {
     tdrDraw(hr[ifp],"Pz",kFullCircle,color[ifp]);
@@ -1137,6 +1229,188 @@ void hadW::DrawFP(string spt) {
   c1->SaveAs(Form("pdf/hadW_drawFP_%s.pdf",cpt));
 
 } // drawFP
+
+// Analyze and draw 2D response
+void hadW::Draw2D(string set) {
+
+  setTDRStyle();
+  TDirectory *curdir = gDirectory;
+
+  //TFile *f = new TFile("rootfiles/hadWMC17_v2.root","READ");
+  //TFile *f = new TFile(Form("rootfiles/hadW%s_v2.root",set.c_str()),"READ");
+  TFile *f = new TFile(Form("rootfiles/hadW%s.root",set.c_str()),"READ");
+  assert(f && !f->IsZombie());
+
+  //TFile *fout = new TFile("rootfiles/hadW.root","UPDATE");
+  TFile *fout = new TFile("rootfiles/hadWUL18.root","UPDATE");
+  assert(fout && !fout->IsZombie());
+  curdir->cd();
+
+  TH2D *h2 = (TH2D*)f->Get("h2"); assert(h2);
+  TProfile2D *p2 = (TProfile2D*)f->Get("p2"); assert(p2);
+  TProfile2D *p2m2 = (TProfile2D*)f->Get("p2m2"); assert(p2m2);
+
+  // Later take hxbyb directly from file
+   const double xb[] = {30,40,50,62,80,110,150,200};
+   const int nxb = sizeof(xb)/sizeof(xb[0])-1;
+   const double yb[] = {0,0.261,0.522,0.783, 1.044,1.305,1.479,
+			1.653,1.93,2.172, 2.322,2.5};
+   const double nyb = sizeof(yb)/sizeof(yb[0])-1;
+   TH2D *h2k = new TH2D("h2k",";p_{T} (GeV);#eta",nxb,xb,nyb,yb);
+
+  // Normalize counts to forward jet
+  TH2D *h2n = (TH2D*)h2->Clone("h2n");
+  for (int i = 1; i != h2->GetNbinsX()+1; ++i) {
+    double ni = h2->Integral(i,i,1,h2->GetNbinsY());
+    for (int j = 1; j != h2->GetNbinsY()+1; ++j) {
+      if (ni!=0) {
+	h2n->SetBinContent(i, j, h2->GetBinContent(i,j)/ni);
+	h2n->SetBinError(i, j, h2->GetBinError(i,j)/ni);
+      }
+    } // for j
+  } // for i
+
+  // Multiply by mass squared
+  TH2D *h2x = (TH2D*)h2n->Clone("h2x");
+  for (int i = 1; i != h2->GetNbinsX()+1; ++i) {
+    for (int j = 1; j != h2->GetNbinsY()+1; ++j) {
+      if (h2->GetBinContent(i,j)!=0) {
+	h2x->SetBinContent(i, j, h2n->GetBinContent(i,j)
+			   * p2m2->GetBinContent(i,j));
+	h2x->SetBinError(i, j, sqrt(pow(h2n->GetBinError(i,j)/
+					h2->GetBinContent(i,j),2)+
+				    pow(p2m2->GetBinError(i,j)/
+					p2m2->GetBinContent(i,j),2)) *
+			 h2x->GetBinContent(i,j));
+      }
+    } // for j
+  } // for i
+
+  TCanvas *c1 = new TCanvas("c1_h2","c1_h2",600,600);
+  gPad->SetRightMargin(0.15);
+  h2->Draw("COLZ");
+  TCanvas *c2 = new TCanvas("c2_h2n","c2_h2n",600,600);
+  gPad->SetRightMargin(0.15);
+  h2n->Draw("COLZ");
+  TCanvas *c3 = new TCanvas("c3_p2","c3_p2",600,600);
+  gPad->SetRightMargin(0.15);
+  p2->Draw("COLZ");
+  p2->GetZaxis()->SetRangeUser(0.85,1.15);
+  TCanvas *c4 = new TCanvas("c4_p2m2","c4_p2m2",600,600);
+  gPad->SetRightMargin(0.15);
+  p2m2->Draw("COLZ");
+  p2m2->GetZaxis()->SetRangeUser(0.85,1.15);
+  TCanvas *c5 = new TCanvas("c5_h2x","c5_h2x",600,600);
+  gPad->SetRightMargin(0.15);
+  h2x->Draw("COLZ");
+
+  // Invariant mass:
+  // https://en.wikipedia.org/wiki/Invariant_mass
+  // M^2 = 2pT1*pT2*(cosh(eta1-eta2)-cos(phi1-phi2))
+
+  // All pairs sum up to mW => N variables, 1 equation => not enough
+  // mW = (sum_ij N_ij * m_ij * sqrt(k_i * k_j)) / (sum_kl N_kl)
+  // All pairs for any bin also sum up to mW => N vars, N eqs => ok?
+  // mW(i) = (sum_j N_ij * m_ij * sqrt(k_i * k_j)) / (sum_k N_ik)
+  // => mW(i) = sqrt(k_i) * (sum_j f_ij * m_ij * sqrt(k_j)) 
+  // Tricky... maybe start with mW(i)^2 to simplify?
+  // mW(i)^2 = k_i * (sum_j f_ij * m_ij^2 * k_j)
+  // => mW(i)^2 - k_i*( sum_j!=i f_ij*m_ij^2*k_j) - k_i^2*f_ii*m_ii^2 = 0
+  // => k_i^2*(f_ii*m_ii^2) + k_i*( sum_j!=i f_ij*m_ij^2*k_j) - mW(i)^2 = 0
+  // This is quadratic equation for k_i, given k_j. Could solve it iteratively?
+  // k_i = (-b +/- sqrt(b^2 - 4*a*c)) / (2*a)
+  // Or just set mW(i)^2 = 1 and thus have
+  // I[n,n] = X[n,n] * A[n,n] * X[n,n], where X[n,n] = I[n,n] * x[n,1]
+  // Hmm, original quadratic equation of N variables can be decomposed into
+  // a product of N polynomials of first degree, i.e. linear eqs. 
+
+  // Solve for k_i iteratively
+  vector<double> vk(h2x->GetNbinsX(),1.); // initial guess 1 for each
+  double sumk2(h2x->GetNbinsX());
+  double eps = 1e-6;
+  int it(0);
+  const int maxit(100);
+  while (sqrt(sumk2) > eps * h2x->GetNbinsX() && it<maxit) {
+
+    vector<double> vkref = vk;
+    sumk2 = 0;
+    for (int i = 1; i != h2x->GetNbinsX()+1; ++i) {
+      //double fii = h2n->GetBinContent(i,i);
+      //double mii = p2->GetBinContent(i,i);
+      //double a = fii*mii;
+      double a(h2x->GetBinContent(i,i));
+      double b(0);
+      double c(-1);
+      for (int j = 1; j != h2x->GetNbinsY()+1; ++j) {
+	if (j!=i) {
+	  b += h2x->GetBinContent(i,j) * vkref[j-1];
+	}
+      } // for j
+      // quadratic equation, positive solution
+      if (a==0) { vk[i-1] = (b!=0 ? 1./b : 1.); }
+      else { vk[i-1] = (-b + sqrt(b*b - 4*a*c))/(2*a); }
+      
+      //sumk2 += vk[i-1]*vk[i-1];
+      sumk2 += pow(a*vkref[i-1]*vkref[i-1] + b*vkref[i-1] - 1,2)
+	+ pow(vk[i-1]-vkref[i-1],2);
+    } // for i
+    cout << Form("it=%d, eps=%1.3g",it,sqrt(sumk2)/h2x->GetNbinsX())
+	 << endl << flush;
+    ++it;
+  } // while sumk2 > eps
+
+  // Plot k_i results in 2D pt-eta plane
+  // Take hxbyb from file for binning, clone to h2k
+  //vector<double> xb(h2->GetNbinsX()+1);
+  //vector<double> yb(h2->GetNbinsY()+1);
+  //for (unsigned int i = 0; i != xb.size(); ++i) {
+  //xb[i] = h2->GetXaxis()->GetBinLowEdge(i+1);
+  //}
+  //for (unsigned int i = 0; i != yb.size(); ++i) {
+  //yb[i] = h2->GetYaxis()->GetBinLowEdge(i+1);
+  //}
+  //TH2D *h2k = new TH2D("h2k",";p_{T} (GeV);#eta",
+  //xb.size()-1,xb,yb.size()-1,yb);
+  for (unsigned int i = 0; i != vk.size(); ++i) {
+    int ix = i % (h2k->GetNbinsX()+1) + 1;
+    int iy = i / (h2k->GetNbinsX()+1) + 1;
+    h2k->SetBinContent(ix, iy, vk[i]);
+  }
+
+  TCanvas *c6 = new TCanvas("c6_h2k","c6_h2k",600,600);
+  gPad->SetRightMargin(0.15);
+  h2k->Draw("COLZ");
+  h2k->GetZaxis()->SetRangeUser(0.95,1.05);
+  
+  c6->SaveAs(Form("pdf/hadW_draw2D_2D_%s.pdf",set.c_str()));
+
+  // Save results to output file
+  fout->cd();
+  h2k->Write(Form("h2k_%s",set.c_str()),TObject::kOverwrite);
+  fout->Write();
+  curdir->cd();
+
+  // If data and MC both available, also plot and store their ratio
+  TH2D *h2kd = (TH2D*)fout->Get("h2k_UL17");
+  TH2D *h2km = (TH2D*)fout->Get("h2k_MC17");
+  if (h2kd && h2km) {
+    TH2D *h2kr = (TH2D*)h2kd->Clone("h2k_ratio");
+    h2kr->Divide(h2km);
+
+    TCanvas *c7 = new TCanvas("c7_h2k","c7_h2kr",600,600);
+    gPad->SetRightMargin(0.15);
+    h2kr->Draw("COLZ");
+    h2kr->GetZaxis()->SetRangeUser(0.98,1.02);
+    
+    c7->SaveAs(Form("pdf/hadW_draw2D_2D_%s.pdf","ratio"));
+
+    fout->cd();
+    h2kr->Write("h2k_ratio",TObject::kOverwrite);
+    curdir->cd();
+  } // h2kd && h2km
+
+  fout->Close();
+} // Draw2D()
 
 /*
 void hadW::drawVeto() {

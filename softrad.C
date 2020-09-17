@@ -58,6 +58,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   const char *cep = epoch.c_str();
   cout << "For epoch " << epoch << endl;
 
+  bool isUL18 = (epoch=="2018ABCD" || epoch=="2018A" || 
+		 epoch=="2018B" || epoch=="2018C" || epoch=="2018D");
+
   setTDRStyle();
   //writeExtraText = false; // for JEC paper CWR
 
@@ -67,6 +70,11 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   TFile *finout = new TFile(Form("rootfiles/jecdata%s.root",epoch.c_str()),
 			    "UPDATE");
   assert(finout && !finout->IsZombie());
+  curdir->cd();
+
+  // PATCH: get kFSR for multijet from UL17BCDEF
+  TFile *fmj = new TFile("rootfiles/jecdataBCDEF.root","READ");
+  assert(fmj && !fmj->IsZombie());
   curdir->cd();
 
   const int ndirs = 3;
@@ -212,6 +220,11 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  string s = Form("%s/%s/%s_%s_a%d",dirs[idir],bin,cm,cs,a);
 	  TGraphErrors *g = (TGraphErrors*)finout->Get(s.c_str());
 	  if (!g) cout << "Missing " << s << endl << flush;
+	  //
+	  //if (isUL18 && ss=="multijet") { // PATCH
+	  //g = (TGraphErrors*)fmj->Get(s.c_str());
+	  //cout << "=> Patching with 2017BCDEF " << s << endl << flush;
+	  //}
 	  if (!g && ss=="multijet" && a==10) g = new TGraphErrors(0);
 	  assert(g);
 
@@ -391,6 +404,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	lumimap["D"] = "Run2017D, 4.2 fb^{-1}";
 	lumimap["E"] = "Run2017E, 9.3 fb^{-1}";
 	lumimap["F"] = "Run2017F, 13.4 fb^{-1}";
+	lumimap["2018ABCD"] = "2018"; // Placeholder
 	lumi_13TeV = lumimap[epoch];
 
 	TCanvas *c0 = tdrCanvas(Form("c0_%s_%s",cm,cd), h, 4, 11, true);

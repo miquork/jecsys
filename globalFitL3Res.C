@@ -43,15 +43,19 @@ using namespace std;
 double alpha = 0.30; // reference alpha value for zlljet, gamjet (def:0.3)
 double ptmj = 30.; // reference pTmin value for multijet (def:30)
 bool dofsr = true; // correct for FSR central value (def:true)
-bool dofsrcombo1 = true; // use input BCDEF for FSR in IOVs (def: true)
-bool dofsrcombo2 = false; // use output BCDEF for FSR in IOVs (def:false)
-bool fixfsrcombo = false; // do not refit FSR (except BCDEF) (def:false)
-bool useIncJetBCDEFUncert = false; // Include BCDEF fit uncertainty? (def:false)
+bool dofsrcombo1 = true; // use input refIOV for FSR in IOVs (def: true)
+bool dofsrcombo2 = false; // use output refIOV for FSR in IOVs (def:false)
+bool fixfsrcombo = false; // do not refit FSR (except refIOV) (def:false)
+bool useIncJetRefIOVUncert = false; // Include refIOV fit uncertainty? (def:false)
 // Settings for 7-parameter fit with PF fractions
-bool usePF = true; // Include PF fractions in the fit (def:true for now)
-bool usePFZ = false; // use Z+jet PF instead of dijet PF (def:false for now)
-double minPFpt = 114;//49; // Minimum pT where PF fractions used (def:114)
-double maxPFpt = 1000;//1500; // Maximum pT where PF fractions used (def:1000)
+bool usePF = true;//true; // Include PF fractions in the fit (def:true for now)
+bool usePFZ = true;//false; // use Z+jet PF instead of dijet PF (def:false for now)
+bool fitPF = false;
+bool fitPFZ = true;
+double minPFpt = 74;//114;//49; // Minimum pT where PF fractions used (def:114)
+double maxPFpt = 400;//400;//1000;//1500; // Maximum pT where PF fractions used (def:1000)
+double minPFZpt = 25;
+double maxPFZpt = 600;
 int penalizeFitPars = 9; // Add penalty for 9-par fit parameters (def:9)
 bool useP0Trk = true; // ok2
 bool useP1Gam = true; // ok1
@@ -111,8 +115,10 @@ vector<TGraphErrors*> *_vpt2(0); // shifted multijet down
 vector<TGraphErrors*> *_vdt3(0); // raw data
 vector<TGraphErrors*> *_vpt3(0); // shifted multijet up
 vector<TH1D*> *_vsrc; // uncertainty sources
-vector< pair<string,TGraphErrors*> > _vpf; // active PF fractions
-vector< pair<string,TGraphErrors*> > _vpf2; // fitted PF fractions
+vector< pair<string,TGraphErrors*> > _vpf; // active dijet PF fractions
+vector< pair<string,TGraphErrors*> > _vpf2; // fitted dijet PF fractions
+vector< pair<string,TGraphErrors*> > _vpfz; // active Z+jet PF fractions
+vector< pair<string,TGraphErrors*> > _vpfz2; // fitted Z+jet PF fractions
 map<string, map<int, TF1*> > _mpf; // map of PF fraction variations
 
 void jesFitter(Int_t &npar, Double_t *grad, Double_t &chi2, Double_t *par,
@@ -317,30 +323,36 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   TDirectory *curdir = gDirectory;
   setTDRStyle();
 
+  bool isUL18 = (epoch=="2018ABCD" || epoch=="2018A" || 
+		 epoch=="2018B" || epoch=="2018C" || epoch=="2018D");
+  string srefIOV = (isUL18 ? "2018ABCD" : "BCDEF");
+  const char *refIOV = srefIOV.c_str();
+  bool isRefIOV = (epoch=="2018ABCD" || epoch=="BCDEF");
+
   TFile *f = new TFile(Form("rootfiles/jecdata%s.root",cep),"READ");
   assert(f && !f->IsZombie());
 
-  TFile *fsys = new TFile(Form("rootfiles/jecdata%s.root","BCDEF"),"READ");
-			  //epoch=="BCDEF" ? "UPDATE" : "READ");
+  TFile *fsys = new TFile(Form("rootfiles/jecdata%s.root",refIOV),"READ");
   assert(fsys && !fsys->IsZombie());
 
-  TFile *fjes = new TFile(Form("rootfiles/jecdata%s.root",cep),"UPDATE");
-  assert(fjes && !fjes->IsZombie());
+  //TFile *fjes = new TFile(Form("rootfiles/jecdata%s.root",cep),"UPDATE");
+  //assert(fjes && !fjes->IsZombie());
 
-  TFile *ffsr = new TFile(Form("rootfiles/jecdata%s.root","BCDEF"),
-			  epoch=="BCDEF" ? "UPDATE" : "READ");
-  TFile *fout = new TFile(Form("rootfiles/jecdata%s.root",cep),"UPDATE");
+  TFile *ffsr = new TFile(Form("rootfiles/jecdata%s.root",refIOV),"READ");
+  //isRefIOV ? "UPDATE" : "READ");
+  TFile *fout = new TFile(Form("rootfiles/jecdata%s.root",cep),//"UPDATE");
+			  storeJesFit || isRefIOV ? "UPDATE" : "READ");
   assert(fout && !fout->IsZombie());
 
   bool fsrcombo = (dofsrcombo1||dofsrcombo2);
-  assert((ffsr && !ffsr->IsZombie()) || (!fsrcombo && epoch!="BCDEF"));
-  if (dofsrcombo1) cout << "Use input FSR from BCDEF for all IOVs\n";
-  if (dofsrcombo2 && epoch!="BCDEF") cout << "Use output FSR from BCDEF\n";
-  if (fixfsrcombo && epoch!="BCDEF") cout << "Do not refit FSR" << endl;
+  assert((ffsr && !ffsr->IsZombie()) || (!fsrcombo && !isRefIOV));
+  if (dofsrcombo1) cout << Form("Use input FSR from %s for all IOVs\n",refIOV);
+  if (dofsrcombo2 && !isRefIOV) cout << Form("Use output FSR from %s\n",refIOV);
+  if (fixfsrcombo && !isRefIOV) cout << "Do not refit FSR" << endl;
   
-  //TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL.root","READ");
-  //TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v3.root","READ");
-  TFile *fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ");
+  TFile *fij = (isUL18 ?
+		new TFile("rootfiles/drawDeltaJEC_18UL_JECv3.root","READ") :
+		new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ"));
   assert((fij && !fij->IsZombie()) || ! plotIncJet);
   //TFile *fw = new TFile("rootfiles/hadW.root","READ");
   //assert((fw && !fw->IsZombie()) || ! plotHadW);
@@ -463,6 +475,15 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   izmmmap["MJDJ_inc_gam_zll"] = -1;
   izllmap["MJDJ_inc_gam_zll"] = 1;
 
+  // Global fit with all samples and inclusive jets + hadw as extra
+  samplesmap["MJDJ_inc_gam_zll_hadw"] =   { (isl3 ? "multijet" : "dijet"),"incjet","gamjet", "zlljet", "hadw"};
+  nsample0map["MJDJ_inc_gam_zll_hadw"] = 2;
+  igjmap["MJDJ_inc_gam_zll_hadw"] = 0;
+  izeemap["MJDJ_inc_gam_zll_hadw"] = -1;
+  izmmmap["MJDJ_inc_gam_zll_hadw"] = -1;
+  izllmap["MJDJ_inc_gam_zll_hadw"] = 1;
+  iwmhmap["MJDJ_inc_gam_zll_hadw"] = 2;
+
   // Global fit with: multijets/dijets, gamma+jet, merged Z+jet, hadronic w
   samplesmap["MJDJ_gam_zll_hadw"] =   { (isl3 ? "multijet" : "dijet"),"gamjet", "zlljet","hadw"};
   nsample0map["MJDJ_gam_zll_hadw"] = 1;
@@ -541,14 +562,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   TDirectory *dsys = dsys1->GetDirectory(bin); assert(dsys);
   curdir->cd();
 
-  assert(fjes->cd(ct));
-  TDirectory *djes1 = fjes->GetDirectory(ct); assert(djes1);
-  assert(djes1->cd(bin));
-  TDirectory *djes = djes1->GetDirectory(bin); assert(djes);
-  curdir->cd();
+  //assert(fjes->cd(ct));
+  //TDirectory *djes1 = fjes->GetDirectory(ct); assert(djes1);
+  //assert(djes1->cd(bin));
+  //TDirectory *djes = djes1->GetDirectory(bin); assert(djes);
+  //curdir->cd();
 
   TDirectory *dfsr(0);
-  if (fsrcombo || epoch=="BCDEF") {
+  if (fsrcombo || isRefIOV) {
     assert(ffsr->cd(ct));
     TDirectory *dfsrin1 = ffsr->GetDirectory(ct); assert(dfsrin1);
     assert(dfsrin1->cd(bin));
@@ -575,43 +596,76 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   //vector<pair<string, TGraphErrors> > _vpf;
   //map<string, map<int, TF1*> > _mpf;
-  if (usePF) {
+  if (usePF || usePFZ) {
     //if (true) {
     //assert(njesFit==6);
     //assert(njesFit==7);
     assert(njesFit==9);
 
     TGraphErrors *gchf(0), *gnhf(0), *gnef(0);
+    TGraphErrors *gchfz(0), *gnhfz(0), *gnefz(0);
     if (usePFZ) {
-      gchf = (TGraphErrors*)d->Get("chf_zjet_a30");
-      gnhf = (TGraphErrors*)d->Get("nhf_zjet_a30");
-      gnef = (TGraphErrors*)d->Get("nef_zjet_a30");
+      gchfz = (TGraphErrors*)d->Get("chf_zlljet_a30");
+      gnhfz = (TGraphErrors*)d->Get("nhf_zlljet_a30");
+      gnefz = (TGraphErrors*)d->Get("nef_zlljet_a30");
+      /*
+      gchf = (TGraphErrors*)d->Get("chf_zlljet_a100");
+      gnhf = (TGraphErrors*)d->Get("nhf_zlljet_a100");
+      gnef = (TGraphErrors*)d->Get("nef_zlljet_a100");
+      */
+      assert(gchfz);
+      assert(gnhfz);
+      assert(gnefz);
+      // Use open markers for Z+jet if both present and also fitting dijet
+      if (usePF && fitPF) {
+	gchfz->SetMarkerStyle(kOpenCircle);
+	gnhfz->SetMarkerStyle(kOpenDiamond);
+	gnefz->SetMarkerStyle(kOpenSquare);
+      }
+      _vpfz.push_back(make_pair<string,TGraphErrors*>("chf", move(gchfz)));
+      _vpfz.push_back(make_pair<string,TGraphErrors*>("nhf", move(gnhfz)));
+      _vpfz.push_back(make_pair<string,TGraphErrors*>("nef", move(gnefz)));
+      
+      // Graphs for output fractions
+      curdir->cd();
+      TGraphErrors *gchfz2 = (TGraphErrors*)gchfz->Clone("gchfz2");
+      TGraphErrors *gnhfz2 = (TGraphErrors*)gnhfz->Clone("gnhfz2");
+      TGraphErrors *gnefz2 = (TGraphErrors*)gnefz->Clone("gnefz2");
+      _vpfz2.push_back(make_pair<string,TGraphErrors*>("chf", move(gchfz2)));
+      _vpfz2.push_back(make_pair<string,TGraphErrors*>("nhf", move(gnhfz2)));
+      _vpfz2.push_back(make_pair<string,TGraphErrors*>("nef", move(gnefz2)));
     }
-    else {
+    if (usePF) {
       gchf = (TGraphErrors*)d->Get("chf_pfjet_a30");
       gnhf = (TGraphErrors*)d->Get("nhf_pfjet_a30");
       gnef = (TGraphErrors*)d->Get("nef_pfjet_a30");
+      assert(gchf);
+      assert(gnhf);
+      assert(gnef);
+
+      // Use open markers for dijet if both present, and not fitting Z
+      if (fitPFZ && !fitPF) {
+	gchf->SetMarkerStyle(kOpenCircle);
+	gnhf->SetMarkerStyle(kOpenDiamond);
+	gnef->SetMarkerStyle(kOpenSquare);
+      }
+
+      //vector<pair<string, TGraphErrors*> > _vpf;
+      // std::move needed to turn lvalue to rvalue, as std::make_pair
+      // only accepts T2&&, which is rvalue in C++11 standard
+      _vpf.push_back(make_pair<string,TGraphErrors*>("chf", move(gchf)));
+      _vpf.push_back(make_pair<string,TGraphErrors*>("nhf", move(gnhf)));
+      _vpf.push_back(make_pair<string,TGraphErrors*>("nef", move(gnef)));
+      
+      // Graphs for output fractions
+      curdir->cd();
+      TGraphErrors *gchf2 = (TGraphErrors*)gchf->Clone("gchf2");
+      TGraphErrors *gnhf2 = (TGraphErrors*)gnhf->Clone("gnhf2");
+      TGraphErrors *gnef2 = (TGraphErrors*)gnef->Clone("gnef2");
+      _vpf2.push_back(make_pair<string,TGraphErrors*>("chf", move(gchf2)));
+      _vpf2.push_back(make_pair<string,TGraphErrors*>("nhf", move(gnhf2)));
+      _vpf2.push_back(make_pair<string,TGraphErrors*>("nef", move(gnef2)));
     }
-    assert(gchf);
-    assert(gnhf);
-    assert(gnef);
-
-    //vector<pair<string, TGraphErrors*> > _vpf;
-    // std::move needed to turn lvalue to rvalue, as std::make_pair
-    // only accepts T2&&, which is rvalue in C++11 standard
-    _vpf.push_back(make_pair<string,TGraphErrors*>("chf", move(gchf)));
-    _vpf.push_back(make_pair<string,TGraphErrors*>("nhf", move(gnhf)));
-    _vpf.push_back(make_pair<string,TGraphErrors*>("nef", move(gnef)));
-
-    // Graphs for output fractions
-    curdir->cd();
-    TGraphErrors *gchf2 = (TGraphErrors*)gchf->Clone("gchf2");
-    TGraphErrors *gnhf2 = (TGraphErrors*)gnhf->Clone("gnhf2");
-    TGraphErrors *gnef2 = (TGraphErrors*)gnef->Clone("gnef2");
-    _vpf2.push_back(make_pair<string,TGraphErrors*>("chf", move(gchf2)));
-    _vpf2.push_back(make_pair<string,TGraphErrors*>("nhf", move(gnhf2)));
-    _vpf2.push_back(make_pair<string,TGraphErrors*>("nef", move(gnef2)));
-
     
     // Fits from minitools/varPlots.C
     TF1 *ft3_nhf = new TF1("ft3_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,-0.3)",15,4500);
@@ -828,6 +882,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     
     // Fractions for MPF (pT>15 GeV)
     s = "crecoil_multijet_a15";
+    //if (isUL18) s = "crecoil_multijet_a30"; // PATCH
     g = (TGraphErrors*)d->Get(s.c_str());
     if (!g) cout << "Graph "<<s<<" not found!" << endl << flush;
     assert(g);
@@ -863,17 +918,23 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   TH1D *herr_pu = (TH1D*)d->Get("herr_pu"); assert(herr_pu);
 
   // Load inclusive jet reference JES
-  TH1D *hjesfitref = (TH1D*)dsys->Get(epoch=="BCDEF"?"herr_ref":"sys/hjesfit");
+  TH1D *hjesfitref = (TH1D*)dsys->Get(isRefIOV?"herr_ref":"sys/hjesfit");
   assert(hjesfitref);
   
   // Load inclusive jet data
   TH1D *hij(0);
   TGraphErrors *gij(0);
   if (plotIncJet) {
-    //hij = (TH1D*)fij->Get(Form("jet_Run17UL%s",epoch=="BCDEF" ? 
-    //hij = (TH1D*)fij->Get(Form("jet_Run17UL%s_fwd2",epoch=="BCDEF" ? 
-    hij = (TH1D*)fij->Get(Form("jet_Run17UL%s_fwd3",epoch=="BCDEF" ? 
-			       "" : epoch.c_str()));
+    map<string,const char*> fij_files;
+    fij_files["2018A"] = "A";
+    fij_files["2018B"] = "B";
+    fij_files["2018C"] = "C";
+    fij_files["2018D"] = "D";
+    fij_files["2018ABCD"] = "";
+    hij = (isUL18 ?
+	   (TH1D*)fij->Get(Form("jet_Run18UL%s_det",fij_files[epoch])) :
+	   (TH1D*)fij->Get(Form("jet_Run17UL%s_fwd3",
+				isRefIOV ? "" : epoch.c_str())));
     assert(hij);
     for (int i = 1; i != hij->GetNbinsX()+1; ++i) {
       double pt = hij->GetBinCenter(i);
@@ -930,8 +991,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	string s = Form("fsr/hkfsr_%s_%s",cm,cs);
 	//if (ss=="zjet") s = Form("fsr/hkfsr_%s_zlljet",cm);
 	hfsr = (TH1D*)d->Get(s.c_str());
-	if (dofsrcombo2 && epoch!="BCDEF") s = Form("fsr/hkfsr2_%s_%s",cm,cs);
-	if (fsrcombo && epoch!="BCDEF") hfsr = (TH1D*)dfsr->Get(s.c_str());
+	if (dofsrcombo2 && !isRefIOV) s = Form("fsr/hkfsr2_%s_%s",cm,cs);
+	if (fsrcombo && !isRefIOV) hfsr = (TH1D*)dfsr->Get(s.c_str());
 	if (!hfsr) cout << "Histo "<<s<<" not found!" << endl << flush;
       }
       assert(hfsr);
@@ -1045,9 +1106,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	string s = Form("fsr/hkfsr_%s_%s_eig%d",cm,cs,ieig);
 	//if (ss=="zjet") s = Form("fsr/hkfsr_%s_zlljet_eig%d",cm,ieig);
 	TH1D *h = (TH1D*)d->Get(s.c_str());
-	if (dofsrcombo2 && epoch!="BCDEF")
+	if (dofsrcombo2 && !isRefIOV)
 	  s = Form("fsr/hkfsr2_%s_%s_eig%d",cm,cs,ieig);
-	if (fsrcombo && epoch!="BCDEF") h = (TH1D*)dfsr->Get(s.c_str());
+	if (fsrcombo && !isRefIOV) h = (TH1D*)dfsr->Get(s.c_str());
 	if (ieig>0 && !h) {
 	  h = hs[ibm]; assert(h); // use src0
 	  h = (TH1D*)h->Clone(Form("bm%d_inactive_hkfsr_%s_%s_eig%d",
@@ -1080,7 +1141,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	h = (TH1D*)h->Clone(Form("bm%d_%s",(1<<ibm),h->GetName()));
 
 	// Forbid refitting if fixfsrcombo and not BCDEF
-	if (fixfsrcombo && epoch!="BCDEF")
+	if (fixfsrcombo && !isRefIOV)
 	  h->Reset();
 	
 	// Scale dR/dalpha to dR for given alpha setting
@@ -1296,7 +1357,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	string s;
 	if (isrc==0) s = "sys/jer_multijet";
 	TH1D *h = (TH1D*)d->Get(s.c_str());
-	if (fsrcombo && epoch!="BCDEF") h = (TH1D*)dfsr->Get(s.c_str());
+	if (fsrcombo && !isRefIOV) h = (TH1D*)dfsr->Get(s.c_str());
 	if (!h) cout << "Histo "<<s<<" not found!" << endl << flush;
 	assert(h);
 	
@@ -1311,7 +1372,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   } // multijet syst.
 
   // Uncertainty sources for inclusive jets
-  if (sampleset.find("incjet")!=sampleset.end() && useIncJetBCDEFUncert) {
+  if (sampleset.find("incjet")!=sampleset.end() && useIncJetRefIOVUncert) {
     
     const int iij(1);
     assert(string(samples[iij])=="incjet");
@@ -1355,6 +1416,16 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if (!hb) cout << "Histo "<<sb<<" not found!" << endl << flush;
     assert(hb);
 
+    string sa2 = "sys/hadw_ptave_fitprob2";
+    TH1D *ha2 = (TH1D*)dsys->Get(sa2.c_str());
+    if (!ha2) cout << "Histo "<<sa2<<" not found!" << endl << flush;
+    assert(ha2);
+
+    string sb2 = "sys/hadw_ptboth_fitprob2";
+    TH1D *hb2 = (TH1D*)dsys->Get(sb2.c_str());
+    if (!hb2) cout << "Histo "<<sb2<<" not found!" << endl << flush;
+    assert(hb2);
+
     // JER uncertainty applies for both MPF and MJB
     //h->SetName(Form("bm%d_hadw_fitprob",
     //		    ((1<<0) | (1<<nsamples)))); // bug!
@@ -1365,6 +1436,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     hs.push_back(ha);
     hb->SetName(Form("bm%d_hadw_ptboth_fitprob",1<<(n1+iwmh)));
     hs.push_back(hb);
+
+    // Separate systematics for pTave and pTboth
+    ha2->SetName(Form("bm%d_hadw_ptave_fitprob2",1<<(n0+iwmh)));
+    hs.push_back(ha2);
+    hb2->SetName(Form("bm%d_hadw_ptboth_fitprob2",1<<(n1+iwmh)));
+    hs.push_back(hb2);
   } // hadw syst.
 
   // Uncertainty sources for gamma+jet EM energy scale from Zee fit
@@ -1419,6 +1496,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   lumimap["D"] = "Run2017D, 4.2 fb^{-1}";
   lumimap["E"] = "Run2017E, 9.3 fb^{-1}";
   lumimap["F"] = "Run2017F, 13.4 fb^{-1}";
+  lumimap["2018A"] = "2018A"; // placeholder
+  lumimap["2018B"] = "2018B"; // placeholder
+  lumimap["2018C"] = "2018C"; // placeholder
+  lumimap["2018D"] = "2018D"; // placeholder
+  lumimap["2018ABCD"] = "2018"; // placeholder
   lumi_13TeV = lumimap[epoch];
 
   TCanvas *c0 = tdrCanvas("c0",h,4,11,true);
@@ -1580,7 +1662,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   else {
     legp->AddEntry(herr," ","FL");
     //if (!_paper) legm->AddEntry(herr_ref,"UL17V2M5","FL");
-    if (!_paper) legm->AddEntry(herr_ref,"UL17V4","FL");
+    if (!_paper) {
+      if (isUL18)
+	legm->AddEntry(herr_ref,"UL17V4CDE","FL");
+      else
+	legm->AddEntry(herr_ref,"UL17V4","FL");
+    }
     if ( _paper) legm->AddEntry(herr_ref,"Syst. (tot,abs)","FL");
    }
 
@@ -1819,7 +1906,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       h1par->GetXaxis()->SetBinLabel(i+1,Form("%s",cp));
     } // for i
     // Store to /sys folder
-    if (storeJesFit || epoch=="BCDEF") {
+    if (storeJesFit || isRefIOV) {
       dout->cd("sys");
       emat.Write("emat",TObject::kOverwrite);
       vpar.Write("vpar",TObject::kOverwrite);
@@ -2436,7 +2523,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       leg2->AddEntry(hke, texlabel[samples[isample]], "FL");
 
       // Store scaled FSR eigenvectors and central value for BCDEF
-      if (epoch=="BCDEF") {
+      if (isRefIOV) {
 	dout->cd("fsr");
 	hke->Write(Form("hkfsr2_%s_%s",cm,cs),TObject::kOverwrite);
 	for (int ieig = 0; ieig != neigmax; ++ieig) {
@@ -2453,9 +2540,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
     // Store also jesFit and it's eigenvectors for BCDEF
     // (using BCDEF also as input; update code later to also store output IOVs)
-    //if (epoch=="BCDEF") {
-    //dsys->cd("sys");
-    if (storeJesFit || epoch=="BCDEF") {
+    if (storeJesFit || isRefIOV) {
       dout->cd("sys");
       hjesfit->Write("hjesfit",TObject::kOverwrite);
       for (int ieig = 0; ieig != np; ++ieig) {
@@ -2495,17 +2580,28 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   double ptmin(15), ptmax(4500);
   TH1D *h4 = tdrHist("hpfjet","PF composition changes (10^{-2})",
 		     -1.2,1.3,"p_{T} (GeV)",ptmin,ptmax);
+  if (isUL18) {
+    h4->SetMinimum(-2.4);
+    h4->SetMaximum(+2.6);
+  }
   TCanvas *c4 = tdrCanvas("c4",h4,4,11,kSquare);
   gPad->SetLogx();
   TLegend *leg4 = tdrLeg(0.60,0.72,0.90,0.90);
+  leg4->SetHeader("Dijet");
+  TLegend *leg4z = tdrLeg(0.40,0.72,0.70,0.90);
+  leg4z->SetHeader("Z+jet");
   TLine *l4 = new TLine(); l4->SetLineStyle(kDashed);
   l4->DrawLine(ptmin,0,ptmax,0);
 
   // Draw output fits with bands firsts
-  for (unsigned int ic = 0; ic != _vpf.size(); ++ic) {
-    string sf = _vpf[ic].first;
+  //bool isrefz = (usePFZ&&fitPFZ || usePFZ&&!usePF)
+  bool isrefz = (usePFZ && !usePF);
+  vector< pair<string,TGraphErrors*> > &_vpfx = (isrefz ? _vpfz : _vpf);
+  vector< pair<string,TGraphErrors*> > &_vpfx2 = (isrefz ? _vpfz2 : _vpf2);
+  for (unsigned int ic = 0; ic != _vpfx.size(); ++ic) {
+    string sf = _vpfx[ic].first;
     const char *cf = sf.c_str();
-    TGraphErrors *g2 = _vpf2[ic].second;
+    TGraphErrors *g2 = _vpfx2[ic].second;
     TGraphErrors *gc2 = (TGraphErrors*)g2->Clone("gc2");
     // Turn units to percentages (10^-2)
     for (int i = 0; i != gc2->GetN(); ++i) {
@@ -2541,7 +2637,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     TGraphErrors *gc4 = (TGraphErrors*)gc3->Clone("gc4");
     for (int i = gc4->GetN()-1; i != -1; --i) {
       double pt = gc4->GetX()[i];
-      if (pt<minPFpt || pt>maxPFpt) gc4->RemovePoint(i);
+      //if ((usePF && (pt<minPFpt || pt>maxPFpt)) ||
+      //  (usePFZ && (pt<minPFZpt || pt>maxPFZpt)))
+      if ((fitPF && (pt<minPFpt || pt>maxPFpt)) ||
+	  (fitPFZ && (pt<minPFZpt || pt>maxPFZpt)))
+	gc4->RemovePoint(i);
     } // for i
 
     tdrDraw(gc2,"E3",g2->GetMarkerStyle(),g2->GetMarkerColor()+1,kSolid,-1,
@@ -2556,7 +2656,21 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     tdrDraw((TGraphErrors*)gc2->Clone(),"LX",
 	    kNone,g2->GetMarkerColor(),kSolid,-1,kNone);
   } // for ic
+
   // Draw input graphs with points on top
+  for (unsigned int ic = 0; ic != _vpfz.size(); ++ic) {
+    string sf = _vpfz[ic].first;
+    const char *cf = sf.c_str();
+    TGraphErrors *g = _vpfz[ic].second;
+    TGraphErrors *gc = (TGraphErrors*)g->Clone();
+    for (int i = 0; i != gc->GetN(); ++i) {
+      gc->SetPoint(i, g->GetX()[i], 100.*g->GetY()[i]);
+      gc->SetPointError(i, g->GetEX()[i], 100.*g->GetEY()[i]);
+    }
+    tdrDraw(gc,"Pz",g->GetMarkerStyle(),g->GetMarkerColor());
+    gc->SetMarkerSize(0.8);
+    leg4z->AddEntry(gc,cf,"PLE");
+  }
   for (unsigned int ic = 0; ic != _vpf.size(); ++ic) {
     string sf = _vpf[ic].first;
     const char *cf = sf.c_str();
@@ -2580,11 +2694,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   curdir->cd();
   if (ffsr) {
-    //if (epoch=="BCDEF") ffsr->Write();
     ffsr->Close();
   }
-  if (fjes) {
-    fjes->Close();
+  //if (fjes) {
+  //fjes->Close();
+  //}
+  if (fsys) {
+    fsys->Close();
   }
   if (fout) {
     fout->Close();
@@ -2700,8 +2816,7 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
     } // for ig
   
     // Add "pfjet" compositions (chf, nhf, nef) also into the fit
-    //if (usePF) {
-     if (true) {
+    if (usePF) {
       for (unsigned int ic = 0; ic != _vpf.size(); ++ic) {
 	string sf = _vpf[ic].first;
 	TGraphErrors *g = _vpf[ic].second; // input fraction
@@ -2732,7 +2847,7 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 	  // Add chi2 from composition (nuisances not yet considered)
 	  //if (usePF) {
 	  //if (usePF && pt>28) {
-	  if (usePF && pt > minPFpt && pt < maxPFpt) {
+	  if (fitPF && pt > minPFpt && pt < maxPFpt) {
 	    //if (usePF && pt>28 && pt<686) {
 	    //if (usePF && pt>28 && pt<686 && sf!="nef") {
 	  //if (usePF && pt>49 && pt<686) {
@@ -2741,10 +2856,45 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 	    chi2 += chi * chi;
 	    ++Nk;
 	  } // usePF
-
 	} // for i
       } // for ic
     } // usePF
+
+    if (usePFZ) {
+      for (unsigned int ic = 0; ic != _vpfz.size(); ++ic) {
+	string sf = _vpfz[ic].first;
+	TGraphErrors *g = _vpfz[ic].second; // input fraction
+	TGraphErrors *g2 = _vpfz2[ic].second; // output fraction
+	for (int i = 0; i != g->GetN(); ++i) {
+	  
+	  // Retrieve central value and uncertainty for this point
+	  double pt = g->GetX()[i];
+	  double data = g->GetY()[i];
+	  double sigma = g->GetEY()[i];
+	  
+	  if (pt < ptminJesFit) continue;
+	  
+	  // Calculate composition bias at this pT	
+	  double df(0);
+	  for (int ipar = 0; ipar != _jesFit->GetNpar(); ++ipar) {
+	    if (_mpf[sf][ipar]!=0) { // parameter maps to composition change
+	      TF1 *f1 = _mpf[sf][ipar]; // effect shape vs pt
+	      df += 0.01*f1->Eval(pt)*par[ipar];
+	    }
+	  } // for ipar
+	  
+	  // Store fitted composition for plotting
+	  g2->SetPoint(i, pt, df);
+
+	  // Add chi2 from composition (nuisances not yet considered)
+	  if (fitPFZ && pt > minPFZpt && pt < maxPFZpt) {
+	    double chi = (data - df) / sigma;
+	    chi2 += chi * chi;
+	    ++Nk;
+	  } // pt range
+	} // for i
+      } // for ic
+    } // usePFZ
 
     // Add chi2 from nuisance parameters //including new multijet
     for (int is = 0; is != ns; ++is) {
