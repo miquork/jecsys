@@ -181,8 +181,10 @@ void createL2L3ResTextFiles(string set) {
     mera["2018B"] = "B";
     mera["2018C"] = "C";
     mera["2018D"] = "D";
-    sin = Form("CondFormats/JetMETObjects/data/Summer19UL18_Run%s_V3_DATA_L2Residual_AK4PFchs.txt",set=="2018ABCD" ? "C" : mera[set]);
-    sout = Form("textFiles/UL18V3-L2L3Res/Summer19UL18_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    //sin = Form("CondFormats/JetMETObjects/data/Summer19UL18_Run%s_V3_DATA_L2Residual_AK4PFchs.txt",set=="2018ABCD" ? "C" : mera[set]);
+    sin = Form("../JERCProtoLab/Summer19UL18/L2Residual/V2/Run%s/Summer19UL18_V2_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt",mera[set]);
+    //sout = Form("textFiles/UL18V3-L2L3Res/Summer19UL18_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    sout = Form("../JERCProtoLab/Summer19UL18/global_fit/V3A2M1J2/Summer19UL18_Run%s_V3A2M1J2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
   }
   else {
     assert(false);

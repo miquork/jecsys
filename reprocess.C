@@ -159,7 +159,8 @@ const double neventsmin = 20.;
 // Helper functions to handle JEC
 FactorizedJetCorrector *_thejec(0);
 TF1 *fCorrPt(0);
-FactorizedJetCorrector *getFJC(string l1, string l2="", string res="");
+FactorizedJetCorrector *getFJC(string l1, string l2="", string res="",
+			       string path="");
 void setEtaPtRho(FactorizedJetCorrector *jec, double eta,double pt,double rho);
 Double_t funcCorrPt(Double_t *x, Double_t *p);
 double getJEC(FactorizedJetCorrector *jec, double eta, double ptcorr,
@@ -1688,6 +1689,7 @@ void reprocess(string epoch="") {
 
     const char *s, *s2;
     const char *cd = "CondFormats/JetMETObjects/data";
+    const char *cpl = "../JERCProtoLab/Summer19UL18/global_fit/V3A2M1J2";
     const char *ce = epoch.c_str();
     
     // New JEC for plotting on the back
@@ -1702,8 +1704,9 @@ void reprocess(string epoch="") {
 			epoch=="BCDEF" ? "B" : epoch.c_str()));
       */
       jec = (isUL18 ?
-	     getFJC("","",Form("Summer19UL18_Run%s_V3M1_DATA_L2L3Residual",
-			       mera[epoch])) :
+	     //getFJC("","",Form("Summer19UL18_Run%s_V3M1_DATA_L2L3Residual",
+	     getFJC("","",Form("Summer19UL18_Run%s_V3A2M1J2_DATA_L2L3Residual",
+			       mera[epoch]),cpl) :
 	     getFJC("","",Form("Summer19UL17_Run%s_V4_DATA_L2L3Residual",
 			       epoch=="BCDEF" ? "B" : epoch.c_str())));
 
@@ -2443,7 +2446,7 @@ void reprocess(string epoch="") {
 } // reprocess
 
 // Helper function to retrieve FactorizedJetCorrector
-FactorizedJetCorrector *getFJC(string l1, string l2, string res) {
+FactorizedJetCorrector *getFJC(string l1, string l2, string res, string path) {
 
   // Set default jet algo
   if (l1!="" && !(TString(l1.c_str()).Contains("_AK")))
@@ -2453,7 +2456,8 @@ FactorizedJetCorrector *getFJC(string l1, string l2, string res) {
   if (res!="" && !(TString(res.c_str()).Contains("_AK")))
     res += "_AK4PFchs";
 
-  string path = "CondFormats/JetMETObjects/data";
+  //string path = "CondFormats/JetMETObjects/data";
+  if (path=="") path = "CondFormats/JetMETObjects/data";
   const char *cd = path.c_str();
   const char *cl1 = l1.c_str();
   const char *cl2 = l2.c_str();

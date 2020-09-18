@@ -1665,7 +1665,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if (!_paper) {
       if (isUL18)
 	//legm->AddEntry(herr_ref,"UL17V4CDE","FL");
-	legm->AddEntry(herr_ref,"UL18V3M1","FL");
+	legm->AddEntry(herr_ref,"UL18V3A2M1J2","FL");
       else
 	legm->AddEntry(herr_ref,"UL17V4","FL");
     }
