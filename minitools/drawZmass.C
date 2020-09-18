@@ -15,7 +15,7 @@
 bool plotZmmStat = true;
 bool plotZeeStat = true;
 bool plotGamStat = true;
-bool useAlpha100 = false;//true;
+bool useAlpha100 = true;//false;//true;
 
 bool ispr = true; // PR=fancy plot
 const double ptzmax = 1000;
@@ -29,6 +29,9 @@ void cleanGraph(TGraphErrors *g, double xmax) {
 void drawZmasses(string run="ABC") {
 
   setTDRStyle();
+
+  bool isUL18 = (run=="2018ABCD" || run=="2018A" || run=="2018B" ||
+		 run=="2018C" || run=="2018D");
 
   TFile *f = new TFile(Form("rootfiles/jecdata%s.root",run.c_str()),"READ");
   assert(f && !f->IsZombie());
@@ -111,7 +114,11 @@ void drawZmasses(string run="ABC") {
   lumimap["D"] = "Run2017D, 4.2 fb^{-1}";
   lumimap["E"] = "Run2017E, 9.3 fb^{-1}";
   lumimap["F"] = "Run2017F, 13.4 fb^{-1}";
-  lumimap["2018ABCD"] = "2018"; // placeholder
+  lumimap["2018ABCD"] = "2018, 59.9 fb^{-1}"; // placeholder
+  lumimap["2018A"] = "Run2018A, 14.0 fb^{-1}";
+  lumimap["2018B"] = "Run2018B, 7.1 fb^{-1}";
+  lumimap["2018C"] = "Run2018C, 6.9 fb^{-1}";
+  lumimap["2018D"] = "Run2018D, 31.9 fb^{-1}";
   lumi_13TeV = lumimap[run];
   TCanvas *c1 = tdrDiCanvas("c1",hdw,hup,4,11);
 
@@ -146,13 +153,13 @@ void drawZmasses(string run="ABC") {
   f1eoy17ee->SetParameters(1.00246, 0.00214, 0.00116); // EOY2017
   f1eoy17ee->SetLineColor(kGray);
   f1eoy17ee->SetLineWidth(2);
-  if (run!="2018ABCD") f1eoy17ee->Draw("SAME");
+  if (!isUL18) f1eoy17ee->Draw("SAME");
   //
   TF1 *f1eoy17mm = new TF1("f1eoy17","([0]-1)*100", 15, ptmax);
   f1eoy17mm->SetParameter(0, 0.99854); // EOY2017
   f1eoy17mm->SetLineColor(kGray);
   f1eoy17mm->SetLineWidth(2);
-  if (run!="2018ABCD") f1eoy17mm->Draw("SAME");
+  if (!isUL18) f1eoy17mm->Draw("SAME");
 
   // Plot the old fit used in EOY2018
   TF1 *f1eoy18ee = new TF1("f1eoy18ee","(([0]+[1]*log(0.01*x)"
@@ -161,13 +168,13 @@ void drawZmasses(string run="ABC") {
   f1eoy18ee->SetParameters(1.00298, 0.00260, 0.00026); // EOY2018 ABC
   f1eoy18ee->SetLineColor(kGray);
   f1eoy18ee->SetLineWidth(2);
-  if (run=="2018ABCD") f1eoy18ee->Draw("SAME");
+  if (isUL18) f1eoy18ee->Draw("SAME");
   //
   TF1 *f1eoy18mm = new TF1("f1eoy18mm","([0]-1)*100", 15, ptmax);
   f1eoy18mm->SetParameters(0.99851, 0.00000, 0.00000); // EOY18 ABC
   f1eoy18mm->SetLineColor(kGray);
   f1eoy18mm->SetLineWidth(2);
-  if (run=="2018ABCD") f1eoy18mm->Draw("SAME");
+  if (isUL18) f1eoy18mm->Draw("SAME");
 
   // Plot the new fit used in UL17 reprocess.C (f1mzee)
   double kee = -(4.8*0.329 + 9.6*0.474 + 4.2*0.513 + 9.3*0.517 + 13.4*0.534)
@@ -182,7 +189,7 @@ void drawZmasses(string run="ABC") {
   //f1ul17ee->SetParameters(1.00298, 0.00260, 0.00026); // UL17B
   //f1ul17ee->SetParameters(0.997557, 0.00214, 0.00116); // UL17B+C+D+E+F
   f1ul17ee->SetParameters(0.99780, 0.00225, 0.00031); // UL17BCDEF-v1
-  if (run=="2018ABCD") {
+  if (isUL18) {
     f1ul17ee->SetLineColor(kGray);
     f1ul17ee->SetLineStyle(kDashed);
   }
@@ -194,7 +201,7 @@ void drawZmasses(string run="ABC") {
   TF1 *f1ul17mm = new TF1("f1ul17mm","([0]-1)*100", 15, ptmax);
   //f1ul17mm->SetParameter(0, 0.998235); // UL17B+C+D+E+F
   f1ul17mm->SetParameter(0, 0.99821); // UL17BCDEF
-  if (run=="2018ABCD")  {
+  if (isUL18)  {
     f1ul17mm->SetLineColor(kGray);
     f1ul17mm->SetLineStyle(kDashed);
   }
@@ -211,13 +218,13 @@ void drawZmasses(string run="ABC") {
   f1ul18ee->SetParameters(1.00153, 0.00214, -0.00012);
   f1ul18ee->SetLineColor(kBlack);
   f1ul18ee->SetLineWidth(2);
-  if (run=="2018ABCD") f1ul18ee->Draw("SAME");
+  if (isUL18) f1ul18ee->Draw("SAME");
   //
   TF1 *f1ul18mm = new TF1("f1ul18mm","([0]-1)*100", 15, ptmax);
   f1ul18mm->SetParameters(0.99839, 0.00000, 0.00000); // UL18ABCD
   f1ul18mm->SetLineColor(kBlack);
   f1ul18mm->SetLineWidth(2);
-  if (run=="2018ABCD") f1ul18mm->Draw("SAME");
+  if (isUL18) f1ul18mm->Draw("SAME");
 
   l->DrawLine(15,0,ptmax,0);
 
@@ -535,4 +542,8 @@ void drawZmass() {
   drawZmasses("BCDEF");
   */
   drawZmasses("2018ABCD");
+  drawZmasses("2018A");
+  drawZmasses("2018B");
+  drawZmasses("2018C");
+  drawZmasses("2018D");
 } // drawZmass

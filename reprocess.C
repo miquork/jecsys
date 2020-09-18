@@ -309,8 +309,6 @@ void reprocess(string epoch="") {
   fpf_files["2018D"] = "D";
   fpf_files["2018ABCD"] = "ABCD";
   TFile *fpfdt(0), *fpfmc(0);
-  //if (epoch=="2018ABCD" ||
-  //  epoch=="2018A" || epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
   if (isUL18) {
     fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL18V2V3-%s.root",
 			   fpf_files[epoch]),"READ");
@@ -357,8 +355,6 @@ void reprocess(string epoch="") {
   fp_files["2018D"] = "D";
   fp_files["2018ABCD"] = "ABCD";
   TFile *fp(0);
-  //if (epoch=="2018ABCD" ||
-  //  epoch=="2018A" || epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
   if (isUL18) {
     fp = new TFile(Form("../JERCProtoLab/Summer19UL18/L3Residual_gamma/Gjet_combinationfile_only_L2Res_%s_only_L2Res.root",fp_files[epoch]),"READ");
   }
@@ -397,8 +393,6 @@ void reprocess(string epoch="") {
   fz_files["2018D"] = "D";
   fz_files["2018ABCD"] = "ABCD";
   TFile *fzmm(0), *fzee(0);
-  //if (epoch=="2018ABCD" ||
-  //  epoch=="2018A" || epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
   if (isUL18) {
     fzmm = new TFile("../JERCProtoLab/Summer19UL18/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV3_L1L2Res.root","READ"); // UL18-v1
     fzee = new TFile("../JERCProtoLab/Summer19UL18/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV3_L1L2Res.root","READ"); // UL18-v1
@@ -423,8 +417,6 @@ void reprocess(string epoch="") {
   TH1D *hzjes = (TH1D*)fzjes->Get("ratio/eta00-13/herr_ref"); assert(hzjes);
 
   // UL2017-v1
-  //if (epoch=="2018ABCD" ||
-  //  epoch=="2018A" || epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
   if (isUL18) {
     fzmm->cd(Form("Run2018%s",fz_files[epoch])); fzmm = (TFile*)gDirectory;
     fzee->cd(Form("Run2018%s",fz_files[epoch])); fzee = (TFile*)gDirectory;
@@ -528,8 +520,6 @@ void reprocess(string epoch="") {
   if (correctZeeMass || correctGamMass) {
     if (useFixedFit) {
 
-      //if (epoch=="2018ABCD" || epoch=="2018A" || 
-      //  epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
       if (isUL18) {
 	// UL18 Run2018ABCD fit with minitools/drawZmass.C
 	f1mzee->SetParameters(1.00153, 0.00214, -0.00012);
@@ -568,8 +558,6 @@ void reprocess(string epoch="") {
   if (correctZmmMass) {
     if (useFixedFit) {
       
-      //if (epoch=="2018ABCD" || epoch=="2018A" || 
-      //  epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
       if (isUL18) {
 	// UL18 ABCD fit with minitools/drawZmass.C
 	f1mzmm->SetParameters(0.99839, 0.00000, 0.00000);
@@ -1688,6 +1676,13 @@ void reprocess(string epoch="") {
   // and store them for easy visualialization later  //
   /////////////////////////////////////////////////////
 
+  map<string,const char*> mera;
+  mera["2018ABCD"] = "ABCD";
+  mera["2018A"] = "A";
+  mera["2018B"] = "B";
+  mera["2018C"] = "C";
+  mera["2018D"] = "D";
+
   // Calculate L2L3Res with JEC uncertainty
   {
 
@@ -1696,32 +1691,40 @@ void reprocess(string epoch="") {
     const char *ce = epoch.c_str();
     
     // New JEC for plotting on the back
-    FactorizedJetCorrector *jec;
+    FactorizedJetCorrector *jec(0), *jeca(0);
     FactorizedJetCorrector *jecb(0), *jecc(0), *jecd(0), *jece(0), *jecf(0);
-    double jecwb(1), jecwc(0), jecwd(0), jecwe(0), jecwf(0);       // for BCDEF
+    double jecwb(0), jecwc(0), jecwd(0), jecwe(0), jecwf(0);       // for BCDEF
+    double jecwa(0); // for UL18
     {
       /*
       jec = getFJC("","",
 		   Form("Summer19UL17_Run%s_V2M5_SimpleL1_DATA_L2L3Residual",
 			epoch=="BCDEF" ? "B" : epoch.c_str()));
       */
-      jec = getFJC("","",
-		   Form("Summer19UL17_Run%s_V4_DATA_L2L3Residual",
-			epoch=="BCDEF" || //epoch=="2018ABCD" ||
-			//epoch=="2018A" || epoch=="2018B" || 
-			//epoch=="2018C" || epoch=="2018D" ?
-			isUL18 ? 
-			"B" : epoch.c_str()));
-      if (epoch=="BCDEF" || //epoch=="2018ABCD" || epoch=="2018A" || 
-	  //epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
-	  isUL18) {
+      jec = (isUL18 ?
+	     getFJC("","",Form("Summer19UL18_Run%s_V3M1_DATA_L2L3Residual",
+			       mera[epoch])) :
+	     getFJC("","",Form("Summer19UL17_Run%s_V4_DATA_L2L3Residual",
+			       epoch=="BCDEF" ? "B" : epoch.c_str())));
+
+      if (epoch=="2018ABCD") {
 	
-	// luminosity from Hugues Lattaud, photon+jet 11 June 2018
-	double lumtot = 4.8+9.6+4.2+9.3+13.4; // 41.3/fb
-	//if (epoch=="2018ABCD" || epoch=="2018A" || 
-	//  epoch=="2018B" || epoch=="2018C" || epoch=="2018D")
-	if (isUL18)
-	  lumtot = 9.6+4.2+9.3; // just CDE, drop B,F
+	jeca =getFJC("","","Summer19UL18_RunA_V3M1_DATA_L2L3Residual");
+	jecb =getFJC("","","Summer19UL18_RunB_V3M1_DATA_L2L3Residual");
+	jecc =getFJC("","","Summer19UL18_RunC_V3M1_DATA_L2L3Residual");
+	jecd =getFJC("","","Summer19UL18_RunD_V3M1_DATA_L2L3Residual");
+	jecf =0;
+	
+	//lumtot = 9.6+4.2+9.3; // UL17 just CDE, drop B,F
+	double lumtot = 14.0+7.1+6.9+31.9; //59.9/fb
+	jecwa = 14.0/lumtot;
+	jecwb = 7.1/lumtot;
+	jecwc = 6.9/lumtot;
+	jecwd = 31.9/lumtot;
+	jecwe = 0;
+	jecwf = 0;
+      }
+      if (epoch=="BCDEF") {
 	/*
 	jecb =getFJC("","","Summer19UL17_RunB_V2M5_SimpleL1_DATA_L2L3Residual");
 	jecc =getFJC("","","Summer19UL17_RunC_V2M5_SimpleL1_DATA_L2L3Residual");
@@ -1729,25 +1732,24 @@ void reprocess(string epoch="") {
 	jece =getFJC("","","Summer19UL17_RunE_V2M5_SimpleL1_DATA_L2L3Residual");
 	jecf =getFJC("","","Summer19UL17_RunF_V2M5_SimpleL1_DATA_L2L3Residual");
 	*/
+	jeca =0;
 	jecb =getFJC("","","Summer19UL17_RunB_V4_DATA_L2L3Residual");
 	jecc =getFJC("","","Summer19UL17_RunC_V4_DATA_L2L3Residual");
 	jecd =getFJC("","","Summer19UL17_RunD_V4_DATA_L2L3Residual");
 	jece =getFJC("","","Summer19UL17_RunE_V4_DATA_L2L3Residual");
 	jecf =getFJC("","","Summer19UL17_RunF_V4_DATA_L2L3Residual");
-
+	
+	// luminosity from Hugues Lattaud, photon+jet 11 June 2018
+	double lumtot = 4.8+9.6+4.2+9.3+13.4; // 41.3/fb
+	jecwa = 0;
 	jecwb = 4.8/lumtot;
 	jecwc = 9.6/lumtot;
 	jecwd = 4.2/lumtot;
 	jecwe = 9.3/lumtot;
 	jecwf = 13.4/lumtot;
-	//if (epoch=="2018ABCD" || epoch=="2018A" || 
-	//  epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
-	if (isUL18) {
-	  jecwb = 0;
-	  jecwf = 0;
-	}
       }
     }
+    //}
 
     FactorizedJetCorrector *jecrun1, *jecold, *jecl1flat,*jecl1rcdt, *jecl1pt,
       *jecl1mc, *jecl1rcmc, *jecl1dt, *jecl1c, *jecl1s, *jecl1rc,
@@ -1758,8 +1760,14 @@ void reprocess(string epoch="") {
     // Store old JEC for undoing it in global fit
     // NB: global fit ideally needs a temporary pT-flat L3Res as input
     // But even with this pT-dependent L2Res can cause problems
-    jecold =    getFJC("","","Summer19UL17_RunC_V1_SimpleL1_DATA_L2Residual");
-
+    if (isUL18) {
+      jecold =    getFJC("","",Form("Summer19UL18_Run%s_V3_DATA_L2Residual",
+				    epoch=="2018ABCD" ? "C" : mera[epoch]));
+    }
+    else {
+      jecold =    getFJC("","","Summer19UL17_RunC_V1_SimpleL1_DATA_L2Residual");
+    }
+ 
     // Difference between pT-dependent and flat L1
     jecl1flat = getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1RC");
     jecl1rcdt = getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1RC");
@@ -2086,11 +2094,19 @@ void reprocess(string epoch="") {
 	  // JEC central values first
 	  double val = (epoch=="L4" ? 1 : 1./getJEC(jec,eta,pt));
 
-	  //if (epoch=="BCDEF" || epoch=="2018ABCD" || epoch=="2018A" || 
-	  //  epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
-	  if (isUL18) {
-	  
-	    assert(jecb);assert(jecc);assert(jecd);assert(jece);assert(jecf);
+	  if (epoch=="2018ABCD") {
+	    assert(jeca); assert(jecb);assert(jecc);assert(jecd);
+	    assert(fabs(jecwa+jecwb+jecwc+jecwd-1)<1e-4);
+	    
+	    double vala = 1./getJEC(jeca,eta,pt);
+	    double valb = 1./getJEC(jecb,eta,pt);
+	    double valc = 1./getJEC(jecc,eta,pt);
+	    double vald = 1./getJEC(jecd,eta,pt);
+
+	    val = jecwa*vala +jecwb*valb +jecwc*valc +jecwd*vald;
+	  }
+	  if (epoch=="BCDEF") {
+	    assert(jecb);assert(jecc);assert(jecd);assert(jecf);
 	    assert(fabs(jecwb+jecwc+jecwd+jecwe+jecwf-1)<1e-4);
 	    
 	    double valb = 1./getJEC(jecb,eta,pt);
@@ -2101,6 +2117,7 @@ void reprocess(string epoch="") {
 
 	    val = jecwb*valb +jecwc*valc +jecwd*vald +jecwe*vale +jecwf*valf;
 	  }
+
           //if(rp_debug) cout << "ABC/ABCD special treatment done" << endl;
           if(CorLevel=="L1L2L3Res")val = 1.0; //to get proper bands during closure test
 	  if(CorLevel=="L1L2L3Res") val = 1;

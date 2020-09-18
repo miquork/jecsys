@@ -37,8 +37,10 @@ void createL2L3ResTextFile() {
 
   double ptmin = 15;
   double ptmax = 4500;
+  //TH1D *h = tdrHist("h","Absolute response at |#eta| < 1.3",
+  //		    0.97,1.01,"p_{T} (GeV)",ptmin,ptmax);
   TH1D *h = tdrHist("h","Absolute response at |#eta| < 1.3",
-		    0.97,1.01,"p_{T} (GeV)",ptmin,ptmax);
+		    0.982,1.022,"p_{T} (GeV)",ptmin,ptmax);
   lumi_13TeV = "UL2017";
   TCanvas *c1 = tdrCanvas("c1",h,4,11,kSquare);
   c1->SetLeftMargin(0.17);
@@ -48,14 +50,24 @@ void createL2L3ResTextFile() {
 
   _leg = tdrLeg(0.45,0.60,0.75,0.90);
 
+  /*
   createL2L3ResTextFiles("BCDEF");
   createL2L3ResTextFiles("B");
   createL2L3ResTextFiles("C");
   createL2L3ResTextFiles("D");
   createL2L3ResTextFiles("E");
   createL2L3ResTextFiles("F");
-  
+
   c1->SaveAs("pdf/createL2L3ResTextFile.pdf");
+  */
+  createL2L3ResTextFiles("2018ABCD");
+  createL2L3ResTextFiles("2018A");
+  createL2L3ResTextFiles("2018B");
+  createL2L3ResTextFiles("2018C");
+  createL2L3ResTextFiles("2018D");
+
+  c1->Update();
+  c1->SaveAs("pdf/createL2L3ResTextFile_UL18JECV3.pdf");
 }
 
 void createL2L3ResTextFiles(string set) {
@@ -123,6 +135,13 @@ void createL2L3ResTextFiles(string set) {
   color["D"] = kOrange+2;
   color["E"] = kMagenta+2;
   color["F"] = kRed;
+  //
+  color["2018ABCD"] = kYellow+2;
+  color["2018A"] = kBlue;
+  color["2018B"] = kGreen+2;
+  color["2018C"] = kOrange+2;
+  color["2018D"] = kRed;
+
 
   h->Fit(f1,"QRN");
   h->Fit(f1,"QRNM");
@@ -151,11 +170,31 @@ void createL2L3ResTextFiles(string set) {
   const char *l1 = "SimpleL1";
   cout << "Processing " << set << endl;
 
-  ifstream fin(Form("textFiles/UL17V2-L2Res+JERSF/%s/Run%s/Summer19UL17_V1_%s_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt",l1,run,l1));
+  bool isUL18 = (set=="2018ABCD" || set=="2018A" || set=="2018B" || 
+		 set=="2018C" || set=="2018D");
+
+  string sin, sout;
+  if (isUL18) {
+    map<string,const char*> mera;
+    mera["2018ABCD"] = "ABCD";
+    mera["2018A"] = "A";
+    mera["2018B"] = "B";
+    mera["2018C"] = "C";
+    mera["2018D"] = "D";
+    sin = Form("CondFormats/JetMETObjects/data/Summer19UL18_Run%s_V3_DATA_L2Residual_AK4PFchs.txt",set=="2018ABCD" ? "C" : mera[set]);
+    sout = Form("textFiles/UL18V3-L2L3Res/Summer19UL18_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+  }
+  else {
+    assert(false);
+    sin = Form("textFiles/UL17V2-L2Res+JERSF/%s/Run%s/Summer19UL17_V1_%s_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt",l1,run,l1);
+    sout = Form("textFiles/UL17V2MX-L2L3Res+JERSF/Summer19UL17_Run%s_V2M5_%s_DATA_L2L3Residual_AK4PFchs.txt",run,l1);
+  }
+
+  ifstream fin(sin.c_str());
   //ofstream fout(Form("textFiles/UL17V2-L2L3Res+JERSF/Summer19UL17_Run%s_V2M2_%s_DATA_L2L3Residual_AK4PFchs.txt",run,l1));
   //ofstream fout(Form("textFiles/UL17V2MX-L2L3Res+JERSF/Summer19UL17_Run%s_V2M3_%s_DATA_L2L3Residual_AK4PFchs.txt",run,l1));
   //ofstream fout(Form("textFiles/UL17V2MX-L2L3Res+JERSF/Summer19UL17_Run%s_V2M4_%s_DATA_L2L3Residual_AK4PFchs.txt",run,l1));
-  ofstream fout(Form("textFiles/UL17V2MX-L2L3Res+JERSF/Summer19UL17_Run%s_V2M5_%s_DATA_L2L3Residual_AK4PFchs.txt",run,l1));
+  ofstream fout(sout.c_str());
 
   // 2018: https://twiki.cern.ch/twiki/bin/view/CMSPublic/PixelOfflinePlotsOctober2018
 
@@ -198,6 +237,7 @@ void createL2L3ResTextFiles(string set) {
   //header = "{ 1 JetEta 1 JetPt [2]*([3]*([4]+[5]*TMath::Log(max([0],min([1],x))))*1./([6]+[7]*100./3.*(TMath::Max(0.,1.03091-0.051154*pow(x,-0.154227))-TMath::Max(0.,1.03091-0.051154*TMath::Power(208.,-0.154227)))+[8]*(0.00866-(0.35008+TMath::Log(x)*(0.55356-0.05277*TMath::Log(x)))/x))) Correction L2Relative}";
   //header = "{ 1 JetEta 1 JetPt [2]*([3]*([4]+[5]*TMath::Log(max([0],min([1],x))))*1./([6]+[7]*(0.01184+0.01428*TMath::Power(x/1402.,1.225)/(1+TMath::Power(x/1402.,1.225))*(1-TMath::Power(x/1402.,-1.225)))+[8]*(0.008661-(0.350077+TMath::Log(x)*(0.553560-0.0527681*TMath::Log(x)))/x))) Correction L2Relative}"; // V2M4
   header = "{ 1 JetEta 1 JetPt [2]*([3]*([4]+[5]*TMath::Log(max([0],min([1],x))))*1./([6]+[7]/x+[8]*log(x)/x+[9]*(pow(x/[10],[11])-1)/(pow(x/[10],[11])+1)+[12]*pow(x,-0.3051))) Correction L2Relative}"; // V2M5
+  //"[0]+[1]/x+[2]*log(x)/x+[3]*(pow(x/[4],[5])-1)/(pow(x/[4],[5])+1)+[6]*pow(x,-0.3051)",15,4500);
   if (debug) cout << header << endl;
   fout << header << endl;
   
