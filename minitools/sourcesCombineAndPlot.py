@@ -145,15 +145,17 @@ class jetmetUncertaintiesReader():
             etaline = "{:1.1f} {:1.1f} {:d} ".format(etamin,etamax,(len(x_pt)-1)*3)
             for ipt in range(len(x_pt)-1):
                 pt = 0.5*(x_pt[ipt]+x_pt[ipt+1])
+                err=0
                 err2=0
                 for source in sourcesToCombine:
                     if source in self.jesUncertainties:
                         self.jesUncertainty[source].setJetPt(pt)
                         self.jesUncertainty[source].setJetEta(eta)
-                        err2 += math.pow(float(self.jesUncertainty[source].getUncertainty(True)),2)
+                        err = float(self.jesUncertainty[source].getUncertainty(True))
+                        err2 += math.pow(err,2)
                     else:
                         raise ValueError('"{}" not in self.jesUncertainties of era {}. Probably this era needs special treatment (because source not present)'.format(source,self.era))
-                err = math.sqrt(err2)
+                if len(sourcesToCombine)>1: err = math.sqrt(err2)
                 etaline+= "{:1.1f} {:1.4f} {:1.4f} ".format(pt, err, err)
             collectLine+=(etaline+"\n") 
         return collectLine
