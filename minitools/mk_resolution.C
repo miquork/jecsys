@@ -13,12 +13,19 @@
   //resolution("P8CP5","17nov17-DE");
   //resolution("MC","Legacy16-GH");
   //resolution("HW","Legacy16-GH");
+  /*
   resolution("MC","UL17V4_BCDEF");
   resolution("MC","UL17V4_B");
   resolution("MC","UL17V4_C");
   resolution("MC","UL17V4_D");
   resolution("MC","UL17V4_E");
   resolution("MC","UL17V4_F");
+  */
+  resolution("MC","UL18V2V3_ABCD");
+  //resolution("MC","UL18V2V3_A");
+  //resolution("MC","UL18V2V3_B");
+  //resolution("MC","UL18V2V3_C");
+  //resolution("MC","UL18V2V3_D");
 
   //redoJER("Run2018");
   //redoJER("Run2018ABC");

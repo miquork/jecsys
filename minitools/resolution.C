@@ -184,26 +184,48 @@ void resolution(string type="MC",string file="") {
   if (TString(file.c_str()).Contains("17nov17")) _jer_iov = run2017;
   if (TString(file.c_str()).Contains("Legacy16")) _jer_iov = run2016;
   if (TString(file.c_str()).Contains("UL17")) {
-    _jer_iov = ul17;
+     era = "UL17"; _jer_iov = ul17; _rho = 21.773364;
     // _rho values from output-DATA-2b-UL17V4_X.root/Standard/Eta_0.0-1.3/prho
     // fit in range [686,2116] (jt500 range)
     if (TString(file.c_str()).Contains("UL17V4_BCDEF")) {
-      era = "BCDEF"; _jer_iov = ul17; _rho = 21.773364;
+      era = "UL17BCDEF"; _jer_iov = ul17; _rho = 21.773364;
     }
     else if (TString(file.c_str()).Contains("UL17V4_B")) {
-      era = "B"; _jer_iov = ul17b; _rho = 18.615008;
+      era = "UL17B"; _jer_iov = ul17b; _rho = 18.615008;
     }
     if (TString(file.c_str()).Contains("UL17V4_C")) {
-      era = "C";  _jer_iov = ul17c; _rho = 18.43395;
+      era = "UL17C";  _jer_iov = ul17c; _rho = 18.43395;
     }
     if (TString(file.c_str()).Contains("UL17V4_D")) {
-      era = "D";  _jer_iov = ul17d; _rho = 18.224222;
+      era = "UL17D";  _jer_iov = ul17d; _rho = 18.224222;
     }
     if (TString(file.c_str()).Contains("UL17V4_E")) {
-      era = "E"; _jer_iov = ul17e; _rho = 23.395639;
+      era = "UL17E"; _jer_iov = ul17e; _rho = 23.395639;
     }
     if (TString(file.c_str()).Contains("UL17V4_F")) {
-      era = "F"; _jer_iov = ul17f; _rho = 25.271713;
+      era = "UL18F"; _jer_iov = ul17f; _rho = 25.271713;
+    }
+  }
+  if (TString(file.c_str()).Contains("UL18")) {
+    era = "UL18"; _jer_iov = ul18; _rho = 20.7677; 
+    // _rho values from output-DATA-2b-UL18V2V3_X.root/Standard/Eta_0.0-1.3/prho
+    // fit in range [686,2116] (jt500 range)
+    // NB: not that great fits, have pT dependence at 0.1 GeV level or more
+    // and chi2/NDF ~ 10. Could be due to UE change as qg to qq?
+    if (TString(file.c_str()).Contains("UL18V2V3_ABCD")) {
+      era = "UL18ABCD"; _jer_iov = ul18; _rho = 20.7677;
+    }
+    else if (TString(file.c_str()).Contains("UL18V2V3_A")) {
+      era = "UL18A"; _jer_iov = ul18a; _rho =  22.1713;
+    }
+    else if (TString(file.c_str()).Contains("UL18V2V3_B")) {
+      era = "UL18B"; _jer_iov = ul18b; _rho = 20.8891;
+    }
+    if (TString(file.c_str()).Contains("UL18V2V3_C")) {
+      era = "UL18C";  _jer_iov = ul18c; _rho =  21.2761; // problem with this
+    }
+    if (TString(file.c_str()).Contains("UL18V2V3_D")) {
+      era = "UL18D";  _jer_iov = ul18d; _rho = 19.9343;
     }
   }
   const char *cera = era.c_str();
@@ -856,6 +878,7 @@ void resolution(string type="MC",string file="") {
   // Print out fit parameters
   cout << "// Fit of JER for " << c5 << " file " << cf << endl;
   for (int iy = 0; iy != ny; ++iy) {
+    if (ybins[iy+1]>ybins[iy]) // remove spurious 4.7-0.0
     cout << Form("  %s{%1.2f, %1.3f, %1.4f}%s // y %1.1f-%1.1f, chi2 %1.1f/%d",
 		 iy==0 ? "{" : " ",
 		 vpar5[iy][0], vpar5[iy][1], vpar5[iy][2],
@@ -865,6 +888,7 @@ void resolution(string type="MC",string file="") {
   }
   cout << "// Fit of JES for " << c5 << " file " << cf << endl;
   for (int iy = 0; iy != ny; ++iy) {
+    if (ybins[iy+1]>ybins[iy]) // remove spurious 4.7-0.0
     cout << Form("  %s{%1.4f, %1.3f, %1.4f}%s // y %1.1f-%1.1f, chi2 %1.1f/%d",
 		 iy==0 ? "{" : " ",
 		 vmu5[iy][0], vmu5[iy][1], vmu5[iy][2],
@@ -1261,7 +1285,10 @@ void redoECALprefire(double eta = 2.0, jer_iov run = run2016) {
   TFile *fe3(0); string srun("");
   TFile *fe3_2016 = new TFile("rootfiles/L1prefiring_jetpt_2016BtoH.root");
   TFile *fe3_2017 = new TFile("rootfiles/L1prefiring_jetpt_2017BtoF.root");
-  TFile *fe3_iovs = new TFile("rootfiles/prefiringmaps_Mikko.root");
+  //TFile *fe3_iovs = new TFile("rootfiles/prefiringmaps_Mikko.root");
+  // Now put with new name on TWiki at:
+  // https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe#Jet_prefiring_maps_per_IOV_EOY
+  TFile *fe3_iovs = new TFile("rootfiles/JetPrefiringMapsperIOV_EOY.root");
   if (run==run2016) { fe3 = fe3_2016; srun = "2016BtoH"; }
   if (run==run2017) { fe3 = fe3_2017; srun = "2017BtoF"; }
   if (run==run2016bcd) { fe3 = fe3_iovs; srun = "2016BCD"; }
@@ -1296,7 +1323,8 @@ void redoECALprefire(double eta = 2.0, jer_iov run = run2016) {
   TH1D *h0 = new TH1D("h0",Form(";Jet p_{T} (GeV);ECAL prefire fraction (%s)",
 				crun),3445,55,3500);
   h0->SetMinimum(0.);
-  h0->SetMaximum(1.);
+  //h0->SetMaximum(1.);
+  h0->SetMaximum(TString(srun.c_str()).Contains("2016") ? 0.3 : 1.);
   h0->GetXaxis()->SetNoExponent();
   h0->GetXaxis()->SetMoreLogLabels();
 
@@ -1441,6 +1469,10 @@ void redoECALprefire(double eta = 2.0, jer_iov run = run2016) {
 
     double eff = (n1+n2!=0 ? (eff1*n1 + eff2*n2)/(n1+n2) : 0);
     double eff_e = (n1+n2!=0 ? eff*(1-eff)/sqrt(n1+n2) : 0);
+    if (fe3==fe3_iovs) {
+      eff_e = 0.5*sqrt(pow(heffeta31m->GetBinError(i),2)+
+		       pow(heffeta31p->GetBinError(i),2));
+    }
     heffeta3->SetBinContent(i, eff);
     heffeta3->SetBinError(i, eff_e);
 
@@ -1467,7 +1499,7 @@ void redoECALprefire(double eta = 2.0, jer_iov run = run2016) {
   */
 
   TF1 *feff3 = new TF1("feff3","[0]*0.5*(1+erf((x-[1])/([2]*sqrt(x))))",
-		       55,4000./cosh(eta));
+		       55,6500./cosh(eta));//4000./cosh(eta));
   feff3->SetParameters(eta<2.5 ? 0.1 : 0.6, 180, 6);
   // Constrain fit parameters
   if (run==run2017 || run==run2017b || run==run2017c ||
@@ -1511,13 +1543,23 @@ void redoECALprefire(double eta = 2.0, jer_iov run = run2016) {
 
   heffeta3->GetXaxis()->SetRangeUser(55,3500.);
   heffeta31->GetXaxis()->SetRangeUser(55,3500.);
-  heffeta32->GetXaxis()->SetRangeUser(55,3500.);;
-  tdrDraw(heffeta31,"z",kOpenSquare,kBlue,kSolid,kBlue);
-  tdrDraw(heffeta32,"z",kOpenSquare,kRed,kSolid,kRed);
+  heffeta32->GetXaxis()->SetRangeUser(55,3500.);
+  heffeta31m->GetXaxis()->SetRangeUser(55,3500.);
+  heffeta31p->GetXaxis()->SetRangeUser(55,3500.);
+  if (fe3==fe3_iovs) {
+    tdrDraw(heffeta31m,"z",kOpenSquare,kRed,kSolid,kRed);
+    tdrDraw(heffeta31p,"z",kOpenSquare,kBlue,kSolid,kBlue);
+  }
+  else {
+    tdrDraw(heffeta31,"z",kOpenSquare,kBlue,kSolid,kBlue);
+    tdrDraw(heffeta32,"z",kOpenSquare,kRed,kSolid,kRed);
+  }
   tdrDraw(heffeta3,"z",kFullSquare,kBlack,kSolid,kBlack);
   heffeta3->SetLineWidth(2);
   heffeta31->SetLineWidth(2);
   heffeta32->SetLineWidth(2);
+  heffeta31m->SetLineWidth(2);
+  heffeta31p->SetLineWidth(2);
 
   /*
   //tdrDraw(heffeta,"z",kFullSquare,kBlack,kSolid,kBlack);
@@ -1532,6 +1574,9 @@ void redoECALprefire(double eta = 2.0, jer_iov run = run2016) {
   feffEF->Draw("SAME");
   feffGH->Draw("SAME");
   */
+  feff3->DrawClone("SAME");
+  feff3->SetLineStyle(kDotted);
+  feff3->SetRange(55,3500);
   feff3->Draw("SAME");
 
   /*
@@ -1551,16 +1596,31 @@ void redoECALprefire(double eta = 2.0, jer_iov run = run2016) {
   leg0->AddEntry(heffetaBCD,"BCD","PL");
   */
 
-  TLegend *leg3 = tdrLeg(0.47,eta==2.0 ? 0.45 : 0.15,
-			 0.67,eta==2.0 ? 0.60 : 0.30);
+  TLegend *leg3(0);
+  if (fe3==fe3_iovs) {
+    leg3 = tdrLeg(0.47,eta==2.0 ? 0.65 : 0.15,
+		  0.67,eta==2.0 ? 0.80 : 0.30);
+  }
+  else {
+    leg3 = tdrLeg(0.47,eta==2.0 ? 0.45 : 0.15,
+		  0.67,eta==2.0 ? 0.60 : 0.30);
+  }
   //leg3->AddEntry(heffeta3,Form("Weighted avg. %1.1f<|#eta|<%1.1f",
   //		       eta, eta+0.5),"PL");
   leg3->AddEntry(heffeta3,"Weighted avg.","PL");
   //leg3->AddEntry(heffetaRB,"Weighted avg. 2017","PL");
-  leg3->AddEntry(heffeta32,Form("L.T.'s %1.2f<|#eta|<%1.2f",
-				eta+0.25, eta+0.5),"PL");
-  leg3->AddEntry(heffeta31,Form("L.T.'s %1.2f<|#eta|<%1.2f",
-				eta, eta+0.25),"PL");
+  if (fe3==fe3_iovs) {
+    leg3->AddEntry(heffeta31m,Form("%+1.2f < #eta < %1.2f",
+				   -eta-0.5, -eta),"PL");
+    leg3->AddEntry(heffeta31p,Form("%+1.2f < #eta < %1.2f",
+				   eta, eta+0.5),"PL");
+  }
+  else {
+    leg3->AddEntry(heffeta32,Form("L.T.'s %1.2f<|#eta|<%1.2f",
+				  eta+0.25, eta+0.5),"PL");
+    leg3->AddEntry(heffeta31,Form("L.T.'s %1.2f<|#eta|<%1.2f",
+				  eta, eta+0.25),"PL");
+  }
 
   cout << "// resolution.C:redoECALprefire("<<eta<<","<<srun<<")" << endl;
   cout << Form("  {%1.3f, %1.1f, %1.1f}, // %s, eta %1.1f-%1.1f",
