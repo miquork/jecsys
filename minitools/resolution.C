@@ -203,7 +203,7 @@ void resolution(string type="MC",string file="") {
       era = "UL17E"; _jer_iov = ul17e; _rho = 23.395639;
     }
     if (TString(file.c_str()).Contains("UL17V4_F")) {
-      era = "UL18F"; _jer_iov = ul17f; _rho = 25.271713;
+      era = "UL17F"; _jer_iov = ul17f; _rho = 25.271713;
     }
   }
   if (TString(file.c_str()).Contains("UL18")) {
@@ -382,6 +382,10 @@ void resolution(string type="MC",string file="") {
       //double minx = ptmin*1.02/pt;
       double minx = max(0.66, ptmin*1.02/pt);
       double maxx = 1.5;
+
+      // patch for 3.2-4.7 bin, where low edge cuts off earlier
+      if (etamin>=3.1)
+	minx = max(0.68, ptmin*1.05/pt);
 
       // Two-sided Crystal Ball fit
       TF1 *fcb2 = new TF1("fcb2",fCrystalBall2,
@@ -1320,11 +1324,18 @@ void redoECALprefire(double eta = 2.0, jer_iov run = run2016) {
   if (run==run2016gh)  { fe3 = fe3_iovs; srun = "2016FGH"; }
   if (run==run2017b) { fe3 = fe3_iovs; srun = "2017B"; }
   if (run==run2017c) { fe3 = fe3_iovs; srun = "2017C"; }
-  if (run==run2017c) { fe3 = fe3_iovs; srun = "2017C"; }
   if (run==run2017d) { fe3 = fe3_iovs; srun = "2017D"; }
   if (run==run2017e) { fe3 = fe3_iovs; srun = "2017E"; }
   if (run==run2017f) { fe3 = fe3_iovs; srun = "2017F"; }
   if (run==run2017de) { fe3 = fe3_iovs; srun = "2017DE"; }
+  // Add UL17 prefire
+  if (run==ul17)  { fe3 = fe3_2017; srun = "2017BtoF"; }
+  if (run==ul17b) { fe3 = fe3_iovs; srun = "2017B"; }
+  if (run==ul17c) { fe3 = fe3_iovs; srun = "2017C"; }
+  if (run==ul17d) { fe3 = fe3_iovs; srun = "2017D"; }
+  if (run==ul17e) { fe3 = fe3_iovs; srun = "2017E"; }
+  if (run==ul17f) { fe3 = fe3_iovs; srun = "2017F"; }
+
   assert(fe3 && !fe3->IsZombie());
   const char *crun = srun.c_str();
   //TH2D *heff3 = (TH2D*)fe3->Get("L1prefiring_jetpt_2016BtoH");
@@ -1527,7 +1538,9 @@ void redoECALprefire(double eta = 2.0, jer_iov run = run2016) {
   feff3->SetParameters(eta<2.5 ? 0.1 : 0.6, 180, 6);
   // Constrain fit parameters
   if (run==run2017 || run==run2017b || run==run2017c ||
-      run==run2017de || run==run2017f) {
+      run==run2017de || run==run2017f ||
+      run==ul17 || run==ul17b || run==ul17c ||
+      run==ul17d || run==ul17e || run==ul17f) {
     if (eta<2.5) {
       feff3->FixParameter(2, 13.4); // from DE free fit
       feff3->FixParameter(1, 175.); // estimate from B,C,DE,F w/ p2 fix
@@ -1647,9 +1660,10 @@ void redoECALprefire(double eta = 2.0, jer_iov run = run2016) {
   }
 
   cout << "// resolution.C:redoECALprefire("<<eta<<","<<srun<<")" << endl;
-  cout << Form("  {%1.3f, %1.1f, %1.1f}, // %s, eta %1.1f-%1.1f",
+  cout << Form("  {%1.3f, %1.1f, %1.1f}, // %s, eta %1.1f-%1.1f (%1.1f/%d)",
 	       feff3->GetParameter(0), feff3->GetParameter(1),
-	       feff3->GetParameter(2), crun, eta, eta+0.5) << endl;
+	       feff3->GetParameter(2), crun, eta, eta+0.5,
+	       feff3->GetChisquare(), feff3->GetNDF()) << endl;
   cout << Form("eff=%1.3f+/-%1.3f, ",
 	       feff3->GetParameter(0),feff3->GetParError(0));
   cout << Form("mean=%1.0f+/-%1.0f GeV, ",

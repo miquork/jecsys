@@ -13,6 +13,7 @@
   //resolution("P8CP5","17nov17-DE");
   //resolution("MC","Legacy16-GH");
   //resolution("HW","Legacy16-GH");
+
   /*
   resolution("MC","UL17V4_BCDEF");
   resolution("MC","UL17V4_B");
@@ -27,8 +28,8 @@
   resolution("MC","UL18V2V3_B");
   resolution("MC","UL18V2V3_C");
   resolution("MC","UL18V2V3_D");
-  */
   redoJER("RunUL18");
+  */
 
 
   //redoJER("Run2018");
@@ -58,5 +59,19 @@
   //redoECALprefire(2.5,run2017de);
   //redoECALprefire(2.0,run2017f);
   //redoECALprefire(2.5,run2017f);
-
+   
+  /*
+  redoECALprefire(2.0,ul17);
+  redoECALprefire(2.5,ul17);
+  redoECALprefire(2.0,ul17b);
+  redoECALprefire(2.5,ul17b);
+  redoECALprefire(2.0,ul17c);
+  redoECALprefire(2.5,ul17c);
+  redoECALprefire(2.0,ul17d);
+  redoECALprefire(2.5,ul17d);
+  redoECALprefire(2.0,ul17e);
+  redoECALprefire(2.5,ul17e);
+  redoECALprefire(2.0,ul17f);
+  redoECALprefire(2.5,ul17f);
+  */
 }
