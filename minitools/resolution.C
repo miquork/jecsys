@@ -1003,15 +1003,38 @@ void redoJER(string run="") {
      1.1450-0.9825, 1.1277-0.9700, 1.2041-1.0299, 1.2863-1.1040, 
      1.2105-0.9478, 1.4107-1.2174, 1.6427-1.1798, 1.3226-1.2132, 1.1046-0.9710};
 
+  // Summer19UL18_JRV2_MC/Summer19UL18_JRV2_MC_SF_AK4PFchs.txt 
+
   // Inclusive jet analysis bins
   const int nbins = 10;
   const double bins[nbins+1] = {0,0.5,1,1.5,2,2.5,3,3.2,4.7,0.0,1.3};
+  const int nbinsul18 = 14;
+  const double binsul18[nbinsul18+1] =
+  // cat *.txt | awk '{print $2", "}'
+    {0.000, 0.522, 0.783, 1.131, 1.305, 1.740, 1.930, 2.043, 2.322, 
+     2.500, 2.650, 2.853, 2.964, 3.139, 5.191};
+  const double valsul18[nbinsul18+1] =
+  // cat *.txt | awk '{print $4", "}'
+    {1.1436, 1.1538, 1.1481, 1.1304, 1.1590, 1.1628, 1.1423, 1.1479, 1.1360, 
+     1.1911, 1.2919, 1.3851, 1.2670, 1.0367};
+  const double errsul18[nbinsul18+1] =
+  // cat *.txt | awk '{print $6"-"$5", "}'
+    {1.1541-1.1332, 1.1885-1.1191, 1.1844-1.1118, 1.1992-1.0617, 1.1732-1.1449, 
+     1.2182-1.1074, 1.1870-1.0976, 1.2564-1.0393, 1.1979-1.0741, 1.2780-1.1041, 
+     1.3650-1.2187, 1.5354-1.2347, 1.3278-1.2063, 1.1942-0.8792};
 
   int nbins0(0);
   const double *bins0(0), *vals0(0), *errs0(0);
   //jer_iov jer_ref(none);
   _ismcjer = true;
   _usejme = false;
+  if (run=="RunUL18") {
+    _jer_iov = ul18;
+    nbins0 = nbinsul18;
+    bins0 = &binsul18[0];
+    vals0 = &valsul18[0];
+    errs0 = &errsul18[0];
+  }
   if (run=="RunUL17") {
     _jer_iov = ul17;
     nbins0 = nbinsul17;
@@ -1201,6 +1224,7 @@ void redoJER(string run="") {
     if (y2<y1 || (y1==0 && y2==0)) continue;
     double val =  gk2->GetY()[i];
     double eval = gk2->GetEY()[i];
+    if (y2>y1) // skip spurious 0-4.7 bin
     cout << Form(" {%1.3f, %1.3f}, // %1.1f-%1.1f",
 		 val, eval, y1, y2) << endl;
   }

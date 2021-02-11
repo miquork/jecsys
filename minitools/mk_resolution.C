@@ -21,11 +21,15 @@
   resolution("MC","UL17V4_E");
   resolution("MC","UL17V4_F");
   */
+  /*
   resolution("MC","UL18V2V3_ABCD");
-  //resolution("MC","UL18V2V3_A");
-  //resolution("MC","UL18V2V3_B");
-  //resolution("MC","UL18V2V3_C");
-  //resolution("MC","UL18V2V3_D");
+  resolution("MC","UL18V2V3_A");
+  resolution("MC","UL18V2V3_B");
+  resolution("MC","UL18V2V3_C");
+  resolution("MC","UL18V2V3_D");
+  */
+  redoJER("RunUL18");
+
 
   //redoJER("Run2018");
   //redoJER("Run2018ABC");
