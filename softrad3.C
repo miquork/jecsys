@@ -95,6 +95,8 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
   vector<string> dirs2;
   dirs2.push_back("ratio");
+  dirs2.push_back("data");
+  dirs2.push_back("mc");
 
   vector<string> methods;
   methods.push_back("counts");
@@ -112,9 +114,46 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   //samples.push_back("gamjet");
   //samples.push_back("zeejet");
   //samples.push_back("zmmjet");
-  if (isUL18) samples.push_back("multijet");
-  if (isUL18) samples.push_back("zlljet");
+  if (etamax==1.3) {
+    samples.push_back("multijet");
+    samples.push_back("zlljet");
+  }
   samples.push_back("zjet");
+  samples.push_back("zi");
+  samples.push_back("zb");
+  samples.push_back("zc");
+  samples.push_back("zq");
+  samples.push_back("zg");
+  //
+  samples.push_back("zii");
+  samples.push_back("zib");
+  samples.push_back("zic");
+  samples.push_back("ziq");
+  samples.push_back("zig");
+  //
+  samples.push_back("zbi");
+  samples.push_back("zbb");
+  samples.push_back("zbc");
+  samples.push_back("zbq");
+  samples.push_back("zbg");
+  //
+  samples.push_back("zci");
+  samples.push_back("zcb");
+  samples.push_back("zcc");
+  samples.push_back("zcq");
+  samples.push_back("zcg");
+  //
+  samples.push_back("zqi");
+  samples.push_back("zqb");
+  samples.push_back("zqc");
+  samples.push_back("zqq");
+  samples.push_back("zqg");
+  //
+  samples.push_back("zgi");
+  samples.push_back("zgb");
+  samples.push_back("zgc");
+  samples.push_back("zgq");
+  samples.push_back("zgg");
 
   //vector<int> alphas;
   //alphas.push_back(100);
@@ -142,6 +181,14 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 			 cd,int(10*etamin),int(10*etamax),cm,cs,xref);
 	const char *cg = sg.c_str();
 
+	bool isflavormc = 
+	  (s=="zii" || s=="zbi" || s=="zci" || s=="zqi" || s=="zgi" ||
+	   s=="zib" || s=="zbb" || s=="zcb" || s=="zqb" || s=="zgb" ||
+	   s=="zic" || s=="zbc" || s=="zcc" || s=="zqc" || s=="zgc" ||
+	   s=="ziq" || s=="zbq" || s=="zcq" || s=="zqq" || s=="zgq" ||
+	   s=="zig" || s=="zbg" || s=="zcg" || s=="zqg" || s=="zgg");
+	if (isflavormc && d!="mc") continue;
+
 	if (m=="counts") {
 	  if (s=="zlljet") { // PATCH
 	    sg = Form("%s/eta%02d-%02d/%s_%s_a%d",
@@ -161,9 +208,35 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
     } // imet
   } // idir
 
-  // Helper function for solving non-linear equations
+  // Helper function for solving jet response x from MPF decomposition
   TF1 *fm = new TF1("fm","x - ([0] + (x/[3]-1)*[1] + (x/[4]-1)*[2])",0,13000);
   TF1 *fp = new TF1("fp","x - ([0] + (x/[3]  )*[1] + (x/[4]  )*[2])",0,13000);
+
+  // Helper functions for multijet with recoil binning, x=R1
+  // [0]=MPF or MJB with lead in denomator, [1]=n,[2]=u, [3]=Rn,[4]=Ru,[5]=R2
+  /*
+  TF1 *fml = new TF1("fml","[0] - ([5]/x + (1-[5]/[3])*[1] + (1-[5]/[4])*[2])",
+		     0,13000);
+  TF1 *fpl = new TF1("fpl","[0] - ([5]/x + ( -[5]/[3])*[1] + ( -[5]/[4])*[2])",
+		     0,13000);
+  */
+  // Helper function for solving jet response ratio x from multijet MPF/MJB
+  // in 'ptave' binning
+  // [0]=MPF or MJB, [1]=n, [2]=u, [3]=Rn, [4]=Ru, [5]=R2
+  /*
+  TF1 *fma = new TF1("fma","(x-1)/(x+1)-[0]"
+		     " + ((1./[5])/(x+1) - 1./(2.*[3])) * [1]"
+		     " + ((1./[5])/(x+1) - 1./(2.*[4])) * [2]",0,13000);
+  TF1 *fpa = new TF1("fma","(x-1)/(x+1)-[0]"
+		     " + (0              - 1./(2.*[3])) * [1]"
+		     " + (0              - 1./(2.*[4])) * [2]",0,13000);
+  */
+  TF1 *fma = new TF1("fma","(x-1)/(x+1)-[0]"
+		     " + (1 - (x+1)/(2.*[3]/[5])) * [1]"
+		     " + (1 - (x+1)/(2.*[4]/[5])) * [2]",0,13000);
+  TF1 *fpa = new TF1("fma","(x-1)/(x+1)-[0]"
+		     " + (0 - (x+1)/(2.*[3]/[5])) * [1]"
+		     " + (0 - (x+1)/(2.*[4]/[5])) * [2]",0,13000);
 
   // Then start working on corrections
   for (unsigned int idir = 0; idir != dirs2.size(); ++idir) {
@@ -178,26 +251,40 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	string s = samples[isam];
 	const char *cs = s.c_str();
 
+	bool isflavormc = 
+	  (s=="zii" || s=="zbi" || s=="zci" || s=="zqi" || s=="zgi" ||
+	   s=="zib" || s=="zbb" || s=="zcb" || s=="zqb" || s=="zgb" ||
+	   s=="zic" || s=="zbc" || s=="zcc" || s=="zqc" || s=="zgc" ||
+	   s=="ziq" || s=="zbq" || s=="zcq" || s=="zqq" || s=="zgq" ||
+	   s=="zig" || s=="zbg" || s=="zcg" || s=="zqg" || s=="zgg");
+
 	// mpf1, mpfn and mpfu must be loaded before correcting mpfchs1
 	// statistics needed for checking pT binning
-	if ((m=="mpfchs1" || m=="ptchs") && d=="ratio") {
-	  assert(hs["data"][s]!=0);// || s=="multijet");
+	if ((m=="mpfchs1" || m=="ptchs")) { // && d=="ratio") {
+	  assert(hs["data"][s]!=0 || isflavormc);// || s=="multijet");
 	  assert(gs["mc"]["mpf1"][s]!=0);
 	  assert(gs["mc"]["mpfn"][s]!=0);
 	  assert(gs["mc"]["mpfu"][s]!=0);
 	  assert(gs["mc"]["mpfchs1"][s]!=0);
-	  assert(gs["data"]["mpf1"][s]!=0);
-	  assert(gs["data"]["mpfn"][s]!=0);
-	  assert(gs["data"]["mpfu"][s]!=0);
-	  assert(gs["data"]["mpfchs1"][s]!=0);
-	  assert(gs["ratio"]["mpfchs1"][s]!=0);
-	  assert(gs["ratio"]["ptchs"][s]!=0);
+	  assert(gs["data"]["mpf1"][s]!=0 || isflavormc);
+	  assert(gs["data"]["mpfn"][s]!=0 || isflavormc);
+	  assert(gs["data"]["mpfu"][s]!=0 || isflavormc);
+	  assert(gs["data"]["mpfchs1"][s]!=0 || isflavormc);
+	  assert(gs["ratio"]["mpfchs1"][s]!=0 || isflavormc);
+	  assert(gs["ratio"]["ptchs"][s]!=0 || isflavormc);
 
 	  TH1D *h = hs["data"][s];
 	  TGraphErrors *g0 = gs["data"]["mpfchs1"][s];
 	  TGraphErrors *g1 = gs["data"]["mpf1"][s];
 	  TGraphErrors *gn = gs["data"]["mpfn"][s];
 	  TGraphErrors *gu = gs["data"]["mpfu"][s];
+	  if (isflavormc) { // placeholder for missing data
+	    h = hs["mc"][s];
+	    g0 = (TGraphErrors*)gs["mc"]["mpfchs1"][s]->Clone();
+	    g1 = (TGraphErrors*)gs["mc"]["mpf1"][s]->Clone();
+	    gn = (TGraphErrors*)gs["mc"]["mpfn"][s]->Clone();
+	    gu = (TGraphErrors*)gs["mc"]["mpfu"][s]->Clone();
+	  }
 	  TGraphErrors *h0 = gs["mc"]["mpfchs1"][s];
 	  TGraphErrors *h1 = gs["mc"]["mpf1"][s];
 	  TGraphErrors *hn = gs["mc"]["mpfn"][s];
@@ -205,8 +292,17 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  //
 	  TGraphErrors *gm = gs["ratio"]["mpfchs1"][s];
 	  TGraphErrors *gp = gs["ratio"]["ptchs"][s];
+	  if (isflavormc) { // placeholder for missing data ratio
+	    gm = (TGraphErrors*)gs["mc"]["mpfchs1"][s]->Clone();
+	    gp = (TGraphErrors*)gs["mc"]["ptchs"][s]->Clone();
+	    for (int i = 0; i != gm->GetN(); ++i)
+	      gm->SetPoint(i, gm->GetX()[i], 1);
+	    for (int i = 0; i != gp->GetN(); ++i)
+	      gp->SetPoint(i, gp->GetX()[i], 1);
+	  }
 
 
+	  TH1D *hdm    = (TH1D*)h->Clone("hdm");   hdm->Reset();
 	  TH1D *hfsr   = (TH1D*)h->Clone("fsr");   hfsr->Reset();
 	  TH1D *hfsr0s = (TH1D*)h->Clone("fsr0s"); hfsr0s->Reset();
 	  TH1D *hfsr1s = (TH1D*)h->Clone("fsr1s"); hfsr1s->Reset();
@@ -233,8 +329,10 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 		     er0, er1, ern, eru);
 	    if (q0==0 && r0==0 && m=="mpfchs1") continue;
 	    if (q1==0 && r1==0 && m=="ptchs") continue;
-	    double pt = 0.5*(pm+pd);
-	    cout << s << " pt="<<pt<<endl;
+	    //if ((q0==0 || r0==0) && m=="mpfchs1") continue;
+	    //if ((q1==0 || r1==0) && m=="ptchs") continue;
+	    double pt = (isflavormc ? pm : 0.5*(pm+pd));
+	    cout << s << " " << m << " pt="<<pt<<endl;
 	    if (fabs(r1+rn+ru-r0)>1e-3) {
 	      cout << "i="<<i<<" pt="<<pt<<" r1+rn+ru-r0="<<r1+rn+ru-r0<<endl
  		   << " r0="<<r0 << " r1="<<r1<<" rn="<<rn<<" ru="<<ru<<endl
@@ -248,96 +346,195 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      //assert(fabs(q1+qn+qu-q0)<1e-3);
 	    }
 
-
-	    // Master equations:
-	    // MPF = r0 = r1 + rn + ru (1)
-	    //        1 = p1 + pn + pu (2)
-	    // r1 = p1 * R1 (3a)
-	    // rn = pn * Rn (3b)
-	    // ru = pu * Ru (3c)
-	    // 
-	    // Substitute (3x) to (1), then subtract (1) from (2)
-	    // 1-r0 =    (1-R1)*p1       + (1-Rn)*pn + (1-Ru)*pu | +R1-1+r0
-	    // R1 = r0 + (1-R1)*(p1-1)   + (1-Rn)*pn + (1-Ru)*pu | (2) for p1-1
-	    // R1 = r0 + (1-R1)*(-pn-pu) + (1-Rn)*pn + (1-Ru)*pu | reorder
-	    // R1 = r0 + (R1-Rn)*pn + (R1-Ru)*pu                 | (3b,3c)   
-	    // R1 = r0 + [(R1-Rn)/Rn] * rn + [(R1-Ru)/Rn] * ru
-	    //
-	    // R1 = r0 + Dn*pn + Du*pu, where
-	    // Dn = R1-Rn and Du = R1-Ru
-	    // These are typically positive, as are pn and pu, so R1>r0
-	    // R1 and Rn are known to 1%, so p1 and pn have uncertainty of 1%
-	    // Ru on the other hand is much less precise (5%?), but probably
-	    // more precise than pu (10%?) => pu = ru/Ru
-
-	    // Z+jet and Z+g responses vs Z+q from drawZflavor.C
-	    //double Rq = 1;
-	    //double Ri_d = 1 + 0.01*(-1.48 - 0.40*pow(pt/100., -2.432));
-	    //double Rg_d = 1 + 0.01*(-2.50 - 2.16*pow(pt/100., -1.586));
-	    //double Rn_d = min(Ri_d, 0.5*(1+Rg_d)); // guess 50% q + 50% g
-	    double Rn_d = 1;
-	    //double R1 = 1.01; // Guesstimate for Z+jet MC truth response
-	    //double Ru = 0.72; // R_UE(FullSim) for QCD UL17
-	    //double Ru = 0.75; // R_UE(Detector) for QCD UL17
-	    //double Ru = 0.80;//0.5*(0.85+0.75); // pT15/eta=0 and UE average
-	    //double Ru = 0.85; // pT15/eta=0 jet response
-	    //double Ru = 1.2; // test
-	    //double Ru_d(0.72), Ru_m(0.72); // RUE(DY,HS1) or RUE(QCD,CP5)
-	    //double Ru_d(0.65), Ru_m(0.65); // RUE(DY,CP5)
+	    double Rn_d(1.000), Rn_m(1.000);
 	    double Ru_d(0.685), Ru_m(0.685); // Ru(DY,CP5,UL17)
-	    // Flavor response differences data-MC
-	    //double dRq = 0;
-	    //double dRi_d = 0.01*(-0.15);
-	    //double dRg_d = 0.01*(-0.64);
-	    
-	    //double Ri_m = Ri_d - dRi_d;
-	    //double Rg_m = Ri_d - dRi_d;
-	    //double Rn_m = min(Ri_m, 0.5*(1+Rg_m)); // guess 50% q + 50% g
-	    double Rn_m = 1;
-	    /*
-	    double Dn_d = Ri_d - Rn_d;
-	    double Du_d = R1 - Ru_d;
-	    double Pn_d = rn / (R1 - Dn_d);
-	    double Pu_d = ru / (R1 - Du_d);
-	    double P1_d = 1 - Pn_d - Pu_d;
-	    //
-	    double Dn_m = Ri_m - Rn_m;
-	    double Du_m = R1 - Ru_m;
-	    double Pn_m = qn / (R1 - Dn_m);
-	    double Pu_m = qu / (R1 - Du_m);
-	    double P1_m = 1 - Pn_m - Pu_m;
-	    */
 
 	    // Systematic variations for Rn_m, Ru_m numerically
 	    double dRnd = -0.01; // guesstimate for data-MC
 	    double dRnm = -0.02; // quark/gluon response variation
-	    //double dRud = -0.05; // guesstimate for data-MC
-	    //double dRum = -0.10; // RUE(DY,HS1)=0.72 / UE(DY,CP5)=0.65
-	    //double dRud = +0.05; // guesstimate for data-MC
-	    //double dRum = +0.10; // RUE(DY,HS1)=0.72 / UE(DY,CP5)=0.65
 	    double dRud = +0.08; // QCD data=2.7 / FullSim(UL17)=2.5
 	    double dRum = +0.05; // Ru(DY,HS1)=0.72 / Ru(DY,CP5)=0.65 vs 0.685
 
 	    if (s=="multijet") {
 
-	      Rn_m = 0.92; // low pT gluon jets
-	      Rn_d = 0.90; // low pT gluon jets
-	      Ru_d = Ru_m - 0.08;
-	    }
+	      //Rn_m = 0.92; // low pT gluon jets
+	      //Rn_d = 0.90; // low pT gluon jets
+	      //Ru_d = Ru_m - 0.08;
+	      Rn_m = 1.000;
+	      Rn_d = 1.000;
+	      Ru_m = 0.65; // from minitools/drawMultijetMPB_ISRonly.pdf
+	      Ru_d = 0.65;
+	      double R2_m = 1.000;
+	      double R2_d = 1.000;
 
-	    if (m=="mpfchs1") {
+	      // turn <Rlead>/<Rrecoil> ratio back to <A> and <B>
+	      double Ad = (r0-1)/(r0+1);
+	      double Bd = (r1-1)/(r1+1);
+	      double Am = (q0-1)/(q0+1);
+	      double Bm = (q1-1)/(q1+1);
 
-	      // Ratio
-	      //double dR = ((r0 + Dn_d*Pn_d + Du_d*Pu_d) /
-	      //		 (q0 + Dn_m*Pn_m + Du_m*Pu_m)) - r0 / q0;
-	      //double dRn = (Dn_d-Dn_m)*Pn_d + Dn_m*(Pn_d-Pn_m);
-	      //double dRu = (Du_d-Du_m)*Pn_d + Du_m*(Pu_d-Pu_m);
-	      
-	      // Difference is better than ratio because factorization is exact
-	      /*
-	      double dR = ((r0 + Dn_d*Pn_d + Du_d*Pu_d) -
-			   (q0 + Dn_m*Pn_m + Du_m*Pu_m)) - (r0 - q0);
-	      */
+	      // same for N-jet and unclustered, which are
+	      // rn = 2*Pn / (1 - Pn) <=> rn-rn*Pn=+2*Pn <=> Pn=rn/(2+rn)
+	      // ru = -2*Pu / (1 - Pu) <=> ru-ru*Pu=-2*Pu <=> Pu=-ru/(2-ru)
+	      double k = 1; // extra fudge factor => fixed in fma, fpa
+	      double Pnd = k*rn/(2+rn);
+	      double Pud = +k*ru/(2-ru); // Orig. PU had extra minus sign
+	      double Pnm = k*qn/(2+qn);
+	      double Pum = +k*qu/(2-qu); // Orig. PU had extra minus sign
+
+	      double Rd(0), Rm(0), dR(0), dR_d(0), dR_m(0);
+	      double xmin(0.1), xmax(1.9);
+	      if (m=="mpfchs1") { // multijet
+
+		fma->SetParameters(Ad,Pnd,Pud,Rn_d,Ru_d,R2_d);
+		Rd = fma->GetX(0,xmin,xmax);
+		fma->SetParameters(Am,Pnm,Pum,Rn_m,Ru_m,R2_m);
+		Rm = fma->GetX(0,xmin,xmax);
+		dR = Rd / Rm - r0 / q0;
+		
+		// Approximate parts for data and MC
+		dR_d = Rd - r0;
+		dR_m = Rm - q0;
+
+		// vary N-jet Rn in data (data/MC difference)
+		fma->SetParameters(Ad,Pnd,Pud,Rn_d+dRnd,Ru_d,R2_d);
+		double Rd_n1 = fma->GetX(0,xmin,xmax);
+		double dRn1 = (Rd_n1 - Rd) / Rm;
+		// vary N-jet Rn in both data and MC (MC reference scale)
+		fma->SetParameters(Ad,Pnd,Pud,Rn_d+dRnm,Ru_d,R2_d);
+		double Rd_n2 = fma->GetX(0,xmin,xmax);
+		fma->SetParameters(Am,Pnm,Pum,Rn_m+dRnm,Ru_m,R2_m);
+		double Rm_n2 = fma->GetX(0,xmin,xmax);
+		double dRn2 = Rd_n2/Rm_n2 - Rd/Rm; 
+		// vary unclustered Ru in data (data/MC difference)
+		fma->SetParameters(Ad,Pnd,Pud,Rn_d,Ru_d+dRud,R2_d);
+		double Rd_u1 = fma->GetX(0,xmin,xmax);
+		double dRu1 = (Rd_u1 - Rd) / Rm;
+		// vary unclustered Ru in both data and MC (MC reference scale)
+		fma->SetParameters(Ad,Pnd,Pud,Rn_d,Ru_d+dRum,R2_d);
+		double Rd_u2 = fma->GetX(0,xmin,xmax);
+		fma->SetParameters(Am,Pnm,Pum,Rn_m,Ru_m+dRum,R2_m);
+		double Rm_u2 = fma->GetX(0,xmin,xmax);
+		double dRu2 = Rd_u2/Rm_u2 - Rd/Rm; 
+
+		// Statistical variations with error propagation from r1, rn, ru
+		// (r0,r1,rn,ru correlations tricky, though)
+		// ...Not yet adapted from Z+jet to multijet...
+		double dR0s = sqrt(pow(er0,2) + pow(eq0,2));
+		double dR1s = sqrt(pow(er1,2) + pow(eq1,2));
+		double dRns = (Rm/Rn_m - 1)*sqrt(pow(ern,2) + pow(eqn,2));
+		double dRus = (Rm/Ru_m - 1)*sqrt(pow(eru,2) + pow(equ,2));
+
+		if (fabs(r0/q0-mpf)>1e-3) {
+		  cout <<s<<": r0/q0="<<r0/q0<<" mpf="<<mpf<<endl<<flush;
+		  assert(fabs(r0/q0-mpf)<1e-3);
+		}
+		
+		double ddR = sqrt(pow(dRn1,2) + pow(dRn2,2) +
+				  pow(dRu1,2)+pow(dRu2,2));
+
+		if (d=="ratio") hdm->SetBinContent(i, Rd / Rm);
+		if (d=="data")  hdm->SetBinContent(i, Rd);
+		if (d=="mc")    hdm->SetBinContent(i, Rm);
+		// Statistical uncertainty will need more careful handling
+		if (d=="ratio") hdm->SetBinError(i, sqrt(er0*er0 + eq0*eq0));
+		if (d=="data")  hdm->SetBinError(i, er0);
+		if (d=="mc")    hdm->SetBinError(i, eq0);
+
+		if (d=="ratio") hfsr->SetBinContent(i, dR);
+		if (d=="data")  hfsr->SetBinContent(i, dR_d);
+		if (d=="mc")    hfsr->SetBinContent(i, dR_m);
+		hfsr->SetBinError(i, ddR);
+		hfsr0s->SetBinContent(i, dR0s);
+		hfsr1s->SetBinContent(i, dR1s);
+		hfsrn1->SetBinContent(i, dRn1);
+		hfsrn2->SetBinContent(i, dRn2);
+		hfsrns->SetBinContent(i, dRns);
+		hfsru1->SetBinContent(i, dRu1);
+		hfsru2->SetBinContent(i, dRu2);
+		hfsrus->SetBinContent(i, dRus);
+		
+	      } // mpfchs1 multijet
+
+	      if (m=="ptchs") { // multijet
+
+		fpa->SetParameters(Bd,Pnd,Pud,Rn_d,Ru_d,R2_d);
+		Rd = fpa->GetX(0,xmin,xmax);
+		fpa->SetParameters(Bm,Pnm,Pum,Rn_m,Ru_m,R2_m);
+		Rm = fpa->GetX(0,xmin,xmax);
+		dR = Rd / Rm - r1 / q1;
+
+		dR_d = Rd - r1;
+		dR_m = Rm - q1;
+
+		// vary N-jet Rn in data (data/MC difference)
+		fpa->SetParameters(Bd,Pnd,Pud,Rn_d+dRnd,Ru_d,R2_d);
+		double Rd_n1 = fpa->GetX(0,xmin,xmax);
+		double dRn1 = (Rd_n1 - Rd) / Rm;
+		// vary N-jet Rn in both data and MC (MC reference scale)
+		fpa->SetParameters(Bd,Pnd,Pud,Rn_d+dRnm,Ru_d,R2_d);
+		double Rd_n2 = fpa->GetX(0,xmin,xmax);
+		fpa->SetParameters(Bm,Pnm,Pum,Rn_m+dRnm,Ru_m,R2_m);
+		double Rm_n2 = fpa->GetX(0,xmin,xmax);
+		double dRn2 = Rd_n2/Rm_n2 - Rd/Rm; 
+		// vary unclustered Ru in data (data/MC difference)
+		fpa->SetParameters(Bd,Pnd,Pud,Rn_d,Ru_d+dRud,R2_d);
+		double Rd_u1 = fpa->GetX(0,xmin,xmax);
+		double dRu1 = (Rd_u1 - Rd) / Rm;
+		// vary unclustered Ru in both data and MC (MC reference scale)
+		fpa->SetParameters(Bd,Pnd,Pud,Rn_d,Ru_d+dRum,R2_d);
+		double Rd_u2 = fpa->GetX(0,xmin,xmax);
+		fpa->SetParameters(Bm,Pnm,Pum,Rn_m,Ru_m+dRum,R2_m);
+		double Rm_u2 = fpa->GetX(0,xmin,xmax);
+		double dRu2 = Rd_u2/Rm_u2 - Rd/Rm; 
+
+		// Statistical variations with error propagation from r1, rn, ru
+		// (r0,r1,rn,ru correlations tricky, though)
+		// ...Not yet adapted from Z+jet to multijet...
+		double dR0s = sqrt(pow(er0,2) + pow(eq0,2));
+		double dR1s = sqrt(pow(er1,2) + pow(eq1,2));
+		double dRns = (Rm/Rn_m - 1)*sqrt(pow(ern,2) + pow(eqn,2));
+		double dRus = (Rm/Ru_m - 1)*sqrt(pow(eru,2) + pow(equ,2));
+
+		if (fabs(r0/q0-mpf)>1e-3) {
+		  cout <<s<<": r0/q0="<<r0/q0<<" mpf="<<mpf<<endl<<flush;
+		  assert(fabs(r0/q0-mpf)<1e-3);
+		}
+		
+		double ddR = sqrt(pow(dRn1,2) + pow(dRn2,2) +
+				  pow(dRu1,2)+pow(dRu2,2));
+
+		if (d=="ratio") hdm->SetBinContent(i, Rd / Rm);
+		if (d=="data")  hdm->SetBinContent(i, Rd);
+		if (d=="mc")    hdm->SetBinContent(i, Rm);
+		// Statistical uncertainty will need more careful handling
+		if (d=="ratio") hdm->SetBinError(i, sqrt(er0*er0 + eq0*eq0));
+		if (d=="data")  hdm->SetBinError(i, er0);
+		if (d=="mc")    hdm->SetBinError(i, eq0);
+
+		if (d=="ratio") hfsr->SetBinContent(i, dR);
+		if (d=="data")  hfsr->SetBinContent(i, dR_d);
+		if (d=="mc")    hfsr->SetBinContent(i, dR_m);
+		hfsr->SetBinError(i, ddR);
+		hfsr0s->SetBinContent(i, dR0s);
+		hfsr1s->SetBinContent(i, dR1s);
+		hfsrn1->SetBinContent(i, dRn1);
+		hfsrn2->SetBinContent(i, dRn2);
+		hfsrns->SetBinContent(i, dRns);
+		hfsru1->SetBinContent(i, dRu1);
+		hfsru2->SetBinContent(i, dRu2);
+		hfsrus->SetBinContent(i, dRus);
+
+	      } // ptchs multijet
+
+	      cout << "r0="<<r0<<" r1="<<r1<<" q0="<<q0<<" q1="<<q1<<endl;
+	      cout << "Ad="<<Ad<<" Bd="<<Bd<<" Am="<<Am<<" Bm="<<Bm<<endl;
+	      cout << "Pnd="<<Pnd<<" Pud="<<Pud
+		   <<" Pnm="<<Pnm<<" Pum="<<Pum<<endl;
+	      cout << "Rd="<<Rd<<" Rm="<<Rm<<endl;
+	    } // multijet
+
+	    if (m=="mpfchs1" && s!="multijet") {
 
 	      // Solve master equation numerically
 	      // R1 = r0 + [(R1-Rn)/Rn] * rn + [(R1-Ru)/Rn] * ru
@@ -347,6 +544,8 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      fm->SetParameters(q0, qn, qu, Rn_m, Ru_m);
 	      double R1_m = fm->GetX(0,0.50,1.50);
 	      double dR = R1_d / R1_m - r0 / q0;
+	      double dR_d = R1_d - r0;
+	      double dR_m = R1_m - q0;
 
 	      fm->SetParameters(r0, rn, ru, Rn_d+dRnd, Ru_d);
 	      double R1_dn1 = fm->GetX(0,0.50,1.50);
@@ -380,45 +579,20 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 		assert(fabs(r0/q0-mpf)<1e-3);
 	      }
 
-	      /*
-	      double Dn_d = R1_d - Rn_d;
-	      double Du_d = R1_d - Ru_d;
-	      double P1_d = r1 / R1_d;
-	      double Pn_d = rn / Rn_d;
-	      double Pu_d = ru / Ru_d;
-	      //
-	      double Dn_m = R1_m - Rn_m;
-	      double Du_m = R1_m - Ru_m;
-	      double P1_m = q1 / R1_m;
-	      double Pn_m = qn / Rn_m;
-	      double Pu_m = qu / Ru_m;	      
-
-	      if (fabs(P1_d+Pn_d+Pu_d-1)>1e-3) {
-		cout << "i="<<i<<" pt="<<pt
-		     <<" P1+Pn+Pu-1="<<P1_d+Pn_d+Pu_d-1<<endl
-		     << " (data) P1="<<P1_d<<" Pn="<<Pn_d<<" Pu="<<Pu_d<<endl
-		     <<flush;
-		//assert(fabs(P1_d+Pn_d+Pu_d-1)<1e-3);
-	      }
-	      if (fabs(P1_m+Pn_m+Pu_m-1)>1e-3) {
-		cout << "i="<<i<<" pt="<<pt
-		     <<" P1+Pn+Pu-1="<<P1_m+Pn_m+Pu_m-1<<endl
-		     << " (MC) P1="<<P1_m<<" Pn="<<Pn_m<<" Pu="<<Pu_m<<endl
-		     <<flush;
-		//assert(fabs(P1_m+Pn_m+Pu_m-1)<1e-3);
-	      }
-	      
-	      double dRn = (Dn_d-Dn_m)*Pn_d + Dn_m*(Pn_d-Pn_m);
-	      double dRu = (Du_d-Du_m)*Pu_d + Du_m*(Pu_d-Pu_m);
-
-	      hfsr->SetBinContent(i, dR);
-	      hfsrn->SetBinContent(i, dRn);
-	      hfsru->SetBinContent(i, dRu);
-	      */
-
 	      double ddR = sqrt(pow(dRn1,2) + pow(dRn2,2) +
 				pow(dRu1,2)+pow(dRu2,2));
-	      hfsr->SetBinContent(i, dR);
+
+	      if (d=="ratio") hdm->SetBinContent(i, R1_d / R1_m);
+	      if (d=="data")  hdm->SetBinContent(i, R1_d);
+	      if (d=="mc")    hdm->SetBinContent(i, R1_m);
+	      // Statistical uncertainty will need more careful handling
+	      if (d=="ratio") hdm->SetBinError(i, sqrt(er0*er0 + eq0*eq0));
+	      if (d=="data")  hdm->SetBinError(i, er0);
+	      if (d=="mc")    hdm->SetBinError(i, eq0);
+
+	      if (d=="ratio") hfsr->SetBinContent(i, dR);
+	      if (d=="data")  hfsr->SetBinContent(i, dR_d);
+	      if (d=="mc")    hfsr->SetBinContent(i, dR_m);
 	      hfsr->SetBinError(i, ddR);
 	      hfsr0s->SetBinContent(i, dR0s);
 	      hfsr1s->SetBinContent(i, dR1s);
@@ -434,10 +608,10 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 		   << " R1="<<R1_d/R1_m<<" raw="<<mpf<<endl;
 	      cout << "  - r0="<<r0<<" r1="<<r1<<" rn="<<rn<<" ru="<<ru<<endl;
 	      cout << "  - q0="<<q0<<" q1="<<q1<<" qn="<<qn<<" qu="<<qu<<endl;
-	    } // mpfchs1
+	    } // mpfchs1 z
 
 	    // For pT balance, correct estimate p1 based on pn and pu
-	    if (m=="ptchs") {
+	    if (m=="ptchs" && s!="multijet") {
 
 	      //double dR = (r1/P1_d) / (q1/P1_m) - (r1 / q1);
 	      // r1/q1*( (P1_m - P1_d)/P1_d )
@@ -454,6 +628,8 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      fp->SetParameters(q1, qn, qu, Rn_m, Ru_m);
 	      double R1_m = fp->GetX(0,xmin,xmax);
 	      double dR = R1_d / R1_m - r1 / q1;
+	      double dR_d = R1_d - r1;
+	      double dR_m = R1_m - q1;
 
 	      fp->SetParameters(r1, rn, ru, Rn_d+dRnd, Ru_d);
 	      double R1_dn1 = fp->GetX(0,xmin,xmax);
@@ -512,7 +688,18 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 	      double ddR = sqrt(pow(dRn1,2) + pow(dRn2,2) +
 				pow(dRu1,2)+pow(dRu2,2));
-	      hfsr->SetBinContent(i, dR);
+
+	      if (d=="ratio") hdm->SetBinContent(i, R1_d / R1_m);
+	      if (d=="data")  hdm->SetBinContent(i, R1_d);
+	      if (d=="mc")    hdm->SetBinContent(i, R1_m);
+	      // Statistical uncertainty will need more careful handling
+	      if (d=="ratio") hdm->SetBinError(i, sqrt(er0*er0 + eq0*eq0));
+	      if (d=="data")  hdm->SetBinError(i, er0);
+	      if (d=="mc")    hdm->SetBinError(i, eq0);
+
+	      if (d=="ratio") hfsr->SetBinContent(i, dR);
+	      if (d=="data")  hfsr->SetBinContent(i, dR_d);
+	      if (d=="mc")    hfsr->SetBinContent(i, dR_m);
 	      hfsr->SetBinError(i, ddR);
 	      hfsr0s->SetBinContent(i, dR0s);
 	      hfsr1s->SetBinContent(i, dR1s);
@@ -527,9 +714,11 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 		   << " R1="<<R1_d/R1_m<<" raw="<<ptbal<<endl;
 	      cout << "  - r0="<<r0<<" r1="<<r1<<" rn="<<rn<<" ru="<<ru<<endl;
 	      cout << "  - q0="<<q0<<" q1="<<q1<<" qn="<<qn<<" qu="<<qu<<endl;
-	    } // ptchs
+	    } // ptchs z
 	  } // for i
 
+	  finout->mkdir(Form("%s/eta%02d-%02d/fsr",
+			     cd,int(10*etamin),int(10*etamax)));
 	  finout->cd(Form("%s/eta%02d-%02d/fsr",
 			  cd,int(10*etamin),int(10*etamax)));
 	  hfsr->Write(Form("hkfsr3_%s_%s",cm,cs),TObject::kOverwrite);
@@ -541,6 +730,9 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  hfsru1->Write(Form("hkfsr3_%s_%s_mpfu1",cm,cs),TObject::kOverwrite);
 	  hfsru2->Write(Form("hkfsr3_%s_%s_mpfu2",cm,cs),TObject::kOverwrite);
 	  hfsrus->Write(Form("hkfsr3_%s_%s_mpfus",cm,cs),TObject::kOverwrite);
+	  finout->cd(Form("%s/eta%02d-%02d",
+			  cd,int(10*etamin),int(10*etamax)));
+	  hdm->Write(Form("hdm_%s_%s",cm,cs),TObject::kOverwrite);
 	  curdir->cd();
 
 	} // mpfchs
