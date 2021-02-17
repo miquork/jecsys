@@ -9,10 +9,9 @@ void drawZBrhoVsNpv() {
   TChain *tma = new TChain("T","T"); // APV / preVFP / BCDEF
   tma->Add("rootfiles/L1OffsetUL16_VFP/MCUL16/Offset_MC_UL2016_FlatPU0to75_106X_preVFP_v8_total.root");
 
-  /*
   TChain *tmb = new TChain("T","T"); // non-APV / postVFP / GH
-  tmb->Add("rootfiles/L1OffsetUL16_VFP/MCUL16/Offset_DATA_UL2016_postVFP_total.root");
-  */
+  tmb->Add("rootfiles/L1OffsetUL16_VFP/MCUL16/Offset_MC_UL2016_postVFP_total.root");
+
   TChain *tda = new TChain("T","T"); // APV / preVFP / BCDEF
   tda->Add("rootfiles/L1OffsetUL16_VFP/DataUL16/Offset_Data_UL2016B_preVFP_reduced.root");
   tda->Add("rootfiles/L1OffsetUL16_VFP/DataUL16/Offset_Data_UL2016C_preVFP_reduced.root");
@@ -30,8 +29,8 @@ void drawZBrhoVsNpv() {
 
   tma->Draw("rho:mu>>p_rho_nPU_MC16BCDEF(100,0,100)","","prof");
   tma->Draw("nPV:mu>>p_nPV_nPU_MC16BCDEF(100,0,100)","","prof");
-  //tmb->Draw("rho:mu>>p_rho_nPU_MC16GH(100,0,100)","","prof");
-  //tmb->Draw("nPV:mu>>p_nPV_nPU_MC16GH(100,0,100)","","prof");
+  tmb->Draw("rho:mu>>p_rho_nPU_MC16GH(100,0,100)","","prof");
+  tmb->Draw("nPV:mu>>p_nPV_nPU_MC16GH(100,0,100)","","prof");
 
   tda->Draw("rho:mu>>p_rho_nPU_UL16BCDEF(100,0,100)","","prof");
   tda->Draw("nPV:mu>>p_nPV_nPU_UL16BCDEF(100,0,100)","","prof");
