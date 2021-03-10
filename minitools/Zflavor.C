@@ -29,8 +29,15 @@ TH2D *h2rm(0), *h2rd(0), *h2rf(0);
 //        This could stabilize inversion. Check condidion number?
 
 bool drawFit = false;
-double quarkScale = 1;//0.998;//1.001;//1.005;
-double gluonScale = 1;//0.995;//0.970;
+// Use flavor fractions solved from data (false: use MC fractions)
+double effScaleZ = 1.05; // QGL study 1.05, other samples 1.00, closest 1.02
+bool useDataFracs = true;
+bool useDataEff = false;//true; // does not work yet
+bool useMCEff = false;//true;
+//bool useSmoothMCEff = true;
+// Allow to test rough scale changes
+double quarkScale = 1;//1.0025;//0.998;//1.001;//1.005;
+double gluonScale = 1;//0.990;//0.995;//0.970;
 // Could check stability of quark scale with Qtag from W>qq'
 double quarkScaleQtag = 1;//1.001;//1.005;
 double quarkScaleGtag = 1;//0.997;
@@ -39,7 +46,7 @@ double gluonScaleQtag = 1;//1.002;
 double gluonScaleGtag = 1;//0.995;
 
 // Model of gluon efficiency based on dijet MC and official shape SF
-double gluonEffSF(double ptmin, double ptmax, double &ineffsf);
+double gluonEffSF(double ptmin, double ptmax, double &ineffsf, double mceff=0);
 double quarkEffSF(double ptmin, double ptmax, double &ineffsf);
 double heavyEffSF(double pt, double &mistag);
 
@@ -53,9 +60,9 @@ Double_t fR(const Double_t *x, const Double_t *p) {
   // double x = i*log10(ptbins[npt]/pt0) + log10(pt/pt0);
   double pt0 = _ptbins[0];
   int itag = int((*x) / log10(_ptbins[_npt]/pt0));
-  if (!(itag>=0 && itag<5)) return 0;
+  if (!(itag>=0 && itag<6)) return 0;
   assert(itag>=0);
-  assert(itag<5);
+  assert(itag<6);
   double pt = pt0*pow(10., (*x)-itag*log10(_ptbins[_npt]/pt0));
   if (!(pt>_ptbins[0] && pt<_ptbins[_npt])) return 0; // excludes nan also
   assert(pt>_ptbins[0] && pt<_ptbins[_npt]);
@@ -66,6 +73,17 @@ Double_t fR(const Double_t *x, const Double_t *p) {
 
   return max(0.85,min(1.15,r));
 }
+Double_t fR1(const Double_t *x, const Double_t *p) {
+  double pt0 = _ptbins[0];
+  int itag = int((*x) / log10(_ptbins[_npt]/pt0));
+  double pt = pt0*pow(10., (*x)-itag*log10(_ptbins[_npt]/pt0));
+  if (!(pt>_ptbins[0] && pt<_ptbins[_npt])) return 0; // excludes nan also
+  assert(pt>_ptbins[0] && pt<_ptbins[_npt]);
+
+  double r = p[0] + p[1]*(pow(0.01*pt,p[2])-1);
+
+  return r;
+}
 
 // 2D model of tagged flavor fraction over tag
 const int _npw = 4;
@@ -73,9 +91,9 @@ Double_t fW(const Double_t *x, const Double_t *p) {
 
   double pt0 = _ptbins[0];
   int itag = int((*x) / log10(_ptbins[_npt]/pt0));
-  if (!(itag>=0 && itag<5)) return 0;
+  if (!(itag>=0 && itag<6)) return 0;
   assert(itag>=0);
-  assert(itag<5);
+  assert(itag<6);
   double pt = pt0*pow(10., (*x)-itag*log10(_ptbins[_npt]/pt0));
   if (!(pt>_ptbins[0] && pt<_ptbins[_npt])) return 0; // excludes nan also
   assert(pt>_ptbins[0] && pt<_ptbins[_npt]);
@@ -113,19 +131,37 @@ void Zflavor() {
   
   // pT range can be adjusted here to avoid empty bins
   double ptbins[] =
+  // Region with stable unfolded behavior for q, g, b
+    {45, 50, 60, 70, 85, 105, 130, 175, 230, 300};
   // Region with sensible gluon behavior (Rq>Rg for q-tag)
-    {40, 45, 50, 60, 70, 85, 105, 130, 175, 230, 300};
+    //{40, 45, 50, 60, 70, 85, 105, 130, 175, 230, 300};
+  // Avoid high (>5%) 'none' fraction in tags
+    //{35, 40, 45, 50, 60, 70, 85, 105, 130, 175, 230, 300};
   // Avoid non-physics region
     //{30, 35, 40, 45, 50, 60, 70, 85, 105, 130, 175, 230, 300};
   // Full range
-    //{15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 85, 105, 130, 175, 230, 300};
+  //{15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 85, 105, 130, 175, 230, 300};
   //400, 500, 700};
   const int npt = sizeof(ptbins)/sizeof(ptbins[0])-1;
   _ptbins = &ptbins[0]; // warning: ptbins destroyed at the end, should clone it
   _npt = npt;
+  double etamax = 2.5;
+  double ptmin = ptbins[0];
+  double ptmax = ptbins[npt];
+
+  TLatex *tex = new TLatex();
+  tex->SetTextSize(0.040);
+  tex->SetNDC();
 
   // Ordering of tag and flavor bins can be changed here
   // Naming scheme corresponds to rootfiles/jecdata[X].root
+  /*
+  const int nt = 6;
+  string tagbins[] = {"i","q","g","c","b","n"};
+  // Flavor bins separately from tag to enable differentiating ud, s,or other
+  const int nf = 6;
+  string flvbins[] = {"i","q","g","c","b","n"};
+  */
   const int nt = 5;
   string tagbins[] = {"i","q","g","c","b"};
   // Flavor bins separately from tag to enable differentiating ud, s,or other
@@ -150,17 +186,19 @@ void Zflavor() {
   taglabel["g"] = "g tag";
   taglabel["c"] = "c tag";
   taglabel["b"] = "b tag";
+  taglabel["n"] = "none";
   // Legen labels to be used on plots
   map<string,const char*> flvlabel;
-  flvlabel["i"] = "Any jet";
+  flvlabel["i"] = "Flavor sum";//"Any jet";
   flvlabel["q"] = "uds jet";
   flvlabel["g"] = "g jet";
   flvlabel["c"] = "c jet";
   flvlabel["b"] = "b jet";
+  flvlabel["n"] = "none";
   
   // Reference 2D histogram
   //TH2D *h2ref = new TH2D("h2ref",";Tag region and p_{T} bin;True flavor",
-  TH2D *h2ref = new TH2D("h2ref",";Global bin(tag, p_{T});True flavor",
+  TH2D *h2ref = new TH2D("h2ref",";Global bin(tag, log(p_{T}));True flavor",
 			 vx.size()-1,&vx[0], nf,-0.5,nf-0.5);
   for (int i = 0; i != nt; ++i)
     h2ref->GetXaxis()->SetBinLabel(int((i+0.5)*npt), taglabel[tagbins[i]]);
@@ -174,10 +212,12 @@ void Zflavor() {
 
   TFile *f = new TFile("rootfiles/jecdata2018ABCD.root","READ");
   assert(f && !f->IsZombie());
-  f->cd("mc/eta00-25");
+  f->cd(Form("mc/eta00-%d",int(10*etamax)));
   TDirectory *dm = gDirectory;
-  f->cd("data/eta00-25");
+  f->cd(Form("data/eta00-%d",int(10*etamax)));
   TDirectory *dd = gDirectory;
+  f->cd(Form("ratio/eta00-%d",int(10*etamax)));
+  TDirectory *dr = gDirectory;
 
   TH2D *h2n = (TH2D*)h2ref->Clone("h2n"); // event counts
   TH2D *h2r = (TH2D*)h2ref->Clone("h2r"); // responses
@@ -196,7 +236,10 @@ void Zflavor() {
       // MC simulation
       TH1D *hn = (TH1D*)dm->Get(Form("counts_z%s%s_a100",ct,cf));
       assert(hn);
-      TH1D *hr = (TH1D*)dm->Get(Form("hdm_mpfchs1_z%s%s",ct,cf));
+      string sr = Form("hdm_mpfchs1_z%s%s",ct,cf);
+      const char *cr = sr.c_str();
+      TH1D *hr = (TH1D*)dm->Get(cr);
+      if (!hr) cout << "Missing " << cr << endl << flush;
       assert(hr);
 
       // Data
@@ -220,6 +263,12 @@ void Zflavor() {
 	  double ix = h2ref->GetXaxis()->FindBin(x);
 	  double iy = h2ref->GetYaxis()->FindBin(j);
 	  assert(h2ref->GetBinContent(ix,iy)==0);
+	  
+	  double n = hn->GetBinContent(ipt);
+	  if (!(n>=0 || n<0)) { // Catch Inf/NaN problems
+	    cout << "Warning: NaN problem for " << sr
+		 << " ipt " << ipt << endl;
+	  }
 
 	  h2n->SetBinContent(ix,iy, hn->GetBinContent(ipt) / dpt);
 	  h2n->SetBinError(ix,iy, hn->GetBinError(ipt) / dpt);
@@ -254,7 +303,7 @@ void Zflavor() {
       } // for it
       // Exclusive flavor tags->inclusive flavor
       h2n->SetBinContent(i0,j,sumwt);
-      h2r->SetBinContent(i0,j,sumwtr/sumwt);
+      h2r->SetBinContent(i0,j,sumwt!=0 ? sumwtr/sumwt : 0);
     } // for iq
 
     // Check magnitude of change
@@ -264,7 +313,7 @@ void Zflavor() {
 
     // Exclusive flavor tags->fully inclusive Z+jet
     h2n->SetBinContent(i0,1,sumwf);
-    h2r->SetBinContent(i0,1,sumwfr/sumwf);
+    h2r->SetBinContent(i0,1,sumwf!=0 ? sumwfr/sumwf : 0);
     //assert(fabs(sumwf-1)<1e-3);
     //assert(fabs(sumwf-1)<1e-1);
   } // for ipt
@@ -296,7 +345,7 @@ void Zflavor() {
       cout << "ipt="<<ipt<< " h2rd=="<<h2rd->GetBinContent(i0,j)
 	   <<" <r>="<<sumwtr/sumwt<<endl<<flush;
     h2nd->SetBinContent(i0,j,sumwt);
-    h2rd->SetBinContent(i0,j,sumwtr/sumwt);
+    h2rd->SetBinContent(i0,j,sumwt!=0 ? sumwtr/sumwt : 0);
 
     //assert(h2n->GetBinContent(i0,j)==sumwtm);
     //if (!(h2n->GetBinContent(i0,j)==sumwtm))
@@ -331,21 +380,33 @@ void Zflavor() {
   for (int i = 1; i != h2ref->GetNbinsX()+1; ++i) {
     for (int j = 1; j != h2ref->GetNbinsY()+1; ++j) {
       double k = (i-1) % npt + 1;
-      h2wi->SetBinContent(i,j,h2n->GetBinContent(i,j)/h2n->GetBinContent(k,1));
-      h2wi->SetBinError(i,j,h2n->GetBinError(i,j)/h2n->GetBinContent(k,1));
-      h2wf->SetBinContent(i,j,h2n->GetBinContent(i,j)/h2n->GetBinContent(i,1));
-      h2wf->SetBinError(i,j,h2n->GetBinError(i,j)/h2n->GetBinContent(i,1));
-      //
-      h2wid->SetBinContent(i,j,h2nd->GetBinContent(i,j) /
+      if (h2n->GetBinContent(k,1)!=0) {
+	h2wi->SetBinContent(i,j,h2n->GetBinContent(i,j) / 
+			    h2n->GetBinContent(k,1));
+	h2wi->SetBinError(i,j,h2n->GetBinError(i,j) /
+			  h2n->GetBinContent(k,1));
+      }
+      if (h2n->GetBinContent(i,1)!=0) {
+	h2wf->SetBinContent(i,j,h2n->GetBinContent(i,j) /
+			    h2n->GetBinContent(i,1));
+	h2wf->SetBinError(i,j,h2n->GetBinError(i,j) /
+			  h2n->GetBinContent(i,1));
+      }
+      if (h2nd->GetBinContent(k,1)!=0) {
+	h2wid->SetBinContent(i,j,h2nd->GetBinContent(i,j) /
+			     h2nd->GetBinContent(k,1));
+	//h2n->GetBinContent(k,1));
+	h2wid->SetBinError(i,j,h2nd->GetBinError(i,j) / 
 			   h2nd->GetBinContent(k,1));
-			   //h2n->GetBinContent(k,1));
-      h2wid->SetBinError(i,j,h2nd->GetBinError(i,j) / 
-			 h2nd->GetBinContent(k,1));
-      h2wfd->SetBinContent(i,j,h2nd->GetBinContent(i,j) / 
+      }
+      if (h2nd->GetBinContent(i,1)!=0) {
+	h2wfd->SetBinContent(i,j,h2nd->GetBinContent(i,j) / 
+			     h2nd->GetBinContent(i,1));
+	//h2n->GetBinContent(i,1));
+	h2wfd->SetBinError(i,j,h2nd->GetBinError(i,j) / 
 			   h2nd->GetBinContent(i,1));
-			   //h2n->GetBinContent(i,1));
-      h2wfd->SetBinError(i,j,h2nd->GetBinError(i,j) / 
-			 h2nd->GetBinContent(i,1));
+      }
+
       // scale c,b fractions to better represent their contribution to
       // HDM response differences (due to 5-10% of neutrinos)
       int t = (i-1)/npt+1;
@@ -356,10 +417,12 @@ void Zflavor() {
       if (j==4 && t==5) F = 2;
       if (j==5 && t<4)  F = 10;
       if (j==5 && t==4) F = 2;
-      h2wF->SetBinContent(i,j,F*h2n->GetBinContent(i,j) / 
+      if (h2n->GetBinContent(i,1)!=0) {
+	h2wF->SetBinContent(i,j,F*h2n->GetBinContent(i,j) / 
+			    h2n->GetBinContent(i,1));
+	h2wF->SetBinError(i,j,F*h2n->GetBinError(i,j) / 
 			  h2n->GetBinContent(i,1));
-      h2wF->SetBinError(i,j,F*h2n->GetBinError(i,j) / 
-			h2n->GetBinContent(i,1));
+      }
     } // for j
   } // for i
   
@@ -373,19 +436,30 @@ void Zflavor() {
     for (int j = 1; j != h2ref->GetNbinsY()+1; ++j) {
       double k = (i-1) % npt + 1;
       if (h2r->GetBinContent(i,j)>0) { // filter out nan in one q bin
-	h2ri->SetBinContent(i,j,h2r->GetBinContent(i,j) /
+	if (h2r->GetBinContent(k,1)!=0) {
+	  h2ri->SetBinContent(i,j,h2r->GetBinContent(i,j) /
+			      h2r->GetBinContent(k,1));
+	  h2ri->SetBinError(i,j,h2r->GetBinError(i,j) /
 			    h2r->GetBinContent(k,1));
-	h2ri->SetBinError(i,j,h2r->GetBinError(i,j)/h2r->GetBinContent(k,1));
-	h2rf->SetBinContent(i,j,h2r->GetBinContent(i,j) /
+	}
+	if (h2r->GetBinContent(i,1)!=0) {
+	  h2rf->SetBinContent(i,j,h2r->GetBinContent(i,j) /
+			      h2r->GetBinContent(i,1));
+	  h2rf->SetBinError(i,j,h2r->GetBinError(i,j) /
 			    h2r->GetBinContent(i,1));
-	h2rf->SetBinError(i,j,h2r->GetBinError(i,j)/h2r->GetBinContent(i,1));
-
-	h2rid->SetBinContent(i,j,h2rd->GetBinContent(i,j) /
-			    h2rd->GetBinContent(k,1));
-	h2rid->SetBinError(i,j,h2rd->GetBinError(i,j)/h2rd->GetBinContent(k,1));
-	h2rfd->SetBinContent(i,j,h2rd->GetBinContent(i,j) /
-			    h2rd->GetBinContent(i,1));
-	h2rfd->SetBinError(i,j,h2rd->GetBinError(i,j)/h2rd->GetBinContent(i,1));
+	}
+	if (h2rd->GetBinContent(k,1)!=0) {
+	  h2rid->SetBinContent(i,j,h2rd->GetBinContent(i,j) /
+			       h2rd->GetBinContent(k,1));
+	  h2rid->SetBinError(i,j,h2rd->GetBinError(i,j) /
+			     h2rd->GetBinContent(k,1));
+	}
+	if (h2rd->GetBinContent(i,1)!=0) {
+	  h2rfd->SetBinContent(i,j,h2rd->GetBinContent(i,j) /
+			       h2rd->GetBinContent(i,1));
+	  h2rfd->SetBinError(i,j,h2rd->GetBinError(i,j) /
+			     h2rd->GetBinContent(i,1));
+	}
       }
     } // for j
   } // for i
@@ -419,6 +493,14 @@ void Zflavor() {
   double xmin2 = href->GetXaxis()->GetBinLowEdge(npt+1)+1e-4;
   double dx = xmin2-xmin;
   double xmax = href->GetXaxis()->GetBinLowEdge(href->GetNbinsX()+1)-1e-4;
+
+  TH1D *hreff = h2wi->ProjectionX("hreff",1,1); hreff->Reset();
+  for (int i = 1; i != hreff->GetNbinsX()+1; ++i)
+    hreff->GetXaxis()->SetBinLabel(i, " ");
+  for (int i = 0; i != nf; ++i)
+    hreff->GetXaxis()->SetBinLabel(int((i+0.5)*npt), flvlabel[flvbins[i]]);
+  hreff->GetXaxis()->SetTitle("Global bin(flavor, log(p_{T}))");
+
 
   lumi_13TeV = "[Z+jet] UL17+18, 101.4 fb^{-1}";
   TH1D *h0 = (TH1D*)href->Clone("h0");
@@ -471,9 +553,11 @@ void Zflavor() {
   hwd->Fit(fb,"QRN");
   fb->Draw("SAME");
 
+  tex->DrawLatex(0.18,0.77,Form("|#eta|<%1.1f, %1.0f--%1.0f GeV",
+				etamax,ptmin,ptmax));
+
   gPad->Update();
   c0->SaveAs("pdf/Zflavor_counts_v1.pdf");
-
 
   //lumi_13TeV = "UL17+18, 101.4 fb^{-1}";
   TH1D *h1 = (TH1D*)href->Clone("h1");
@@ -494,7 +578,8 @@ void Zflavor() {
   // Create smoothed variant of flavor fractions vs Z+tag and Z+jet
   TH2D *h2wfs = (TH2D*)h2ref->Clone("h2wfs");
   TH2D *h2wis = (TH2D*)h2ref->Clone("h2wis");
-  int color[nf] = {kBlack,kBlue,kOrange+2,kGreen+2,kRed};
+  //int color[nf] = {kBlack,kBlue,kOrange+2,kGreen+2,kRed,kGray+1};
+  int color[6] = {kBlack,kBlue,kOrange+2,kGreen+2,kRed,kGray+1};
   for (int iq = 0; iq != nf; ++iq) {
     int j = iq+1;
     //TH1D *hw = h2wi->ProjectionX(Form("hw%d",j),j,j);
@@ -543,21 +628,31 @@ void Zflavor() {
     }
     // Reduce degrees of freedom when statistics low and no clear evidence
     if (_npw==4) {
+      if (iq==5) f1->FixParameter(_npw*1+3,0.);
+      if (iq==5) f1->FixParameter(_npw*2+3,0.);
+      if (iq==5) f1->FixParameter(_npw*3+3,0.);
+      if (iq==5) f1->FixParameter(_npw*4+3,0.);
+      if (iq==5) f1->FixParameter(_npw*5+3,0.); // n-in-n
+      //
       if (iq==4) f1->FixParameter(_npw*1+3,0.);
       if (iq==4) f1->FixParameter(_npw*2+3,0.);
       if (iq==4) f1->FixParameter(_npw*3+3,0.);
       if (iq==4) f1->FixParameter(_npw*4+3,0.); // b-in-b
+      if (iq==4) f1->FixParameter(_npw*5+3,0.);
       //
       if (iq==3) f1->FixParameter(_npw*1+3,0.);
       if (iq==3) f1->FixParameter(_npw*2+3,0.);
       if (iq==3) f1->FixParameter(_npw*3+3,0.); // c-in-c
       if (iq==3) f1->FixParameter(_npw*4+3,0.);
+      if (iq==3) f1->FixParameter(_npw*5+3,0.);
       //
       if (iq==2) f1->FixParameter(_npw*3+3,0.);
       if (iq==2) f1->FixParameter(_npw*4+3,0.);
+      if (iq==2) f1->FixParameter(_npw*5+3,0.);
       //
       if (iq==1) f1->FixParameter(_npw*3+3,0.);
       if (iq==1) f1->FixParameter(_npw*4+3,0.);
+      if (iq==1) f1->FixParameter(_npw*5+3,0.);
     }
     hw->Fit(f1,"QRN");
     f1->SetLineStyle(kDotted);
@@ -598,8 +693,8 @@ void Zflavor() {
       // Normalize fraction sum to 100%
       for (int iq = 1; iq != nf; ++iq) {
 	int j = iq+1;
-	h2wfs->SetBinContent(i,j, h2wfs->GetBinContent(i,j)/sumw);
-	h2wis->SetBinContent(i,j, h2wis->GetBinContent(i,j)/sumw);
+	h2wfs->SetBinContent(i,j, sumw!=0 ? h2wfs->GetBinContent(i,j)/sumw : 0);
+	h2wis->SetBinContent(i,j, sumw!=0 ? h2wis->GetBinContent(i,j)/sumw : 0);
       } // for iq
     } // for it
   } // for ipt
@@ -627,6 +722,9 @@ void Zflavor() {
     //assert(fabs(sumwf-1)<1e-3);
     if (!(fabs(sumwf-1)<1e-3))
       cout << " sumwf-1="<<sumwf-1<<endl;
+    if (!(sumwf<0 || sumwf>=0)) { // catch Inf/NaN
+      cout << " => NaN problem" << endl;
+    }
   } // for ipt
 
   // Draw smoother plots on top
@@ -645,6 +743,11 @@ void Zflavor() {
   l->DrawLine(xmin+2*dx,0.,xmin+2*dx,1.);
   l->DrawLine(xmin+3*dx,0.,xmin+3*dx,1.);
   l->DrawLine(xmin+4*dx,0.,xmin+4*dx,1.);
+
+  tex->SetTextSize(0.030);
+  tex->DrawLatex(0.18,0.77,Form("|#eta|<%1.1f, %1.0f-%1.0f GeV",
+				etamax,ptmin,ptmax));
+  tex->SetTextSize(0.040);
 
   gPad->Update();
   c1->SaveAs("pdf/Zflavor_mcfrac_v1.pdf");
@@ -704,25 +807,52 @@ void Zflavor() {
 		      2*nt);
     f1->SetLineColor(color[iq]);
     // First free fit
-    f1->SetParameters(1,0,1,0,1,0,1,0,1,0);
+    //f1->SetParameters(1,0,1,0,1,0,1,0,1,0,1,0);
+    for (int i = 0; i != nt; ++i) {
+      f1->SetParameter(2*i,1);
+      f1->SetParameter(2*i+1,0);
+    }
+  
+    // Fix 'none' to single constant, only matters at very low pT
+    if (iq==5) for (int i = 0; i != nt; ++i) f1->FixParameter(2*i+1,0.);
+    if (iq==0 && nt>5) f1->FixParameter(2*5+1,0);//2*(nt-1)+1,0.);
+
     hr->Fit(f1,"QRN");
+
     // Next, fix slope of each tag region to inclusive (high statistics)
     if (iq!=0) {
       f1->FixParameter(3,f1->GetParameter(1));
       f1->FixParameter(5,f1->GetParameter(1));
       f1->FixParameter(7,f1->GetParameter(1));
       f1->FixParameter(9,f1->GetParameter(1));
+      if (nt>5) {
+	f1->FixParameter(10,f1->GetParameter(0)*0.95); // none
+	f1->FixParameter(11,f1->GetParameter(1));
+      }
+    }
+    // Fix 'none' to one for all regions to avoid instabilities
+    if (iq==5) {
+      f1->FixParameter(0,1.05); // constant of 'none'
+      f1->FixParameter(1,0.);   // slope of 'none'
+      f1->FixParameter(2,f1->GetParameter(0));
+      f1->FixParameter(4,f1->GetParameter(0));
+      f1->FixParameter(6,f1->GetParameter(0));
+      f1->FixParameter(8,f1->GetParameter(0));
+      f1->FixParameter(10,f1->GetParameter(0));
     }
     hr->Fit(f1,"QRN");
+
     // Finally, fix value to inclusive if not significant (>2 sigma)
     if (iq!=0) {
       double k = f1->GetChisquare()/f1->GetNDF();
       for (int it = 0; it != nt; ++it) {
 	if (fabs(f1->GetParameter(2*it)-f1->GetParameter(0)) < 
-	    2*k*f1->GetParError(2*it) && !(iq==1&&it==1))
+	    2*k*f1->GetParError(2*it) && !((iq==1&&it==1)||(iq==1&&it==2)||
+					   (iq<3&&it==5)))
 	  f1->FixParameter(2*it, f1->GetParameter(0));
       }
     }
+
     hr->Fit(f1,"QRN");
     if (drawFit) 
       f1->Draw("SAME");
@@ -767,12 +897,12 @@ void Zflavor() {
 	sumwfr += h2wis->GetBinContent(i,j) * h2ris->GetBinContent(i,j);
       } // for it
       // Exclusive flavor tags->inclusive flavor
-      h2ris->SetBinContent(i0,j,sumwtr/sumwt);
-      h2ris->SetBinContent(i0,j,sumwtr/sumwt);
+      h2ris->SetBinContent(i0,j,sumwt!=0 ? sumwtr/sumwt : 0);
+      h2ris->SetBinContent(i0,j,sumwt!=0 ? sumwtr/sumwt : 0);
     } // for iq
     // Exclusive flavor tags->fully inclusive Z+jet
-    h2ris->SetBinContent(i0,1,sumwfr/sumwf);
-    h2ris->SetBinContent(i0,1,sumwfr/sumwf);
+    h2ris->SetBinContent(i0,1,sumwf!=0 ? sumwfr/sumwf : 0);
+    h2ris->SetBinContent(i0,1,sumwf!=0 ? sumwfr/sumwf : 0);
     //assert(fabs(sumwf-1)<1e-3);
     if(!(fabs(sumwf-1)<1e-3))
       cout << "  sumwf-1=="<<sumwf-1<<endl;
@@ -790,8 +920,8 @@ void Zflavor() {
 	sumwqr += h2wis->GetBinContent(i,j) * h2ris->GetBinContent(i,j);
       } // for it
       // Exclusive flavor tags->inclusive flavor
-      h2ris->SetBinContent(i,1,sumwqr/sumwq);
-      h2ris->SetBinContent(i,1,sumwqr/sumwq);
+      h2ris->SetBinContent(i,1,sumwq!=0 ? sumwqr/sumwq : 0);
+      h2ris->SetBinContent(i,1,sumwq!=0 ? sumwqr/sumwq : 0);
     } // for iq
   } // for ipt
 
@@ -809,6 +939,9 @@ void Zflavor() {
   l->DrawLine(xmin+3*dx,0.85,xmin+3*dx,1.04);
   l->DrawLine(xmin+4*dx,0.85,xmin+4*dx,1.04);
   
+  tex->DrawLatex(0.18,0.75,Form("|#eta|<%1.1f, %1.0f-%1.0f GeV",
+				etamax,ptmin,ptmax));
+
   gPad->Update();
   c2->SaveAs("pdf/Zflavor_mcresp_v1.pdf");
 
@@ -826,11 +959,13 @@ void Zflavor() {
     int ig = 2*npt + ipt + 1;
     int ic = 3*npt + ipt + 1;
     int ib = 4*npt + ipt + 1;
+    int in = 5*npt + ipt + 1;
     int ji = 0+1;
     int jq = 1+1;
     int jg = 2+1;
-    int jc = 2+1;
+    int jc = 3+1;
     int jb = 4+1;
+    int jn = 5+1;
 
     // Correct for gluon efficiency
     bool fixGluon = true;
@@ -842,7 +977,8 @@ void Zflavor() {
       // Update this based on better calculation of gluon efficiency
       double ineffgsf;
       //double effgnew = effg*0.55; // 0.55 is a good guesstimate (or not)
-      double effgsf = gluonEffSF(ptbins[ipt],ptbins[ipt+1],ineffgsf);
+      double effgsf = gluonEffSF(ptbins[ipt],ptbins[ipt+1],ineffgsf,
+				 useMCEff ? effg : 0);
       double effgnew = effg*effgsf;
       double nggnew = ngi * effgnew; // = ngg*0.8
       double ngqnew = ngq + (ngg-nggnew);
@@ -940,8 +1076,9 @@ void Zflavor() {
       for (int iq = 0; iq != nf; ++iq) {
 	int i = it*npt + ipt + 1;
 	int j = iq+1;
-	h2wfss->SetBinContent(i,j,h2wiss->GetBinContent(i,j) / 
-			      h2wiss->GetBinContent(i,1));
+	if (h2wiss->GetBinContent(i,1)!=0) 
+	  h2wfss->SetBinContent(i,j,h2wiss->GetBinContent(i,j) / 
+				h2wiss->GetBinContent(i,1));
       } // for iq
     } // for it
   } // for ipt
@@ -1029,10 +1166,10 @@ void Zflavor() {
 	    h2mem->GetBinContent(k,j) /
 	    h2mem->GetBinContent(k,1);
 	  MEm[kt][kf] =
-	    h2mem->GetBinContent(i,  j) /
+	    h2mem->GetBinContent(i,j) /
 	    h2mem->GetBinContent(k,j);
 	  MEd[kt][kf] =
-	    h2med->GetBinContent(i,  j) /
+	    h2med->GetBinContent(i,j) /
 	    h2med->GetBinContent(k,j);
 	}
       } // for iq
@@ -1087,8 +1224,9 @@ void Zflavor() {
   // Create matrices mapping responses to tag reponse
   TMatrixD MEWRm((nt-1)*npt,(nt-1)*npt);
   TMatrixD MEWRd((nt-1)*npt,(nt-1)*npt);
-  TMatrixD rtm((nt-1)*npt,1), rfm((nt-1)*npt,1), rf((nt-1)*npt,1);
-  TMatrixD rtd((nt-1)*npt,1), rfd((nt-1)*npt,1);
+  TMatrixD rtm((nt-1)*npt,1),/* *rfm((nt-1)*npt,1),*/ rf((nt-1)*npt,1);
+  TMatrixD rtd((nt-1)*npt,1);/*, rfd((nt-1)*npt,1);*/
+  TMatrixD retm((nt-1)*npt,1), retd((nt-1)*npt,1), ref((nt-1)*npt,1);
   
   // Create TH2D based on new flavor fractions solved from data
   TH2D *h2wissd = (TH2D*)h2ref->Clone("h2wissd"); h2wissd->Reset();
@@ -1096,7 +1234,7 @@ void Zflavor() {
 
   for (int ipt = 0; ipt != npt; ++ipt) {
     for (int it = 1; it != nt; ++it) { // skip inclusive '0'
-      for (int iq = 1; iq != nf; ++iq) { // inclusive '0' separate treatment
+      for (int iq = 0; iq != nf; ++iq) { // inclusive '0' separate treatment
 	
 	// Indeces in matrix, excludes inclusive flavor and tag
 	int kt = npt*(it-1) + ipt;
@@ -1108,36 +1246,68 @@ void Zflavor() {
 	// value in x-axis
 	double x = h2ref->GetXaxis()->GetBinCenter(i);
 
-	double Ntf = MEd[kt][kf]*ffd[kf][0];
-	h2wissd->SetBinContent(i,j,Ntf); 
-	h2wissd->SetBinContent(k,j,h2wissd->GetBinContent(k,j)+Ntf);
-	h2wissd->SetBinContent(i,1,h2wissd->GetBinContent(i,1)+Ntf);
-	h2wissd->SetBinContent(k,1,h2wissd->GetBinContent(k,1)+Ntf);
+	if (j!=1) {
+	  double Ntf = MEd[kt][kf]*ffd[kf][0];
+	  h2wissd->SetBinContent(i,j,Ntf); 
+	  h2wissd->SetBinContent(k,j,h2wissd->GetBinContent(k,j)+Ntf);
+	  h2wissd->SetBinContent(i,1,h2wissd->GetBinContent(i,1)+Ntf);
+	  h2wissd->SetBinContent(k,1,h2wissd->GetBinContent(k,1)+Ntf);
+	}
 
 	// Tag fractions ft, smoothed for both data and MC
-	if (j==1) {
-	  rtm[kt][0] = 
-	    h2ris->GetBinContent(i,1) /
-	    h2ris->GetBinContent(k,1);
+	if (j==1) { // inclusive true flavor, fill observed tag responses
+	  /*
+	  rtm[kt][0] = (h2ris->GetBinContent(k,1)!=0 ? 
+			h2ris->GetBinContent(i,1) /
+			h2ris->GetBinContent(k,1) : 0);
+	  */
+	  rtm[kt][0] = (h2ri ->GetBinContent(k,1)!=0 ? 
+			h2ri ->GetBinContent(i,1) /
+			h2ri ->GetBinContent(k,1) : 0);
+	  retm[kt][0] = (h2ri ->GetBinContent(k,1)!=0 ? 
+			 h2ri ->GetBinError(i,1) /
+			 h2ri ->GetBinContent(k,1) : 0);
 	    //h2ris->GetBinContent(i,1) /
 	    //h2ris->GetBinContent(k,1);
-	  rtd[kt][0] =
-	    h2rid->GetBinContent(i,1) /
-	    h2rid->GetBinContent(k,1);
+	  rtd[kt][0] = (h2rid->GetBinContent(k,1)!=0 ?
+			h2rid->GetBinContent(i,1) /
+			h2rid->GetBinContent(k,1) : 0);
+	  retd[kt][0] = (h2rid->GetBinContent(k,1)!=0 ?
+			 h2rid->GetBinError(i,1) /
+			 h2rid->GetBinContent(k,1) : 0);
 	    //h2ris->GetBinContent(i,1) * f1rd->Eval(x) /
 	    //h2ris->GetBinContent(k,1);
 	}
 	// Use smoothed MC for ff and ME matrix
-	if (j!=1) {
-	  rf[kf][0] =
-	    h2ris->GetBinContent(k,j) /
-	    h2ris->GetBinContent(k,1);
-	  MEWRm[kt][kf] = MEm[kt][kf] * ffm[kf][0] / ftm[kt][0] *
-	    h2ris->GetBinContent(i,j) /
-	    h2ris->GetBinContent(k,j);
-	  MEWRd[kt][kf] = MEd[kt][kf] * ffd[kf][0] / ftd[kt][0] *
-	    h2ris->GetBinContent(i,  j) /
-	    h2ris->GetBinContent(k,j);
+	if (j!=1) { // exclusive true flavors
+	  if (it==1) { // although, would still fill same value without this
+	    rf[kf][0] = (h2ris->GetBinContent(k,1)!=0 ? 
+			 h2ris->GetBinContent(k,j) /
+			 h2ris->GetBinContent(k,1) : 0);
+	    //ref[kf][0] = (h2ri->GetBinContent(k,1)!=0 ? 
+	    //		  h2ri->GetBinError(k,j) /
+	    //		  h2ri->GetBinContent(k,1) : 0);
+	  }
+	  MEWRm[kt][kf] = (h2ris->GetBinContent(k,j)!=0 ?
+			   MEm[kt][kf] * ffm[kf][0] / ftm[kt][0] *
+			   h2ris->GetBinContent(i,j) /
+			   h2ris->GetBinContent(k,j) : 0);
+	  if (useDataFracs)
+	    MEWRd[kt][kf] = (h2ris->GetBinContent(k,j)!=0 ?
+			     MEd[kt][kf] * ffd[kf][0] / ftd[kt][0] *
+			     h2ris->GetBinContent(i,j) /
+			     h2ris->GetBinContent(k,j) : 0);
+	  else if (useDataEff)
+	    MEWRd[kt][kf] = (h2ris->GetBinContent(k,j)!=0 ?
+			     MEd[kt][kf] * ffm[kf][0] / ftm[kt][0] *
+			     h2ris->GetBinContent(i,j) /
+			     h2ris->GetBinContent(k,j) : 0);
+	  else
+	    MEWRd[kt][kf] = (h2ris->GetBinContent(k,j)!=0 ?
+			     MEm[kt][kf] * ffm[kf][0] / ftm[kt][0] *
+			     h2ris->GetBinContent(i,j) /
+			     h2ris->GetBinContent(k,j) : 0);
+	    
 	}
 
       } // for iq
@@ -1148,8 +1318,9 @@ void Zflavor() {
       for (int iq = 0; iq != nf; ++iq) {
 	int i = it*npt + ipt + 1;
 	int j = iq+1;
-	h2wfssd->SetBinContent(i,j,h2wissd->GetBinContent(i,j) / 
-			       h2wissd->GetBinContent(i,1));
+	if (h2wissd->GetBinContent(i,1)!=0)
+	  h2wfssd->SetBinContent(i,j,h2wissd->GetBinContent(i,j) / 
+				 h2wissd->GetBinContent(i,1));
       } // for iq
     } // for it
   } // for ipt
@@ -1239,6 +1410,11 @@ void Zflavor() {
   l->DrawLine(xmin+3*dx,0.,xmin+3*dx,1.);
   l->DrawLine(xmin+4*dx,0.,xmin+4*dx,1.);
 
+  tex->SetTextSize(0.030);
+  tex->DrawLatex(0.18,0.77,Form("|#eta|<%1.1f, %1.0f-%1.0f GeV",
+				etamax,ptmin,ptmax));
+  tex->SetTextSize(0.040);
+
   gPad->Update();
   c3->SaveAs("pdf/Zflavor_mcfrac_v3.pdf");
 
@@ -1248,8 +1424,9 @@ void Zflavor() {
   TH2D *h2rnis = (TH2D*)h2ref->Clone("h2rnis");
   for (int i = 1; i != h2ref->GetNbinsX()+1; ++i) {
     for (int j = 1; j != h2ref->GetNbinsY()+1; ++j) {
-      h2rnis->SetBinContent(i, j, h2ris->GetBinContent(i,j) *
-			    h2wfs->GetBinContent(i,j));
+      if (h2wfs->GetBinContent(i,j)!=0)
+	  h2rnis->SetBinContent(i, j, h2ris->GetBinContent(i,j) *
+				h2wfs->GetBinContent(i,j));
      } // for j
   } // for i
 
@@ -1312,21 +1489,21 @@ void Zflavor() {
 	sumwfxd += h2wissd->GetBinContent(i,j) * h2rixd->GetBinContent(i,j);
       } // for it
       // Exclusive flavor tags->inclusive flavor
-      h2riss->SetBinContent(i0,j,sumwtr/sumwt);
-      h2riss->SetBinContent(i0,j,sumwtr/sumwt);
-      h2rix->SetBinContent(i0,j,sumwtx/sumwt);
-      h2rix->SetBinContent(i0,j,sumwtx/sumwt);
-      h2rixd->SetBinContent(i0,j,sumwtxd/sumwtd);
-      h2rixd->SetBinContent(i0,j,sumwtxd/sumwtd);
+      h2riss->SetBinContent(i0,j,sumwt!=0 ? sumwtr/sumwt : 0);
+      h2riss->SetBinContent(i0,j,sumwt!=0 ? sumwtr/sumwt : 0);
+      h2rix->SetBinContent(i0,j,sumwt!=0 ? sumwtx/sumwt : 0);
+      h2rix->SetBinContent(i0,j,sumwt!=0 ? sumwtx/sumwt : 0);
+      h2rixd->SetBinContent(i0,j,sumwtd!=0 ? sumwtxd/sumwtd : 0);
+      h2rixd->SetBinContent(i0,j,sumwtd!=0 ? sumwtxd/sumwtd : 0);
     } // for iq
 
     // Bottom left corner: Exclusive flavor tags->fully inclusive Z+jet
-    h2riss->SetBinContent(i0,1,sumwfr/sumwf);
-    h2riss->SetBinContent(i0,1,sumwfr/sumwf);
-    h2rix->SetBinContent(i0,1,sumwfx/sumwf);
-    h2rix->SetBinContent(i0,1,sumwfx/sumwf);
-    h2rixd->SetBinContent(i0,1,sumwfxd/sumwfd);
-    h2rixd->SetBinContent(i0,1,sumwfxd/sumwfd);
+    h2riss->SetBinContent(i0,1,sumwf!=0 ? sumwfr/sumwf : 0);
+    h2riss->SetBinContent(i0,1,sumwf!=0 ? sumwfr/sumwf : 0);
+    h2rix->SetBinContent(i0,1,sumwf!=0 ? sumwfx/sumwf : 0);
+    h2rix->SetBinContent(i0,1,sumwf!=0 ? sumwfx/sumwf : 0);
+    h2rixd->SetBinContent(i0,1,sumwfd!=0 ? sumwfxd/sumwfd : 0);
+    h2rixd->SetBinContent(i0,1,sumwfd!=0 ? sumwfxd/sumwfd : 0);
     //assert(fabs(sumwf-1)<1e-3);
     if(!(fabs(sumwf-1)<1e-3))
       cout << "  sumwf-1=="<<sumwf-1<<endl;
@@ -1345,9 +1522,9 @@ void Zflavor() {
 	sumwqxd += h2wissd->GetBinContent(i,j) * h2rixd->GetBinContent(i,j);
       } // for it
       // Exclusive flavor tags->inclusive flavor
-      h2riss->SetBinContent(i,1,sumwqr/sumwq);
-      h2rix->SetBinContent(i,1,sumwqx/sumwq);
-      h2rixd->SetBinContent(i,1,sumwqxd/sumwqd);
+      h2riss->SetBinContent(i,1,sumwq!=0 ? sumwqr/sumwq : 0);
+      h2rix->SetBinContent(i,1,sumwq!=0 ? sumwqx/sumwq : 0);
+      h2rixd->SetBinContent(i,1,sumwqd!=0 ? sumwqxd/sumwqd : 0);
     } // for iq
   } // for ipt
 
@@ -1374,8 +1551,8 @@ void Zflavor() {
   // Ratio to inclusive HDM for data, MC, fits
   TCanvas *c4 = tdrCanvas("c4",h4,4,11,kSquare);
   h4->GetXaxis()->SetTitleOffset(1.2);//1.5);
-  h4->SetMinimum(0.93);
-  h4->SetMaximum(1.03); 
+  h4->SetMinimum(0.90);//0.93);
+  h4->SetMaximum(1.06);//1.03); 
   gPad->SetBottomMargin(0.15);//0.20);
 
   TH1D *hrim = h2ri->ProjectionX(Form("hrim%d",10),1,1);
@@ -1422,11 +1599,13 @@ void Zflavor() {
 
   // Draw tag region boundaries
   l->SetLineStyle(kSolid);
-  l->DrawLine(xmin+1*dx,0.93,xmin+1*dx,1.012);
-  l->DrawLine(xmin+2*dx,0.93,xmin+2*dx,1.012);
-  l->DrawLine(xmin+3*dx,0.93,xmin+3*dx,1.00);
-  l->DrawLine(xmin+4*dx,0.93,xmin+4*dx,1.00);
+  l->DrawLine(xmin+1*dx,0.90,xmin+1*dx,1.012);
+  l->DrawLine(xmin+2*dx,0.90,xmin+2*dx,1.012);
+  l->DrawLine(xmin+3*dx,0.90,xmin+3*dx,1.00);
+  l->DrawLine(xmin+4*dx,0.90,xmin+4*dx,1.00);
  
+  tex->DrawLatex(0.18,0.75,Form("|#eta|<%1.1f, %1.0f-%1.0f GeV",
+				etamax,ptmin,ptmax));
 
   gPad->Update();
   c4->SaveAs("pdf/Zflavor_resp.pdf");
@@ -1436,6 +1615,336 @@ void Zflavor() {
   //TH1D *h5 = (TH1D*)href->Clone("h5");
   //TCanvas *c5 = tdrCanvas("c5",h5,4,11,kSquare);
   
+  // Invert fraction x response matrix to solve true flavor responses
+  // Check that inversion succeeded (det!=0)
+  Double_t detMEWRm, detMEWRd;
+  TMatrixD MEWRmi = MEWRm;
+  TMatrixD MEWRdi = MEWRd;
+  MEWRmi.Invert(&detMEWRm);
+  MEWRdi.Invert(&detMEWRd);
+  std::cout << "  Determinant(MEWRm)     = " << detMEWRm << std::endl;
+  std::cout << "  Determinant(MEWRd)     = " << detMEWRd << std::endl;
+
+  // These matrices filled earlier. rf is known MC truth
+  //TMatrixD rtm((nt-1)*npt,1), rf((nt-1)*npt,1);
+  //TMatrixD rtd((nt-1)*npt,1);
+
+  // There are to be solved now
+  TMatrixD rfm((nt-1)*npt,1);
+  TMatrixD rfd((nt-1)*npt,1);
+  TMatrixD refm((nt-1)*npt,1);
+  TMatrixD refd((nt-1)*npt,1);
+
+  // Solve true flavor responses from HDM data and MC
+  rfm.Mult(MEWRmi,rtm);
+  rfd.Mult(MEWRdi,rtd);
+  refm.Mult(MEWRmi,retm);
+  refd.Mult(MEWRdi,retd);
+  TMatrixD rttd((nt-1)*npt,1); // remultiplication check
+  rttd.Mult(MEWRd,rfd);
+  
+  cout << "RTM, RFM:" << endl;
+  for (int i = 0; i != rtm.GetNrows(); ++i) {
+    if (i%10==0) cout << "---------------------------" << endl;
+    cout << Form(" i=%02d, rtm=%6.4f, rfm=%6.4f, rtd=%6.4f, rfd=%6.4f\n",
+		 i, rtm[i][0],rfm[i][0], rtd[i][0], rfd[i][0]);
+  }
+
+  // Sanity check matrix inversion for MC where we know the answer,
+  // and for data, where we can remultiply solved fraction back to tagged
+  if (true) {
+    assert(rfm.GetNcols()==1);
+    for (int i = 0; i != rfm.GetNrows(); ++i) {
+      if (fabs(rfm[i][0]/rf[i][0]-1)>1e-4)
+	cout << "i="<<i<<", rfm="<<rfm[i][0]<<", ratio="
+	     << rfm[i][0]/rf[i][0] << endl;
+      if (fabs(rttd[i][0]/rtd[i][0]-1)>1e-4)
+	cout << "i="<<i<<", rtd="<<rtd[i][0]<<", ratio="
+	     << rttd[i][0]/rtd[i][0] << endl;
+    }
+  } // sanity checks
+
+  // Copy results to histograms
+  TH1D *hrfd = (TH1D*)hreff->Clone("hrfd"); hrfd->Reset();
+  TH1D *hrfm = (TH1D*)hreff->Clone("hrfm"); hrfm->Reset();
+  TH1D *hrf  = (TH1D*)hreff->Clone("hrf");  hrf ->Reset();
+  for (int i = 0; i != rfd.GetNrows(); ++i) {
+
+    hrfd->SetBinContent(i+npt+1, rfd[i][0]);
+    hrfm->SetBinContent(i+npt+1, rfm[i][0]);
+    hrf ->SetBinContent(i+npt+1, rf[i][0]);
+    /*
+    hrfd->SetBinError(i+npt+1, refd[i][0]);
+    hrfm->SetBinError(i+npt+1, refm[i][0]);
+    */
+    hrf ->SetBinError(i+npt+1, ref[i][0]);
+    double erfd2(0), erfm2(0), erf2(0);
+    for (int j = 0; j != rtd.GetNrows(); ++j) {
+      erfd2 += pow(MEWRdi[i][j]*retd[j][0],2);
+      erfm2 += pow(MEWRmi[i][j]*retm[j][0],2);
+    }
+    hrfd->SetBinError(i+npt+1, sqrt(erfd2));
+    hrfm->SetBinError(i+npt+1, sqrt(erfm2));
+
+    int k = (i%npt)+1;
+
+    hrfd->SetBinContent(k, hrfd->GetBinContent(k) +  rfd[i][0] * ffd[i][0]);
+    hrfm->SetBinContent(k, hrfm->GetBinContent(k) +  rfm[i][0] * ffm[i][0]);
+    hrf ->SetBinContent(k, hrf ->GetBinContent(k) +  rf [i][0] * ff [i][0]);
+  } // for i
+
+  // Copy MC truth results from original matrix
+  TH1D *hr = h2ri->ProjectionX("hr",1,1);
+  for (int iq = 0; iq != nf; ++iq) {
+    for (int ipt = 0; ipt != npt; ++ipt) {
+      double i = 0 *npt + ipt + 1;
+      double j = iq + 1;
+      double k = iq*npt + ipt + 1;
+      hr->SetBinContent(k, h2ri->GetBinContent(i, j));
+      hr->SetBinError(k,   h2ri->GetBinError(i, j));
+    } // for ipt
+  } // for iq
+
+  TH1D *h5 = (TH1D*)hreff->Clone("h5");
+  h5->SetYTitle("Ratio to inclusive HDM");
+  
+  // Ratio to inclusive HDM for data, MC, fits
+  TCanvas *c5 = tdrCanvas("c5",h5,4,11,kSquare);
+  h5->GetXaxis()->SetTitleOffset(1.2);//1.5);
+  h5->SetMinimum(0.90);//0.93);
+  h5->SetMaximum(1.06);//1.03); 
+  gPad->SetBottomMargin(0.15);//0.20);
+
+  l->SetLineStyle(kDotted);
+  l->DrawLine(xmin,1.1,xmax,1.1);
+  l->DrawLine(xmin,0.9,xmax,0.9);
+  l->SetLineStyle(kDashed);
+  l->DrawLine(xmin,1,xmax,1);
+
+  tdrDraw(hr  ,"P",kOpenDiamond,kGray+1,kSolid,-1,kNone);
+  tdrDraw(hrf ,"L",kNone,kGray+1,kSolid,-1,kNone);
+  tdrDraw(hrfm,"P",kOpenCircle,color[0],kSolid,-1,kNone);
+  tdrDraw(hrfd,"P",kFullCircle,color[0],kSolid,-1,kNone);
+
+  hrfd->SetMarkerSize(0.7);
+  hrfm->SetMarkerSize(0.7);
+  
+  TLegend *leg5 = tdrLeg(0.50,0.90-0.040*4,0.80,0.90);
+  leg5->SetTextSize(0.040);
+  leg5->AddEntry(hrfd,"Data","PLE");
+  leg5->AddEntry(hrfm,"MC reco","PLE");
+  leg5->AddEntry(hr  ,"MC truth","PLE");
+  leg5->AddEntry(hrf ,"MC smoothed","PL");
+
+  // Draw tag region boundaries
+  l->SetLineStyle(kSolid);
+  l->DrawLine(xmin+1*dx,0.90,xmin+1*dx,1.032);
+  l->DrawLine(xmin+2*dx,0.90,xmin+2*dx,1.022);
+  l->DrawLine(xmin+3*dx,0.90,xmin+3*dx,1.00);
+  l->DrawLine(xmin+4*dx,0.90,xmin+4*dx,1.00);
+ 
+  tex->DrawLatex(0.52,0.70,Form("|#eta|<%1.1f, %1.0f--%1.0f GeV",
+				etamax,ptmin,ptmax));
+
+  gPad->Update();
+  c5->SaveAs("pdf/Zflavor_fjes.pdf");
+
+  
+  // Final data / MC ratio and plot results
+  TH1D *hrfdm = (TH1D*)hrfd->Clone("hrfdm");
+  hrfdm->Add(hrfm,-1);
+  hrfdm->Divide(hrfm);
+  hrfdm->Scale(100.);
+
+  TF1 *f1b = new TF1("f1b","[0]",xmin+4*dx,xmin+5*dx);
+  hrfdm->Fit(f1b,"QRN");
+  TF1 *f1c = new TF1("f1c","[0]",xmin+3*dx,xmin+4*dx);
+  hrfdm->Fit(f1c,"QRN");
+  TF1 *f1g = new TF1("f1g",fR1,xmin+2*dx,xmin+3*dx,3);
+  f1g->SetParameters(0,-1.5,-0.3);
+  //f1g->FixParameter(2,-0.3);
+  hrfdm->Fit(f1g,"QRN");
+  TF1 *f1q = new TF1("f1q",fR1,xmin+1*dx,xmin+2*dx,3);
+  f1q->SetParameters(0,0.5,-0.3);
+  //f1q->FixParameter(2,-0.3);
+  f1q->FixParameter(2,f1g->GetParameter(2));
+  hrfdm->Fit(f1q,"QRN");
+  TF1 *f1z = new TF1("f1z",fR1,xmin+0*dx,xmin+1*dx,3);
+  f1z->SetParameters(0,0.5,-0.3);
+  //f1q->FixParameter(2,-0.3);
+  f1z->FixParameter(2,f1g->GetParameter(2));
+  hrfdm->Fit(f1z,"QRN");
+
+  TH1D *hrb   = (TH1D*)hrfdm->Clone("hrb");
+  TH1D *hrbe  = (TH1D*)hrfdm->Clone("hrbe");
+  TH1D *hrbe0 = (TH1D*)hrfdm->Clone("hrbe0");
+  TH1D *hrc   = (TH1D*)hrfdm->Clone("hrc");
+  TH1D *hrce  = (TH1D*)hrfdm->Clone("hrce");
+  TH1D *hrce0 = (TH1D*)hrfdm->Clone("hrce0");
+  TH1D *hrq   = (TH1D*)hrfdm->Clone("hrq");
+  TH1D *hrge  = (TH1D*)hrfdm->Clone("hrge");
+  TH1D *hrge0 = (TH1D*)hrfdm->Clone("hrge0");
+  TH1D *hrg   = (TH1D*)hrfdm->Clone("hrg");
+  TH1D *hrqe  = (TH1D*)hrfdm->Clone("hrqe");
+  TH1D *hrqe0 = (TH1D*)hrfdm->Clone("hrqe0");
+  TH1D *hrz   = (TH1D*)hrfdm->Clone("hrz");
+  TH1D *hrze  = (TH1D*)hrfdm->Clone("hrze");
+  TH1D *hrze0 = (TH1D*)hrfdm->Clone("hrze0");
+
+  TH1D *hdm0 = (TH1D*)dr->Get("hdm_mpfchs1_zjet");
+
+  TH1D *hflv = (TH1D*)hrfdm->Clone("hflv"); hflv->Reset();
+  TH1D *hflz = (TH1D*)hrfdm->Clone("hflz"); hflz->Reset();
+  TH1D *hdm =  (TH1D*)hrfdm->Clone("hdm");  hdm->Reset();
+  TH1D *hsb = (TH1D*)dr->Get("herr_bot"); assert(hsb);
+  TH1D *hsc = (TH1D*)dr->Get("herr_cha"); assert(hsc);
+  TH1D *hsq = (TH1D*)dr->Get("herr_uds"); assert(hsq);
+  TH1D *hsg = (TH1D*)dr->Get("herr_glu"); assert(hsg);
+  TH1D *hsz = (TH1D*)dr->Get("herr_zjt"); assert(hsz);
+
+  for (int iq = 0; iq != nf; ++iq) {
+
+    TH1D *hr(0), *hre(0), *hre0(0), *hs(0); TF1 *f1(0);
+    if (iq==4) { hr = hrb; hre = hrbe; hre0 = hrbe0; f1 = f1b; hs = hsb; }
+    if (iq==3) { hr = hrc; hre = hrce; hre0 = hrce0; f1 = f1c; hs = hsc; }
+    if (iq==2) { hr = hrg; hre = hrge; hre0 = hrge0; f1 = f1g; hs = hsg; }
+    if (iq==1) { hr = hrq; hre = hrqe; hre0 = hrqe0; f1 = f1q; hs = hsq; }
+    if (iq==0) { hr = hrz; hre = hrze; hre0 = hrze0; f1 = f1z; hs = hsz; }
+    
+    if (!hr) continue;
+
+    for (int i = 1; i != hr->GetNbinsX()+1; ++i) {
+      if (!((i-1)/npt==iq)) {
+	hr->SetBinContent(i, 0);
+	hr->SetBinError(i, 0);
+	hre->SetBinContent(i, 0);
+	hre->SetBinError(i, 0);
+	hre0->SetBinContent(i, 0);
+	hre0->SetBinError(i, 0);
+      }
+      else {
+	double x = hr->GetBinCenter(i);
+	double k = max(1.,sqrt(f1->GetChisquare() / f1->GetNDF()));
+	hre->SetBinContent(i, f1->Eval(x));//GetParameter(0));
+	hre->SetBinError(i, k*f1->GetParError(0));
+	hre0->SetBinContent(i, f1->Eval(x));//GetParameter(0));
+	hre0->SetBinError(i, f1->GetParError(0));
+	
+	// Decode x to pt
+	double pt0 = _ptbins[0];
+	int itag = int(x / log10(_ptbins[_npt]/pt0));
+	double pt = pt0*pow(10., x-itag*log10(_ptbins[_npt]/pt0)); 
+
+	int j = hs->FindBin(pt);
+	double err = hs->GetBinError(j)*100;
+	if (iq==0) {
+	  hflz->SetBinContent(i, 0.);
+	  hflz->SetBinError(i, err);
+	  hdm->SetBinContent(i, 100.*(hdm0->GetBinContent(j)-1));
+	  hdm->SetBinError(i, 100.*hdm0->GetBinError(j));
+	}
+	hflv->SetBinContent(i, 0.);
+	hflv->SetBinError(i, err);
+      }
+    }
+  }
+
+  TH1D *h6 = (TH1D*)hreff->Clone("h6");
+  h6->SetYTitle("Data / MC - 1 (%)");
+  
+  // Ratio to inclusive HDM for data, MC, fits
+  TCanvas *c6 = tdrCanvas("c5",h6,4,11,kSquare);
+  h6->GetXaxis()->SetTitleOffset(1.2);
+  h6->SetMinimum(-5);//0.95);
+  h6->SetMaximum(+5);//1.05);
+  gPad->SetBottomMargin(0.15);
+
+  tdrDraw(hflv, "E2", kNone,kYellow+2, kSolid,-1,1001,kYellow+1);
+  tdrDraw(hflz, "E2", kNone,kRed+1, kSolid,-1,1001,kRed-9);
+  tdrDraw(hdm, "P", kOpenCircle, kBlack);
+
+  tdrDraw(hrbe,  "E2",kNone,color[4],kSolid,-1,1001,color[4]-9);
+  //tdrDraw(hrbe0, "E2",kNone,color[4],kSolid,-1,1001,color[4]-8);
+  hrbe->SetFillColorAlpha(color[4]-9,0.60);
+  f1b->SetLineColor(color[4]);
+  f1b->Draw("SAME");
+  tdrDraw(hrce,  "E2",kNone,color[3],kSolid,-1,1001,color[3]-11);
+  //tdrDraw(hrce0, "E2",kNone,color[3],kSolid,-1,1001,color[3]-10);
+  hrce->SetFillColorAlpha(color[3]-11,0.60);
+  f1c->SetLineColor(color[3]);
+  f1c->Draw("SAME");
+  tdrDraw(hrqe,  "E2",kNone,color[1],kSolid,-1,1001,color[1]-9);
+  //tdrDraw(hrqe0, "E2",kNone,color[1],kSolid,-1,1001,color[1]-8);
+  hrqe->SetFillColorAlpha(color[1]-9,0.60);
+  f1q->SetLineColor(color[1]);
+  f1q->Draw("SAME");
+  tdrDraw(hrge,  "E2",kNone,color[2],kSolid,-1,1001,color[2]-11);
+  //tdrDraw(hrge0, "E2",kNone,color[2],kSolid,-1,1001,color[2]-8);
+  hrge->SetFillColorAlpha(color[2]-8,0.60);
+  f1g->SetLineColor(color[2]);
+  f1g->Draw("SAME");
+
+  l->SetLineStyle(kDotted);
+  l->DrawLine(xmin,+1.,xmax,+1);
+  l->DrawLine(xmin,-1,xmax,-1);
+  l->SetLineStyle(kSolid);//kDashed);
+  l->DrawLine(xmin,0,xmax,0);
+
+  tdrDraw(hrfdm,"P",kFullCircle,color[0],kSolid,-1,kNone);
+  tdrDraw(hrb,  "P",kFullCircle,color[4],kSolid,-1,kNone);
+  tdrDraw(hrc,  "P",kFullCircle,color[3],kSolid,-1,kNone);
+  tdrDraw(hrg,  "P",kFullCircle,color[2],kSolid,-1,kNone);
+  tdrDraw(hrq,  "P",kFullCircle,color[1],kSolid,-1,kNone);
+
+  hrfdm->SetMarkerSize(0.7);
+  hrb->SetMarkerSize(0.7);
+  
+  TLegend *leg6 = tdrLeg(0.52,0.90-0.040*4,0.82,0.90);
+  leg6->SetTextSize(0.040);
+  leg6->AddEntry(hrfdm,"HDM / inclusive","PLE");
+  leg6->AddEntry(hdm,"HDM response","PLE");
+  leg6->AddEntry(hflz,"FlavorZJet syst.","F");
+  leg6->AddEntry(hflv,"FlavorPure[X] syst.","F");
+
+  // Draw tag region boundaries
+  l->SetLineStyle(kSolid);
+  l->DrawLine(xmin+1*dx,-5,xmin+1*dx,2.5);
+  l->DrawLine(xmin+2*dx,-5,xmin+2*dx,2.5);
+  l->DrawLine(xmin+3*dx,-5,xmin+3*dx,2.5);
+  l->DrawLine(xmin+4*dx,-5,xmin+4*dx,2.5);
+ 
+  tex->SetTextSize(0.027);
+  tex->SetTextColor(kRed);
+  tex->DrawLatex(0.80,0.23,Form("%+4.2f#pm%4.2f%%",
+				f1b->GetParameter(0),
+				f1b->GetParError(0)));
+  tex->DrawLatex(0.80,0.20,Form("#chi^{2} = %1.1f/%d",
+				f1b->GetChisquare(),
+				f1b->GetNDF()));
+  tex->SetTextColor(kGreen+2);
+  tex->DrawLatex(0.64,0.23,Form("%+4.2f#pm%4.2f%%",
+				f1c->GetParameter(0),
+				f1c->GetParError(0)));
+  tex->DrawLatex(0.64,0.20,Form("#chi^{2} = %1.1f/%d",
+				f1c->GetChisquare(),
+				f1c->GetNDF()));
+
+  tex->SetTextSize(0.040);
+  tex->SetTextColor(kGray+2);
+  tex->DrawLatex(0.81,0.70,"Bottom");
+  tex->DrawLatex(0.65,0.70,"Charm");
+  tex->DrawLatex(0.50,0.70,"Gluon");
+  tex->DrawLatex(0.33,0.70,"Quark");
+  tex->DrawLatex(0.18,0.70,"ZJet");
+
+  tex->SetTextSize(0.040);
+  tex->DrawLatex(0.18,0.75,Form("|#eta|<%1.1f, %1.0f-%1.0f GeV",
+				etamax,ptmin,ptmax));
+
+  gPad->RedrawAxis();
+  gPad->Update();
+  c6->SaveAs("pdf/Zflavor_datamc.pdf");
+
 
 } // Zflavor
 
@@ -1445,7 +1954,11 @@ void Zflavor() {
 //TF1 *fqgl(0);
 //TFile *fi(0);
 TF1 *f1mg(0), *f1dg(0);
-double gluonEffSF(double ptmin, double ptmax, double &ineffsf) {
+double gluonEffSF(double ptmin, double ptmax, double &ineffsf, double mceff) {
+
+  // effq = 1-effg, kq = (1-effg')/(1-effg)
+  // effg' = 1 - kq*(1-effg) <=> effg'/effg = (1-kq)/effg + kq
+  //return 1./1.723;
 
   // hadW_QGL.C QGL>0.5 efficiency fits
   // For Z+jet, multiply MC results by 1.05
@@ -1459,13 +1972,14 @@ double gluonEffSF(double ptmin, double ptmax, double &ineffsf) {
   f1dg->SetParameters(0.4329,0.65,-0.4916);
 
   double pt = 0.5*(ptmin+ptmax);
-  //double effm = 1.05*f1mg->Eval(pt);
-  double effm = 1.02*f1mg->Eval(pt);
+  //double effm = (mceff!=0 ? mceff : 1.05*f1mg->Eval(pt));
+  //double effm = (mceff!=0 ? mceff : 1.02*f1mg->Eval(pt));
+  double effm = (mceff!=0 ? mceff : effScaleZ*f1mg->Eval(pt));
   double effd = f1dg->Eval(pt);
   
   // Efficiencies above are for QGL>0.5, so 1-eff(g)
-  double effsf = (1-effd) / (1-effm);
-  ineffsf = effd / effm;
+  double effsf = (1-effm!=0 ? (1-effd) / (1-effm) : 1);
+  ineffsf = (effm!=0 ? effd / effm : 1);
 
   return effsf;
 
@@ -1506,6 +2020,8 @@ double gluonEffSF(double ptmin, double ptmax, double &ineffsf) {
 TF1 *f1mq(0), *f1dq(0);
 double quarkEffSF(double ptmin, double ptmax, double &ineffsf) {
 
+  //return 1.084;
+
   // hadW_QGL.C QGL>0.5 efficiency fits
   // For Z+jet, multiply MC results by 1.05
   if (!f1mq) f1mq = new TF1("f1mq","[0]+[1]*pow(x,[2])",34,200);
@@ -1519,11 +2035,12 @@ double quarkEffSF(double ptmin, double ptmax, double &ineffsf) {
 
   double pt = 0.5*(ptmin+ptmax);
   //double effm = 1.05*f1mq->Eval(pt);
-  double effm = 1.02*f1mq->Eval(pt);
+  //double effm = 1.02*f1mq->Eval(pt);
+  double effm = effScaleZ*f1mq->Eval(pt);
   double effd = f1dq->Eval(pt);
   
-  double effsf = (effd / effm);
-  ineffsf = (1-effd) / (1-effm);
+  double effsf = (effm!=0 ? effd / effm : 1);
+  ineffsf = (1-effm!=0 ? (1-effd) / (1-effm) : 1);
 
   return effsf;
 

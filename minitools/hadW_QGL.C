@@ -210,7 +210,9 @@ void hadW_QGL() {
     c1->cd(1);
     gPad->SetLogy();
     
-    tex->DrawLatex(0.19,0.70,"|#eta| < 2.5");
+    tex->DrawLatex(0.19,0.70,Form("|#eta| < 2.5, %1.0f--%1.0f GeV",
+				  h2qd->GetYaxis()->GetBinLowEdge(j),
+				  h2qd->GetYaxis()->GetBinLowEdge(j+1)));
     if (!plotMChist) tex->DrawLatex(0.19,0.65,"Data only");
 
     TLegend *leg1 = tdrLeg(0.65,0.90-5*0.05,0.85,0.90);
@@ -441,11 +443,11 @@ void hadW_QGL() {
     tdrDraw(h1zd,"Pz",kOpenCircle,kMagenta+2);
     tdrDraw(h1jd,"Pz",kOpenDiamond,kGreen+2);
 
-    leg1->AddEntry(h1qd,"W>qq' (q)","PLE");
-    leg1->AddEntry(h1zd,"Z+jet (q)","PLE");
-    leg1->AddEntry(h1bd,"t>Wb (b)","PLE");
-    leg1->AddEntry(h1jd,"Dijet (g)","PLE");
-    leg1->AddEntry(h1gd,"TT+jet (g)","PLE");
+    leg1->AddEntry(h1qd,"W>qq' (q rich)","PLE");
+    leg1->AddEntry(h1zd,"Z+jet (q rich)","PLE");
+    leg1->AddEntry(h1bd,"t>Wb (b rich)","PLE");
+    leg1->AddEntry(h1jd,"Dijet (g rich)","PLE");
+    leg1->AddEntry(h1gd,"TT+jet (g rich)","PLE");
     
     gPad->RedrawAxis();
 
@@ -498,6 +500,16 @@ void hadW_QGL() {
     tdrDraw(h1z,"Pz",kOpenCircle,kMagenta+2);
     tdrDraw(h1j,"Pz",kOpenDiamond,kGreen+2);
 
+    TF1 *fqgl = new TF1(Form("fqll_%d",j),
+			"2.5626*x^3 - 3.2240*x^2 + 1.8687*x + 0.6770",0,1);
+    fqgl->Draw("SAME");
+
+    tex->SetTextColor(kRed);
+    tex->SetTextSize(0.08);
+    tex->DrawLatex(0.17,0.80,"---- EOY16 QGL shape for gluons");
+    tex->SetTextColor(kBlack);
+    tex->SetTextSize(0.045);
+
     c2->cd(2);
     l->DrawLine(0,1,1,1);
 
@@ -548,6 +560,8 @@ void hadW_QGL() {
     tdrDraw(h1gc,"Pz",kOpenDiamond,kGreen+2);
     tdrDraw(h1gb,"Pz",kOpenDiamond,kRed);
 
+    fqgl->Draw("SAME");
+
     //if (pt<80 || pt>110) delete c1;
     //else c1->SaveAs("pdf/hadW_QGL_80_110.pdf");
     //if (pt<97 || pt>114) delete c1;
@@ -556,7 +570,10 @@ void hadW_QGL() {
       delete c1;
       delete c2;
     }
-    else c1->SaveAs("pdf/hadW_QGL_84_97.pdf");
+    else {
+      c1->SaveAs("pdf/hadW_QGL_84_97.pdf");
+      c2->SaveAs("pdf/hadW_QGL_84_97_f.pdf");
+    }
 
   } // for j
 
@@ -1069,29 +1086,70 @@ void hadW_QGL() {
   mgsg->Fit(f1sg,"QRNW");
   f1sg->Draw("SAME");
 
-  TF1 *f1s = new TF1("f1s","([0]+[1]*pow(x,[2]))/([3]+[4]*pow(x,[5]))",34,200);
-  f1s->SetParameters(f1sq->GetParameter(0),f1sq->GetParameter(1),
-		     f1sq->GetParameter(2),f1sg->GetParameter(0),
-		     f1sg->GetParameter(1),f1sg->GetParameter(2));
-
   c8->cd(2);
   gPad->SetLogx();
 
-  TH1D *hzrs = (TH1D*)mhsq["z"]->Clone("hzrs");
-  hzrs->Divide(mhsg["z"]);
-  TH1D *hjrs = (TH1D*)mhsq["j"]->Clone("hjrs");
-  hjrs->Divide(mhsg["j"]);
-  TH1D *hqrs = (TH1D*)mhsq["q"]->Clone("hqrs");
-  hqrs->Divide(mhsg["q"]);
-  TH1D *hgrs = (TH1D*)mhsq["g"]->Clone("hgrs");
-  hgrs->Divide(mhsg["g"]);
 
-  tdrDraw(hzrs,"Pz",kOpenSquare,kMagenta+2);
-  tdrDraw(hjrs,"Pz",kOpenStar,kGreen+2);
-  tdrDraw(hqrs,"Pz",kOpenCircle,kBlue);
-  tdrDraw(hgrs,"Pz",kOpenDiamond,kOrange+2);
+  if (false) {
 
-  f1s->Draw("SAME");
+    // Plot Quark/Gluon for Sim
+    TH1D *hzrs = (TH1D*)mhsq["z"]->Clone("hzrs");
+    hzrs->Divide(mhsg["z"]);
+    TH1D *hjrs = (TH1D*)mhsq["j"]->Clone("hjrs");
+    hjrs->Divide(mhsg["j"]);
+    TH1D *hqrs = (TH1D*)mhsq["q"]->Clone("hqrs");
+    hqrs->Divide(mhsg["q"]);
+    TH1D *hgrs = (TH1D*)mhsq["g"]->Clone("hgrs");
+    hgrs->Divide(mhsg["g"]);
+    
+    tdrDraw(hzrs,"Pz",kOpenSquare,kMagenta+2);
+    tdrDraw(hjrs,"Pz",kOpenStar,kGreen+2);
+    tdrDraw(hqrs,"Pz",kOpenCircle,kBlue);
+    tdrDraw(hgrs,"Pz",kOpenDiamond,kOrange+2);
+    
+    TF1 *f1s = new TF1("f1s","([0]+[1]*pow(x,[2]))/([3]+[4]*pow(x,[5]))",34,200);
+    f1s->SetParameters(f1sq->GetParameter(0),f1sq->GetParameter(1),
+		       f1sq->GetParameter(2),f1sg->GetParameter(0),
+		       f1sg->GetParameter(1),f1sg->GetParameter(2));
+    
+    f1s->Draw("SAME");
+  }
+  else {
+  /*
+  // These are plotted for MC efficiencies
+  tdrDraw(hzqm,"Pz",kOpenSquare,kMagenta+2);
+  tdrDraw(hzgm,"Pz",kOpenSquare,kMagenta+2);
+
+  tdrDraw(hjemq,"Pz",kOpenStar,kGreen+2);
+  tdrDraw(hjemg,"Pz",kOpenStar,kGreen+2);
+
+  //tdrDraw(hequ,"Pz",kOpenCircle,kBlue+2);//extra
+  tdrDraw(heqq,"Pz",kOpenCircle,kBlue);
+  tdrDraw(heqg,"Pz",kOpenCircle,kBlue);
+  tdrDraw(hegg,"Pz",kOpenDiamond,kOrange+2);
+  //tdrDraw(hegu,"Pz",kOpenDiamond,kOrange+4);//extra
+  tdrDraw(hegq,"Pz",kOpenDiamond,kOrange+2);
+  */
+
+    hd8->SetMinimum(0.9);
+    hd8->SetMaximum(1.9);
+    hd8->SetYTitle("Sim/MC");
+
+    // Plot Sim/MC for SimEfficiencies for quarks and gluons
+    TH1D *hzrs = (TH1D*)mhsq["z"]->Clone("hzrs");
+    hzrs->Divide(hzqm);
+    TH1D *hjrs = (TH1D*)mhsg["j"]->Clone("hjrs");
+    hjrs->Divide(hjemg);
+    TH1D *hqrs = (TH1D*)mhsq["q"]->Clone("hqrs");
+    hqrs->Divide(heqq);
+    TH1D *hgrs = (TH1D*)mhsg["g"]->Clone("hgrs");
+    hgrs->Divide(hegg);
+
+    tdrDraw(hzrs,"Pz",kOpenSquare,kMagenta+2);
+    tdrDraw(hjrs,"Pz",kOpenStar,kGreen+2);
+    tdrDraw(hqrs,"Pz",kOpenCircle,kBlue);
+    tdrDraw(hgrs,"Pz",kOpenDiamond,kOrange+2);
+  }
 
   c8->SaveAs("pdf/hadW_QGL_SimEfficiencies.pdf");
   
