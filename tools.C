@@ -235,8 +235,19 @@ TGraphErrors *tools::mergeGraphs(TGraphErrors *g1, TGraphErrors *g2) {
     //cout << Form("g1->GetN() %i g2->GetN() %i", g1->GetN(), g2->GetN()) << endl;
     if (jtoi[j]==i && g2->GetN()>0) {
       int n = g->GetN();
-      double w1 = g2->GetEY()[j] / (g2->GetEY()[j] + g1->GetEY()[i]);
-      double w2 = g1->GetEY()[i] / (g2->GetEY()[j] + g1->GetEY()[i]);
+      // 2021-03-11: logic may have been wrong here
+      //double w1 = g2->GetEY()[j] / (g2->GetEY()[j] + g1->GetEY()[i]);
+      //double w2 = g1->GetEY()[i] / (g2->GetEY()[j] + g1->GetEY()[i]);
+      // Updated logic: 1/err^2 ~ N, since err ~ 1/sqrt(N)
+      double w1(0.5), w2(0.5);
+      if      (g2->GetN()==0) { w1==1; w2==0; }
+      else if (g1->GetN()==0) { w1==0; w2==1; }
+      else {
+	double n1 = 1./pow(g1->GetEY()[i],2);
+	double n2 = 1./pow(g2->GetEY()[j],2);
+	w1 = n1 / (n1+n2);
+	w2 = n2 / (n1+n2);
+      }
       double y = (g1->GetY()[i]*w1 + g2->GetY()[j]*w2);
       double dy = sqrt(pow(g1->GetEY()[i]*w1,2)+pow(g2->GetEY()[j]*w2,2));
       double x = (g1->GetX()[i]*w1 + g2->GetX()[j]*w2);

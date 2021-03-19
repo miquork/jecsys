@@ -30,7 +30,9 @@ TH2D *h2rm(0), *h2rd(0), *h2rf(0);
 
 bool drawFit = false;
 // Use flavor fractions solved from data (false: use MC fractions)
-double effScaleZ = 1.05; // QGL study 1.05, other samples 1.00, closest 1.02
+//double effScaleZ = 1.02; // QGL study 1.05, other samples 1.00, closest 1.02
+//double effScaleZ = -1; // use fit of qtag data/MC
+double effScaleZ = 1; // turn off (no extra scaling)
 bool useDataFracs = true;
 bool useDataEff = false;//true; // does not work yet
 bool useMCEff = false;//true;
@@ -46,6 +48,7 @@ double gluonScaleQtag = 1;//1.002;
 double gluonScaleGtag = 1;//0.995;
 
 // Model of gluon efficiency based on dijet MC and official shape SF
+double _etamax(0);
 double gluonEffSF(double ptmin, double ptmax, double &ineffsf, double mceff=0);
 double quarkEffSF(double ptmin, double ptmax, double &ineffsf);
 double heavyEffSF(double pt, double &mistag);
@@ -124,7 +127,8 @@ Double_t fW(const Double_t *x, const Double_t *p) {
 
 
 
-void Zflavor() {
+//void Zflavor(double EtaMax = 2.5) {
+void Zflavor(double EtaMax = 1.3) {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
@@ -145,7 +149,9 @@ void Zflavor() {
   const int npt = sizeof(ptbins)/sizeof(ptbins[0])-1;
   _ptbins = &ptbins[0]; // warning: ptbins destroyed at the end, should clone it
   _npt = npt;
-  double etamax = 2.5;
+  //double etamax = 2.5;
+  double etamax = EtaMax;
+  _etamax = etamax;
   double ptmin = ptbins[0];
   double ptmax = ptbins[npt];
 
@@ -557,8 +563,8 @@ void Zflavor() {
 				etamax,ptmin,ptmax));
 
   gPad->Update();
-  c0->SaveAs("pdf/Zflavor_counts_v1.pdf");
-
+  c0->SaveAs(Form("pdf/Zflavor_counts_v1_Eta%1.0f.pdf",10*etamax));
+  
   //lumi_13TeV = "UL17+18, 101.4 fb^{-1}";
   TH1D *h1 = (TH1D*)href->Clone("h1");
 
@@ -750,7 +756,7 @@ void Zflavor() {
   tex->SetTextSize(0.040);
 
   gPad->Update();
-  c1->SaveAs("pdf/Zflavor_mcfrac_v1.pdf");
+  c1->SaveAs(Form("pdf/Zflavor_mcfrac_v1_Eta%1.0f.pdf",10*etamax));
 
 
   //TH1D *h2 = h2ri->ProjectionX("h2",1,1); h2->Reset();
@@ -943,7 +949,7 @@ void Zflavor() {
 				etamax,ptmin,ptmax));
 
   gPad->Update();
-  c2->SaveAs("pdf/Zflavor_mcresp_v1.pdf");
+  c2->SaveAs(Form("pdf/Zflavor_mcresp_v1_Eta%1.0f.pdf",10*etamax));
 
 
   // Apply scaling to event fractions, then update responses
@@ -1041,28 +1047,38 @@ void Zflavor() {
 	double nhh =  (jh==jb ? nhb : nhc);
 	double effh = nhh/nhi;//(jh==jb ? nhb/nhi : nhc/nhi);
 	double rq = nhq/(nhq+nhg);
+
 	// Update this based on HF tagging efficiency. Guess 10% at low pT
 	//double effhnew = effh * (pt < 100 ? 0.9 : 1.1);
 	double x = h2wiss->GetXaxis()->GetBinCenter(ih);
 	//double effsf = 1 + (fb->Eval(x)-1) / (jh==jb ? 0.93 : 0.60);
 	double mistag;
-	double effsf = heavyEffSF(pt,mistag);
-	double effhnew = effh * effsf;
+	double effsfh = heavyEffSF(pt,mistag);
+	double effhnew = effh * effsfh;
 	double nhhnew = nhi * effhnew;
 	double nhqnew = nhq + (nhh-nhhnew) * rq;
 	double nhgnew = nhg + (nhh-nhhnew) * (1-rq);
+
+	// Update also quark tagging efficiency
+	double ineffqsf(0);
+	double effsfq = (jh==jc ? 
+			 quarkEffSF(ptbins[ipt],ptbins[ipt+1],ineffqsf) :
+			 quarkEffSF(ptbins[ipt],ptbins[ipt+1],ineffqsf));
+	double rqnew = rq * effsfq;
+	double nhqnewnew = (nhqnew+nhgnew) * rqnew;
+	double nhgnewnew = (nhqnew+nhgnew) * (1-rqnew);
 	
 	// Correct tagged event counts
 	double niq = h2wiss->GetBinContent(iq,ji);
 	double nig = h2wiss->GetBinContent(ig,ji);
 	double nih = h2wiss->GetBinContent(ih,ji);
-	double niqnew = niq + (nhqnew-nhq);
-	double nignew = nig + (nhgnew-nhg);
+	double niqnew = niq + (nhqnewnew-nhq);
+	double nignew = nig + (nhgnewnew-nhg);
 	double nihnew = nih + (nhhnew-nhh);
 	
 	// Propagate changed counts to matrix
-	h2wiss->SetBinContent(iq,jh, nhqnew);
-	h2wiss->SetBinContent(ig,jh, nhgnew);
+	h2wiss->SetBinContent(iq,jh, nhqnewnew);
+	h2wiss->SetBinContent(ig,jh, nhgnewnew);
 	h2wiss->SetBinContent(ih,jh, nhhnew);
 	//
 	h2wiss->SetBinContent(iq,ji, niqnew);
@@ -1098,7 +1114,12 @@ void Zflavor() {
   hwdv2->Fit(fbv2,"QRN");
   fbv2->Draw("SAME");
 
-  c0->SaveAs("pdf/Zflavor_counts_v2.pdf");
+  cout << "fbv2 parameters: {";
+  for (int i = 0; i != fbv2->GetNpar(); ++i) 
+    cout << Form("%1.4g, ",fbv2->GetParameter(i));
+  cout << "};" << endl;
+
+  c0->SaveAs(Form("pdf/Zflavor_counts_v2_Eta%1.0f.pdf",10*etamax));
 
   // Draw updated fractions
   c1->cd();
@@ -1122,7 +1143,7 @@ void Zflavor() {
       leg1f2->AddEntry(hwf," ","L");
     }
   }
-  c1->SaveAs("pdf/Zflavor_mcfrac_v2.pdf");
+  c1->SaveAs(Form("pdf/Zflavor_mcfrac_v2_Eta%1.0f.pdf",10*etamax));
 
 
   // Solve inclusive flavor fractions based on tagged counts
@@ -1342,7 +1363,7 @@ void Zflavor() {
   hwdv3->Fit(fbv3,"QRN");
   fbv3->Draw("SAME");
 
-  c0->SaveAs("pdf/Zflavor_counts_v3.pdf");
+  c0->SaveAs(Form("pdf/Zflavor_counts_v3_Eta%1.0f.pdf",10*etamax));
 
 
   // Final v3 update for mcfrac with MC normalized to data in two days
@@ -1416,7 +1437,7 @@ void Zflavor() {
   tex->SetTextSize(0.040);
 
   gPad->Update();
-  c3->SaveAs("pdf/Zflavor_mcfrac_v3.pdf");
+  c3->SaveAs(Form("pdf/Zflavor_mcfrac_v3_Eta%1.0f.pdf",10*etamax));
 
 
   // Combine smoothed response and fraction matrices into single matrix
@@ -1541,7 +1562,7 @@ void Zflavor() {
     tdrDraw(hxd,"HIST",kNone,color[iq],kDashed,-1,kNone);
   }
 
-  c2->SaveAs("pdf/Zflavor_mcresp_v2.pdf");
+  c2->SaveAs(Form("pdf/Zflavor_mcresp_v2_%1.0f.pdf",etamax));
 
 
 
@@ -1608,7 +1629,7 @@ void Zflavor() {
 				etamax,ptmin,ptmax));
 
   gPad->Update();
-  c4->SaveAs("pdf/Zflavor_resp.pdf");
+  c4->SaveAs(Form("pdf/Zflavor_resp_Eta%1.0f.pdf",10*etamax));
 
 
   // Plot efficiency matrix
@@ -1747,7 +1768,7 @@ void Zflavor() {
 				etamax,ptmin,ptmax));
 
   gPad->Update();
-  c5->SaveAs("pdf/Zflavor_fjes.pdf");
+  c5->SaveAs(Form("pdf/Zflavor_fjes_Eta%1.0f.pdf",10*etamax));
 
   
   // Final data / MC ratio and plot results
@@ -1763,10 +1784,12 @@ void Zflavor() {
   TF1 *f1g = new TF1("f1g",fR1,xmin+2*dx,xmin+3*dx,3);
   f1g->SetParameters(0,-1.5,-0.3);
   //f1g->FixParameter(2,-0.3);
+  f1g->FixParameter(2,-1);//-0.8);
   hrfdm->Fit(f1g,"QRN");
   TF1 *f1q = new TF1("f1q",fR1,xmin+1*dx,xmin+2*dx,3);
   f1q->SetParameters(0,0.5,-0.3);
   //f1q->FixParameter(2,-0.3);
+  f1q->FixParameter(2,-1);//-0.8);
   f1q->FixParameter(2,f1g->GetParameter(2));
   hrfdm->Fit(f1q,"QRN");
   TF1 *f1z = new TF1("f1z",fR1,xmin+0*dx,xmin+1*dx,3);
@@ -1774,6 +1797,28 @@ void Zflavor() {
   //f1q->FixParameter(2,-0.3);
   f1z->FixParameter(2,f1g->GetParameter(2));
   hrfdm->Fit(f1z,"QRN");
+
+  cout << Form(" // Flavor fit parameters from minitools/Zflavor.C"
+	       " (Eta%1.0f)",10*_etamax) << endl;
+  TF1 *af1[nf] = {f1q, f1g, f1c, f1b, f1z};
+  for (int jf = 0; jf != nf; ++jf) {
+    TF1 *f1 = af1[jf];
+    cout << Form("  TF1 *%s = new TF1(\"%s\",\"%s\",45,300);",
+		 f1->GetName(), f1->GetName(),
+		 f1->GetExpFormula().IsNull() ? 
+		 "p[0]+p[1]*(pow(0.01*x,p[2])-1)" : // fR1, x=pt
+		 f1->GetExpFormula().Data()) << endl;
+  }
+  for (int jf = 0; jf != nf; ++jf) {
+    TF1 *f1 = af1[jf];
+    cout << Form("  %s->SetParameter%s",f1->GetName(),
+		 f1->GetNpar()>1 ? "s(" : "(0,");
+    for (int i = 0; i != f1->GetNpar(); ++i) {
+      cout << Form("%s%1.4g%s",i==0 ? "" : ", ",f1->GetParameter(i),
+		   i==f1->GetNpar()-1 ? ");" : "");
+    }
+    cout << Form(" // chi2/NDF=%1.1f/%d\n",f1->GetChisquare(),f1->GetNDF());
+  }
 
   TH1D *hrb   = (TH1D*)hrfdm->Clone("hrb");
   TH1D *hrbe  = (TH1D*)hrfdm->Clone("hrbe");
@@ -1943,7 +1988,7 @@ void Zflavor() {
 
   gPad->RedrawAxis();
   gPad->Update();
-  c6->SaveAs("pdf/Zflavor_datamc.pdf");
+  c6->SaveAs(Form("pdf/Zflavor_datamc_Eta%1.0f.pdf",10*etamax));
 
 
 } // Zflavor
@@ -1953,7 +1998,7 @@ void Zflavor() {
 // hadW_Zb.C also has in-line version of this
 //TF1 *fqgl(0);
 //TFile *fi(0);
-TF1 *f1mg(0), *f1dg(0);
+TF1 *f1mg(0), *f1dg(0), *f1w(0);
 double gluonEffSF(double ptmin, double ptmax, double &ineffsf, double mceff) {
 
   // effq = 1-effg, kq = (1-effg')/(1-effg)
@@ -1962,19 +2007,43 @@ double gluonEffSF(double ptmin, double ptmax, double &ineffsf, double mceff) {
 
   // hadW_QGL.C QGL>0.5 efficiency fits
   // For Z+jet, multiply MC results by 1.05
-  TF1 *f1mg = new TF1("f1mg","[0]+[1]*pow(x,[2])",34,200);
-  TF1 *f1dg = new TF1("f1dg","[0]+[1]*pow(x,[2])",34,200);
-  // Fit with Z+jet included
-  //f1mg->SetParameters(0.2468,0.4722,-0.5116);
-  //f1dg->SetParameters(0.4225,0.7519,-0.4858);
-  // Fit without Z+jet (only dijet and TT+jet)
-  f1mg->SetParameters(0.2534,0.3997,-0.5167);
-  f1dg->SetParameters(0.4329,0.65,-0.4916);
+  if (!f1mg) f1mg = new TF1("f1mg","[0]+[1]*pow(x,[2])",34,200);
+  if (!f1dg) f1dg = new TF1("f1dg","[0]+[1]*pow(x,[2])",34,200);
+  if (!f1w)  f1w  = new TF1("f1w", "[0]+[1]*(pow(0.01*x,-0.3)-1)+"
+			    "[2]*(1./(0.01*x)-1)+[3]*log(0.01*x)/(0.01*x)",
+			    45,300);
+  if (_etamax==2.5) {
+    // Fit with Z+jet included
+    //f1mg->SetParameters(0.2468,0.4722,-0.5116);
+    //f1dg->SetParameters(0.4225,0.7519,-0.4858);
+    // Fit without Z+jet (only dijet and TT+jet)
+    //f1mg->SetParameters(0.2534,0.3997,-0.5167); // Z+jet x 0.95
+    //f1dg->SetParameters(0.4329,0.65,-0.4916);   // Z+jet x 0.95
+    f1w->SetParameters(0.9855-0.02, -1.737, 0.857, 0.3085);
+    //f1mg->SetParameters(0.2419,0.6253,-0.481); // f1mgz, Z+jet x 1.00
+    //f1dg->SetParameters(0.3964,1.035,-0.4845); // f1dgz, Z+jet x 1.00
+    f1mg->SetParameters(0.1779,0.3552,-0.2127); // f1mgz, Z+jet MC x 1.00
+    f1dg->SetParameters(0.2132,0.6325,-0.1568); // f1mqz, Z+jet data x 1.00
+  }
+  else if (_etamax==1.3) {
+
+    f1w->SetParameters(1, 0,0,0);
+    // Does not include updated W>qq' yet, using Eta25 QGL SF
+    //f1mg->SetParameters(0.2384,0.5043,-0.5148);
+    //f1dg->SetParameters(0.4067,0.828,-0.4933);
+    // With new Eta13 QGL SF
+    f1mg->SetParameters(0.2406,0.5478,-0.4965); // f1mgz
+    f1dg->SetParameters(0.1628,0.678,-0.1545); // f1dgz
+  }
+  else
+    assert(false);
+  
 
   double pt = 0.5*(ptmin+ptmax);
   //double effm = (mceff!=0 ? mceff : 1.05*f1mg->Eval(pt));
   //double effm = (mceff!=0 ? mceff : 1.02*f1mg->Eval(pt));
-  double effm = (mceff!=0 ? mceff : effScaleZ*f1mg->Eval(pt));
+  double effm = (mceff!=0 ? mceff : 
+		 (effScaleZ==-1 ? 1./f1w->Eval(pt) : effScaleZ)*f1mg->Eval(pt));
   double effd = f1dg->Eval(pt);
   
   // Efficiencies above are for QGL>0.5, so 1-eff(g)
@@ -2017,7 +2086,7 @@ double gluonEffSF(double ptmin, double ptmax, double &ineffsf, double mceff) {
 
 // Custom quark SF, otherwise same as gluon
 //TF1 *fqgl_q(0);
-TF1 *f1mq(0), *f1dq(0);
+TF1 *f1mq(0), *f1dq(0);//, *f1w(0);
 double quarkEffSF(double ptmin, double ptmax, double &ineffsf) {
 
   //return 1.084;
@@ -2026,17 +2095,40 @@ double quarkEffSF(double ptmin, double ptmax, double &ineffsf) {
   // For Z+jet, multiply MC results by 1.05
   if (!f1mq) f1mq = new TF1("f1mq","[0]+[1]*pow(x,[2])",34,200);
   if (!f1dq) f1dq = new TF1("f1dq","[0]+[1]*pow(x,[2])",34,200);
-  // Fit with Z+jet included
-  //f1mq->SetParameters(0.7315,-15.79,-1.346);
-  //f1dq->SetParameters(0.7926,-17.77,-1.357);
-  // Fit without Z+jet (W>qq' and dijet only)
-  f1mq->SetParameters(0.7325,-12.78,-1.287);
-  f1dq->SetParameters(0.7936,-14.48,-1.299);
+  if (!f1w)  f1w  = new TF1("f1w", "[0]+[1]*(pow(0.01*x,-0.3)-1)+"
+			    "[2]*(1./(0.01*x)-1)+[3]*log(0.01*x)/(0.01*x)",
+			    45,300);
+
+  if (_etamax==2.5) {
+    // Fit with Z+jet included
+    //f1mq->SetParameters(0.7315,-15.79,-1.346);
+    //f1dq->SetParameters(0.7926,-17.77,-1.357);
+    // Fit without Z+jet (W>qq' and dijet only)
+    //f1mq->SetParameters(0.7325,-12.78,-1.287); // Z+jet x 0.95
+    //f1dq->SetParameters(0.7936,-14.48,-1.299); // Z+jet x 0.95
+    f1w->SetParameters(0.9855-0.02, -1.737, 0.857, 0.3085);
+    //f1mq->SetParameters(0.771,-23.28,-1.436); // f1mqz, Z+jet x 1.00
+    //f1dq->SetParameters(0.795,-21.34,-1.402); // f1dzq, Z+jet x 1.00
+    f1mq->SetParameters(0.8608,-1.233,-0.4998); // f1mqz, Z+jet MC x 1.00
+    f1dq->SetParameters(0.9033,-1.307,-0.5045); // f1mzz, Z+jet data x 0.97
+  }
+  else if (_etamax==1.3) {
+
+    f1w->SetParameters(1, 0,0,0);
+    // Does not include updated W>qq' yet, using Eta25 QGL SF
+    //f1mq->SetParameters(0.733,-11.8,-1.287);
+    //f1dq->SetParameters(0.7947,-13.15,-1.294);
+    // With new Eta13 QGL SF
+    f1mq->SetParameters(0.8624,-1.176,-0.4907); // f1mzq
+    f1dq->SetParameters(0.8875,-1.242,-0.498);  // f1dqz
+  }
+  else
+    assert(false);
 
   double pt = 0.5*(ptmin+ptmax);
   //double effm = 1.05*f1mq->Eval(pt);
   //double effm = 1.02*f1mq->Eval(pt);
-  double effm = effScaleZ*f1mq->Eval(pt);
+  double effm = (effScaleZ==-1 ? 1./f1w->Eval(pt) : effScaleZ)*f1mq->Eval(pt);
   double effd = f1dq->Eval(pt);
   
   double effsf = (effm!=0 ? effd / effm : 1);

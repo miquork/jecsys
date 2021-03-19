@@ -24,6 +24,7 @@
   gROOT->ProcessLine(".L tools.C+g");
   gROOT->ProcessLine(".L reprocess.C+g");
   gROOT->ProcessLine(".L softrad.C+g");
+  gROOT->ProcessLine(".L softrad3.C+g");
   //gROOT->ProcessLine(".L multijet.C+g"); // obsolete since 20200318
   gROOT->ProcessLine(".L globalFitSyst.C+g");
   gROOT->ProcessLine(".L globalFitL3Res.C+g");
@@ -44,6 +45,9 @@
   reprocess(epoch); // Switched off for JetMET100
 
   softrad(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // redo for plots
+  //softrad3(0.0,epoch=="L4" ? 2.4 : 1.3,true,epoch); // 3-point FSR
+  softrad3(0.0,1.3,true,epoch); // 3-point FSR
+  softrad3(0.0,2.5,true,epoch); // 3-point FSR
   
   globalFitSyst(epoch);
 
@@ -60,10 +64,22 @@
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, epoch=="ABC"||epoch=="ABCD" ? "zll" : "gam_zll", "PtBalMPF");
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "gam_zll", "PtBalMPF");
   //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
-  if (epoch=="2018ABCD")
+  if (epoch=="2018ABCD" || epoch=="2017BCDEF" || epoch=="2016BCDEF" || epoch=="2016GH") {
     //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "gam_zll", "PtBalMPF");
-    //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
-    globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll_hadw", "PtBalMPF");
+    //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "gam_zll_hadw", "PtBalMPF");
+  //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
+    if (epoch=="2018ABCD")
+      globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll_hadw", "PtBalMPF"); // V4 (KIT)
+    //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_z_hadw", "PtBalMPF"); // V4 (UH)
+    if (epoch=="2017BCDEF")
+      globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll_hadw", "PtBalMPF"); // V5 (KIT)
+      //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_z_hadw", "PtBalMPF"); // V4 (UH)
+    if (epoch=="2016BCDEF" || epoch=="2016GH")
+      //globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll_hadw", "MPF"); // not working
+      globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll_hadw", "PtBalMPF");
+      //globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
+    //globalFitL3Res(0.0,1.3, epoch, "MJDJ_zll", "PtBalMPF");
+  }
   else if (epoch=="BCDEF")
     //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
     //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_z", "PtBalMPF");
