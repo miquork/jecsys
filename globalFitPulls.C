@@ -9,13 +9,19 @@
 
 #include "tdrstyle_mod15.C"
 
+#include <string>
 
-void globalFitPulls() {
+//void globalFitPulls(string set="2016BCDEF") {
+//void globalFitPulls(string set="2016GH") {
+void globalFitPulls(string set="2016BCD") {
+  //void globalFitPulls(string set="2016EF") {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
-  TFile *f = new TFile("rootfiles/globalFitL3Res_emat.root","READ");
+  const char *cs = set.c_str();
+
+  TFile *f = new TFile(Form("rootfiles/globalFitL3Res_emat_%s.root",cs),"READ");
   assert(f && !f->IsZombie());
 
   curdir->cd();
@@ -100,7 +106,9 @@ void globalFitPulls() {
 		      100,-3,+3,hp->GetNbinsX(),-0.5,hp->GetNbinsX()-0.5);
 
   //TCanvas *c1 = tdrCanvas("c1",h,4,11,kSquare);
-  lumi_13TeV = "UL17";
+  lumi_13TeV = set.c_str();//"UL17";
+  if (set=="2016BCDEF") lumi_13TeV = "2016BCDEF";
+  if (set=="2016GH")    lumi_13TeV = "2016GH";
   TCanvas *c2 = tdrCanvas("c2",(TH1D*)h2,4,0,kSquare);
   c2->SetWindowSize(500,1000);
   c2->SetLeftMargin(0.50);
@@ -246,6 +254,7 @@ void globalFitPulls() {
   l->DrawLine(0,-0.5,0,g->GetN()-0.5);
 
   c2->Update();
-  c2->SaveAs("pdf/globalFitPulls_pulls.pdf");
+  //c2->SaveAs("pdf/globalFitPulls_pulls.pdf");
+  c2->SaveAs(Form("pdf/globalFitPulls_pulls_%s.pdf",cs));
 
 }

@@ -105,7 +105,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   // Zll+jet bins (45 extra vs Z+jet)
   const double ptbins1[] =
     //{30, 40, 50, 60, 85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 1500};
-    {15,20,25,30,35,40,45,50,60,85,105,130,175,230,300,400,500,700, 1000, 1500};
+    {15,20,25,30,35,40,45,50,60,85,105,130,175,230,300,400,500,700, 1000, 1500}; // UL18-v1
+  //{15,20,25,30,35,40,45,50,60,70,85,105,130,175,230,300,400,500,700, 1000, 1500}; // UL18-v4
   const int npt1 = sizeof(ptbins1)/sizeof(ptbins1[0])-1;
   double ptmax1 = ptbins1[npt1];
   TH1D *hpt1 = new TH1D("hpt1","",npt1,&ptbins1[0]);
@@ -122,8 +123,13 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 
   // gamma+jet bins
-  const double ptbins2[] = {40, 50, 60, 85, 105, 130, 175, 230, 300, 400,
-  			    500, 700, 1000, 1500};
+  const double ptbins2[] =
+  //{40, 50, 60, 85, 105, 130, 175, 230, 300, 400, 500,
+  // 700, 1000, 1500}; // UL18-v1
+  // UL18-v2
+    {40, 50, 60, 85, 105, 130, 175, 230, 300, 400, 500,
+     600, 700, 850, 1000, 1200, 1450, 1750, 3000};
+
   //const double ptbins2[] = {40, 50, 60, 85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 3000}; // more correct, but too wide last bin
   const int npt2 = sizeof(ptbins2)/sizeof(ptbins2[0])-1;
   cout << Form("npt2: %i", npt2) << endl << flush;
@@ -405,6 +411,8 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	lumimap["E"] = "Run2017E, 9.3 fb^{-1}";
 	lumimap["F"] = "Run2017F, 13.4 fb^{-1}";
 	lumimap["2018ABCD"] = "2018"; // Placeholder
+	lumimap["2016BCDEF"] = "2016BCDEF"; // Placeholder
+	lumimap["2016GH"] = "2016GH"; // Placeholder
 	lumi_13TeV = lumimap[epoch];
 
 	TCanvas *c0 = tdrCanvas(Form("c0_%s_%s",cm,cd), h, 4, 11, true);

@@ -195,7 +195,10 @@ void reprocess(string epoch="") {
   bool isUL18 = (epoch=="2018ABCD" || epoch=="2018A" || 
 		 epoch=="2018B" || epoch=="2018C" || epoch=="2018D");
   bool isUL17 = (epoch=="2017BCDEF");
-  bool isUL16 = (epoch=="2016BCDEF" || epoch=="2016GH");
+  bool isUL16 = (epoch=="2016BCDEF" || epoch=="2016BCD" || 
+		 epoch=="2016EF" || epoch=="2016GH");
+  bool isAPV = (epoch=="2016BCDEF" || epoch=="2016BCD" || 
+		epoch=="2016EF");
   string sd;
   if (isUL18) sd = "../JERCProtoLab/Summer19UL18/L3Residual_";
   if (isUL17) sd = "../JERCProtoLab/Summer19UL17/L3Residual_";
@@ -217,8 +220,11 @@ void reprocess(string epoch="") {
     //fmultijetptmax = 1890;
     fmultijetptmax = 2684; // 2/4 bins good, but could merge into two?
     //fmultijetptmax2 = 2684;  
+
+    // Turn MJB "off" to avoid double counting HDM
     fmultijetmjbptmin = 1032;//1172;//592;//(114);
     fmultijetmjbptmax = 1172;
+
     // Recoil ranges are {0,97},{97,196},{196,220},{220,272},{272,395},{395,468},{468,592},{592,686},{686,790},{790,6500}
   }
   if (isUL17) {
@@ -236,6 +242,10 @@ void reprocess(string epoch="") {
     fpmpfptmax = 1200;
     fpbalptmin = 300;//230;//300;
     fpbalptmax = 600;
+    /*
+    fpbalptmin = 230;
+    fpbalptmax = 1000;
+    */
   } 
 
   // Z+jet switches
@@ -244,6 +254,10 @@ void reprocess(string epoch="") {
     fzllmpfptmax = 230; 
     fzllbalptmin = 85;//60;//35;//15;//35;//30;
     fzllbalptmax = 105;//175;//230;//300;
+    /*
+    fzllbalptmin = 20;
+    fzllbalptmax = 230;
+    */
   }
   if (isUL18 && CorLevel=="L1L2Res") {
     fzllbalptmin = 35;
@@ -323,7 +337,12 @@ void reprocess(string epoch="") {
   fm_files["2018ABCD"] = "ABCD";
   fm_files["2017BCDEF"] = "BCDEF";
   fm_files["2016BCDEF"] = "BCDEF";
+  //
+  fm_files["2016BCD"] = "BCD";
+  fm_files["2016EF"] = "EF";
   fm_files["2016GH"] = "FGH";
+  fm_files["2016BCDEF"] = "BCDEF";
+  fm_files["2016BCDEFGH"] = "BCDEFGH";
   TFile *fmj(0);
   if (CorLevel=="L1L2Res") {
     if (isUL18) {
@@ -336,7 +355,15 @@ void reprocess(string epoch="") {
     else if (isUL16) { // UL16
       //fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201209_UL2017%s_jecV6_jerV3.root","BCDEF"),"READ"); // UL17 placeholder
       // https://gitlab.cern.ch/lamartik/multijetinputs/-/tree/master/UL2016_JECV2_JERV1
-      fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV2_jerV1_v3.root",fm_files[epoch]),"READ");
+      //if (epoch=="2016GH")
+      //fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV2_jerV1_v3.root",fm_files[epoch]),"READ");
+      //else if (epoch=="2016BCDEF") 
+      if (isAPV && epoch!="2016BCDEF") {
+	fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV3_jerV1.root",fm_files[epoch]),"READ");
+      } // NB: BCDEF is still called jecV2?
+      else {
+	fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV2_jerV1.root",fm_files[epoch]),"READ");
+      }
     }
     else
       assert(false);
@@ -447,6 +474,10 @@ void reprocess(string epoch="") {
   fw_files["2018C"] = "C";
   fw_files["2018D"] = "D";
   fw_files["2018ABCD"] = "ABCD";
+  //
+  fw_files["2016BCD"] = "BCD";
+  fw_files["2016EF"] = "EF";
+  fw_files["2016BCDEF"] = "APV";
   TFile *fw(0), *fw2(0);
   if (CorLevel=="L1L2Res") {
     if (isUL18) {
@@ -456,7 +487,14 @@ void reprocess(string epoch="") {
       fw = new TFile("rootfiles/hadW.root","READ"); // no eras, yet
     }
     else if (isUL16) {
-      fw = new TFile("rootfiles/hadW16V2_Glu_v3.root","READ"); // no eras, yet
+      if (isAPV) {
+	//fw = new TFile("rootfiles/hadW16APVV3_Glu.root","READ");
+	//fw = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_W/hadW16APVV3_Glu.root","READ");
+	fw = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_W/hadW16%sV3_Glu.root",fw_files[epoch]),"READ");
+      } else {
+	//fw = new TFile("rootfiles/hadW16V2_Glu_v3.root","READ"); // no eras, yet
+	fw = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_W/hadW16V2_Glu_v3.root","READ");
+      }	
     }
     else
       assert(false);
@@ -501,7 +539,10 @@ void reprocess(string epoch="") {
   fp_files["BCDEF"] = "BCDEF";
   //
   fp_files["2016BCDEF"] = "BCDEF";
+  fp_files["2016BCD"] = "BCD";
+  fp_files["2016EF"] = "EF";
   fp_files["2016GH"] = "FGH";
+  //
   fp_files["2017BCDEF"] = "BCDEF";
   fp_files["2018A"] = "A";
   fp_files["2018B"] = "B";
@@ -518,10 +559,17 @@ void reprocess(string epoch="") {
       fp = new TFile(Form("rootfiles/2020-04-02/SimpleL1_only_L2Res/Gjet_combinationfile_SimpleL1_only_L2Res_%s_SimpleL1_only_L2Res.root",fp_files[epoch]),"READ");
     }
     else if (isUL16) {
-      if (epoch=="2016BCDEF")
-	fp = new TFile(Form("rootfiles/JECUL16/UL16APVGjet_combinationfile_L2L3Res_%s_L2L3Res.root",fp_files[epoch]),"READ");
-      if (epoch=="2016GH")
-	fp = new TFile(Form("rootfiles/JECUL16/UL16NonAPVGjet_combinationfile_L2L3Res_%s_L2L3Res.root",fp_files[epoch]),"READ");
+      if (isAPV) {//epoch=="2016BCDEF" || epoch=="2016BCD" || epoch=="2016EF")
+	//fp = new TFile(Form("rootfiles/JECUL16/UL16APVGjet_combinationfile_L2L3Res_%s_L2L3Res.root",fp_files[epoch]),"READ"); // old version, Feb10
+	if (epoch=="2016BCDEF") 
+	  fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/UL16APVGjet_combinationfile_L2L3Res_%s_L2L3Res.root",fp_files[epoch]),"READ");
+	else
+	  fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/UL16APVSplitGjet_combinationfile_L2L3Res_%s_L2L3Res.root",fp_files[epoch]),"READ");
+      }
+      else { //if (epoch=="2016GH")
+	//fp = new TFile(Form("rootfiles/JECUL16/UL16NonAPVGjet_combinationfile_L2L3Res_%s_L2L3Res.root",fp_files[epoch]),"READ");
+	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/UL16NonAPVGjet_combinationfile_L2L3Res_%s_L2L3Res.root",fp_files[epoch]),"READ");
+      }
     }
   }
 
@@ -575,9 +623,18 @@ void reprocess(string epoch="") {
       fzee = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV4_L1L2Res.root","READ"); // now V5
     }
     else if (isUL16) { // UL16
-      fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_L1L2Res.root","READ");
+      if (isAPV) {//epoch=="2016BCDEF") {
+	fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2Res.root","READ");
+	fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zee/electrons_in_barrel/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2Res.root","READ");
+      }
+      else { //if (epoch=="2016GH") {
+	fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_L1L2Res.root","READ");
+	fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V2_L1L2Res.root","READ"); // |eta|<1.3 for electrons
+      }
+      //else
+      //assert(false);
       //fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_L1L2Res.root","READ"); // |eta|<2.4 or <2.5 for electrons
-      fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V2_L1L2Res.root","READ"); // |eta|<1.3 for electrons
+      //fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V2_L1L2Res.root","READ"); // |eta|<1.3 for electrons
     }
     else
       assert(false);
@@ -615,8 +672,24 @@ void reprocess(string epoch="") {
     // skip for now, but use UL17 for placeholder
     //fzmm->cd(Form("Run2017%s","BCDEF")); fzmm = (TFile*)gDirectory;
     //fzee->cd(Form("Run2017%s","BCDEF")); fzee = (TFile*)gDirectory;
-    fzmm->cd("Run2016postVFPFlateGH"); fzmm = (TFile*)gDirectory;
-    fzee->cd("Run2016postVFPFlateGH"); fzee = (TFile*)gDirectory;
+    if (epoch=="2016GH") {
+      fzmm->cd("Run2016postVFPFlateGH"); fzmm = (TFile*)gDirectory;
+      fzee->cd("Run2016postVFPFlateGH"); fzee = (TFile*)gDirectory;
+    }
+    else if (epoch=="2016BCDEF") {
+      fzmm->cd("Run2016preVFPBCDEFearly"); fzmm = (TFile*)gDirectory;
+      fzee->cd("Run2016preVFPBCDEFearly"); fzee = (TFile*)gDirectory;
+    }
+    else if (epoch=="2016BCD") {
+      fzmm->cd("Run2016preVFPBCD"); fzmm = (TFile*)gDirectory;
+      fzee->cd("Run2016preVFPBCD"); fzee = (TFile*)gDirectory;
+    }
+    else if (epoch=="2016EF") {
+      fzmm->cd("Run2016preVFPEFearly"); fzmm = (TFile*)gDirectory;
+      fzee->cd("Run2016preVFPEFearly"); fzee = (TFile*)gDirectory;
+    }
+    else
+      assert(false);
   }
   else
     assert(false);
@@ -2597,6 +2670,8 @@ void reprocess(string epoch="") {
   // and store them for easy visualialization later  //
   /////////////////////////////////////////////////////
 
+  if (rp_debug) cout << "Instantiating JECs..." << endl << flush;
+
   map<string,const char*> mera;
   mera["2018ABCD"] = "ABCD";
   mera["2018A"] = "A";
@@ -2605,7 +2680,11 @@ void reprocess(string epoch="") {
   mera["2018D"] = "D";
   mera["2017BCDEF"] = "BCDEF";
   mera["2016BCDEF"] = "BCDEF";
-  mera["2016GH"] = "GH";
+  mera["2016GH"] = "FGH";//"GH";
+  mera["2016BCD"] = "BCD";
+  mera["2016EF"] = "EF";
+  mera["2016BCDEF"] = "BCDEF";
+  mera["2016BCDEFGH"] = "BCDEFGH";
 
   // Calculate L2L3Res with JEC uncertainty
   {
@@ -2615,6 +2694,7 @@ void reprocess(string epoch="") {
     //const char *cdb = "../JECDatabase/textfiles/Summer19UL18_RunA_V4_DATA";
     //const char *cpl = "../JERCProtoLab/Summer19UL18/global_fit/V3A2M1J2";
     const char *cd16 = "../JERCProtoLab/Summer19UL16/global_fit/V2M1";
+    const char *cd16apv = "../JERCProtoLab/Summer19UL16/global_fit/V3M1";
     const char *ce = epoch.c_str();
     
     // New JEC for plotting on the back
@@ -2642,13 +2722,20 @@ void reprocess(string epoch="") {
       else if (isUL16) {
 	// skip for now, but use UL17 as placeholder
 	//jec =getFJC("","",Form("Summer19UL17_Run%s_V5_DATA_L2L3Residual","C"));
-	if (epoch=="2016BCDEF")
-	  jec = getFJC("","","Summer16_07Aug2017BCD_V11_DATA_L2L3Residual");
-	if (epoch=="2016GH")
+
+	jec=getFJC("","",Form("Summer19UL16_Run%s_V3M1_DATA_L2L3Residual",mera[epoch]),cd16apv);
+	//if (isAPV) {//epoch=="2016BCDEF")
+	  //jec = getFJC("","","Summer16_07Aug2017BCD_V11_DATA_L2L3Residual");
+	  //jec=getFJC("","",Form("Summer19UL16_Run%s_V3M1_DATA_L2L3Residual","BCDEF"),cd16apv);
+	  //jec=getFJC("","",Form("Summer19UL16_Run%s_V3M1_DATA_L2L3Residual",mera[epoch]),cd16apv);
+	//}
+	//else { //if (epoch=="2016GH")
 	  //jec = getFJC("","","Summer16_07Aug2017GH_V11_DATA_L2L3Residual");
 	  // Use UL17 as ref. These go as B>C>D>E>>F. Take E for 20/fb raddam
 	  //jec=getFJC("","",Form("Summer19UL17_Run%s_V5_DATA_L2L3Residual","E"));
-	  jec=getFJC("","",Form("Summer19UL16_Run%s_V2M1_DATA_L2L3Residual","FGH"),cd16);
+	  //jec=getFJC("","",Form("Summer19UL16_Run%s_V2M1_DATA_L2L3Residual","FGH"),cd16);
+	  //jec=getFJC("","",Form("Summer19UL16_Run%s_V3M1_DATA_L2L3Residual",mera[epoch]),cd16apv);
+	//}
 	//if (epoch=="2016BCDEF")
 	//jec =getFJC("","",Form("Summer19UL16APV_Run%s_V1_DATA_L2L3Residual",
 	//			 epoch=="2016BCDEF" ? "B" : mera[epoch]));
@@ -2659,6 +2746,8 @@ void reprocess(string epoch="") {
       else
 	assert(false);
 
+      if (rp_debug) cout << "Combined JECs..." << endl << flush;
+      
       if (epoch=="2018ABCD") {
 	
 	/*
@@ -2707,7 +2796,7 @@ void reprocess(string epoch="") {
 	jecwe = 9.3/lumtot;
 	jecwf = 13.4/lumtot;
       }
-      else if (epoch=="2016BCDEF") {// || epoch=="2016GH") {
+      else if (false && epoch=="2016BCDEF") {
 
 	jeca =0;
 	jecb =getFJC("","","Summer16_07Aug2017BCD_V11_DATA_L2L3Residual");
@@ -2749,9 +2838,33 @@ void reprocess(string epoch="") {
 	jecwf = 0;//0.5;
 	jecwg = 1;
       }
+      else if (epoch=="2016BCDEF") {
+
+	jeca =0;
+	jecb =getFJC("","","Summer19UL16_RunBCDEF_V3M1_DATA_L2L3Residual",
+		      cd16apv);
+	jecc =0;
+	jecd =0;
+	jece = 0;//getFJC("","","Summer19UL17_RunE_V5_DATA_L2L3Residual");
+	jecf = 0;//getFJC("","","Summer19UL17_RunF_V5_DATA_L2L3Residual");
+	jecg = 0;
+	jech =0;
+	
+	// luminosity from Hugues Lattaud, photon+jet 11 June 2018
+	double lumtot = 1;
+	jecwa = 0;
+	jecwb = 1;
+	jecwc = 0;
+	jecwd = 0;
+	jecwe = 0;//0.5;
+	jecwf = 0;//0.5;
+	jecwg = 0;
+      }
     }
     //}
 
+    if (rp_debug) cout << "Loading reference JECs..." << endl << flush;
+    
     FactorizedJetCorrector *jecrun1, *jecold, *jecl1flat,*jecl1rcdt, *jecl1pt,
       *jecl1mc, *jecl1rcmc, *jecl1dt, *jecl1c, *jecl1s, *jecl1rc,
       *jecl2c, *jecl2s;
@@ -2776,11 +2889,22 @@ void reprocess(string epoch="") {
       // skip for now, but use UL17 as placeholder
       //jecold =getFJC("","",Form("Summer19UL17_RunC_V5_DATA_L2L3Residual","C"));
       //jecold =getFJC("","","Summer16_07Aug2017BCD_V11_DATA_L2L3Residual");
-      jecold=getFJC("","",Form("Summer19UL16_Run%s_V2_DATA_L2Residual","FGH"));
+      if (isAPV) { //epoch=="2016BCDEF")
+	jecold=getFJC("","",Form("Summer19UL16APV_Run%s_V3_DATA_L2Residual",
+				 mera[epoch]));//"BCDEF"));
+      }
+      else { //if (epoch=="2016GH")
+	jecold=getFJC("","",Form("Summer19UL16_Run%s_V2_DATA_L2Residual",
+				 mera[epoch]));//"FGH"));
+      }
+      //else
+      //assert(false);
       //jecold=getFJC("","",Form("Summer19UL16_Run%s_V2M1_DATA_L2L3Residual","FGH"),cd16);
     }
     else
       assert(false);
+
+    if (rp_debug) cout << "Loading L1 JECs..." << endl << flush;
  
     // Difference between pT-dependent and flat L1
     if (isUL17 || isUL18) {
@@ -2792,12 +2916,24 @@ void reprocess(string epoch="") {
       jecl1dt =   getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1FastJet");
     }
     else if (isUL16) {
-      jecl1flat = getFJC("Summer19UL16_RunFGH_V2_DATA_L1RC");
-      jecl1rcdt = getFJC("Summer19UL16_RunFGH_V2_DATA_L1RC");
-      jecl1pt =   getFJC("Summer19UL16_RunFGH_V2_DATA_L1FastJet");
-      jecl1mc =   getFJC("Summer19UL16_RunFGH_V2_DATA_L1RC");
-      jecl1rcmc = getFJC("Summer19UL16_RunFGH_V2_DATA_L1RC");
-      jecl1dt =   getFJC("Summer19UL16_RunFGH_V2_DATA_L1FastJet");
+      if (isAPV) { //epoch=="2016BCDEF") {
+	jecl1flat = getFJC("Summer19UL16APV_RunBCDEF_V3_DATA_L1RC");
+	jecl1rcdt = getFJC("Summer19UL16APV_RunBCDEF_V3_DATA_L1RC");
+	jecl1pt =   getFJC("Summer19UL16APV_RunBCDEF_V3_DATA_L1FastJet");
+	jecl1mc =   getFJC("Summer19UL16APV_RunBCDEF_V3_DATA_L1RC");
+	jecl1rcmc = getFJC("Summer19UL16APV_RunBCDEF_V3_DATA_L1RC");
+	jecl1dt =   getFJC("Summer19UL16APV_RunBCDEF_V3_DATA_L1FastJet");
+      }
+      else { //if (epoch=="2016GH") {
+	jecl1flat = getFJC("Summer19UL16_RunFGH_V2_DATA_L1RC");
+	jecl1rcdt = getFJC("Summer19UL16_RunFGH_V2_DATA_L1RC");
+	jecl1pt =   getFJC("Summer19UL16_RunFGH_V2_DATA_L1FastJet");
+	jecl1mc =   getFJC("Summer19UL16_RunFGH_V2_DATA_L1RC");
+	jecl1rcmc = getFJC("Summer19UL16_RunFGH_V2_DATA_L1RC");
+	jecl1dt =   getFJC("Summer19UL16_RunFGH_V2_DATA_L1FastJet");
+      }
+      //else
+      //assert(false);
     } 
     else 
       assert(false);
@@ -2824,14 +2960,28 @@ void reprocess(string epoch="") {
       jecl2s =    getFJC("","Summer19UL17_V1_SimpleL1_MC_L2Relative");
     }
     else if (isUL16) {
-      jecl1c =    getFJC("Summer19UL16_V2_MC_L1FastJet",
-			 "Summer19UL16_V2_MC_L2Relative");
-      jecl1s =    getFJC("Summer19UL16_V2_MC_L1FastJet",
-			 "Summer19UL16_V2_MC_L2Relative");
-      jecl1rc =   getFJC("Summer19UL16_V2_MC_L1RC",
-			 "Summer19UL16_V2_MC_L2Relative");
-      jecl2c =    getFJC("","Summer19UL16_V2_MC_L2Relative");
-      jecl2s =    getFJC("","Summer19UL16_V2_MC_L2Relative");
+      if (isAPV) {//epoch=="2016BCDEF") {
+	jecl1c =    getFJC("Summer19UL16APV_V3_MC_L1FastJet",
+			   "Summer19UL16APV_V3_MC_L2Relative");
+	jecl1s =    getFJC("Summer19UL16APV_V3_MC_L1FastJet",
+			   "Summer19UL16APV_V3_MC_L2Relative");
+	jecl1rc =   getFJC("Summer19UL16APV_V3_MC_L1RC",
+			   "Summer19UL16APV_V3_MC_L2Relative");
+	jecl2c =    getFJC("","Summer19UL16APV_V3_MC_L2Relative");
+	jecl2s =    getFJC("","Summer19UL16APV_V3_MC_L2Relative");
+      }
+      else {//if (epoch=="2016GH") {
+	jecl1c =    getFJC("Summer19UL16_V2_MC_L1FastJet",
+			   "Summer19UL16_V2_MC_L2Relative");
+	jecl1s =    getFJC("Summer19UL16_V2_MC_L1FastJet",
+			   "Summer19UL16_V2_MC_L2Relative");
+	jecl1rc =   getFJC("Summer19UL16_V2_MC_L1RC",
+			   "Summer19UL16_V2_MC_L2Relative");
+	jecl2c =    getFJC("","Summer19UL16_V2_MC_L2Relative");
+	jecl2s =    getFJC("","Summer19UL16_V2_MC_L2Relative");
+      }
+      //else
+      //assert(false);
     }
     else
       assert(false);
@@ -2848,6 +2998,8 @@ void reprocess(string epoch="") {
     jecl2c =    getFJC("","Summer19UL17_V5_MC_L2Relative");
     jecl2s =    getFJC("","Summer19UL17_V5_MC_L2Relative");
     */
+
+    if (rp_debug) cout << "Loading L1 uncertainty JECs..." << endl << flush;
 
     // New additions (RC: mean vs median; L1: Simple vs SemiSimple)
     FactorizedJetCorrector *jrcdnom, *jrcmnom, *jrcdalt, *jrcmalt; // 1
@@ -2900,6 +3052,7 @@ void reprocess(string epoch="") {
 		       "_L2L3Splines_ptclip8"); // (2b)
     }
     
+    if (rp_debug) cout << "Loading uncertainty sources..." << endl << flush;
 
     // Run I uncertainty => 80XV6 uncertainty
     s = Form("%s/Winter14_V8_DATA_UncertaintySources_AK5PFchs.txt",cd); // V8 Run I
@@ -2922,7 +3075,12 @@ void reprocess(string epoch="") {
     // skip for now, but use UL17 as placeholder
       //s = Form("%s/Summer19UL17_RunC_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
       //s = Form("%s/Summer16_07Aug2017BCD_V11_DATA_UncertaintySources_AK4PFchs.txt",cd);
-      s = Form("%s/Summer19UL16_RunFGH_V2_DATA_UncertaintySources_AK4PFchs.txt",cd);
+      if (isAPV) {
+	s = Form("%s/Summer19UL16APV_RunBCDEF_V3_DATA_UncertaintySources_AK4PFchs.txt",cd);
+      }
+      else {
+	s = Form("%s/Summer19UL16_RunFGH_V2_DATA_UncertaintySources_AK4PFchs.txt",cd);
+      }
     }
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
@@ -3159,7 +3317,7 @@ void reprocess(string epoch="") {
 			      "[(L1_{dt,alt}/L1_{dt,nom})](#LT#rho#GT+20%)",
 			      npt, &ptbins[0]);
 
-      if(rp_debug) cout << "create reference JES bands" << endl;
+      if(rp_debug) cout << "create reference JES bands" << endl << flush;
       for (int ipt = 1; ipt != herr->GetNbinsX()+1; ++ipt) {
 
 	double pt = herr->GetBinCenter(ipt);
@@ -3225,7 +3383,7 @@ void reprocess(string epoch="") {
 
 	    val = jecwa*vala +jecwb*valb +jecwc*valc +jecwd*vald;
 	  }
-	  else if (epoch=="BCDEF" || epoch=="2018BCDEF") {
+	  else if (epoch=="BCDEF" || epoch=="2017BCDEF") {
 	    assert(jecb);assert(jecc);assert(jecd);assert(jecf);
 	    assert(fabs(jecwb+jecwc+jecwd+jecwe+jecwf-1)<1e-4);
 	    
@@ -3238,13 +3396,14 @@ void reprocess(string epoch="") {
 	    val = jecwb*valb +jecwc*valc +jecwd*vald +jecwe*vale +jecwf*valf;
 	  }
 	  else if (epoch=="2016BCDEF") {
-	    assert(jecb);assert(jece);
-	    assert(fabs(jecwb+jecwe-1)<1e-4);
+	    assert(jecb);
+	    assert(fabs(jecwb-1)<1e-4);
 	    
 	    double valb = 1./getJEC(jecb,eta,pt);
-	    double vale = 1./getJEC(jece,eta,pt);
+	    //double vale = 1./getJEC(jece,eta,pt);
 
-	    val = jecwb*valb +jecwe*vale;
+	    //val = jecwb*valb +jecwe*vale;
+	    val = jecwb*valb;
 	  }
 	  else if (epoch=="2016GH") {
 	    //assert(jece);assert(jecf);

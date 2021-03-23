@@ -87,7 +87,8 @@ bool dol1bias = false; // correct MPF to L1L2L3-L1 from L1L2L3-RC (def:false)
 // Plotting settings
 bool _paper = false; // switch of plotting fit parameters
 bool _useZoom = true; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
-bool plotIncJet = true; // plot inclusive jet data
+bool useIncJet = true; // loada inclusive jet data, for hjesfit (def:true)
+bool plotIncJet = false;//true; // plot inclusive jet data (def:true)
 bool plotHadW = true; // plot hadronic W data
 bool plotMultijetDown = true; // plot gray downward points for multijets
 double ptmaxMultijetDown = 300; // max pT for downward multijet points
@@ -336,12 +337,18 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 		 epoch=="2018B" || epoch=="2018C" || epoch=="2018D");
   bool isUL17 = (epoch=="2017BCDEF" || epoch=="2017B" || epoch=="2017C" ||
 		 epoch=="2017D" || epoch=="2017E" || epoch=="2017F");
-  bool isUL16 = (epoch=="2016BCDEF" || epoch=="2016GH");
-  bool isUL16APV = (epoch=="2016BCDEF");
-  string srefIOV = (isUL18 ? "2018ABCD" : (isUL17 ? "2017BCDEF" : "BCDEF"));
-  if (isUL16) srefIOV = (isUL16APV ? "2016BCDEF" : "2016GH");
+  bool isUL16 = (epoch=="2016BCDEF" || epoch=="2016BCD" ||
+		 epoch=="2016EF" || epoch=="2016GH");
+  bool isAPV = (epoch=="2016BCDEF" || epoch=="2016BCD" ||
+		epoch=="2016EF");
+  string srefIOV = (isUL18 ? "2018ABCD" :
+		    (isUL17 ? "2017BCDEF" :
+		     isAPV ? "2016BCDEF" :
+		     isUL16 ? "2016GH" : "2018ABCD"));
+  //if (isUL16) srefIOV = (isAPV ? "2016BCDEF" : "2016GH");
   const char *refIOV = srefIOV.c_str();
-  bool isRefIOV = (epoch=="2018ABCD" || epoch=="BCDEF" || epoch=="2017BCDEF" ||
+  bool isRefIOV = (epoch=="2018ABCD" ||
+		   epoch=="BCDEF" || epoch=="2017BCDEF" ||
 		   epoch=="2016BCDEF" || epoch=="2016GH");
 
   if (isUL16) { shiftYrange = -0.015; }
@@ -370,7 +377,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   TFile *fij = (isUL18 ?
 		new TFile("rootfiles/drawDeltaJEC_18UL_JECv3.root","READ") :
 		new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ"));
-  assert((fij && !fij->IsZombie()) || ! plotIncJet);
+  assert((fij && !fij->IsZombie()) || ! (plotIncJet || useIncJet));
   //TFile *fw = new TFile("rootfiles/hadW.root","READ");
   //assert((fw && !fw->IsZombie()) || ! plotHadW);
 
@@ -484,6 +491,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   izeemap["MJDJ_gam_zll"] = -1;
   izmmmap["MJDJ_gam_zll"] = -1;
   izllmap["MJDJ_gam_zll"] = 1;
+
+  // Global fit with all samples: multijets/dijets, gamma+jet, merged Z+jet
+  samplesmap["MJDJ_gam_zmm"] =   { (isl3 ? "multijet" : "dijet"),"gamjet", "zmmjet"};
+  nsample0map["MJDJ_gam_zmm"] = 1;
+  igjmap["MJDJ_gam_zmm"] = 0;
+  izeemap["MJDJ_gam_zmm"] = -1;
+  izmmmap["MJDJ_gam_zmm"] = 1;
+  izllmap["MJDJ_gam_zll"] = -1;
 
   // Global fit with all samples: multijets/dijets, gamma+jet, merged Z+jet
   samplesmap["MJDJ_gam_z"] =   { (isl3 ? "multijet" : "dijet"),"gamjet", "zjet"};
@@ -635,6 +650,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	gchfz = (TGraphErrors*)d->Get("chf_zlljet_a100");
 	gnhfz = (TGraphErrors*)d->Get("nhf_zlljet_a100");
 	gnefz = (TGraphErrors*)d->Get("nef_zlljet_a100");
+	if (!gchfz && !gnhfz && !gnefz) {
+	  gchfz = (TGraphErrors*)d->Get("chf_zmmjet_a100");
+	  gnhfz = (TGraphErrors*)d->Get("nhf_zmmjet_a100");
+	  gnefz = (TGraphErrors*)d->Get("nef_zmmjet_a100");
+	}
       }
       else {
 	gchfz = (TGraphErrors*)d->Get("chf_zlljet_a30");
@@ -860,10 +880,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
       string s = Form("%s_%s_a%02.0f",cm,cs,
 		      ss=="multijet" ? ptmj : alpha*100);
-      if (useZJet50  && (ss=="zjet"||ss=="zeejet"||ss=="zmmjet"||ss=="zlljet")&&
+      if (useZJet50  && (ss=="zjet" || ss=="zeejet" || ss=="zmmjet"||
+			 ss=="zlljet") &&
 	  (sm=="mpfchs1" || alsoPtBal50))
 	s = Form("%s_%s_a%02.0f",cm,cs,50.);
-      if (useZJet100 && (ss=="zjet"||ss=="zeejet"||ss=="zmmjet"||ss=="zlljet")&&
+      if (useZJet100 && (ss=="zjet" || ss=="zeejet" || ss=="zmmjet" ||
+			 ss=="zlljet") &&
 	  (sm=="mpfchs1" || alsoPtBal100))
 	s = Form("%s_%s_a%02.0f",cm,cs,100.);
       TGraphErrors *g = (TGraphErrors*)d->Get(s.c_str());
@@ -959,7 +981,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   // Load inclusive jet data
   TH1D *hij(0);
   TGraphErrors *gij(0);
-  if (plotIncJet) {
+  if (plotIncJet || useIncJet) {
     map<string,const char*> fij_files;
     fij_files["2018A"] = "A";
     fij_files["2018B"] = "B";
@@ -1041,7 +1063,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	hfsr = (TH1D*)d->Get(s.c_str());
 	if (dofsrcombo2 && !isRefIOV) s = Form("fsr/hkfsr2_%s_%s",cm,cs);
 	if (fsrcombo && !isRefIOV) hfsr = (TH1D*)dfsr->Get(s.c_str());
-	if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet")) ||
+	if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet" ||
+				     ss=="zmmjet")) ||
 		       (dofsr3mj && ss=="multijet"))) {
 	  s = Form("fsr/hkfsr3_%s_%s",cm,cs);
 	  hfsr = (TH1D*)dfsr->Get(s.c_str());
@@ -1069,14 +1092,16 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	double pt = g1->GetX()[i];
 	double r = g1->GetY()[i];
 	double ptreco(0);
-	if (ss=="zeejet"||ss=="zmmjet"||ss=="zlljet") ptreco = ptreco_zlljet;
+	if (ss=="zeejet" || ss=="zmmjet" || ss=="zlljet")
+	  ptreco = ptreco_zlljet;
 	if (ss=="zjet") ptreco = ptreco_zjet;
 	if (ss=="gamjet") ptreco = ptreco_gjet;
 	double aeff = min(max(alpha, ptreco/pt),alphaeffmax);
 	if (ss=="multijet") aeff = alpha;
 	double kfsr(1);
 	if (dofsr) kfsr = 1./(1+aeff*hfsr->GetBinContent(hfsr->FindBin(pt)));
-	if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet")) ||
+	if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet" ||
+				     ss=="zmmjet")) ||
 		       (dofsr3mj && ss=="multijet"))) // override regular dofsr
 	  kfsr = (r + hfsr->GetBinContent(hfsr->FindBin(pt))) / r;
 	double l1(1);
@@ -1164,7 +1189,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	int ibm = isample + nsamples*imethod;	
 	
 	string s = Form("fsr/hkfsr_%s_%s_eig%d",cm,cs,ieig);
-	if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet")) ||
+	if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet" ||
+				     ss=="zmmjet")) ||
 		       (dofsr3mj && ss=="multijet"))) {
 	  s = Form("fsr/hkfsr3_%s_%s_%s",cm,cs,meig[ieig]);
 	}
@@ -1212,10 +1238,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	for (int i = 1; i != h->GetNbinsX()+1; ++i) {
 	  double pt = h->GetBinCenter(i);
 	  double ptreco(0);
-	  if (ss=="zeejet"||ss=="zmmjet"||ss=="zlljet") ptreco = ptreco_zlljet;
+	  if (ss=="zeejet" || ss=="zmmjet" || ss=="zlljet")
+	    ptreco = ptreco_zlljet;
 	  if (ss=="zjet") ptreco = ptreco_zjet;
 	  if (ss=="gamjet") ptreco = ptreco_gjet;
-	  if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet")) ||
+	  if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet" ||
+				       ss=="zmmjet")) ||
 			 (dofsr3mj && ss=="multijet"))) {
 	    h->SetBinContent(i, h->GetBinContent(i));
 	  }
@@ -1269,7 +1297,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     }
     if (ss=="zeejet" && sm=="ptchs") {
       escale = 0.002; // Consistent with Zmm to 0.2% after mass fit and fix
-      if (isUL16) escale = 0.001;
+      if (isUL16) escale = 0.0010;
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_%03.0f_zeejet_%d",
 		       (1<<(n0+izee) | (1<<(n1+izee))), escale*10000, i));
@@ -1277,7 +1305,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     }
     if (ss=="zmmjet" && sm=="ptchs") {
       escale = 0.002; // Z mass fit within 0.2% of unity, flat vs pT
-      if (isUL16) escale = 0.001;
+      if (isUL16) escale = 0.0010;
       // Use same source for both MPF and pT balance
       h2->SetName(Form("bm%d_scale_%03.0f_zmmjet_%d",
 		       (1<<(n0+izmm) | (1<<(n1+izmm))), escale*10000, i));
@@ -1326,6 +1354,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     double escale(0);
     if (s=="gamjet" && m=="mpfchs1") { escale = 0.002;} 
     if (s=="zeejet" && m=="mpfchs1") { escale = 0.002; }
+    if (s=="zmmjet" && m=="mpfchs1") { escale = 0.000; }
     if (s=="zlljet" && m=="mpfchs1") { escale = 0.002; }
     if (s=="zjet"   && m=="mpfchs1") { escale = 0.002; }
 
@@ -1580,6 +1609,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   lumimap["2016BCD"] = "Run2016BCD, 12.9 fb^{-1}";
   lumimap["2016EF"] = "Run2016EF, 6.8 fb^{-1}";
   lumimap["2016GH"] = "Run2016GH, 16.8 fb^{-1}";
+  lumimap["2016BCDEF"] = "Run2016BCDEF, 19.8 fb^{-1}";
   lumimap["2016BCDEFGH"] = "Run2016BCDEFGH, 36.5 fb^{-1}";
   lumi_13TeV = lumimap[epoch];
 
@@ -1726,6 +1756,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if (ss=="multijet") { g2->SetMarkerSize(0.5); }
     if (ss=="gamjet")   { g2->SetMarkerSize(0.7); }
     if (ss=="zlljet")   { g2->SetMarkerColor(kRed); g2->SetLineColor(kRed); }
+    if (ss=="zmmjet")   { g2->SetMarkerColor(kRed); g2->SetLineColor(kRed); }
     if (ss=="zjet")     { g2->SetMarkerColor(kRed); g2->SetLineColor(kRed); }
     if (ss=="hadw")     { g2->SetMarkerSize(0.5); }
     
@@ -1757,7 +1788,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	//legm->AddEntry(herr_ref,"16BCDEF V11","FL");
 	//legm->AddEntry(herr_ref,"16GH V11","FL");
 	//legm->AddEntry(herr_ref,"UL17EF* V5","FL");
-	legm->AddEntry(herr_ref,"UL16GH V2M1","FL");
+	//if (isAPV)
+	//legm->AddEntry(herr_ref,"UL16B-F V3M1","FL");
+	//else
+	//legm->AddEntry(herr_ref,"UL16GH V2M1","FL");
+	legm->AddEntry(herr_ref,"UL16 V3M1","FL");
       else
 	assert(false);
     }
@@ -1863,6 +1898,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if (ss=="multijet") { g3->SetMarkerSize(0.5); }
     if (ss=="gamjet")   { g3->SetMarkerSize(0.7); }
     if (ss=="zlljet")   { g3->SetMarkerColor(kRed); g3->SetLineColor(kRed); }
+    if (ss=="zmmjet")   { g3->SetMarkerColor(kRed); g3->SetLineColor(kRed); }
     if (ss=="zjet")     { g3->SetMarkerColor(kRed); g3->SetLineColor(kRed); }
     if (ss=="hadw")     { g3->SetMarkerSize(0.5); }
 
@@ -1978,7 +2014,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
 
   if (storeErrorMatrix) {
-    TFile *femat = new TFile("rootfiles/globalFitL3Res_emat.root","RECREATE");
+    TFile *femat = new TFile(Form("rootfiles/globalFitL3Res_emat_%s.root",
+				  epoch.c_str()),"RECREATE");
     TH2D *h2emat = new TH2D("h2emat",";i_{par};j_{par}",
 			    Npar,-0.5,Npar-0.5, Npar,-0.5,Npar-0.5);
     TH2D *h2cov = new TH2D("h2cov",";i_{par};j_{par}",
@@ -2291,6 +2328,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if (ss=="multijet") { g2->SetMarkerSize(0.5); }
     if (ss=="gamjet")   { g2->SetMarkerSize(0.7); }
     if (ss=="zlljet")   { g2->SetMarkerColor(kRed); g2->SetLineColor(kRed); }
+    if (ss=="zmmjet")   { g2->SetMarkerColor(kRed); g2->SetLineColor(kRed); }
     if (ss=="zjet")     { g2->SetMarkerColor(kRed); g2->SetLineColor(kRed); }
     if (ss=="hadw")     { g2->SetMarkerSize(0.5); }
 
@@ -2526,7 +2564,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
       double minx(30);
       double maxx(1500);
-      if (ss=="zeejet"||ss=="zmmjet"||ss=="zlljet") {  minx=15; maxx = 700; }
+      if (ss=="zeejet" || ss=="zmmjet" || ss=="zlljet")
+	{  minx=15; maxx = 700; }
       if (ss=="zjet") {  minx=15; maxx = 700; }
       if (ss=="gamjet") { minx=230; maxx = 1500; }
       if (ss=="multijet") { minx=114; maxx = (isUL18 ? 2640 : 2116); }//2640; }
@@ -2594,10 +2633,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	string ss = samples[isample];
 	const char *cs = ss.c_str();
 	double ptreco(0);
-	if (ss=="zeejet"||ss=="zmmjet"||ss=="zlljet") ptreco = ptreco_zlljet;
+	if (ss=="zeejet" || ss=="zmmjet" || ss=="zlljet")
+	  ptreco = ptreco_zlljet;
 	if (ss=="zjet") ptreco = ptreco_zjet;
 	if (ss=="gamjet") ptreco = ptreco_gjet;
-	if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet")) ||
+	if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet" ||
+				     ss=="zmmjet")) ||
 		       (dofsr3mj && ss=="multijet"))) {
 	  hke->SetBinContent(ipt, hk->GetBinContent(ipt) - yeig);
 	  hke->SetBinError(ipt, sqrt(err2));
@@ -2687,6 +2728,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   TH1D *h4 = tdrHist("hpfjet","PF composition changes (10^{-2})",
 		     -1.2,1.3,"p_{T} (GeV)",ptmin,ptmax);
   if (isUL18) {
+    h4->SetMinimum(-2.4);
+    h4->SetMaximum(+2.6);
+  }
+  //if (epoch=="2016BCDEF") {
+  if (isUL16) {
     h4->SetMinimum(-2.4);
     h4->SetMaximum(+2.6);
   }

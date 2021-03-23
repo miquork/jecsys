@@ -87,6 +87,7 @@ void hadW::Loop()
    bool is18 = (TString(_s.c_str()).Contains("18"));
    bool is17 = (TString(_s.c_str()).Contains("17"));
    bool is16 = (TString(_s.c_str()).Contains("16"));
+   bool isAPV = (TString(_s.c_str()).Contains("APV"));
    //assert((is18 || is17) && (!is18 || !is17)); // XOR
    assert(is18 || is17 || is16);
    if ( isMC) cout << "Looping over MC" << endl;
@@ -707,28 +708,32 @@ void hadW::Loop()
    const char *cf0 = "Autumn18_V3_MC_Pythia8_all_L2Relative_AK4PFchs";
    const char *cdref = "CondFormats/JetMETObjects/data";
    //const char *cref = "Summer19UL17_Run%s_V2M5_SimpleL1_Data_L2L3Residual_AK4PFchs";//UL17??
-   string sref, sref17, sref18, sref16;
+   string sref, sref17, sref18, sref16, sref16apv;
    //sref17 = "Summer19UL17_Run%s_V5_Data_L2Residual_AK4PFchs";//UL17??
    //sref17 = "Summer19UL17_Run%s_V5_Data_L2L3Residual_AK4PFchs";//UL17 v2??
    //sref17 = "Summer19UL17_RunBCDEF_V2M5_L2L3Residual_AK4PFchs";//UL17 v2?
    sref18 = "Summer19UL18_Run%s_V3_Data_L2Residual_AK4PFchs";//UL18
    sref17 = "Summer19UL17_Run%s_V2M5_SimpleL1_Data_L2L3Residual_AK4PFchs";//UL17??
    sref16 = "Summer19UL16_RunFGH_V2_DATA_L2Residual_AK4PFchs";
+   sref16apv = "Summer19UL16APV_RunBCDEF_V3_DATA_L2Residual_AK4PFchs";
    if (is18) sref = sref18;
    if (is17) sref = sref17;
    if (is16) sref = sref16;
+   if (is16 && isAPV) sref = sref16apv;
    const char *cref = sref.c_str();
    //const char *cref = "Summer19UL18_Run%s_V3_DATA_L2Residual_AK4PFchs";//UL18
    //const char *cref = "Summer19UL18_Run%s_V4_DATA_L2L3Residual_AK4PFchs";
    //const char *cnew = "Summer19UL18_Run%s_V4_DATA_L2L3Residual_AK4PFchs";//UL18
-   string snew, snew17, snew18, snew16;
+   string snew, snew17, snew18, snew16, snew16apv;
    //snew18 = "Summer19UL18_Run%s_V4_DATA_L2L3Residual_AK4PFchs";//UL18
    snew18 = "Summer19UL18_Run%s_V5_DATA_L2L3Residual_AK4PFchs";//UL18
    snew17 = "Summer19UL17_Run%s_V5_DATA_L2L3Residual_AK4PFchs";//UL17
    snew16 = "Summer19UL16_RunFGH_V2_DATA_L2Residual_AK4PFchs";
+   snew16apv = "Summer19UL16APV_RunBCDEF_V3_DATA_L2Residual_AK4PFchs";
    if (is18) snew = snew18;
    if (is17) snew = snew17;
    if (is16) snew = snew16;
+   if (is16 && isAPV) snew = snew16apv;
    const char *cnew = snew.c_str();
    string sfud = Form("%s/%s.txt",cd,cfud);
    cout << sfud << endl;
@@ -790,7 +795,9 @@ void hadW::Loop()
    //for (int irun = 0; irun != nrun; ++irun) {
    for (int irun = 1; irun != nrun; ++irun) {
 
-     if (is16 && (irun<1||irun>3)) continue;
+     //if (is16 && (irun<1||irun>3)) continue;
+     if (is16 &&  isAPV && (irun<1||irun>2)) continue;
+     if (is16 && !isAPV && (irun<3||irun>3)) continue;
      if (is17 && (irun<4||irun>8)) continue;
      if (is18 && (irun<10||irun>13)) continue;
 
@@ -2637,11 +2644,12 @@ void hadW::Draw(string s) {//string sdt, string smc) {
    bool is18 = (TString(s.c_str()).Contains("18"));
    bool is17 = (TString(s.c_str()).Contains("17"));
    bool is16 = (TString(s.c_str()).Contains("16"));
+   bool isAPV = (TString(s.c_str()).Contains("APV"));
    //assert((is18 || is17) && (!is18 || !is17)); // XOR
    assert(is18 || is17 || is16);
    if ( is18) cout << "Drawing UL18" << endl;
    if ( is17) cout << "Drawing UL17" << endl;
-   if ( is16) cout << "Drawing UL16" << endl;
+   if ( is16) cout << "Drawing UL16" << (isAPV ? "APV" : "") << endl;
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
@@ -2737,6 +2745,7 @@ void hadW::Draw(string s) {//string sdt, string smc) {
   if (is18) lumi_13TeV = "UL18 ttbar lepton+jet hadW";
   if (is17) lumi_13TeV = "UL17 ttbar lepton+jet hadW";
   if (is16) lumi_13TeV = "UL16 ttbar lepton+jet hadW";
+  if (is16 && isAPV) lumi_13TeV = "UL16APV ttbar lepton+jet hadW";
   if (is17&&is18) lumi_13TeV = "UL17+18 ttbar lepton+jet hadW";
   TCanvas *c1 = tdrDiCanvas("c1",hup,hdw,4,11);
   

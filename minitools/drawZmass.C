@@ -35,7 +35,8 @@ void drawZmasses(string run="ABC") {
 
   bool isUL17 = (run=="2017BCDEF");
 
-  bool isUL16 = (run=="2016GH");
+  bool isUL16 = (run=="2016GH" || run=="2016BCDEF" || run=="2016BCD" ||
+		 run=="2016EF");
 
   TFile *f = new TFile(Form("rootfiles/jecdata%s.root",run.c_str()),"READ");
   assert(f && !f->IsZombie());
@@ -134,6 +135,7 @@ void drawZmasses(string run="ABC") {
   lumimap["2016BCD"] = "Run2016BCD, 12.9 fb^{-1}";
   lumimap["2016EF"] = "Run2016EF, 6.8 fb^{-1}";
   lumimap["2016GH"] = "Run2016GH, 16.8 fb^{-1}";
+  lumimap["2016BCDEF"] = "Run2016BCDEF, 19.7 fb^{-1}";
   lumimap["2016BCDEFGH"] = "Run2016BCDEFGH, 36.5 fb^{-1}";
   lumi_13TeV = lumimap[run];
   TCanvas *c1 = tdrDiCanvas("c1",hdw,hup,4,11);
@@ -332,9 +334,15 @@ void drawZmasses(string run="ABC") {
   f1mzee->SetParameters(1,0.001,0.0001);
   //f1mzee->FixParameter(1, 0.00214); // EOY2017BCDEF
   //f1mzee->FixParameter(2, 0.00116); // EOY2017BCDEF
-  if (run!="BCDEF" && run!="2018ABCD" && run!="2016GH") {
-    f1mzee->FixParameter(1, 0.00225); // UL2017BCDEF-v1
-    f1mzee->FixParameter(2, 0.00031); // UL2017BCDEF-v1
+  if (run!="BCDEF" && run!="2018ABCD" && run!="2016GH" && run!="2016BCDEF") {
+    if (isUL16) {
+      f1mzee->FixParameter(1, 0.00349); // UL2016GH
+      f1mzee->FixParameter(2, 0.00159); // UL2016GH
+    }
+    else {
+      f1mzee->FixParameter(1, 0.00225); // UL2017BCDEF-v1
+      f1mzee->FixParameter(2, 0.00031); // UL2017BCDEF-v1
+    }
   }
   f1mzee->SetLineColor(kGreen+2);
   gzeer2->Fit(f1mzee,"QRN");
@@ -524,7 +532,7 @@ void drawZmasses(string run="ABC") {
     if (plotZmmStat) ++n;
     if (plotZeeStat) ++n;
     if (plotGamStat) ++n;
-    if (run=="BCDEF" || run=="2018ABCD" || run=="2016GH") {
+    if (run=="BCDEF" || run=="2018ABCD" || run=="2016GH" || run=="2016BCDEF") {
       TLegend *leg2 = tdrLeg(0.50,0.72,0.80,0.72+0.06*n);
       if (plotZeeStat) leg2->AddEntry(gstatzm,"Zee+jet MPF stat.","F");
       if (plotZmmStat) leg2->AddEntry(gstatze,"Z#mu#mu+jet MPF stat.","F");
@@ -538,7 +546,14 @@ void drawZmasses(string run="ABC") {
       }
       if (run=="2016GH") {
 	leg2->SetY1(leg2->GetY1()-4*0.055);
-	leg2->AddEntry(f1ul16mm,"UL16","L");
+	leg2->AddEntry(f1ul16mm,"UL16GH","L");
+	leg2->AddEntry(f1eoy16mm,"EYO16","L");
+	leg2->AddEntry(f1ul17mm,"UL17","L");
+	leg2->AddEntry(f1ul18mm,"UL18","L");
+      }
+      if (run=="2016BCDEF") {
+	leg2->SetY1(leg2->GetY1()-4*0.055);
+	leg2->AddEntry(f1ul16mm,"UL16BF","L");
 	leg2->AddEntry(f1eoy16mm,"EYO16","L");
 	leg2->AddEntry(f1ul17mm,"UL17","L");
 	leg2->AddEntry(f1ul18mm,"UL18","L");
@@ -581,16 +596,22 @@ void drawZmasses(string run="ABC") {
   } // !ispr
   if (ispr) {
 
+    double eeref = f1ul17ee->GetParameter(0);
+    if (isUL16) eeref = f1ul16ee->GetParameter(0);
+
     tex->SetTextColor(kGreen+2);
     tex->DrawLatex(0.2,0.45,Form("#chi^{2} / NDF = %1.1f / %d (e^{+}e^{-})",
 				  f1mzee->GetChisquare(), f1mzee->GetNDF()));
-    if (run!="BCDEF" && run!="2018ABCD" && run!="2016GH")
-      tex->DrawLatex(0.4,0.85,Form("#Delta^{2}M(e^{+}e^{-})"
+    if (run!="BCDEF" && run!="2018ABCD" && run!="2016GH" && run!="2016BCDEF")
+      tex->DrawLatex(0.4,0.80,Form("#Delta^{2}M(e^{+}e^{-})"
                                    " = %+1.3f #pm %1.3f%%",
-                                   100.*(f1mzee->GetParameter(0)-
-					 f1ul17ee->GetParameter(0)),
+                                   100.*(f1mzee->GetParameter(0)-eeref),
+					 //f1ul17ee->GetParameter(0)),
 					 //f1eoy17ee->GetParameter(0)),
                                    100.*f1mzee->GetParError(0)));
+
+    double mmref = f1ul17mm->GetParameter(0);
+    if (isUL16) mmref = f1ul16mm->GetParameter(0);
 
     tex->SetTextColor(kRed);
     tex->DrawLatex(0.2,0.05,Form("#chi^{2} / NDF = %1.1f / %d (#mu^{+}#mu^{-})",
@@ -598,11 +619,11 @@ void drawZmasses(string run="ABC") {
     tex->DrawLatex(0.2,0.11,Form("#DeltaM(#mu^{+}#mu^{-}) = %1.3f #pm %1.3f%%",
 				 (f1mzmm->GetParameter(0)-1)*100,
 				 f1mzmm->GetParError(0)*100));
-    if (run!="BCDEF" && run!="2018ABCD" && run!="2016GH")
-      tex->DrawLatex(0.4,0.80,Form("#Delta^{2}M(#mu^{+}#mu^{-})"
+    if (run!="BCDEF" && run!="2018ABCD" && run!="2016GH" && run!="2016BCDEF")
+      tex->DrawLatex(0.4,0.75,Form("#Delta^{2}M(#mu^{+}#mu^{-})"
                                    " = %+1.3f #pm %1.3f%%",
-                                   100.*(f1mzmm->GetParameter(0)-
-					 f1ul17mm->GetParameter(0)),
+                                   100.*(f1mzmm->GetParameter(0)-mmref),
+					 //f1ul17mm->GetParameter(0)),
 					 //f1eoy17mm->GetParameter(0)),
                                    100.*f1mzmm->GetParError(0)));
   }
@@ -631,4 +652,7 @@ void drawZmass() {
   //drawZmasses("2017BCDEF");
 
   drawZmasses("2016GH");
+  drawZmasses("2016BCDEF");
+  drawZmasses("2016BCD");
+  drawZmasses("2016EF");
 } // drawZmass

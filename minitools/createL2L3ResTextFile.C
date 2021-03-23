@@ -27,10 +27,13 @@ void createL2L3ResTextFile() {
   //		    0.97,1.01,"p_{T} (GeV)",ptmin,ptmax);
   //TH1D *h = tdrHist("h","Absolute response at |#eta| < 1.3",
   //		    0.982,1.022,"p_{T} (GeV)",ptmin,ptmax);
+  //TH1D *h = tdrHist("h","Absolute response at |#eta| < 1.3",
+  //		    0.97,1.02,"p_{T} (GeV)",ptmin,ptmax);
   TH1D *h = tdrHist("h","Absolute response at |#eta| < 1.3",
-  		    0.97,1.02,"p_{T} (GeV)",ptmin,ptmax);
+  		    0.970,1.035,"p_{T} (GeV)",ptmin,ptmax);
   //lumi_13TeV = "UL2017";
-  lumi_13TeV = "UL2016GH";
+  //lumi_13TeV = "UL2016GH";
+  lumi_13TeV = "UL2016, 36.5 fb^{-1}";
   TCanvas *c1 = tdrCanvas("c1",h,4,11,kSquare);
   c1->SetLeftMargin(0.17);
   c1->SetRightMargin(0.03);
@@ -54,16 +57,23 @@ void createL2L3ResTextFile() {
   c1->SaveAs("pdf/createL2L3ResTextFile_UL18JECV3.pdf");
   */
 
+  createL2L3ResTextFiles("2016BCDEF");
+  createL2L3ResTextFiles("2016BCD");
+  createL2L3ResTextFiles("2016EF");
   createL2L3ResTextFiles("2016GH");
 
   c1->Update();
-  c1->SaveAs("pdf/createL2L3ResTextFile_UL16GHJECV2.pdf");
+  //c1->SaveAs("pdf/createL2L3ResTextFile_UL16GHJECV2.pdf");
+  //c1->SaveAs("pdf/createL2L3ResTextFile_UL16_BtoF_JECV3_GH_JECV2.pdf");
+  c1->SaveAs("pdf/createL2L3ResTextFile_UL16_BtoH_JECV2.pdf");
 }
 
 void createL2L3ResTextFiles(string set) {
 
   //if (debug) 
   cout << "Warning: sscanf only works correctly when code is compiled (.C+)\n";
+
+  cout << "Processing " << set << endl << flush;
 
   // For V2M5, simplify complex sum into an effective formula
   // Need good starting values and/or a few iterations to converge
@@ -91,7 +101,7 @@ void createL2L3ResTextFiles(string set) {
   color["2018C"] = kOrange+2;
   color["2018D"] = kRed;
   //
-  color["2016GH"] = kYellow+2;
+  color["2016BCDEF"] = kYellow+2;//kCyan+2;
   color["2016BCD"] = kBlue;
   color["2016EF"] = kGreen+2;
   color["2016GH"] = kRed;
@@ -122,13 +132,13 @@ void createL2L3ResTextFiles(string set) {
   //cout << "Processing " << run << "_" << l1 << endl;
   const char *run = set.c_str();
   const char *l1 = "SimpleL1";
-  cout << "Processing " << set << endl;
+  //cout << "Processing " << set << endl;
 
   bool isUL18 = (set=="2018ABCD" || set=="2018A" || set=="2018B" || 
 		 set=="2018C" || set=="2018D");
 
-  bool isUL16 = (set=="2016BCDEFGH" || set=="2016BCD" || set=="2016EF" || 
-		 set=="2016GH");
+  bool isUL16 = (set=="2016BCDEFGH" || set=="2016BCDEF" || set=="2016BCD" ||
+		 set=="2016EF" || set=="2016GH");
 
   string sin, sout;
   if (isUL18) {
@@ -146,11 +156,22 @@ void createL2L3ResTextFiles(string set) {
   else if (isUL16) {
     map<string,const char*> mera;
     mera["2016BCDEFGH"] = "BCDEFGH";
+    mera["2016BCDEF"] = "BCDEF";
     mera["2016BCD"] = "BCD";
     mera["2016EF"] = "EF";
     mera["2016GH"] = "FGH";
-    sin = Form("../JECDatabase/textFiles/Summer19UL16_RunFGH_V2_DATA/Summer19UL16_Run%s_V2_DATA_L2Residual_AK4PFchs.txt",mera[set]);
-    sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V2M1/Summer19UL16_Run%s_V2M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    if (set=="2016GH") {
+      sin = Form("../JECDatabase/textFiles/Summer19UL16_RunFGH_V2_DATA/Summer19UL16_Run%s_V2_DATA_L2Residual_AK4PFchs.txt",mera[set]);
+      //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V2M1/Summer19UL16_Run%s_V2M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+      sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M1/Summer19UL16_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    }
+    else if (set=="2016BCDEF" || set=="2016BCD" || set=="2016EF") {
+      sin = Form("../JECDatabase/textFiles/Summer19UL16APV_Run%s_V3_DATA/Summer19UL16APV_Run%s_V3_DATA_L2Residual_AK4PFchs.txt",mera[set],mera[set]);
+      //
+      sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M1/Summer19UL16_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    }
+    else
+      assert(false);
   }
   else {
     assert(false);

@@ -129,6 +129,7 @@ void drawZeeVsZmms(string run = "BCDEFGH") {
   lumimap["2016BCD"] = "Run2016BCD, 12.9 fb^{-1}";
   lumimap["2016EF"] = "Run2016EF, 6.8 fb^{-1}";
   lumimap["2016GH"] = "Run2016GH, 16.8 fb^{-1}";
+  lumimap["2016BCDEF"] = "Run2016BCDEF, 19.8 fb^{-1}";
   lumimap["2016BCDEFGH"] = "Run2016BCDEFGH, 36.5 fb^{-1}";
   lumi_13TeV = lumimap[run];
   TCanvas *c1 = tdrDiCanvas("c1",hdw,hup,4,11);
@@ -332,4 +333,7 @@ void drawZeeVsZmm() {
   */
   //drawZeeVsZmms("2018ABCD");
   drawZeeVsZmms("2016GH");
+  drawZeeVsZmms("2016BCDEF");
+  drawZeeVsZmms("2016BCD");
+  drawZeeVsZmms("2016EF");
 }

@@ -76,7 +76,9 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   bool isUL18 = (epoch=="2018ABCD" || epoch=="2018A" || 
 		 epoch=="2018B" || epoch=="2018C" || epoch=="2018D");
   bool isUL17 = (epoch=="2017BCDEF");
-  bool isUL16 = (epoch=="2016BCDEF" || epoch=="2016GH");
+  bool isUL16 = (epoch=="2016BCDEF" || epoch=="2016BCD" ||
+		 epoch=="2016EF" || epoch=="2016GH");
+  bool isAPV = (epoch=="2016BCDEF" || epoch=="2016BCD" || epoch=="2016EF");
   
   setTDRStyle();
   

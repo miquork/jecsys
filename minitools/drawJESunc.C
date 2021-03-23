@@ -8,14 +8,21 @@
 
 #include "../tdrstyle_mod15.C"
 
-void drawJESunc() {
+void drawJESunc(string set = "2016EF") {
+//void drawJESunc(string set = "2016BCD") {
+//void drawJESunc(string set = "2016BCDEF") {
+  //void drawJESunc(string set = "2016GH") {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
+  const char *cs = set.c_str();
+
   //TFile *f = new TFile("rootfiles/jecdata2018ABCD.root");
   //TFile *f = new TFile("rootfiles/jecdataBCDEF.root");
-  TFile *f = new TFile("rootfiles/jecdata2016GH.root");
+  //TFile *f = new TFile("rootfiles/jecdata2016GH.root");
+  //TFile *f = new TFile("rootfiles/jecdata2016BCDEF.root");
+  TFile *f = new TFile(Form("rootfiles/jecdata%s.root",cs));
   assert(f && !f->IsZombie());
   
   curdir->cd();
@@ -53,9 +60,10 @@ void drawJESunc() {
   double ptmax = 4000;//4500;
   TH1D *h = tdrHist("h","Absolute JES uncertainty (%)",
 		    -0.8,1.0,"p_{T} (GeV)",ptmin,ptmax);
-  lumi_13TeV = "UL16GH";
+  //lumi_13TeV = "UL16GH";
   //lumi_13TeV = "UL17";
   //lumi_13TeV = "UL18";
+  lumi_13TeV = set;
   TCanvas *c1 = tdrCanvas("c1",h,4,11,kSquare);
   gPad->SetLogx();
 
@@ -100,7 +108,9 @@ void drawJESunc() {
   gPad->RedrawAxis();
   //c1->SaveAs("pdf/drawJESunc_err_UL18.pdf");
   //c1->SaveAs("pdf/drawJESunc_err_UL17.pdf");
-  c1->SaveAs("pdf/drawJESunc_err_UL16GH.pdf");
+  //c1->SaveAs("pdf/drawJESunc_err_UL16GH.pdf");
+  //c1->SaveAs("pdf/drawJESunc_err_UL16BCDEF.pdf");
+  c1->SaveAs(Form("pdf/drawJESunc_err_%s.pdf",cs));
 
   /////////////////////////////////////////////////////////
 
@@ -187,7 +197,8 @@ void drawJESunc() {
   gPad->RedrawAxis();
   //c2->SaveAs("pdf/drawJESunc_par_UL18.pdf");
   //c2->SaveAs("pdf/drawJESunc_par_UL17.pdf");
-  c2->SaveAs("pdf/drawJESunc_par_UL16GH.pdf");
+  //c2->SaveAs("pdf/drawJESunc_par_UL16GH.pdf");
+  c2->SaveAs(Form("pdf/drawJESunc_par_%s.pdf",cs));
 
   ///////////////////////////////////////////////////////////
   gSystem->Exec("rm pdf/drawJESunc_par2.gif");
@@ -251,6 +262,8 @@ void drawJESunc() {
   }
   //c3->SaveAs("pdf/drawJESunc_par2_UL18.pdf");
   //c3->SaveAs("pdf/drawJESunc_par2_UL17.pdf");
-  c3->SaveAs("pdf/drawJESunc_par2_UL16GH.pdf");
+  //c3->SaveAs("pdf/drawJESunc_par2_UL16GH.pdf");
+  //c3->SaveAs("pdf/drawJESunc_par2_UL16BCDEF.pdf");
+  c3->SaveAs(Form("pdf/drawJESunc_par2_%s.pdf",cs));
 
 } // drawJESunc
