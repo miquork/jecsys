@@ -31,6 +31,9 @@
   redoJER("RunUL18");
   */
 
+  resolution("MC","UL16V2V1_GH");
+  redoJER("RunUL16GH");
+
 
   //redoJER("Run2018");
   //redoJER("Run2018ABC");

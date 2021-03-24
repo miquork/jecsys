@@ -193,16 +193,16 @@ void resolution(string type="MC",string file="") {
     else if (TString(file.c_str()).Contains("UL17V4_B")) {
       era = "UL17B"; _jer_iov = ul17b; _rho = 18.615008;
     }
-    if (TString(file.c_str()).Contains("UL17V4_C")) {
+    else if (TString(file.c_str()).Contains("UL17V4_C")) {
       era = "UL17C";  _jer_iov = ul17c; _rho = 18.43395;
     }
-    if (TString(file.c_str()).Contains("UL17V4_D")) {
+    else if (TString(file.c_str()).Contains("UL17V4_D")) {
       era = "UL17D";  _jer_iov = ul17d; _rho = 18.224222;
     }
-    if (TString(file.c_str()).Contains("UL17V4_E")) {
+    else if (TString(file.c_str()).Contains("UL17V4_E")) {
       era = "UL17E"; _jer_iov = ul17e; _rho = 23.395639;
     }
-    if (TString(file.c_str()).Contains("UL17V4_F")) {
+    else if (TString(file.c_str()).Contains("UL17V4_F")) {
       era = "UL17F"; _jer_iov = ul17f; _rho = 25.271713;
     }
   }
@@ -221,11 +221,21 @@ void resolution(string type="MC",string file="") {
     else if (TString(file.c_str()).Contains("UL18V2V3_B")) {
       era = "UL18B"; _jer_iov = ul18b; _rho = 20.8891;
     }
-    if (TString(file.c_str()).Contains("UL18V2V3_C")) {
+    else if (TString(file.c_str()).Contains("UL18V2V3_C")) {
       era = "UL18C";  _jer_iov = ul18c; _rho =  21.2761; // problem with this
     }
-    if (TString(file.c_str()).Contains("UL18V2V3_D")) {
+    else if (TString(file.c_str()).Contains("UL18V2V3_D")) {
       era = "UL18D";  _jer_iov = ul18d; _rho = 19.9343;
+    }
+  }
+  if (TString(file.c_str()).Contains("UL16")) {
+    era = "UL16"; _jer_iov = ul16; _rho = 16.663726;
+    // _rho values from output-DATA-2b-UL18V2V1_X.root/Standard/Eta_0.0-1.3/prho
+    // fit in range [548,2116] (jt450(?) range)
+    // NB: not that great fits, have pT dependence at 0.1 GeV level or more
+    // and chi2/NDF ~ 10. Could be due to UE change as qg to qq?
+    if (TString(file.c_str()).Contains("UL16V2V1_GH")) {
+      era = "UL16GH"; _jer_iov = ul16gh; _rho = 16.663726;
     }
   }
   const char *cera = era.c_str();
@@ -1008,10 +1018,6 @@ void redoJER(string run="") {
      1.2105-0.9478, 1.4107-1.2174, 1.6427-1.1798, 1.3226-1.2132, 1.1046-0.9710};
 
   // Summer19UL18_JRV2_MC/Summer19UL18_JRV2_MC_SF_AK4PFchs.txt 
-
-  // Inclusive jet analysis bins
-  const int nbins = 10;
-  const double bins[nbins+1] = {0,0.5,1,1.5,2,2.5,3,3.2,4.7,0.0,1.3};
   const int nbinsul18 = 14;
   const double binsul18[nbinsul18+1] =
   // cat *.txt | awk '{print $2", "}'
@@ -1027,11 +1033,38 @@ void redoJER(string run="") {
      1.2182-1.1074, 1.1870-1.0976, 1.2564-1.0393, 1.1979-1.0741, 1.2780-1.1041, 
      1.3650-1.2187, 1.5354-1.2347, 1.3278-1.2063, 1.1942-0.8792};
 
+  // JERCProtoLab/Summer19UL16/JER_SF/Summer19UL16_JRV1_MC_SF_AK4PFchs.txt
+  const int nbinsul16gh = 14;
+  // cat *.txt | awk '{print $2", "}'
+  const double binsul16gh[nbinsul16gh+1] =
+    {0, 0.522, 0.783, 1.131, 1.305, 1.740, 1.930, 2.043, 2.322,
+     2.500, 2.650, 2.853, 2.964, 3.139, 5.191};
+  // cat *.txt | awk '{print $4", "}'
+  const double valsul16gh[nbinsul16gh+1] = 
+    {1.0993, 1.1228, 1.1000, 1.0881, 1.0761, 1.0452, 1.0670, 1.0352, 1.0471,
+     1.1365, 1.2011, 1.1662, 1.1599, 1.0672};
+  // cat *.txt | awk '{print $6"-"$5", "}'
+  const double errsul16gh[nbinsul16gh+1] =
+    {1.1125-1.0861, 1.1544-1.0911, 1.1268-1.0733, 1.1815-0.9948, 1.1143-1.0379,
+     1.0989-0.9914, 1.1013-1.0326, 1.0828-0.9875, 1.0959-0.9983, 1.2036-1.0693,
+     1.4007-1.0015, 1.2670-1.0654, 1.1914-1.1283, 1.1125-1.0219};
+
+  // Inclusive jet analysis bins
+  const int nbins = 10;
+  const double bins[nbins+1] = {0,0.5,1,1.5,2,2.5,3,3.2,4.7,0.0,1.3};
+
   int nbins0(0);
   const double *bins0(0), *vals0(0), *errs0(0);
   //jer_iov jer_ref(none);
   _ismcjer = true;
   _usejme = false;
+  if (run=="RunUL16GH") {
+    _jer_iov = ul16gh;
+    nbins0 = nbinsul16gh;
+    bins0 = &binsul16gh[0];
+    vals0 = &valsul16gh[0];
+    errs0 = &errsul16gh[0];
+  }
   if (run=="RunUL18") {
     _jer_iov = ul18;
     nbins0 = nbinsul18;
