@@ -31,9 +31,16 @@
   redoJER("RunUL18");
   */
 
+  /*
   resolution("MC","UL16V2V1_GH");
   redoJER("RunUL16GH");
-
+  */
+  //resolution("MC","UL16V3V1_BCD");
+  //resolution("MC","UL16V3V1_EF");
+  resolution("MC","UL16V3V1_BCDEF"); // APV
+  //redoJER("RunUL16BCD");
+  //redoJER("RunUL16EF");
+  //redoJER("RunUL16BCDEF"); // APV
 
   //redoJER("Run2018");
   //redoJER("Run2018ABC");

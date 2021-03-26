@@ -229,12 +229,23 @@ void resolution(string type="MC",string file="") {
     }
   }
   if (TString(file.c_str()).Contains("UL16")) {
-    era = "UL16"; _jer_iov = ul16; _rho = 16.663726;
-    // _rho values from output-DATA-2b-UL18V2V1_X.root/Standard/Eta_0.0-1.3/prho
+    era = "UL16APV"; _jer_iov = ul16apv; _rho = 14.122354;
+    // _rho from output-DATA-2b-UL16V2V1_X.root/Standard/Eta_0.0-1.3/prho or
+    // from output-DATA-2b-UL16V3V1_X.root/Standard/Eta_0.0-1.3/prho (APV)
     // fit in range [548,2116] (jt450(?) range)
     // NB: not that great fits, have pT dependence at 0.1 GeV level or more
     // and chi2/NDF ~ 10. Could be due to UE change as qg to qq?
-    if (TString(file.c_str()).Contains("UL16V2V1_GH")) {
+    if (TString(file.c_str()).Contains("UL16V3V1_BCDEF") ||
+	TString(file.c_str()).Contains("UL16V3V1_APV")) {
+      era = "UL16APV"; _jer_iov = ul16apv; _rho = 14.122354;
+    }
+    else if (TString(file.c_str()).Contains("UL16V3V1_BCD")) {
+      era = "UL16BCD"; _jer_iov = ul16bcd; _rho = 13.297618;
+    }
+    else if (TString(file.c_str()).Contains("UL16V3V1_EF")) {
+      era = "UL16EF"; _jer_iov = ul16ef; _rho = 15.748689;
+    }
+    else if (TString(file.c_str()).Contains("UL16V2V1_GH")) {
       era = "UL16GH"; _jer_iov = ul16gh; _rho = 16.663726;
     }
   }
@@ -390,7 +401,12 @@ void resolution(string type="MC",string file="") {
       double ptave = 0.5*(pt + h2r5->GetXaxis()->GetBinLowEdge(ibin+1));
       double errpt = 0.5*0.5*(h2r5->GetXaxis()->GetBinLowEdge(ibin+1) - pt);
       //double minx = ptmin*1.02/pt;
-      double minx = max(0.66, ptmin*1.02/pt);
+      //double minx = max(0.66, ptmin*1.02/pt);
+      double minx = max(0.68, ptmin*1.02/pt); //UL16BCD
+      //double minx = max(0.70, ptmin*1.02/pt); //UL16BCD 2.5-3.0
+      //double minx = max(0.76, ptmin*1.02/pt); //UL16BCD 2.5-3.0 pT=50
+      if (etamin>=2.5 && etamin<3)
+	minx = max(0.76, ptmin*1.02/pt); //UL16BCD 2.5-3.0 pT=50
       double maxx = 1.5;
 
       // patch for 3.2-4.7 bin, where low edge cuts off earlier
@@ -398,11 +414,16 @@ void resolution(string type="MC",string file="") {
 	minx = max(0.68, ptmin*1.05/pt);
 
       // Two-sided Crystal Ball fit
-      TF1 *fcb2 = new TF1("fcb2",fCrystalBall2,
+      double srange2_dw = 5.0;
+      double srange2_up = 5.0;
+      TF1 *fcb2 = new TF1(Form("fcb2_%d_%d",iy,ibin),fCrystalBall2,
 			  //0.35, 1.65, 7);
-			  minx, maxx, 7);
+			  //minx, maxx, 7);
+			  max(minx,1-srange2_dw*ptresolution(pt,etamin)),
+			  min(maxx,1+srange2_up*ptresolution(pt,etamin)), 7);
       //fcb2->SetParameters(1., 1.7, 30, 1.5, 30, 1.008, 0.108);
       fcb2->SetParameters(1., 2.0, 30, 3.0, 30, 1., ptresolution(pt,etamin));
+      //fcb2->SetParameters(1., 1.0, 30, 2.0, 30, 1., ptresolution(pt,etamin));
       fcb2->SetParLimits(1, 0.5, 5);//3);
       fcb2->SetParLimits(3, 0.5, 5);//3);
       fcb2->SetLineStyle(kSolid);
@@ -488,7 +509,7 @@ void resolution(string type="MC",string file="") {
 	// Crystal Ball fit
 	double mu = fg5->GetParameter(1);
 	double sigma = fg5->GetParameter(2);
-	TF1 *fcb = new TF1("fcb",fCrystalBall,
+	TF1 *fcb = new TF1(Form("fcb_%d_%d",iy,ibin),fCrystalBall,
 			   //0.35, mu+2*sigma, 5);
 			   minx, min(maxx,mu+2*sigma), 5);
         // f(x; alpha, n, xbar, sigma)
@@ -500,7 +521,7 @@ void resolution(string type="MC",string file="") {
 	// Two-sided Crystal Ball fit moved earlier
 
 	// D0 function fit
-	TF1 *fd02 =  new TF1("fd0",fD0Jet2,0.35,1.65, 7);
+	TF1 *fd02 =  new TF1(Form("fd0_%d_%d",iy,ibin),fD0Jet2,0.35,1.65, 7);
 	// f(x; N, mu, sigma, P, lambda, P2, lambda2)
 	if ( b1) fd02->SetParameters(1, 1.014, 0.107, 0.044, 9.5, 0.06, 9.5);
 	if (!b1) fd02->SetParameters(0.99, 1.008, 0.043, 0.0055, 9.1);
@@ -624,8 +645,11 @@ void resolution(string type="MC",string file="") {
     TF1 *flogg = new TF1(Form("flogg_%d",iy),
 			 "1+[0]*exp(-0.5*pow(log(x)-[1],2)/([2]*[2]))",
 			 ptmin,50.);
-    flogg->SetParameters(0.10,log(15.),log(21./15.));
+    //flogg->SetParameters(0.10,log(15.),log(21./15.));
+    flogg->SetParameters(-0.01,log(15.),log(21./15.)); // UL16EF
     flogg->FixParameter(1,log(15.));
+    flogg->SetParLimits(0,-0.02,0.02); //
+    flogg->SetParLimits(2,-0.5,1.2); // 10-50 GeV
     gr5->Fit(flogg,"QRN");
     flogg->SetLineColor(kBlue+1);
     flogg->SetLineWidth(2);
@@ -1049,6 +1073,22 @@ void redoJER(string run="") {
      1.0989-0.9914, 1.1013-1.0326, 1.0828-0.9875, 1.0959-0.9983, 1.2036-1.0693,
      1.4007-1.0015, 1.2670-1.0654, 1.1914-1.1283, 1.1125-1.0219};
 
+  // JERCProtoLab/Summer19UL16/JER_SF/Summer19UL16APV_JRV1_MC_SF_AK4PFchs.txt
+  const int nbinsul16apv = 14;
+  // cat *.txt | awk '{print $2", "}'
+  const double binsul16apv[nbinsul16apv+1] =
+    {0, 0.522, 0.783, 1.131, 1.305, 1.740, 1.930, 2.043, 2.322,
+     2.500, 2.650, 2.853, 2.964, 3.139, 5.191};
+  // cat *.txt | awk '{print $4", "}'
+  const double valsul16apv[nbinsul16apv+1] = 
+    {1.0910, 1.1084, 1.0833, 1.0684, 1.0556, 1.0155, 0.9889, 1.0213, 1.0084, 
+     1.1146, 1.1637, 1.1994, 1.2023, 1.0063};
+  // cat *.txt | awk '{print $6"-"$5", "}'
+  const double errsul16apv[nbinsul16apv+1] =
+    {1.1137-1.0683, 1.1259-1.0908, 1.1048-1.0618, 1.1032-1.0337, 1.0896-1.0216, 
+     1.0404-0.9906, 1.0100-0.9678, 1.0606-0.9820, 1.0575-0.9592, 1.2133-1.0159, 
+     1.2324-1.0950, 1.3057-1.0931, 1.2371-1.1676, 1.0521-0.9605};
+
   // Inclusive jet analysis bins
   const int nbins = 10;
   const double bins[nbins+1] = {0,0.5,1,1.5,2,2.5,3,3.2,4.7,0.0,1.3};
@@ -1058,6 +1098,27 @@ void redoJER(string run="") {
   //jer_iov jer_ref(none);
   _ismcjer = true;
   _usejme = false;
+  if (run=="RunUL16APV" || run=="RunUL16BCDEF") {
+    _jer_iov = ul16apv;
+    nbins0 = nbinsul16apv;
+    bins0 = &binsul16apv[0];
+    vals0 = &valsul16apv[0];
+    errs0 = &errsul16apv[0];
+  }
+  if (run=="RunUL16BCD") {
+    _jer_iov = ul16bcd;
+    nbins0 = nbinsul16apv;
+    bins0 = &binsul16apv[0];
+    vals0 = &valsul16apv[0];
+    errs0 = &errsul16apv[0];
+  }
+  if (run=="RunUL16EF") {
+    _jer_iov = ul16ef;
+    nbins0 = nbinsul16apv;
+    bins0 = &binsul16apv[0];
+    vals0 = &valsul16apv[0];
+    errs0 = &errsul16apv[0];
+  }
   if (run=="RunUL16GH") {
     _jer_iov = ul16gh;
     nbins0 = nbinsul16gh;

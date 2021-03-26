@@ -22,7 +22,7 @@ enum jer_iov { none, run1, run2016, run2017, run2018, run2018abc, run2018d,
 	       run2017b, run2017c, run2017d, run2017e, run2017f, run2017de,
 	       ul17, ul17b, ul17c, ul17d, ul17e, ul17f,
 	       ul18, ul18a, ul18b, ul18c, ul18d,
-               ul16, ul16bcd, ul16ef, ul16gh};
+               ul16apv, ul16bcd, ul16ef, ul16gh};
 jer_iov _jer_iov = none;
 
 const int _nres = 8;
@@ -165,6 +165,45 @@ const double kparul18[_nres+1][2] = {
 // NB: 0.0-0.5 uncertainty suspiciously low compared to UL17 and other bins
 // => changed to 0.0-1.3 value by hand
 // NB2: all JER SF ~1.15 at |y|<2.0. Could be Pythia8 modelling (vs Herwig++)
+
+const double kparul16bcd[_nres+1][2] = {
+// JER SF produced with minitools/resolution.C:redoJER("RunUL16BCD")
+ {1.091, 0.023}, // 0.0-0.5
+ {1.097, 0.019}, // 0.5-1.0
+ {1.069, 0.030}, // 1.0-1.5
+ {1.035, 0.030}, // 1.5-2.0
+ {1.013, 0.040}, // 2.0-2.5
+ {1.151, 0.083}, // 2.5-3.0
+ {1.173, 0.036}, // 3.0-3.2
+ {1.006, 0.046}, // 3.2-4.7
+ {1.089, 0.023}, // 0.0-1.3
+};
+
+const double kparul16ef[_nres+1][2] = {
+// JER SF produced with minitools/resolution.C:redoJER("RunUL16EF")
+ {1.091, 0.023}, // 0.0-0.5
+ {1.097, 0.019}, // 0.5-1.0
+ {1.069, 0.030}, // 1.0-1.5
+ {1.035, 0.030}, // 1.5-2.0
+ {1.013, 0.040}, // 2.0-2.5
+ {1.150, 0.083}, // 2.5-3.0
+ {1.173, 0.036}, // 3.0-3.2
+ {1.006, 0.046}, // 3.2-4.7
+ {1.089, 0.023}, // 0.0-1.3
+};
+
+const double kparul16apv[_nres+1][2] = {
+// JER SF produced with minitools/resolution.C:redoJER("RunUL16BCDEF")
+ {1.091, 0.023}, // 0.0-0.5
+ {1.097, 0.019}, // 0.5-1.0
+ {1.069, 0.030}, // 1.0-1.5
+ {1.035, 0.030}, // 1.5-2.0
+ {1.013, 0.040}, // 2.0-2.5
+ {1.150, 0.083}, // 2.5-3.0
+ {1.173, 0.036}, // 3.0-3.2
+ {1.006, 0.046}, // 3.2-4.7
+ {1.089, 0.023}, // 0.0-1.3
+};
 
 const double kparul16gh[_nres+1][2] = {
 // JER SF produced with minitools/resolution.C:redoJER("RunUL16GH")
@@ -370,6 +409,42 @@ const double vparul18d[_nres+1][3] =
    {3.23, 0.828, 0.0963},  // y 3.2-4.7, chi2 36.3/18
    {-2.60, 1.082, 0.0368}}; // y 0.0-1.3, chi2 93.3/54
 
+const double vparul16bcd[_nres+1][3] =
+// Fit of JER for R=0.4, 13 TeV file MC-UL16V3V1_BCD
+  {{-2.77, 1.000, 0.0356},  // y 0.0-0.5, chi2 57.8/55
+   {-2.56, 1.007, 0.0405},  // y 0.5-1.0, chi2 32.7/54
+   {-1.57, 1.131, 0.0535},  // y 1.0-1.5, chi2 62.0/49
+   {1.84, 1.161, 0.0320},  // y 1.5-2.0, chi2 28.3/41
+   {2.70, 1.057, 0.0327},  // y 2.0-2.5, chi2 29.6/33
+   {2.93, 1.116, 0.0262},  // y 2.5-3.0, chi2 51.9/26
+   {4.11, 0.514, 0.1336},  // y 3.0-3.2, chi2 256.9/20
+   {3.28, 0.649, 0.0977},  // y 3.2-4.7, chi2 42.0/18
+   {-3.01, 1.061, 0.0374}}; // y 0.0-1.3, chi2 64.9/54
+
+const double vparul16ef[_nres+1][3] =
+// Fit of JER for R=0.4, 13 TeV file MC-UL16V3V1_EF
+  {{-2.43, 1.042, 0.0356},  // y 0.0-0.5, chi2 49.0/55
+   {-2.11, 1.046, 0.0407},  // y 0.5-1.0, chi2 39.2/54
+   {0.91, 1.170, 0.0546},  // y 1.0-1.5, chi2 88.5/49
+   {2.31, 1.209, 0.0334},  // y 1.5-2.0, chi2 33.4/41
+   {3.31, 1.097, 0.0368},  // y 2.0-2.5, chi2 44.6/33
+   {3.96, 1.140, 0.0264},  // y 2.5-3.0, chi2 26.4/26
+   {5.49, 0.000, 0.1311},  // y 3.0-3.2, chi2 197.6/20
+   {3.13, 0.772, 0.0927},  // y 3.2-4.7, chi2 76.4/18
+   {-2.63, 1.103, 0.0375}}; // y 0.0-1.3, chi2 67.7/54
+
+const double vparul16apv[_nres+1][3] =
+// Fit of JER for R=0.4, 13 TeV file MC-UL16V3V1_BCDEF
+  {{-2.66, 1.019, 0.0356},  // y 0.0-0.5, chi2 54.5/55
+   {-2.36, 1.025, 0.0406},  // y 0.5-1.0, chi2 33.6/54
+   {-1.11, 1.150, 0.0540},  // y 1.0-1.5, chi2 74.4/49
+   {2.03, 1.180, 0.0330},  // y 1.5-2.0, chi2 26.8/41
+   {2.91, 1.074, 0.0349},  // y 2.0-2.5, chi2 33.1/33
+   {3.47, 1.133, 0.0261},  // y 2.5-3.0, chi2 33.2/26
+   {5.42, 0.000, 0.1348},  // y 3.0-3.2, chi2 122.0/20
+   {3.03, 0.746, 0.0948},  // y 3.2-4.7, chi2 43.2/18
+   {-2.85, 1.080, 0.0374}}; // y 0.0-1.3, chi2 66.6/54
+
 const double vparul16gh[_nres+1][3] =
 // Fit of JER for R=0.4, 13 TeV file MC-UL16V2V1_GH
   {{-2.08, 1.000, 0.0354},  // y 0.0-0.5, chi2 52.8/55
@@ -381,7 +456,6 @@ const double vparul16gh[_nres+1][3] =
    {4.83, -0.000, 0.1419},  // y 3.0-3.2, chi2 202.0/20
    {2.57, 0.885, 0.0827},  // y 3.2-4.7, chi2 202.1/18
    {-2.21, 1.065, 0.0372}}; // y 0.0-1.3, chi2 74.8/54
-
 
 const double vjesul17[_nres+1][3] =
 // Fit of JES for R=0.4, 13 TeV file MC-UL17V4_BCDEF
@@ -515,6 +589,49 @@ const double vjesul18d[_nres+1][3] =
    {-0.0506, 2.708, 0.1898},  // y 3.2-4.7, chi2 39.9/6
    {-0.0066, 2.708, -0.6222}}; // y 0.0-1.3, chi2 15.2/6
 
+const double vjesul16bcd[_nres+1][3] =
+// Fit of JES for R=0.4, 13 TeV file MC-UL16V3V1_BCD
+  {{-0.0127, 2.708, 1.1655},  // y 0.0-0.5, chi2 4.0/6
+   {-0.0064, 2.708, 1.4175},  // y 0.5-1.0, chi2 8.9/6
+   {-0.0098, 2.708, 0.5450},  // y 1.0-1.5, chi2 5.6/6
+   {-0.0256, 2.708, 0.3660},  // y 1.5-2.0, chi2 7.2/6
+   {-0.0232, 2.708, 0.6011},  // y 2.0-2.5, chi2 10.9/6
+   {-0.0233, 2.708, 0.4010},  // y 2.5-3.0, chi2 30.8/6
+   {2.0378, 2.708, -0.0438},  // y 3.0-3.2, chi2 139.0/6
+   {-0.0569, 2.708, 0.1399},  // y 3.2-4.7, chi2 31.2/6
+   {-0.0088, 2.708, 1.0792}}; // y 0.0-1.3, chi2 16.2/6
+
+const double vjesul16ef[_nres+1][3] =
+// Fit of JES for R=0.4, 13 TeV file MC-UL16V3V1_EF
+//  {{-0.0105, 2.708, 1046.3662},  // y 0.0-0.5, chi2 16.1/6 (bad?)
+//   {-0.0049, 2.708, 715.0220},  // y 0.5-1.0, chi2 11.7/6 (bad?)
+  {{-0.0130, 2.708, 1.2000},  // y 0.0-0.5, chi2 23.2/6 (redone)
+   {-0.0061, 2.708, 1.2000},  // y 0.5-1.0, chi2 13.2/6 (redone)
+   {-0.0092, 2.708, 1.0555},  // y 1.0-1.5, chi2 20.3/6
+   {-0.0203, 2.708, 0.6954},  // y 1.5-2.0, chi2 29.4/6
+   {-0.0336, 2.708, 0.6085},  // y 2.0-2.5, chi2 12.4/6
+   {-11.2324, 2.708, 0.0070},  // y 2.5-3.0, chi2 77.4/6
+   {0.2079, 2.708, 0.3865},  // y 3.0-3.2, chi2 108.6/6
+   //{0.0093, 2.708, 1026.2131},  // y 3.2-4.7, chi2 32.3/6 (bad?)
+   //{-0.0070, 2.708, 1897.2814}}; // y 0.0-1.3, chi2 20.6/6 (bad?)
+   {0.0097, 2.708, 1.2000},  // y 3.2-4.7, chi2 30.9/6 (redone)
+   {-0.0086, 2.708, 1.2000}}; // y 0.0-1.3, chi2 26.2/6 (redone)
+
+const double vjesul16apv[_nres+1][3] =
+// Fit of JES for R=0.4, 13 TeV file MC-UL16V3V1_BCDEF
+  {{-0.0108, 2.708, 2.3927},  // y 0.0-0.5, chi2 8.2/6
+   {-0.0060, 2.708, 1.5840},  // y 0.5-1.0, chi2 6.3/6
+   {-0.0097, 2.708, 0.6702},  // y 1.0-1.5, chi2 8.9/6
+   {-0.0221, 2.708, 0.4745},  // y 1.5-2.0, chi2 11.9/6
+   {-0.0268, 2.708, 0.6092},  // y 2.0-2.5, chi2 12.4/6
+   {-0.0069, 2.708, 0.3911},  // y 2.5-3.0, chi2 41.9/6
+   //{0.0060, 2.708, 1704.5604},  // y 3.2-4.7, chi2 21.6/6 (bad?)
+   //{0.0065, 2.708, 1535.2922},  // y 3.2-4.7, chi2 27.6/6 (bad?)
+   //{-0.0079, 2.708, 1.6986}}; // y 0.0-1.3, chi2 11.2/6
+   {0.0200, 2.708, 1.2000},  // y 3.0-3.2, chi2 213.1/6 (redone)
+   {-0.0200, 2.708, 0.1330},  // y 3.2-4.7, chi2 48.4/6 (redone)
+   {-0.0085, 2.708, 1.2000}}; // y 0.0-1.3, chi2 17.7/6 (redone)
+
 const double vjesul16gh[_nres+1][3] =
 // Fit of JES for R=0.4, 13 TeV file MC-UL16V2V1_GH
   {{-0.0154, 2.708, -0.7738},  // y 0.0-0.5, chi2 10.7/6
@@ -544,7 +661,7 @@ double ptresolution(double pt, double eta, double eta2=0) {
 	   _jer_iov==ul17d || _jer_iov==ul17e || _jer_iov==ul17f ||
 	   _jer_iov==ul18 || _jer_iov==ul18a || _jer_iov==ul18b || 
 	   _jer_iov==ul18c || _jer_iov==ul18d ||
-	   _jer_iov==ul16 || _jer_iov==ul16bcd || _jer_iov==ul16ef ||
+	   _jer_iov==ul16apv || _jer_iov==ul16bcd || _jer_iov==ul16ef ||
 	   _jer_iov==ul16gh);
   }
   double res = 0;
@@ -677,14 +794,25 @@ double ptresolution(double pt, double eta, double eta2=0) {
       if (!_ismcjer) res *= kparul18[iy][0];
     }
 
-    // UL16 placeholder
-    if (_jer_iov==ul16 || _jer_iov==ul16bcd || _jer_iov==ul16ef) {
-      res = sqrt(vparul18[iy][0]*fabs(vparul18[iy][0])/(pt*pt) +
-		 pow(vparul18[iy][1],2)/pt + 
-		 pow(vparul18[iy][2],2));
-      if (!_ismcjer) res *= kparul18[iy][0];
+    // UL16
+    if (_jer_iov==ul16bcd) {
+      res = sqrt(vparul16bcd[iy][0]*fabs(vparul16bcd[iy][0])/(pt*pt) +
+		 pow(vparul16bcd[iy][1],2)/pt + 
+		 pow(vparul16bcd[iy][2],2));
+      if (!_ismcjer) res *= kparul16bcd[iy][0];
+    }
+    if (_jer_iov==ul16ef) {
+      res = sqrt(vparul16ef[iy][0]*fabs(vparul16ef[iy][0])/(pt*pt) +
+		 pow(vparul16ef[iy][1],2)/pt + 
+		 pow(vparul16ef[iy][2],2));
+      if (!_ismcjer) res *= kparul16ef[iy][0];
+    }
+    if (_jer_iov==ul16apv) {
+      res = sqrt(vparul16apv[iy][0]*fabs(vparul16apv[iy][0])/(pt*pt) +
+		 pow(vparul16apv[iy][1],2)/pt + 
+		 pow(vparul16apv[iy][2],2));
+      if (!_ismcjer) res *= kparul16apv[iy][0];
     } // placeholder
-    // UL16 proper corrections
     if (_jer_iov==ul16gh) {
       res = sqrt(vparul16gh[iy][0]*fabs(vparul16gh[iy][0])/(pt*pt) +
 		 pow(vparul16gh[iy][1],2)/pt + 
@@ -779,14 +907,24 @@ double ptresolution(double pt, double eta, double eta2=0) {
       _jer = new JME::JetResolution(resolutionFile);
       _jer_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);
     }
-    if ((_jer_iov==ul16 || _jer_iov==ul16bcd || _jer_iov==ul16ef
-	 || _jer_iov==ul16gh)
+    if ((_jer_iov==ul16apv || _jer_iov==ul16bcd || _jer_iov==ul16ef)
 	&& !_jer && !_jer_sf) {
       string resolutionFile = "../JRDatabase/textFiles/Summer20UL16_JRV1_MC/"
-	"Summer20UL16_JRV1_MC_PtResolution_AK4PFchs.txt";
+	"Summer20UL16_JRV1_MC_PtResolution_AK4PFchs.txt"; // placeholder
       //string scaleFactorFile = "../JRDatabase/textFiles/Summer19UL16_JRV1_MC/"
       //"Summer19UL16_JRV1_MC_SF_AK4PFchs.txt";
-      string scaleFactorFile = "../JERCProtoLab/Summer19UL16/JER_SF/Summer19UL16APV_JRV1_MC_SF_AK4PFchs.txt";
+      string scaleFactorFile = "../JERCProtoLab/Summer19UL16/JER_SF/Summer19UL16APV_JRV1_MC_SF_AK4PFchs.txt"; // APV
+      string weightFile = "rootfiles/jerweights.root";
+
+      _jer = new JME::JetResolution(resolutionFile);
+      _jer_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);
+    }
+    if (_jer_iov==ul16gh && !_jer && !_jer_sf) {
+      string resolutionFile = "../JRDatabase/textFiles/Summer20UL16_JRV1_MC/"
+	"Summer20UL16_JRV1_MC_PtResolution_AK4PFchs.txt"; // placeholder
+      //string scaleFactorFile = "../JRDatabase/textFiles/Summer19UL16_JRV1_MC/"
+      //"Summer19UL16_JRV1_MC_SF_AK4PFchs.txt";
+      string scaleFactorFile = "../JERCProtoLab/Summer19UL16/JER_SF/Summer19UL16_JRV1_MC_SF_AK4PFchs.txt"; // Non-APV
       string weightFile = "rootfiles/jerweights.root";
 
       _jer = new JME::JetResolution(resolutionFile);
