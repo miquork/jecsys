@@ -37,7 +37,8 @@ bool _closejer = true;
 double _recopt = 15.;
 
 Double_t ptreso(Double_t *x, Double_t *p) {
-  return ptresolution(x[0], p[0])*p[1];
+  //return ptresolution(x[0], p[0])*p[1];
+  return ptresolution(x[0], p[0],p[1])*p[2];
 }
 
 // http://en.wikipedia.org/wiki/Crystal_Ball_function
@@ -248,7 +249,11 @@ void resolution(string type="MC",string file="") {
     else if (TString(file.c_str()).Contains("UL16V2V1_GH")) {
       era = "UL16GH"; _jer_iov = ul16gh; _rho = 16.663726;
     }
+    else
+      assert(false);
   }
+  else
+    assert(false);
   const char *cera = era.c_str();
   jer_iov jer_ref = _jer_iov;
 
@@ -615,7 +620,8 @@ void resolution(string type="MC",string file="") {
     c2->cd(1);
     gPad->SetLogx();
     h2->SetMinimum(0.98);//0.98);
-    h2->SetMaximum(1.08);//1.05);//1.02);
+    //h2->SetMaximum(1.08);//1.05);//1.02);
+    h2->SetMaximum(1.02); //U16
     h2->GetXaxis()->SetMoreLogLabels();
     h2->GetXaxis()->SetNoExponent();
     h2->DrawClone("AXIS");
@@ -653,6 +659,11 @@ void resolution(string type="MC",string file="") {
     gr5->Fit(flogg,"QRN");
     flogg->SetLineColor(kBlue+1);
     flogg->SetLineWidth(2);
+    //flogg->Draw("SAME");
+    flogg->DrawClone("SAME");
+    flogg->SetRange(ptmin,emax);
+    flogg->SetLineColor(kBlue+3);
+    flogg->SetLineStyle(kDotted);
     flogg->Draw("SAME");
 
     vmu5[iy][0] = flogg->GetParameter(0);
@@ -698,10 +709,13 @@ void resolution(string type="MC",string file="") {
     _usejme = false;
     //_run2012 = true; _run2018 = false;
     _jer_iov = run1;
-    TF1 *fs = new TF1("fs",ptreso,ptmin,emax,2);
+    //TF1 *fs = new TF1("fs",ptreso,ptmin,emax,2);
+    TF1 *fs = new TF1("fs",ptreso,ptmin,emax,3);
     //fs->SetNpx(int(emax-ptmin));
     fs->SetNpx(int((emax-ptmin)/5.));
-    fs->SetParameters(etamin,1.);
+    //fs->SetParameters(etamin,1.);
+    //fs->SetParameters(etamin,etamax,1.);
+    fs->SetParameters(etamin,etamin,1.); // 0-1.3 not supported for run1
     fs->SetLineColor(kGreen+2);
     fs->SetLineStyle(kDashed);
     fs->SetLineWidth(2);
@@ -719,10 +733,12 @@ void resolution(string type="MC",string file="") {
     _usejme = true;
     //_run2012 = false; _run2018 = true;
     _jer_iov = jer_ref;//run2016;
-    TF1 *fsjme = new TF1("fsjme",ptreso,ptmin,emax,2);
+    //TF1 *fsjme = new TF1("fsjme",ptreso,ptmin,emax,2);
+    TF1 *fsjme = new TF1("fsjme",ptreso,ptmin,emax,3);
     //fsjme->SetNpx(int(emax-ptmin));
     fsjme->SetNpx(int((emax-ptmin)/5.));
-    fsjme->SetParameters(etamid,1.);
+    //fsjme->SetParameters(etamid,1.);
+    fsjme->SetParameters(etamid,etamid,1.);
     fsjme->SetLineColor(kRed+2);
     fsjme->SetLineStyle(kDotted);
     fsjme->SetLineWidth(2);
@@ -741,9 +757,11 @@ void resolution(string type="MC",string file="") {
     _usejme = false;
     //_run2012 = false; _run2018 = true;
     _jer_iov = jer_ref;//run2016;
-    TF1 *fsjer = new TF1("fsjer",ptreso,ptmin,emax,2);
+    //TF1 *fsjer = new TF1("fsjer",ptreso,ptmin,emax,2);
+    TF1 *fsjer = new TF1("fsjer",ptreso,ptmin,emax,3);
     fsjer->SetNpx(int((emax-ptmin)/5.));
-    fsjer->SetParameters(etamid,1.);
+    //fsjer->SetParameters(etamid,1.);
+    fsjer->SetParameters(etamin,etamax,1.);
     fsjer->SetLineColor(kBlue+2);
     fsjer->SetLineStyle(kDashDotted);
     fsjer->SetLineWidth(2);

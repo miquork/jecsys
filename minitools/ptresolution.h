@@ -654,7 +654,8 @@ double ptresolution(double pt, double eta, double eta2=0) {
   //int iy = min(_nres-1, int(fabs(eta) / 0.5 + 0.5));
   int iy = min(_nres-1, int(fabs(eta) / 0.5));
   //if (fabs(eta)>3.2) iy = _nres-1; // 3.2-4.7 bin instead of 3.5-4.7
-  if (eta<0.5 && eta2>1.0) int iy = _nres; // 0.0-1.3 (UL17 && UL18)
+  //if (eta<0.5 && eta2>1.0) int iy = _nres; // 0.0-1.3 (UL17 && UL18)
+  if (eta<0.5 && eta2>1.0) iy = _nres; // 0.0-1.3 fixed, thx Laura
   // Only supported for UL17 for now
   if (iy==_nres) {
     assert(_jer_iov==ul17 || _jer_iov==ul17b || _jer_iov==ul17c || 
@@ -966,7 +967,8 @@ double ptresponse(double pt, double eta, double eta2=0) {
   if (eta>3.2 && eta<3.5) eta = 3.55; // 3.2-4.7 bin instead of 3.5-4.7
   int iy = min(_nres-1, int(fabs(eta) / 0.5));
   //if (fabs(eta)>3.2) iy = _nres-1; // 3.2-4.7 bin instead of 3.5-4.7
-  if (eta<0.5 && eta2>1.0) int iy = _nres; // 0.0-1.3 (UL17)
+  //if (eta<0.5 && eta2>1.0) int iy = _nres; // 0.0-1.3 (UL17)
+  if (eta<0.5 && eta2>1.0) iy = _nres; // 0.0-1.3 fixed, thx Laura!
   // Only supported for UL17 for now
   if (iy==_nres) {
     assert(_jer_iov==ul17 || _jer_iov==ul17b || _jer_iov==ul17c || 
