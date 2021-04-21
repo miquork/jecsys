@@ -75,17 +75,20 @@
       globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll_hadw", "PtBalMPF"); // V5 (KIT)
       //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_z_hadw", "PtBalMPF"); // V4 (UH)
     if (epoch=="2016BCDEF")
+      //globalFitL3Res(0.0,1.3, epoch, "MJDJ_inc_gam_zll_hadw", "PtBalMPF");
       globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll_hadw", "PtBalMPF");
       //globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zmm", "PtBalMPF");
       //globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
     if (epoch=="2016GH")
       //globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll_hadw", "MPF"); // not working
-      globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll_hadw", "PtBalMPF");
+      //globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll_hadw", "PtBalMPF");
+      globalFitL3Res(0.0,1.3, epoch, "MJDJ_inc_gam_zll_hadw", "PtBalMPF");
       //globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
     //globalFitL3Res(0.0,1.3, epoch, "MJDJ_zll", "PtBalMPF");
   }
   else if (epoch=="2016BCD" || epoch=="2016EF")
-    globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll_hadw", "PtBalMPF");
+    //globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll_hadw", "PtBalMPF");
+    globalFitL3Res(0.0,1.3, epoch, "MJDJ_inc_gam_zll_hadw", "PtBalMPF");
   else if (epoch=="BCDEF")
     //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_zll", "PtBalMPF");
     //globalFitL3Res(0.0,epoch=="L4" ? 2.4 : 1.3, epoch, "MJDJ_gam_z", "PtBalMPF");

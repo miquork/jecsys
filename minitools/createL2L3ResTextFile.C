@@ -30,10 +30,12 @@ void createL2L3ResTextFile() {
   //TH1D *h = tdrHist("h","Absolute response at |#eta| < 1.3",
   //		    0.97,1.02,"p_{T} (GeV)",ptmin,ptmax);
   TH1D *h = tdrHist("h","Absolute response at |#eta| < 1.3",
-  		    0.970,1.035,"p_{T} (GeV)",ptmin,ptmax);
+		    0.960,1.025,"p_{T} (GeV)",ptmin,ptmax);
+  		    //0.970,1.035,"p_{T} (GeV)",ptmin,ptmax);
   //lumi_13TeV = "UL2017";
   //lumi_13TeV = "UL2016GH";
   lumi_13TeV = "UL2016, 36.5 fb^{-1}";
+  //lumi_13TeV = "Run2, 137.9 fb^{-1}";
   TCanvas *c1 = tdrCanvas("c1",h,4,11,kSquare);
   c1->SetLeftMargin(0.17);
   c1->SetRightMargin(0.03);
@@ -61,11 +63,16 @@ void createL2L3ResTextFile() {
   createL2L3ResTextFiles("2016BCD");
   createL2L3ResTextFiles("2016EF");
   createL2L3ResTextFiles("2016GH");
+  //createL2L3ResTextFiles("2017BCDEF");
+  //createL2L3ResTextFiles("2018ABCD");
 
   c1->Update();
   //c1->SaveAs("pdf/createL2L3ResTextFile_UL16GHJECV2.pdf");
   //c1->SaveAs("pdf/createL2L3ResTextFile_UL16_BtoF_JECV3_GH_JECV2.pdf");
-  c1->SaveAs("pdf/createL2L3ResTextFile_UL16_BtoH_JECV2.pdf");
+  //c1->SaveAs("pdf/createL2L3ResTextFile_UL16_BtoH_JECV2.pdf");
+  //c1->SaveAs("pdf/createL2L3ResTextFile_UL16_BtoH_JECV3M2.pdf");
+  //c1->SaveAs("pdf/createL2L3ResTextFile_Run2_JECV3M2.pdf");
+  c1->SaveAs("pdf/createL2L3ResTextFile_Run2_UL16JECV5M1.pdf");
 }
 
 void createL2L3ResTextFiles(string set) {
@@ -81,13 +88,18 @@ void createL2L3ResTextFiles(string set) {
   TDirectory *curdir = gDirectory;
   TFile *f = new TFile(Form("rootfiles/jecdata%s.root",set.c_str()),"READ");
   assert(f && !f->IsZombie());
-  TH1D *h = (TH1D*)f->Get("ratio/eta00-13/sys/hjesfit"); assert(h);
+  //TH1D *h = (TH1D*)f->Get("ratio/eta00-13/sys/hjesfit"); assert(h);
+  TH1D *h(0);
+  h = (TH1D*)f->Get("ratio/eta00-13/sys/hjesfit2");
+  if (!h) h = (TH1D*)f->Get("ratio/eta00-13/sys/hjesfit");
+  assert(h);
   curdir->cd();
 
   TF1 *f1 = new TF1(Form("f1_%s",set.c_str()),"[0]+[1]/x+[2]*log(x)/x+[3]*(pow(x/[4],[5])-1)/(pow(x/[4],[5])+1)+[6]*pow(x,-0.3051)",15,4500);
   f1->SetParameters(0.98, 0.1,0.01, 0.01,500.,1.3, 0.001);
 
   map<string,int> color;
+  color["2017BCDEF"] = kGreen+2;
   color["BCDEF"] = kYellow+2;
   color["B"] = kBlue;
   color["C"] = kGreen+2;
@@ -95,8 +107,9 @@ void createL2L3ResTextFiles(string set) {
   color["E"] = kMagenta+2;
   color["F"] = kRed;
   //
-  color["2018ABCD"] = kYellow+2;
-  color["2018A"] = kBlue;
+  //color["2018ABCD"] = kYellow+2;
+  color["2018ABCD"] = kBlue;
+  color["2018A"] = kCyan+2;//kBlue;
   color["2018B"] = kGreen+2;
   color["2018C"] = kOrange+2;
   color["2018D"] = kRed;
@@ -137,6 +150,9 @@ void createL2L3ResTextFiles(string set) {
   bool isUL18 = (set=="2018ABCD" || set=="2018A" || set=="2018B" || 
 		 set=="2018C" || set=="2018D");
 
+  bool isUL17 = (set=="2017BCDEF" || set=="2017B" || set=="2017C" || 
+		 set=="2017D" || set=="2017E" || set=="2017F");
+
   bool isUL16 = (set=="2016BCDEFGH" || set=="2016BCDEF" || set=="2016BCD" ||
 		 set=="2016EF" || set=="2016GH");
 
@@ -149,9 +165,13 @@ void createL2L3ResTextFiles(string set) {
     mera["2018C"] = "C";
     mera["2018D"] = "D";
     //sin = Form("CondFormats/JetMETObjects/data/Summer19UL18_Run%s_V3_DATA_L2Residual_AK4PFchs.txt",set=="2018ABCD" ? "C" : mera[set]);
-    sin = Form("../JERCProtoLab/Summer19UL18/L2Residual/V2/Run%s/Summer19UL18_V2_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt",mera[set]);
+    //sin = Form("../JERCProtoLab/Summer19UL18/L2Residual/V2/Run%s/Summer19UL18_V2_MPF_LOGLIN_L2Residual_pythia8_AK4PFchs.txt",mera[set]); // official for V5
+    sin = Form("../JECDatabase/textFiles/Summer19UL18_Run%s_V5_DATA/Summer19UL18_Run%s_V5_DATA_L2Residual_AK4PFchs.txt",mera[set],mera[set]);
+    //
     //sout = Form("textFiles/UL18V3-L2L3Res/Summer19UL18_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
-    sout = Form("../JERCProtoLab/Summer19UL18/global_fit/V3A2M1J2/Summer19UL18_Run%s_V3A2M1J2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    //sout = Form("../JERCProtoLab/Summer19UL18/global_fit/V3A2M1J2/Summer19UL18_Run%s_V3A2M1J2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M2/Summer19UL18_Run%s_V3M2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M1/Summer19UL18_Run%s_V5M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
   }
   else if (isUL16) {
     map<string,const char*> mera;
@@ -161,17 +181,35 @@ void createL2L3ResTextFiles(string set) {
     mera["2016EF"] = "EF";
     mera["2016GH"] = "FGH";
     if (set=="2016GH") {
-      sin = Form("../JECDatabase/textFiles/Summer19UL16_RunFGH_V2_DATA/Summer19UL16_Run%s_V2_DATA_L2Residual_AK4PFchs.txt",mera[set]);
+      //sin = Form("../JECDatabase/textFiles/Summer19UL16_RunFGH_V2_DATA/Summer19UL16_Run%s_V2_DATA_L2Residual_AK4PFchs.txt",mera[set]);
+      sin = Form("../JECDatabase/textFiles/Summer19UL16_RunFGH_V5_DATA/Summer19UL16_Run%s_V5_DATA_L2Residual_AK4PFchs.txt",mera[set]);
       //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V2M1/Summer19UL16_Run%s_V2M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
-      sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M1/Summer19UL16_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+      //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M1/Summer19UL16_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+      //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M2/Summer19UL16_Run%s_V3M2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+      sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M1/Summer19UL16_Run%s_V5M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
     }
     else if (set=="2016BCDEF" || set=="2016BCD" || set=="2016EF") {
-      sin = Form("../JECDatabase/textFiles/Summer19UL16APV_Run%s_V3_DATA/Summer19UL16APV_Run%s_V3_DATA_L2Residual_AK4PFchs.txt",mera[set],mera[set]);
+      //sin = Form("../JECDatabase/textFiles/Summer19UL16APV_Run%s_V3_DATA/Summer19UL16APV_Run%s_V3_DATA_L2Residual_AK4PFchs.txt",mera[set],mera[set]);
+      sin = Form("../JECDatabase/textFiles/Summer19UL16APV_Run%s_V5_DATA/Summer19UL16APV_Run%s_V5_DATA_L2Residual_AK4PFchs.txt",mera[set],mera[set]);
       //
-      sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M1/Summer19UL16_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+      //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M1/Summer19UL16_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+      //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M2/Summer19UL16_Run%s_V3M2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+      sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M1/Summer19UL16_Run%s_V5M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
     }
     else
       assert(false);
+  }
+  else if (isUL17) {
+    map<string,const char*> mera;
+    mera["2017BCDEF"] = "BCDEF";
+    mera["2017B"] = "B";
+    mera["2017C"] = "C";
+    mera["2017D"] = "D";
+    mera["2017E"] = "E";
+    mera["2017F"] = "F";
+    sin = Form("../JECDatabase/textFiles/Summer19UL17_Run%s_V6_DATA/Summer19UL17_Run%s_V6_DATA_L2Residual_AK4PFchs.txt",mera[set],mera[set]);
+    //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M2/Summer19UL17_Run%s_V3M2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M1/Summer19UL17_Run%s_V5M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
   }
   else {
     assert(false);

@@ -43,24 +43,28 @@ using namespace std;
 double alpha = 0.30; // reference alpha value for zlljet, gamjet (def:0.3)
 double ptmj = 30.; // reference pTmin value for multijet (def:30)
 bool dofsr = true; // correct for FSR central value (def:true)
-bool dofsrcombo1 = true; // use input refIOV for FSR in IOVs (def: true)
+bool dofsrcombo1 = false;//true; // use input refIOV for FSR in IOVs (def: true)
 bool dofsrcombo2 = false; // use output refIOV for FSR in IOVs (def:false)
 bool dofsr3 = true; // use softrad3.C corrections instead of softrad.C
 bool dofsr3zj = true; // secondary switch for Z+jet
 bool dofsr3mj = true;//false;  // secondary switch for multijet
 bool fixfsrcombo = false; // do not refit FSR (except refIOV) (def:false)
-bool useIncJetRefIOVUncert = false; // Include refIOV fit uncertainty? (def:false)
+bool useIncJetRefIOVUncert = true;//false; // Include refIOV fit uncertainty? (def:false)
 // Settings for 7-parameter fit with PF fractions
 // NB: use these only with L2Res fit, not with L2L3Res closure!!
-bool usePF = false;//true;//true; // Include PF fractions in the fit (def:true for now)
+bool usePF = true;//true; // Include PF fractions in the fit (def:true for now)
 bool usePFZ = true;//false; // use Z+jet PF instead of dijet PF (def:false for now)
-bool fitPF = false;
+bool fitPF = true;//false;
+double fitPF_delta = 0.25; // "free" shift in %
 bool fitPFZ = true;//false;//true;
-double minPFpt = 74;//114;//49; // Minimum pT where PF fractions used (def:114)
-double maxPFpt = 400;//400;//1000;//1500; // Maximum pT where PF fractions used (def:1000)
-double minPFZpt = 40;//25;
+double minPFpt = 43;//114;//43;//114;//74;//114;//49; // Minimum pT where PF fractions used (def:114)
+double maxPFpt = 600;//800;//1000;//400;//400;//1000;//1500; // Maximum pT where PF fractions used (def:1000)
+double minPFZpt = 25;//114;//25;
 double maxPFZpt = 300;//600;
 int penalizeFitPars = 9; // Add penalty for 9-par fit parameters (def:9)
+//string CorLevel = "L1L2L3Res"; // "L1L2L3Res" or "L1L2Res" (in reprocess.C)
+extern string CorLevel; // defined in reprocess.C
+bool useL2L3ResForClosure = (fitPF||fitPFZ); // scale out L2L3Res for closure
 bool useP0Trk = true; // ok2
 bool useP1Gam = true; // ok1
 bool useP2CalX = false; // ok1 (292.9/173) (def:false)
@@ -77,6 +81,7 @@ bool useZJet50 = false; // Use Z+jet with alpha<0.50 (def:false)
 bool alsoPtBal50 = false;
 bool useZJet100 = true;//false;//true; // Use Z+jet with alpha<1.00 (def:false)
 bool alsoPtBal100 = dofsr3;//false;
+//bool usePFJet100 = true; // Use PFJet compsition with alpha<1.00
 double alphaeffmax = 0.45; // max alphaeff for FSR corrections (def:0.45)
 double ptreco_gjet = 15.; // min jet pT when evaluating alphamax (def:15)
 double ptreco_zlljet = 5.; // same for Zll+jet (def:5, tbu)
@@ -88,12 +93,12 @@ bool dol1bias = false; // correct MPF to L1L2L3-L1 from L1L2L3-RC (def:false)
 bool _paper = false; // switch of plotting fit parameters
 bool _useZoom = true; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
 bool useIncJet = true; // loada inclusive jet data, for hjesfit (def:true)
-bool plotIncJet = false;//true; // plot inclusive jet data (def:true)
+bool plotIncJet = true; // plot inclusive jet data (def:true)
 bool plotHadW = true; // plot hadronic W data
 bool plotMultijetDown = true; // plot gray downward points for multijets
 double ptmaxMultijetDown = 300; // max pT for downward multijet points
 double shiftPtBal = 0.975; // move x-axis for pTbal, 0 or 1 for none
-double shiftYrange = +0.015; // move y-axis range for closure plots
+double shiftYrange = +0.010;//+0.020;//+0.015; // move y-axis range for closure plots
 bool storeErrorMatrix = true; // error matrix for globalFitL3Pulls.C
 bool storeJesFit = true; // save jesFit and eigenvectors
 bool writeTextFile = true; // textfile for minitools/createL2L3ResTextFile.C
@@ -128,6 +133,9 @@ vector< pair<string,TGraphErrors*> > _vpf2; // fitted dijet PF fractions
 vector< pair<string,TGraphErrors*> > _vpfz; // active Z+jet PF fractions
 vector< pair<string,TGraphErrors*> > _vpfz2; // fitted Z+jet PF fractions
 map<string, map<int, TF1*> > _mpf; // map of PF fraction variations
+
+// Reference for L1L2L3Res closure test
+TH1D *_hjesref(0);
 
 void jesFitter(Int_t &npar, Double_t *grad, Double_t &chi2, Double_t *par,
 	       Int_t flag);
@@ -304,6 +312,12 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   // - Offset from L1RC vs L1Simple (update to L1SemiSimple from EpsilonMC)
   if (njesFit==9) {
     assert(!(useP2HadX && useP2CalX));
+
+    // Scale out L2L3Res so can fit original parameters and use PF composition
+    assert(_hjesref || !(useL2L3ResForClosure && CorLevel=="L1L2L3Res"));
+    double jesref = (useL2L3ResForClosure && CorLevel=="L1L2L3Res" ?
+		     _hjesref->Interpolate(pt) : 1);
+
     return (1
 	    + (useP0Trk  ? p[0]*0.01*ftd->Eval(pt) : 0) // Tracker eff. (data)
 	    + (useP1Gam  ? p[1]*0.01*fp->Eval(pt) : 0) // photon scale
@@ -316,7 +330,7 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 	    + (useP6L1RC ? p[6]*(fl1->Eval(pt)-1) : 0) // L1RC-L1Simple diff.
 	    + (useP7TrkD ? p[7]*0.01*3*(ftd->Eval(pt)-ftm->Eval(pt)) : 0) // Tracker Data-MC ('3%' vs '1%' for useP0Trk)
 	    + (useP8MB80fit ? p[8]*0.01*fm80->Eval(pt) : 0)
-	    );
+	    ) / jesref;
   } // nJesFit==9
 
   assert(0);
@@ -343,15 +357,20 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 		epoch=="2016EF");
   string srefIOV = (isUL18 ? "2018ABCD" :
 		    (isUL17 ? "2017BCDEF" :
-		     isAPV ? "2016BCDEF" :
-		     isUL16 ? "2016GH" : "2018ABCD"));
+		     //isAPV ? "2016BCDEF" :
+		     //isUL16 && !isAPV ? "2016GH" :
+		     //isUL16 && isAPV ? "2016BCDEF" :
+		     (isUL16 ? "2016BCDEF" :
+		      "2018ABCD")));
   //if (isUL16) srefIOV = (isAPV ? "2016BCDEF" : "2016GH");
   const char *refIOV = srefIOV.c_str();
   bool isRefIOV = (epoch=="2018ABCD" ||
 		   epoch=="BCDEF" || epoch=="2017BCDEF" ||
-		   epoch=="2016BCDEF" || epoch=="2016GH");
+		   //epoch=="2016BCDEF" || epoch=="2016GH");
+		   //epoch=="2016GH" || epoch=="2016BCDEF");
+		   epoch=="2016BCDEF");
 
-  if (isUL16) { shiftYrange = -0.015; }
+  //if (isUL16) { shiftYrange = -0.015; }
 
   TFile *f = new TFile(Form("rootfiles/jecdata%s.root",cep),"READ");
   assert(f && !f->IsZombie());
@@ -374,10 +393,14 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if (dofsrcombo2 && !isRefIOV) cout << Form("Use output FSR from %s\n",refIOV);
   if (fixfsrcombo && !isRefIOV) cout << "Do not refit FSR" << endl;
   
-  TFile *fij = (isUL18 ?
+  TFile *fij = (isUL16 ? 
+		//new TFile("../JERCProtoLab/Summer19UL16/L3Residual_incljet/drawDeltaJEC_16ULJECV3V1_vsGH.root","READ") :
+		new TFile("../JERCProtoLab/Summer19UL16/L3Residual_incljet/drawDeltaJEC_16ULJECV5_vsBCDEF.root","READ") :
+		isUL18 ?
 		new TFile("rootfiles/drawDeltaJEC_18UL_JECv3.root","READ") :
 		new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ"));
-  assert((fij && !fij->IsZombie()) || ! (plotIncJet || useIncJet));
+  //assert((fij && !fij->IsZombie()) || ! (plotIncJet || useIncJet));
+  assert(fij && !fij->IsZombie());
   //TFile *fw = new TFile("rootfiles/hadW.root","READ");
   //assert((fw && !fw->IsZombie()) || ! plotHadW);
 
@@ -689,14 +712,21 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       _vpfz2.push_back(make_pair<string,TGraphErrors*>("nef", move(gnefz2)));
     }
     if (usePF) {
+      //if (usePFJet100) {
+      //gchf = (TGraphErrors*)d->Get("chf_pfjet_a100");
+      //gnhf = (TGraphErrors*)d->Get("nhf_pfjet_a100");
+      //gnef = (TGraphErrors*)d->Get("nef_pfjet_a100");
+      //}
+      //else {
       gchf = (TGraphErrors*)d->Get("chf_pfjet_a30");
       gnhf = (TGraphErrors*)d->Get("nhf_pfjet_a30");
       gnef = (TGraphErrors*)d->Get("nef_pfjet_a30");
+      //}
       assert(gchf);
       assert(gnhf);
       assert(gnef);
 
-      // Use open markers for dijet if both present, and not fitting Z
+      // Use open markers for dijet if both present, but only fitting Z
       if (fitPFZ && !fitPF) {
 	gchf->SetMarkerStyle(kOpenCircle);
 	gnhf->SetMarkerStyle(kOpenDiamond);
@@ -969,11 +999,15 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   TH1D *herr = (TH1D*)d->Get("herr"); assert(herr);
   TH1D *hrun1 = (TH1D*)d->Get("hrun1"); assert(hrun1);
   TH1D *hjes = (TH1D*)d->Get("hjes"); assert(hjes);
+  TH1D *herr_l2l3res = (TH1D*)d->Get("herr_l2l3res"); assert(herr_l2l3res);
   TH1D *herr_ref = (TH1D*)d->Get("herr_ref"); assert(herr_ref);
   TH1D *herr_noflv = (TH1D*)d->Get("herr_noflv"); assert(herr_noflv);
   TH1D *herr_spr = (TH1D*)d->Get("herr_spr"); assert(herr_spr);
   TH1D *herr_pu = (TH1D*)d->Get("herr_pu"); assert(herr_pu);
-
+  
+  // Set reference for L2L3Res closure
+  _hjesref = herr_l2l3res;
+  
   // Load inclusive jet reference JES
   TH1D *hjesfitref = (TH1D*)dsys->Get(isRefIOV?"herr_ref":"sys/hjesfit");
   assert(hjesfitref);
@@ -989,6 +1023,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     fij_files["2018D"] = "D";
     fij_files["2018ABCD"] = "";
     fij_files["2017BCDEF"] = "";
+    fij_files["2016BCD"] = "BCD";
+    fij_files["2016EF"] = "EF";
+    fij_files["2016GH"] = "GH";
+    fij_files["2016BCDEF"] = "BCDEF";
+
     /*
     hij = (isUL18 ?
 	   (TH1D*)fij->Get(Form("jet_Run18UL%s_det",fij_files[epoch])) :
@@ -999,9 +1038,10 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       hij = (TH1D*)fij->Get(Form("jet_Run18UL%s_det",fij_files[epoch]));
     else if (isUL17)
       hij = (TH1D*)fij->Get(Form("jet_Run17UL%s_fwd3",fij_files[epoch]));
-    else if (isUL16)
-      // skip for now, but use UL17 as placeholder
-      hij = (TH1D*)fij->Get(Form("jet_Run17UL%s_fwd3","B"));
+    else if (isUL16) {
+      hij = (TH1D*)fij->Get(Form("jet_Run16UL%s_fwd",fij_files[epoch]));
+      //if (epoch=="2016BCDEF") hij = (TH1D*)fij->Get("jet_Run16ULBCD_fwd");
+    }
     else
       assert(false);
 
@@ -1067,7 +1107,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 				     ss=="zmmjet")) ||
 		       (dofsr3mj && ss=="multijet"))) {
 	  s = Form("fsr/hkfsr3_%s_%s",cm,cs);
-	  hfsr = (TH1D*)dfsr->Get(s.c_str());
+	  //hfsr = (TH1D*)dfsr->Get(s.c_str()); //only with fsrcombo!
+	  hfsr = (TH1D*)d->Get(s.c_str());
 	}
 	if (!hfsr) cout << "Histo "<<s<<" not found!" << endl << flush;
       }
@@ -1377,7 +1418,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   // it is not given more weight than MPF with footprint uncertainty
   // (one for each sample x method, but all except two are empty)
   // With dofsrcombo: switch off again
-  if (!fsrcombo) {
+  if (!fsrcombo && !dofsr3) {
     for (unsigned int i = 0; i != _vdt1->size(); ++i) {
 
       unsigned int isample = i%nsamples;
@@ -1792,7 +1833,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	//legm->AddEntry(herr_ref,"UL16B-F V3M1","FL");
 	//else
 	//legm->AddEntry(herr_ref,"UL16GH V2M1","FL");
-	legm->AddEntry(herr_ref,"UL16 V3M1","FL");
+	//legm->AddEntry(herr_ref,"UL16 V3M1","FL");
+	legm->AddEntry(herr_ref,"UL16 V5","FL");
       else
 	assert(false);
     }
@@ -1942,6 +1984,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if (njesFit==9 &&
       fabs(herr_ref->GetBinContent(herr_ref->FindBin(100.))-1)<1e-3)
     jesfit->SetParameters(0,0,0,0,0,0,0,0,0);
+
+  //if (njesFit==9) jesfit->SetParameters(1,1,1,1,1,0,-1,0,0);
 
   _jesFit = jesfit;
   
@@ -2469,6 +2513,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   // Store fit with total uncertainty from eigenvectors
   TH1D *hjesfit = (TH1D*)hij->Clone("hjesfit");
   hjesfit->Reset();
+  TH1D *hjesfit2 = (TH1D*)hij->Clone("hjesfit2");
+  hjesfit2->Reset(); // After L2Res (if using L1L2L3Res)
   for (int i = 1; i != hjesfit->GetNbinsX()+1; ++i) {
     double sume2(0);
     for (int ieig = 0; ieig != np; ++ieig) {
@@ -2477,6 +2523,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     double pt = hjesfit->GetBinCenter(i);
     hjesfit->SetBinContent(i, _jesFit->Eval(pt));
     hjesfit->SetBinError(i, sqrt(sume2));
+    
+    double jesref = (useL2L3ResForClosure && CorLevel=="L1L2L3Res" ?
+		     _hjesref->Interpolate(pt) : 1);
+    hjesfit2->SetBinContent(i, _jesFit->Eval(pt) * jesref);
+    hjesfit2->SetBinError(i, sqrt(sume2));
   } // for i
 
   c0->RedrawAxis();
@@ -2690,6 +2741,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if (storeJesFit || isRefIOV) {
       dout->cd("sys");
       hjesfit->Write("hjesfit",TObject::kOverwrite);
+      hjesfit2->Write("hjesfit2",TObject::kOverwrite);
       for (int ieig = 0; ieig != np; ++ieig) {
 	vhkeig[ieig]->Write(Form("hjesfit_eig%d",ieig),TObject::kOverwrite);
       }
@@ -2733,13 +2785,15 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
   //if (epoch=="2016BCDEF") {
   if (isUL16) {
-    h4->SetMinimum(-2.4);
-    h4->SetMaximum(+2.6);
+    h4->SetMinimum(-4.0);//-3.2);//-2.4);
+    h4->SetMaximum(+4.4);//+3.5);//+2.6);
   }
   TCanvas *c4 = tdrCanvas("c4",h4,4,11,kSquare);
   gPad->SetLogx();
   TLegend *leg4 = tdrLeg(0.60,0.72,0.90,0.90);
-  leg4->SetHeader("Dijet");
+  //leg4->SetHeader("Dijet");
+  leg4->SetHeader(fitPF_delta==0? "Dijet" : 
+		  Form("Dijet (#Delta=%1.2f%%)",fitPF_delta));
   TLegend *leg4z = tdrLeg(0.40,0.72,0.70,0.90);
   leg4z->SetHeader("Z+jet");
   TLine *l4 = new TLine(); l4->SetLineStyle(kDashed);
@@ -2791,8 +2845,11 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       double pt = gc4->GetX()[i];
       //if ((usePF && (pt<minPFpt || pt>maxPFpt)) ||
       //  (usePFZ && (pt<minPFZpt || pt>maxPFZpt)))
-      if ((fitPF && (pt<minPFpt || pt>maxPFpt)) ||
-	  (fitPFZ && (pt<minPFZpt || pt>maxPFZpt)))
+      if ((!fitPF && !fitPFZ) ||
+	  (fitPF && !fitPFZ && (pt<minPFpt || pt>maxPFpt)) ||
+	  (fitPFZ && !fitPF && (pt<minPFZpt || pt>maxPFZpt)) ||
+	  (fitPFZ && fitPF && (pt<min(minPFZpt,minPFpt) ||
+			       pt>max(maxPFZpt,maxPFpt))))
 	gc4->RemovePoint(i);
     } // for i
 
@@ -3003,7 +3060,8 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 	    //if (usePF && pt>28 && pt<686) {
 	    //if (usePF && pt>28 && pt<686 && sf!="nef") {
 	  //if (usePF && pt>49 && pt<686) {
-	    double chi = (data - df) / sigma;
+	    //double chi = (data - df) / sigma;
+	    double chi = max(fabs(data - df) - 0.01*fitPF_delta,0.) / sigma;
 	    //double chi = 0.1 * (data - df) / sigma; // downscale pfjet weight
 	    chi2 += chi * chi;
 	    ++Nk;

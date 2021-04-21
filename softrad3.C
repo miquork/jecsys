@@ -123,6 +123,9 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
     samples.push_back("zlljet");
     samples.push_back("zeejet");
     samples.push_back("zmmjet");
+    if (epoch=="2016EF" || epoch=="2016GH" || epoch=="2016BCD")
+      //epoch=="2016BCDEF")
+      samples.push_back("gamjet");
   }
   samples.push_back("zjet");
   if (isUL18) {
