@@ -23,34 +23,43 @@ R__LOAD_LIBRARY(minitools/hadW.C+g)
 
 //void mk_hadW(string mode = "18V5") {
 //void mk_hadW(string mode = "1718V5") {
-//void mk_hadW(string mode = "16V2") {
-//void mk_hadW(string mode = "16APVV3") {
-//void mk_hadW(string mode = "16BCDV3") {
-void mk_hadW(string mode = "16EFV3") {
+//void mk_hadW(string mode = "161718V5") {
+//void mk_hadW(string mode = "16V2") { // L2Res
+//void mk_hadW(string mode = "16GHV5") { // L2L3Res
+  //void mk_hadW(string mode = "16APVV5") {
+//void mk_hadW(string mode = "16BCDV5") {
+void mk_hadW(string mode = "16EFV5") {
 
-  if (!(mode=="16APVV3" || mode=="16BCDV3" || mode=="16EFV3" || mode=="16V2" ||
-	mode=="17V5" || mode=="18V5" || mode=="1718V5")) return;
+  if (!(mode=="16APVV5" || mode=="16BCDV5" || mode=="16EFV5" || mode=="16V2" ||
+	mode=="16GHV5" || mode=="17V5" || mode=="18V5" ||
+	mode=="1718V5" || mode=="161718V5")) return;
   
   // Caveat for 1718V5: veto regions may not work properly (only one used),
   // same with JEC reapplication
 
   TChain *cmc = new TChain("tree","tree");
   if (mode=="16V2") {
-    cmc->AddFile("rootfiles/HadW/UL16GH/Muo16_MC.root");
+    cmc->AddFile("rootfiles/HadW/UL16GH/Muo16_MC.root"); // L2Res
     //cmc->AddFile("rootfiles/HadW/UL16GH/Ele16_MC.root");
   }
-  if (mode=="16APVV3") {
-    cmc->AddFile("rootfiles/HadW/UL16BCDEF/Muo16APV_MC.root");
+  if (mode=="16GHV5" || mode=="161718V5") {
+    cmc->AddFile("rootfiles/HadW/UL16_L3Res_V5/Muo16_MC.root"); // L2L3Res
+  }
+  if (mode=="16APVV5" || mode=="161718V5") {
+    cmc->AddFile("rootfiles/HadW/UL16_L3Res_V5/Muo16APV_MC.root"); // L2L3Res
+    //cmc->AddFile("rootfiles/HadW/UL16BCDEF/Muo16APV_MC.root"); // L2Res
     //cmc->AddFile("rootfiles/HadW/UL16GH/Ele16_MC.root");
   }
-  if (mode=="16BCDV3") {
-    cmc->AddFile("rootfiles/HadW/UL16BCDEF/Muo16BCD_MC.root");
+  if (mode=="16BCDV5") {
+    cmc->AddFile("rootfiles/HadW/UL16_L3Res_V5/Muo16BCD_MC.root"); // L2L3Res
+    //cmc->AddFile("rootfiles/HadW/UL16BCDEF/Muo16BCD_MC.root"); // L2Res
   }
-  if (mode=="16EFV3") {
-    cmc->AddFile("rootfiles/HadW/UL16BCDEF/Muo16EF_MC.root");
+  if (mode=="16EFV5") {
+    cmc->AddFile("rootfiles/HadW/UL16_L3Res_V5/Muo16EF_MC.root"); // L2L3Res
+    //cmc->AddFile("rootfiles/HadW/UL16BCDEF/Muo16EF_MC.root"); // L2Res
   }
   //if (mode=="17V5") cmc->AddFile("rootfiles/HadW/UL17/WmassMC17.root");
-  if (mode=="17V5" || mode=="1718V5") {
+  if (mode=="17V5" || mode=="1718V5" || mode=="161718V5") {
     //cmc->AddFile("rootfiles/HadW/UL17V5/WMass_Muo17_MadGraph.root");
     //cmc->AddFile("rootfiles/HadW/UL17V5/WMass_Ele17_MadGraph.root");
     //cmc->AddFile("rootfiles/HadW/UL17V5_NoMu/WMass_Muo17_PowHeg.root");
@@ -64,7 +73,7 @@ void mk_hadW(string mode = "16EFV3") {
     cmc->AddFile("rootfiles/HadW/UL17V5_WithGlu/Ele17_MC.root");
   }
   //if (mode=="18V5") cmc->AddFile("rootfiles/HadW/UL18/WmassMC18.root");
-  if (mode=="18V5" || mode=="1718V5") {
+  if (mode=="18V5" || mode=="1718V5" || mode=="161718V5") {
     //cmc->AddFile("rootfiles/HadW/UL18V5/WMass_Muo18_MadGraph.root");
     //cmc->AddFile("rootfiles/HadW/UL18V5/WMass_Ele18_MadGraph.root");
     //cmc->AddFile("rootfiles/HadW/UL18V5_NoMu/WMass_Muo18_PowHeg.root");
@@ -80,19 +89,25 @@ void mk_hadW(string mode = "16EFV3") {
   TChain *cdt = new TChain("tree","tree");
   if (mode=="16V2") {
     //cdt->AddFile("rootfiles/HadW/UL16GH/Muo16_Run2016.root");
-    cdt->AddFile("rootfiles/HadW/UL16GH/Muo16_DATA.root");
+    cdt->AddFile("rootfiles/HadW/UL16GH/Muo16_DATA.root"); // L2Res
   }
-  if (mode=="16APVV3") {
-    cdt->AddFile("rootfiles/HadW/UL16BCDEF/Muo16APV_DATA.root");
+  if (mode=="16GHV5" || mode=="161718V5") {
+    cdt->AddFile("rootfiles/HadW/UL16_L3Res_V5/Muo16_DATA.root"); // L2L3Res
   }
-  if (mode=="16BCDV3") {
-    cdt->AddFile("rootfiles/HadW/UL16BCDEF/Muo16BCD_DATA.root");
+  if (mode=="16APVV5" || mode=="161718V5") {
+    //cdt->AddFile("rootfiles/HadW/UL16BCDEF/Muo16APV_DATA.root"); // L2Res
+    cdt->AddFile("rootfiles/HadW/UL16_L3Res_V5/Muo16APV_DATA.root"); // L2L3Res
   }
-  if (mode=="16EFV3") {
-    cdt->AddFile("rootfiles/HadW/UL16BCDEF/Muo16EF_DATA.root");
+  if (mode=="16BCDV5") {
+    //cdt->AddFile("rootfiles/HadW/UL16BCDEF/Muo16BCD_DATA.root"); // L2Res
+    cdt->AddFile("rootfiles/HadW/UL16_L3Res_V5/Muo16BCD_DATA.root"); // L2L3Res
+  }
+  if (mode=="16EFV5") {
+    //cdt->AddFile("rootfiles/HadW/UL16BCDEF/Muo16EF_DATA.root"); // L2Res
+    cdt->AddFile("rootfiles/HadW/UL16_L3Res_V5/Muo16EF_DATA.root"); // L2L3Res
   }
   //if (mode=="17V5") cdt->AddFile("rootfiles/HadW/UL17/WmassUL17.root");
-  if (mode=="17V5" || mode=="1718V5") {
+  if (mode=="17V5" || mode=="1718V5" || mode=="161718V5") {
     /*
     cdt->AddFile("rootfiles/HadW/UL17V5_NoMu/WMass_Muo17_DTB.root");
     cdt->AddFile("rootfiles/HadW/UL17V5_NoMu/WMass_Muo17_DTC.root");
@@ -136,7 +151,7 @@ void mk_hadW(string mode = "16EFV3") {
     cdt->AddFile("rootfiles/HadW/UL17V5_WithGlu/Ele17_Run2017F.root");
   }
   //if (mode=="18V5") cdt->AddFile("rootfiles/HadW/UL18/WmassUL18.root");
-  if (mode=="18V5" || mode=="1718V5") {
+  if (mode=="18V5" || mode=="1718V5" || mode=="161718V5") {
     /*
     cdt->AddFile("rootfiles/HadW/UL18V5_NoMu/WMass_Muo18_DTA.root");
     cdt->AddFile("rootfiles/HadW/UL18V5_NoMu/WMass_Muo18_DTB.root");

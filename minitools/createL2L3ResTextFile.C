@@ -72,7 +72,8 @@ void createL2L3ResTextFile() {
   //c1->SaveAs("pdf/createL2L3ResTextFile_UL16_BtoH_JECV2.pdf");
   //c1->SaveAs("pdf/createL2L3ResTextFile_UL16_BtoH_JECV3M2.pdf");
   //c1->SaveAs("pdf/createL2L3ResTextFile_Run2_JECV3M2.pdf");
-  c1->SaveAs("pdf/createL2L3ResTextFile_Run2_UL16JECV5M1.pdf");
+  //c1->SaveAs("pdf/createL2L3ResTextFile_Run2_UL16JECV5M1.pdf");
+  c1->SaveAs("pdf/createL2L3ResTextFile_UL16_BtoH_JECV5M2.pdf");
 }
 
 void createL2L3ResTextFiles(string set) {
@@ -171,7 +172,8 @@ void createL2L3ResTextFiles(string set) {
     //sout = Form("textFiles/UL18V3-L2L3Res/Summer19UL18_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
     //sout = Form("../JERCProtoLab/Summer19UL18/global_fit/V3A2M1J2/Summer19UL18_Run%s_V3A2M1J2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
     //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M2/Summer19UL18_Run%s_V3M2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
-    sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M1/Summer19UL18_Run%s_V5M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M1/Summer19UL18_Run%s_V5M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M2/Summer19UL18_Run%s_V5M2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
   }
   else if (isUL16) {
     map<string,const char*> mera;
@@ -186,7 +188,8 @@ void createL2L3ResTextFiles(string set) {
       //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V2M1/Summer19UL16_Run%s_V2M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
       //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M1/Summer19UL16_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
       //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M2/Summer19UL16_Run%s_V3M2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
-      sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M1/Summer19UL16_Run%s_V5M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+      //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M1/Summer19UL16_Run%s_V5M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+      sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M2/Summer19UL16_Run%s_V5M2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
     }
     else if (set=="2016BCDEF" || set=="2016BCD" || set=="2016EF") {
       //sin = Form("../JECDatabase/textFiles/Summer19UL16APV_Run%s_V3_DATA/Summer19UL16APV_Run%s_V3_DATA_L2Residual_AK4PFchs.txt",mera[set],mera[set]);
@@ -194,7 +197,8 @@ void createL2L3ResTextFiles(string set) {
       //
       //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M1/Summer19UL16_Run%s_V3M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
       //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M2/Summer19UL16_Run%s_V3M2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
-      sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M1/Summer19UL16_Run%s_V5M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+      //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M1/Summer19UL16_Run%s_V5M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+      sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M2/Summer19UL16_Run%s_V5M2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
     }
     else
       assert(false);
@@ -209,7 +213,8 @@ void createL2L3ResTextFiles(string set) {
     mera["2017F"] = "F";
     sin = Form("../JECDatabase/textFiles/Summer19UL17_Run%s_V6_DATA/Summer19UL17_Run%s_V6_DATA_L2Residual_AK4PFchs.txt",mera[set],mera[set]);
     //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V3M2/Summer19UL17_Run%s_V3M2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
-    sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M1/Summer19UL17_Run%s_V5M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    //sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M1/Summer19UL17_Run%s_V5M1_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
+    sout = Form("../JERCProtoLab/Summer19UL16/global_fit/V5M2/Summer19UL17_Run%s_V5M2_DATA_L2L3Residual_AK4PFchs.txt",mera[set]);
   }
   else {
     assert(false);

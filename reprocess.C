@@ -34,8 +34,6 @@
 using namespace std;
 
 // rho used to calculate l1bias
-//const double gRho = 15.36; // 2017-06-02 for 2016 data
-//const double gRho = 19.21; // EOY17 DE jt450
 // These values from Z(mm)+jet UL17BCDEF |eta|<1.3 at close to 202.5 GeV
 // Maximilian: [MC,Data]_Rho_CHS_a30_eta_00_13_L1L2Res at 198 GeV (alpha<1.0)
 // Sami:       h_Zpt_rho_alpha100_eta00_13 at 208 GeV (alpha<0.3)
@@ -57,118 +55,91 @@ bool correctGamScale = true; // additional to GamMass, with value below
 double valueGamScale = 1.01; //1.;
 bool correctUncert = false;  // ll mass uncertainty => globalFitSyst.C
 string sPSWgtZ = "";//"PSWeight0/"; // use PSWeight[X]/ variant of Z+jet MC (def:"") [PSWeight0 has very poor effective statistics]
-//
+
 // Which binning to use for multijets ("leading", "recoil" or "ptave" (default))
 string multijetMode = "ptave"; // check also multijetModeS in globalFitSyst.C
 bool correctMultijetLeading = false;//true; // correct for difference to JER-hybrid (UL17 true, UL18 false)
 bool correctMultijetRecoilScale = true; // recoil JES relative to leading JES (due to higher gluon fraction) for data/MC ratio
-double multijetRecoilScale = 1;//0.998; // Data/MC difference in recoil JES
+double multijetRecoilScale = 1.000; // Extra data/MC difference in recoil JES
 bool useMultijetRecoilScaleFunction = true; // Implement function
 bool halveMultijetRecoilScaleFunction = false; // Halve effect for UL16
-bool patchMultijetPtAveMCMJBPt20 = false;
-//bool patchMultijetStatOverPt = 1684; // RMSfit/sqrt(N); zero for none
-//
+
 // Which binning to use for PF composition ("tp","pt", "both" or "none" (off))
 string pfMode = "tp"; // "both" not supported at the moment
 
 bool confirmWarnings=false;//true; //if active, deficiencies in input files are patched after confirmation via pushing "any key to continue"
 bool confirmedGamJet=false; // to avoid too many confirmations
 //need to adjust corlevel in multijet.C as well!!! Not synced automatically right now
-//string CorLevel="L1L2Res"; // Input to (L2)L3Res
-string CorLevel="L1L2L3Res"; // Closure test for L2L3Res
-//string CorLevel="L1L2";
+
 //"L1L2": "MCTruth corrections" applied, in reality L1Data/MC,L2
 //"L1L2Res": MCTruth + L2Res applied
-//"L1L2L3Res": MCTruth + L2L3Res applied; reference JES central values set to 1.0 (affects pliotting as well)
-
-
+//"L1L2L3Res": MCTruth + L2L3Res applied; reference JES central values set to 1.0 (affects plotting as well)
+//string CorLevel="L1L2";    // Rarely used
+//string CorLevel="L1L2Res"; // Input to (L2)L3Res
+string CorLevel="L1L2L3Res"; // Closure test for L2L3Res
 
 
 // Settings for cleaned up global fit
 /////////////////////////////////////
-// Minimum pTcut for gamma+jet
-// 85: 141.1, 105: 124.7/72, 135: 122.4/70
-//double fpmpfptmin(175);//105);//85);//30);//100.); // photon+jet MPF
-//double fpbalptmin(175);//105);//30);//105);//85);//30);//100.); // photon+jet pTbal
-double fzeeptmin(15.); // Zee+jet both methods
-double fzmmptmin(15.); // Zmm+jet both methods
-double fzllptmin(15.);//25.); // Zll+jet both methods
-double fzptmin(15.);//20.);//15.);//25);//15.);//40.);//30.);  // Z+jet both methods (Sami)
-// Additional cuts to Z+jet MPF / balance methods
-//double fzmpfptmin(30.);   // Z+jet MPF
-//double fzbalptmin(30.);//100);//30.);   // Z+jet pTbal
 
-// multijet minimum and maximum pT
-// (high for now until FSR working for low pT)
-// 49: 228.6/78, 64: 155.7/76, 84: 135.8/74, 114: 124.7/72, 153: 120.7/70
-// 20200330: 49:238.3/84, 64:164.6/82, 84:143.5/80, 114:131.4/78,
-// ...20200330: 153:125.4/76 196:108.5/74 245:107.7/72
-// ...20200419 ptave: 300:
-double fpfjetptmin(15.);//43.);//15.); // keep low for plotting, until fixed
-double fpfjetptmax(2116.);
-double fincjetptmin(21);//18)15.); // UL17 21
-double fincjetptmax(2116.);//4037.);
-double fhadwptamin(35);//35.);//30.); // UL17 30.
-double fhadwptamax(200);//200.); // UL17 200
-double fhadwptbmin(40);//35);//40.);//30.); // UL17 30.
-double fhadwptbmax(175);//200.); // UL17 200
-// 200.5/141 => 188.0/139 => 172.9/135 => 175.0/137 => 207.5/141 => 201.4/141
-// 174.1/138
-double fmultijetptmin(114);//153);//114);//507);//300);//153);//114); // 114 in UL17, 430 UL18
-double fmultijetptmax(2640);//2116); // 2116 in UL17
-double fmultijetptmax2(1890);//2366);//1890); // 1890 in UL17
-//double fmultijetmjbptmin(1032); // avoid FSR bias in UL18 with 1032
-double fmultijetmjbptmin(114); // avoid FSR bias in UL18 with 1032
-double fmultijetmjbptmax(2640); // avoid FSR bias in UL18 with 1032
-double fmultijetmpfptmin(114);//1600);//1032); // avoid FSR bias in UL18 with 1032
-// 124.5/113 => 776.2/149 => 164.8/125 => 137.3/117 => 105.7/111 => 117.1/119
+// Zll+jet
+double fzeeptmin(15.);   // Zee+jet pTmin
+double fzeeptmax(700.);  // Zee+jet pTmax
+double fzmmptmin(15.);   // Zmm+jet pTmin
+double fzmmptmax(700.);  // Zmm+jet pTmax
+double fzllmpfptmin(15); // Zll+jet (combined) MPF pTmin
+double fzllmpfptmax(700);// Zll+jet (combined) MPF pTmax
+double fzllbalptmin(15); // Zll+jet (combined) DB pTmin
+double fzllbalptmax(700);// Zll+jet (combined) DB pTmax
+double fzllptmin(15.);   // Zll+jet (combined) pTmin
+
+// Z+jet (Sami)
+double fzptmin(15.);   // Z+jet (Sami) pTmin
+double fzptmax(700.);  // Z+jet (Sami) pTmax
+double fzmpfptmin(15); // Z+jet (Sami) MPF pTmin
+double fzmpfptmax(700);// Z+jet (Sami) MPF pTmax
+double fzbalptmin(15); // Z+jet (Sami) DB pTmin
+double fzbalptmax(700);// Z+jet (Sami) DB pTmax
+double fzbptmax(300.); // Z+b (Sami) pTmax
+
+// PF composition (for plots, tighter range in global fit)
+double fpfjetptmin(15.);   // Dijet PF composition pTmin
+double fpfjetptmax(2116.); // Dijet PF compoisition pTmax
+double fzllpfzptmin(20);   // Z+jet PF composition pTmin
+double fzllpfzptmax(230);  // Z+jet PF composition pTmax
+
+// Inclusive jets
+double fincjetptmin(21);    // Inclusive jets pTmin
+double fincjetptmax(2116.); // Inclusive jets pTmin
+
+// Hadronic W>qq'
+double fhadwptamin(35);  // W>qq' pTave pTmin
+double fhadwptamax(200); // W>qq' pTave pTmax 
+double fhadwptbmin(40);  // W>qq' pTboth pTmin
+double fhadwptbmax(175); // W>qq' pTboth pTmin
+
+// Multijet
+double fmultijetptmin(114);     // Multijet pTmin
+double fmultijetptmax(2640);    // Multijet pTmax
+double fmultijetptmax2(1890);   // Multijet pTmax2 (for low stats IOVs)
+double fmultijetmjbptmin(114);  // Multijet MJB pTmin
+double fmultijetmjbptmax(2640); // Multijet MJB pTmax
+double fmultijetmpfptmin(114);  // Multijet MPF pTmin
 
 //for fine etabins deactivate ptbal
-double fdijetmpfptmin(30);
-double fdijetbalptmin(30.);
-double fdijetptmax(1500.);
+double fdijetmpfptmin(30.); // Dijet MPF pTmin
+double fdijetbalptmin(30.); // Dijet DB pTmin
+double fdijetptmax(1500.);  // Dijet pT max
 
-/*
-// Settings for maximally inclusive glofal fit
-/////////////////////////////////////////////
-// (use for checking data/data, MC/MC ratios before fit)
-// Minimum pTcut for gamma+jet
-double fpmpfptmin(30.);//100. // photon+jet MPF
-double fpbalptmin(30.);//100; // photon+jet pTbal
-double fzeeptmin(30.); // Zee+jet
-double fzmmptmin(30.); // Zmm+jet
-// Additional cuts to Z+jet MPF / balance methods
-double fzmpfptmin(30.); // Z+jet MPF
-double fzbalptmin(30.); // Z+jet pTbal
-*/
-
-// Maximum pTcut for samples (to avoid bins with too large uncertainty)
-double fpmpfptmax(1500.);//2000.);//1500.); // photon+jet MPF
-double fpbalptmax(700);//1500);//700.);  // photon+jet pTbal
-double fzeeptmax(700.);   // Zee+jet
-double fzmmptmax(700.);   // Zmm+jet
-double fzptmax(700.);   // Z+jet
-double fzbptmax(300.); // Z+b
-// Additional cuts to Z+jet MPF / balance methods
-//double fzmpfptmax(700);//500.);  // Z+jet MPF
-//double fzbalptmax(500);//300.);  // Z+jet pTbal
-
-// Regular settings for fits with Z+jet
-double fpmpfptmin(230.); double fpbalptmin(230.); double fzllmpfptmin(15);/*40);30);*/ double fzmpfptmin(15);/*40);30);*/ double fzllbalptmin(15);/*80);*//*105.);80.);*/ double fzbalptmin(15);/*105.);*//*30);*/ double fzllmpfptmax(700); double fzmpfptmax(700); double fzllbalptmax(700.);/*500);*/ double fzbalptmax(700.);/*500);*/ // UL17
-
-double fzllpfzptmin(20);
-double fzllpfzptmax(230);
-
-//double fpmpfptmin(100.); double fpbalptmin(100.); double fzllmpfptmin(40); double fzllbalptmin(100); double fzllmpfptmax(500); double fzllbalptmax(300); // EOY17 settings (incl. effective 40 GeV from bug and gamma+jet min pT)
-
-// Special setting for "multijet only" fit 
-//double fzllmpfptmin(130); double fzllbalptmin(130); double fzllmpfptmax(175); double fzllbalptmax(175); // option B
-//double fzllmpfptmin(175); double fzllbalptmin(175); double fzllmpfptmax(230); double fzllbalptmax(230); // option A
-
-
+// Photon+jet
+double fpmpfptmin(230.);  // photon+jet MPF pTmin
+double fpmpfptmax(1500.); // photon+jet MPF pTmin
+double fpbalptmin(230.);  // photon+jet DB pTmin
+double fpbalptmax(700.);  // photon+jet DB pTmax
 
 //minimum event counts
 const double neventsmin = 20.;
+
 
 // Helper functions to handle JEC
 FactorizedJetCorrector *_thejec(0);
@@ -179,6 +150,7 @@ void setEtaPtRho(FactorizedJetCorrector *jec, double eta,double pt,double rho);
 Double_t funcCorrPt(Double_t *x, Double_t *p);
 double getJEC(FactorizedJetCorrector *jec, double eta, double ptcorr,
 	      double rho = gRho);
+
 
 // put all the different methods in a single file for easy access for everybody
 void reprocess(string epoch="") {
@@ -197,7 +169,8 @@ void reprocess(string epoch="") {
 
   bool isUL18 = (epoch=="2018ABCD" || epoch=="2018A" || 
 		 epoch=="2018B" || epoch=="2018C" || epoch=="2018D");
-  bool isUL17 = (epoch=="2017BCDEF");
+  bool isUL17 = (epoch=="2017BCDEF" || epoch=="2017B" || epoch=="2017C" ||
+		 epoch=="2017D" || epoch=="2017E" || epoch=="2017F");
   bool isUL16 = (epoch=="2016BCDEF" || epoch=="2016BCD" || 
 		 epoch=="2016EF" || epoch=="2016GH");
   bool isAPV = (epoch=="2016BCDEF" || epoch=="2016BCD" || 
@@ -212,23 +185,17 @@ void reprocess(string epoch="") {
   const char *cd = sd.c_str();
 
   // Overall switches
-  //if (isUL16) { CorLevel = "L1L2Res"; }
   if (isUL16) { CorLevel = "L1L2L3Res"; } // Closure
-  //if (isUL18) { CorLevel = "L1L2Res"; }
 
   // Multijet switches
   if (isUL16) { 
-    fmultijetptmin = 153;//175;//330;//114;
-    if (!isAPV) fmultijetptmin = 430;//362;
-    fmultijetptmax = 2684;
+    fmultijetptmin = 153;//230;//114; //153;
+    //if (!isAPV) fmultijetptmin = 430;
+    fmultijetptmax = 2116;//2684;
 
     // Turn MJB "off" to avoid double counting HDM
-    //fmultijetmjbptmin = 1032;//1172;//592;//(114);
-    //fmultijetmjbptmax = 1172;
-    //if (!isAPV) {
-    fmultijetmjbptmin = 790;//905;//1032;//1172;//592;//(114);
-    fmultijetmjbptmax = 905;//1032;//1172;
-    //}
+    fmultijetmjbptmin = 153;//230;//114;//790;
+    fmultijetmjbptmax = 2116;//905;
 
     // Recoil ranges are {0,97},{97,196},{196,220},{220,272},{272,395},{395,468},{468,592},{592,686},{686,790},{790,6500}
   }
@@ -243,27 +210,20 @@ void reprocess(string epoch="") {
   if (isUL16) { 
     correctGamMass = true;
     correctGamScale = false;
-    fpmpfptmin = 230;//x130;
+    fpmpfptmin = 230;
     fpmpfptmax = 1200;
-    fpbalptmin = 300;//230;//300;
+    fpbalptmin = 300;
     fpbalptmax = 600;
-    /*
-    fpbalptmin = 230;
-    fpbalptmax = 1000;
-    */
   } 
 
   // Z+jet switches
   if (isUL16) {
-    fzllmpfptmin = 35;//20;//15;//20; // 20 destabilizes low pT?
-    fzllmpfptmax = 400;//230; 
+    // Z+jet pT<35 GeV biased?
+    fzllmpfptmin = 35;
+    fzllmpfptmax = 400;
     if (!isAPV) fzllmpfptmax = 230;
-    fzllbalptmin = 35;//20;//85;//60;//35;//15;//35;//30;
-    fzllbalptmax = 175;//400;//105;//175;//230;//300;
-    /*
-    fzllbalptmin = 20;
-    fzllbalptmax = 230;
-    */
+    fzllbalptmin = 35;
+    fzllbalptmax = 175;
   }
   if (isUL18 && CorLevel=="L1L2Res") {
     fzllbalptmin = 35;
@@ -272,21 +232,21 @@ void reprocess(string epoch="") {
 
   // W>qq' switches
   if (isUL16 && CorLevel=="L1L2Res") {
-    fhadwptamin = 70;//30;//(35);
-    fhadwptamax = 175;//(200);
-    fhadwptbmin = 60;//50;//(40);
-    fhadwptbmax = 70;//80;//(175);
+    fhadwptamin = 70;
+    fhadwptamax = 175;
+    fhadwptbmin = 60;
+    fhadwptbmax = 70;
   }
   if (isUL16 && CorLevel=="L1L2L3Res") {
-    fhadwptamin = 60;//40;//30;//35;
-    fhadwptamax = 175;//200;
-    fhadwptbmin = 70;//60;
-    fhadwptbmax = 80;//70;
+    fhadwptamin = 70;//45;//40;//35;//60;
+    fhadwptamax = 175;//200;//175;
+    fhadwptbmin = 70;//45;//40;//70;
+    fhadwptbmax = 80;//175;//80;
   }
 
   // Inclusive jet switches
   if (isUL16) {
-    fincjetptmin = 21;//64;//15;//32;//28; // 15-18-21-24-28-32
+    fincjetptmin = 21;
     if (epoch=="2016EF") fincjetptmin = 64;
   }
 
@@ -313,13 +273,8 @@ void reprocess(string epoch="") {
   if(CorLevel=="L1L2L3Res"){
     if (isUL18) {
       // skip for now
-      //assert(false);
     }
     else if (isUL17) { // UL17
-      //fdj = new TFile(Form("rootfiles/L2Res_GlobalFitInput_JERSF_V2_Fall17_17Nov2017_V31_DATA/Run%s_17Nov17_2017_JERnominalV2/output/JEC_L2_Dijet_AK4PFchs_pythia8_eta_0_13.root",fdj_files[epoch]),"READ"); // regular
-      //assert(fdj && !fdj->IsZombie());
-      //fdj2 = new TFile(Form("rootfiles/L2Res_GlobalFitInput_JERSF_V2_Fall17_17Nov2017_V31_DATA/Run%s_17Nov17_2017_JERnominalV2/output/JEC_L2_Dijet_AK4PFchs_pythia8.root",fdj_files[epoch]),"READ"); // narrow bins
-      //assert(fdj2 && !fdj->IsZombie());
       // skip for now
     }
     else if (isUL16) {
@@ -340,22 +295,12 @@ void reprocess(string epoch="") {
   //////////////////////////
 
   map<string,const char*> fm_files;
-  fm_files["B"] = "B";
-  fm_files["C"] = "C";
-  fm_files["BC"] = "BC"; // obsolete
-  fm_files["D"] = "D";
-  fm_files["E"] = "E";
-  fm_files["DE"] = "DE"; // obsolete
-  fm_files["F"] = "F";
-  fm_files["BCDEF"] = "BCDEF"; // also update multijet.C
   fm_files["2018A"] = "A";
   fm_files["2018B"] = "B";
   fm_files["2018C"] = "C";
   fm_files["2018D"] = "D";
   fm_files["2018ABCD"] = "ABCD";
   fm_files["2017BCDEF"] = "BCDEF";
-  fm_files["2016BCDEF"] = "BCDEF";
-  //
   fm_files["2016BCD"] = "BCD";
   fm_files["2016EF"] = "EF";
   fm_files["2016GH"] = "FGH";
@@ -364,55 +309,26 @@ void reprocess(string epoch="") {
   TFile *fmj(0);
   if (CorLevel=="L1L2Res") {
     if (isUL18) {
-      //fmj = 0;//new TFile(Form("rootfiles/multijet_UL2018%s_jecDTV3MCV2_jerUL17V2-2.root",fm_files[epoch]),"READ");
-      fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201207_UL2018%s_jecV5_jerV2.root",fm_files[epoch]),"READ"); // Minsuk v3
+      fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201207_UL2018%s_jecV5_jerV2.root",fm_files[epoch]),"READ");
     }
-    else if (isUL17) { // UL17
-      //fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200526_UL2017%s_SimpleL1V4JRV2_jecV4_jerV2.root",fm_files[epoch]),"READ"); // 69.2 mb, original?
-      fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201209_UL2017%s_jecV6_jerV3.root",fm_files[epoch]),"READ"); // 69.2 mb, original?
+    else if (isUL17) {
+      fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201209_UL2017%s_jecV6_jerV3.root",fm_files[epoch]),"READ");
     }
-    else if (isUL16) { // UL16
-      if (isAPV) {
-	//fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV3_jerV1.root",fm_files[epoch]),"READ");
-	fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV5_jerV2.root",fm_files[epoch]),"READ");
-      }
-      else {
-	//fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV2_jerV1.root",fm_files[epoch]),"READ");
-	fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV5_jerV2.root",fm_files[epoch]),"READ");
-      }
+    else if (isUL16) {
+      fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV5_jerV2.root",fm_files[epoch]),"READ");
     }
     else
       assert(false);
-    //assert(fmj && !fmj->IsZombie());
   }
 
   if(CorLevel=="L1L2L3Res") {
     if (isUL18) {
-      //fmj = new TFile(Form("rootfiles/multijet_UL2018%s_jecDTV4MCV2_jerUL17V2.root",fm_files[epoch]),"READ"); // Laura v2
-      //fmj = new TFile(Form("rootfiles/multijet_UL2018%s_jecDTV4MCV2_jerV1_oldmet1-2.root",fm_files[epoch]),"READ"); // Laura v2
-      //fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201111_UL2018%s_jecV5_jerV2.root",fm_files[epoch]),"READ"); // Minsuk v1
-      //fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201124_UL2018%s_jecV5_jerV2.root",fm_files[epoch]),"READ"); // Minsuk v2
-      //fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201202_UL2018%s_jecV5_jerV2.root",fm_files[epoch]),"READ"); // Minsuk v3
-      fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201207_UL2018%s_jecV5_jerV2.root",fm_files[epoch]),"READ"); // Minsuk v3
+      fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201207_UL2018%s_jecV5_jerV2.root",fm_files[epoch]),"READ");
     }
-    // Same for now for UL17
     else if (isUL17) {
-      //assert(false); // Missin UL17 multijet closure
-      //fmj = new TFile(Form("rootfiles/multijet_Rebin2_20200526_UL2017%s_SimpleL1V4JRV2_jecV4_jerV2.root",fm_files[epoch]),"READ"); // 69.2 mb, same file as for L1L2Res
-      fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201209_UL2017%s_jecV6_jerV3.root",fm_files[epoch]),"READ"); // 69.2 mb, same file as for L1L2Res
+      fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201209_UL2017%s_jecV6_jerV3.root",fm_files[epoch]),"READ");
     }
-    else if (isUL16) { // Placeholder (L2Res->UL18)
-      //assert(false);
-      /*
-      if (isAPV) {
-	fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV3_jerV1.root",fm_files[epoch]),"READ");
-      }
-      else {
-	fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV2_jerV1.root",fm_files[epoch]),"READ");
-      }
-      */
-      //fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201207_UL2018%s_jecV5_jerV2.root","ABCD"),"READ");
-      //fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV3_jerV1_closure.root",fm_files[epoch]),"READ");
+    else if (isUL16) {
       fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV5_jerV2_closure.root",fm_files[epoch]),"READ");
     }
     else
@@ -426,11 +342,11 @@ void reprocess(string epoch="") {
   ////////////////////////
 
   map<string,const char*> fij_eras;
-  fij_eras["2017BCDEF"] = "";
   fij_eras["2018A"] = "A";
   fij_eras["2018B"] = "B";
   fij_eras["2018C"] = "C";
   fij_eras["2018D"] = "D";
+  fij_eras["2017BCDEF"] = "";
   fij_eras["2016BCD"] = "BCD";
   fij_eras["2016EF"] = "EF";
   fij_eras["2016BCDEF"] = "BCDEF";
@@ -440,13 +356,10 @@ void reprocess(string epoch="") {
     if (isUL18) {
       fij = new TFile("rootfiles/drawDeltaJEC_18UL_JECV3.root","READ");
     }
-    else if (isUL17) { // UL17
+    else if (isUL17) {
       fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ");
     }
     else if (isUL16) {
-      // skip for now, but use UL17 as placeholder
-      //fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ");
-      //fij = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_incljet/drawDeltaJEC_16ULJECV3V1_vsGH.root","READ");
       fij = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_incljet/drawDeltaJEC_16ULJECV5_vsBCDEF.root","READ");
     }
     else
@@ -460,7 +373,6 @@ void reprocess(string epoch="") {
   ////////////////////////////
 
   map<string,const char*> fpf_files;
-  fpf_files["2017BCDEF"] = "BCDEF";
   fpf_files["2018A"] = "A";
   fpf_files["2018B"] = "B";
   fpf_files["2018C"] = "C";
@@ -479,26 +391,23 @@ void reprocess(string epoch="") {
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL18V2V3-%s.root",
 			     fpf_files[epoch]),"READ");
     }
-    else if (isUL17) { // UL17
+    else if (isUL17) {
       fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL17V4_%s.root",
 			     fpf_files[epoch]),"READ");
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
 			     fpf_files[epoch]),"READ");
     }
-    else if (isUL16) {
-      if (isAPV) {
-	fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V3V1_%s.root",
-			       fpf_files[epoch]),"READ");
-	fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V3V1_%s.root",
-			       fpf_files[epoch]),"READ");
-      }
-      else {
-	fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V2V1_%s.root",
-			       fpf_files[epoch]),"READ");
-	//fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL16V2V1_%s.root",
-	fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V2V1_%s.root",
-			       fpf_files[epoch]),"READ");
-      }
+    else if (isUL16 && !isAPV) {
+      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V2V1_%s.root",
+			     fpf_files[epoch]),"READ");
+      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V2V1_%s.root",
+			     fpf_files[epoch]),"READ");
+    }
+    else if (isUL16 && isAPV) {
+      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V3V1_%s.root",
+			     fpf_files[epoch]),"READ");
+      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V3V1_%s.root",
+			     fpf_files[epoch]),"READ");
     }
     else
       assert(false);
@@ -512,14 +421,12 @@ void reprocess(string epoch="") {
   ////////////////////////////
 
   map<string,const char*> fw_files;
-  fw_files["2017BCDEF"] = "BCDEF";
-  //
   fw_files["2018A"] = "A";
   fw_files["2018B"] = "B";
   fw_files["2018C"] = "C";
   fw_files["2018D"] = "D";
   fw_files["2018ABCD"] = "ABCD";
-  //
+  fw_files["2017BCDEF"] = "BCDEF";
   fw_files["2016BCD"] = "BCD";
   fw_files["2016EF"] = "EF";
   fw_files["2016BCDEF"] = "APV";
@@ -529,15 +436,14 @@ void reprocess(string epoch="") {
     if (isUL18) {
       fw = new TFile(Form("rootfiles/hadwUL18%s.root",fw_files[epoch]),"READ");
     }
-    else if (isUL17) { // UL17
+    else if (isUL17) {
       fw = new TFile("rootfiles/hadW.root","READ"); // no eras, yet
     }
-    else if (isUL16) {
-      if (isAPV) {
-	fw = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_W/hadW16%sV3_Glu.root",fw_files[epoch]),"READ");
-      } else {
-	fw = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_W/hadW16V2_Glu_v3.root","READ");
-      }	
+    else if (isUL16 && !isAPV) {
+      fw = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_W/hadW16V2_Glu_v3.root","READ");
+    }
+    else if (isUL16 && isAPV) {
+      fw = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_W/hadW16%sV3_Glu.root",fw_files[epoch]),"READ");
     }
     else
       assert(false);
@@ -546,28 +452,16 @@ void reprocess(string epoch="") {
   if (CorLevel=="L1L2L3Res") {
     // NB: newer files use |eta|<2.5 instead of |eta|<1.3
     if (isUL18) {
-      //fw = new TFile("rootfiles/hadWUL18V4.root","READ");
-      //fw = new TFile("rootfiles/hadWUL18V4_MPDcorrNoW.root","READ");
-      //fw = new TFile("rootfiles/hadWUL18V4_MPDGcorrNoW.root","READ"); // fitprob001
       //fw = new TFile("rootfiles/hadW18V5_MPDGcorrNoW.root","READ"); // fp02
       fw = new TFile("rootfiles/hadW1718V5_MPDGcorrNoW.root","READ"); // fp02
     }
     else if (isUL17) {
       //fw = new TFile("rootfiles/hadWUL17V5_MPDGcorrNoW.root","READ"); // fitprob001
       fw = new TFile("rootfiles/hadW17V5_MPDGcorrNoW.root","READ"); // fp02
-      //assert(false);
     }
-    else if (isUL16) { // Placeholder (L2Res->UL18)
-      //assert(false);
-      /*
-      if (isAPV) {
-	fw = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_W/hadW16%sV3_Glu.root",fw_files[epoch]),"READ");
-      } else {
-	fw = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_W/hadW16V2_Glu_v3.root","READ");
-      }
-      */
-      //fw = new TFile(Form("rootfiles/hadwUL18%s.root","ABCD"),"READ");	
-      fw = new TFile(Form("rootfiles/hadW16%sV3_Glu.root",fw_files[epoch]),"READ");
+    else if (isUL16) {
+      fw = new TFile(Form("rootfiles/hadW16%sV5_Glu.root",fw_files[epoch]),
+		     "READ");
     }
     else
       assert(false);
@@ -581,70 +475,56 @@ void reprocess(string epoch="") {
   ////////////////////////////
 
   map<string,const char*> fp_files;
-  fp_files["B"] = "B";
-  fp_files["C"] = "C";
-  fp_files["BC"] = "BC";
-  fp_files["D"] = "D";
-  fp_files["E"] = "E";
-  fp_files["DE"] = "DE";
-  fp_files["F"] = "F";
-  fp_files["BCDEF"] = "BCDEF";
-  //
-  fp_files["2016BCDEF"] = "BCDEF";
-  fp_files["2016BCD"] = "BCD";
-  fp_files["2016EF"] = "EF";
-  fp_files["2016GH"] = "FGH";
-  //
-  fp_files["2017BCDEF"] = "BCDEF";
   fp_files["2018A"] = "A";
   fp_files["2018B"] = "B";
   fp_files["2018C"] = "C";
   fp_files["2018D"] = "D";
   fp_files["2018ABCD"] = "ABCD";
+  fp_files["2017BCDEF"] = "BCDEF";
+  fp_files["2016BCD"] = "BCD";
+  fp_files["2016EF"] = "EF";
+  fp_files["2016GH"] = "FGH";
+  fp_files["2016BCDEF"] = "BCDEF";
   TFile *fp(0);
   if (CorLevel=="L1L2Res") {
     if (isUL18) {
-      //fp = new TFile(Form("%sgamma/Gjet_combinationfile_only_L2Res_%s_only_L2Res.root",cd,fp_files[epoch]),"READ");
       fp = new TFile(Form("%sgamma/Gjet_combinationfile_only_L2Res_%s_only_L2Res_JEC-v4_Data-v2_MC.root",cd,fp_files[epoch]),"READ");
     }
-    else if (isUL17) { // UL17
+    else if (isUL17) {
       fp = new TFile(Form("rootfiles/2020-04-02/SimpleL1_only_L2Res/Gjet_combinationfile_SimpleL1_only_L2Res_%s_SimpleL1_only_L2Res.root",fp_files[epoch]),"READ");
     }
-    else if (isUL16) {
-      if (isAPV) {
-	if (epoch=="2016BCDEF") 
-	  fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1/UL16APVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1.root",fp_files[epoch]),"READ");
-	else if (epoch=="2016EF" || epoch=="2016BCD") 
-	  fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1/UL16APVSplitGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Bis.root",fp_files[epoch]),"READ");
-	else
-	  assert(false);
-      }
-      else {
-	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1/UL16NonAPVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Bis.root",fp_files[epoch]),"READ");
-      }
+    else if (isUL16 && !isAPV) {
+      fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1/UL16NonAPVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Bis.root",fp_files[epoch]),"READ");
     }
+    else if (isUL16 && isAPV) {
+      if (epoch=="2016BCDEF") 
+	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1/UL16APVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1.root",fp_files[epoch]),"READ");
+      else if (epoch=="2016EF" || epoch=="2016BCD") 
+	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1/UL16APVSplitGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Bis.root",fp_files[epoch]),"READ");
+      else
+	assert(false);
+    }
+    else
+      assert(false);
   } // L2L3Res
 
   if(CorLevel=="L1L2L3Res"){
     if (isUL18) {
-      //fp = new TFile(Form("%sgamma/Gjet_combinationfile_L2L3Res_%s_L2L3Res.root",cd,fp_files[epoch]),"READ");
       fp = new TFile(Form("%sgamma/Gjet_combinationfile_L2L3Res_%s_L2L3Res_JEC-v4_Data-v2_MC.root",cd,fp_files[epoch]),"READ");
     }
-    else if (isUL17) { // UL17
+    else if (isUL17) {
       fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V31_L2L3res_%s.root", fp_files[epoch]),"READ");
     }
-    else if (isUL16) {
-      if (isAPV) {
-	if (epoch=="2016BCDEF") 
-	  fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
-	else if (epoch=="2016EF" || epoch=="2016BCD") 
-	  fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVSplitGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
-	else
-	  assert(false);
-      }
-      else {
-	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16NonAPVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
-      }
+    else if (isUL16 && !isAPV) {
+      fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16NonAPVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
+    }
+    else if (isUL16 && isAPV) {
+      if (epoch=="2016BCDEF") 
+	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
+      else if (epoch=="2016EF" || epoch=="2016BCD") 
+	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVSplitGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
+      else
+	assert(false);
     }
     else
       assert(false);
@@ -658,45 +538,34 @@ void reprocess(string epoch="") {
   ////////////////////////////
 
   map<string,const char*> fz_files;
-  fz_files["B"] = "B";
-  fz_files["C"] = "C";
-  fz_files["D"] = "D";
-  fz_files["E"] = "E";
-  fz_files["F"] = "F";
-  fz_files["BCDEF"] = "BCDEF";
-  //
-  fz_files["2017BCDEF"] = "BCDEF";
   fz_files["2018A"] = "A";
   fz_files["2018B"] = "B";
   fz_files["2018C"] = "C";
   fz_files["2018D"] = "D";
   fz_files["2018ABCD"] = "ABCD";
+  fz_files["2017BCDEF"] = "BCDEF";
+  fz_files["2016BCD"] = "preVFPBCD";
+  fz_files["2016EF"] = "preVFPEFearly";
+  fz_files["2016BCDEF"] = "preVFPBCDEFearly";
+  fz_files["2016GH"] = "postVFPFlateGH";
   TFile *fzmm(0), *fzee(0);
   if (CorLevel=="L1L2Res") {
     if (isUL18) {
-      //fzmm = new TFile("../JERCProtoLab/Summer19UL18/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV3_L1L2Res.root","READ"); // UL18-v1
-      //fzee = new TFile("../JERCProtoLab/Summer19UL18/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV3_L1L2Res.root","READ"); // UL18-v1
       // With UL18V4, pT bin split
       fzmm = new TFile(Form("%sZ/JEC_Combination_Zmm/splitZPtBin70/ZJetCombination_Zmm_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV4_L1L2Res.root",cd),"READ");
       fzee = new TFile(Form("%sZ/JEC_Combination_Zee/splitZPtBin70/ZJetCombination_Zee_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV4_L1L2Res.root",cd),"READ");
     }
-    else if (isUL17) { // UL17
-      fzmm = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV5_L1L2Res.root","READ"); // was V4
-      fzee = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV5_L1L2Res.root","READ"); // was V4
+    else if (isUL17) {
+      fzmm = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV5_L1L2Res.root","READ");
+      fzee = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV5_L1L2Res.root","READ");
     }
-    else if (isUL16) { // UL16
-      if (isAPV) {//epoch=="2016BCDEF") {
-	fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2Res.root","READ");
-	fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zee/electrons_in_barrel/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2Res.root","READ");
-      }
-      else { //if (epoch=="2016GH") {
-	fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_L1L2Res.root","READ");
-	fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V2_L1L2Res.root","READ"); // |eta|<1.3 for electrons
-      }
-      //else
-      //assert(false);
-      //fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_L1L2Res.root","READ"); // |eta|<2.4 or <2.5 for electrons
-      //fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V2_L1L2Res.root","READ"); // |eta|<1.3 for electrons
+    else if (isUL16 && !isAPV) {
+      fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_L1L2Res.root","READ");
+      fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V2_L1L2Res.root","READ"); // |eta|<1.3 for electrons
+    }
+    else if (isUL16 && isAPV) {
+      fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2Res.root","READ");
+      fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zee/electrons_in_barrel/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2Res.root","READ");
     }
     else
       assert(false);
@@ -707,22 +576,17 @@ void reprocess(string epoch="") {
       fzmm = new TFile(Form("%sZ/JEC_Combination_Zmm/splitZPtBin70/ZJetCombination_Zmm_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV4_L1L2L3Res.root",cd),"READ");
       fzee = new TFile(Form("%sZ/JEC_Combination_Zee/splitZPtBin70/ZJetCombination_Zee_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV4_L1L2L3Res.root",cd),"READ");
     }
-    else if (isUL17) { // UL7
-      //fzmm = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV31_Zmm_%s_2018-10-26.root",fz_files[epoch]),"READ"); // EOY17?
-      //fzee = new TFile(Form("rootfiles/zjet_combination_Fall17_JECV31_Zee_%s_2018-10-26.root",fz_files[epoch]),"READ"); // EOY17
+    else if (isUL17) {
       fzmm = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV5_L1L2L3Res.root","READ");
       fzee = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV5_L1L2L3Res.root","READ");
     }
-    else if (isUL16) {
-      if (isAPV) {
-	fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2L3Res.root","READ");
-	//fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zee/electrons_in_barrel/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2L3Res.root","READ"); // removed electrons_in_barrel?
-fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2L3Res.root","READ");
-      }
-      else {
-	fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2L3Res.root","READ");
-	fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2L3Res.root","READ"); // |eta|<1.3 for electrons
-      }
+    else if (isUL16 && !isAPV) {
+      fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V5old_L1L2L3Res.root","READ");
+      fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V5old_L1L2L3Res.root","READ"); // |eta|<1.3 for electrons
+    }
+    else if (isUL16 && isAPV) {
+      fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V5old_L1L2L3Res.root","READ");
+      fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V5old_L1L2L3Res.root","READ");
     }
     else
       assert(false);
@@ -739,6 +603,9 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
     fzee->cd(Form("Run2017%s",fz_files[epoch])); fzee = (TFile*)gDirectory;
   }
   else if (isUL16) {
+    fzmm->cd(Form("Run2016%s",fz_files[epoch])); fzmm = (TFile*)gDirectory;
+    fzee->cd(Form("Run2016%s",fz_files[epoch])); fzee = (TFile*)gDirectory;
+    /*
     if (epoch=="2016GH") {
       fzmm->cd("Run2016postVFPFlateGH"); fzmm = (TFile*)gDirectory;
       fzee->cd("Run2016postVFPFlateGH"); fzee = (TFile*)gDirectory;
@@ -757,6 +624,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
     }
     else
       assert(false);
+    */
   }
   else
     assert(false);
@@ -770,13 +638,11 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   TH1D *hzjes(0);
   if (CorLevel=="L1L2Res") {
     if (isUL18) {
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v27_Muon2018UL.root","READ");
       fz = new TFile("rootfiles/jme_bplusZ_merged_v34.root","READ"); // not L2L3Res, but has latest bells and whistles
       fzjes = new TFile("rootfiles/jecdataBCDEF_V4.root","READ");
       hzjes = (TH1D*)fzjes->Get("ratio/eta00-13/herr_ref");
     }
     else if (isUL17) {
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v26_DYJets.root","READ");
       fz = new TFile("rootfiles/jme_bplusZ_merged_v35.root","READ"); // UL18 placeholder
       // JES correction for zjet
       fzjes = new TFile("rootfiles/jecdataBCDEF_V4.root","READ");
@@ -784,7 +650,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
     }
     else if (isUL16) {
       // skip for now, use UL17 as place holder
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v26_DYJets.root","READ");
       // UL17 L1L2L3Res as better placeholder (contains Z mass)
       fz = new TFile("rootfiles/jme_bplusZ_merged_v28_2017emu_wTTJets.root","READ");
       fzjes = new TFile("rootfiles/jecdataBCDEF_V4.root","READ");
@@ -796,24 +661,12 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 
   if(CorLevel=="L1L2L3Res"){
     if (isUL18) {
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v28_2018emu.root","READ"); // no TTJets variant
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v28_2017-2018emu_wTTJets.root","READ"); // first hadW_Zb studies with this
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v31_Feb2021.root","READ"); // new Zflavor studies with this (until 20210305)
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v32.root","READ"); // update Zflavor studies with this => not good
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v33.root","READ"); // update Zflavor studies with this => bad
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v34.root","READ"); // test
       fz = new TFile("rootfiles/jme_bplusZ_merged_v35.root","READ"); // test (17+18 e+mu)
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_vX2.root","READ"); // update Zflavor studies with this => test
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v29_2017-2018emu_wTTJets.root","READ"); // first hadW_Zb studies with this
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v31_2017-2018emu.root","READ"); // with TTjets
-      //fz  = new TFile("rootfiles/jme_bplusZ_merged_v28_2018mu.root","READ");
     }
     else if (isUL17) {
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v28_2017emu_noTTJets.root","READ");  
       fz = new TFile("rootfiles/jme_bplusZ_merged_v28_2017emu_wTTJets.root","READ");
     }
     else if (isUL16) { // placeholder (L2Res)
-      //assert(false);
       // skip for now, use UL17 L2L3Res as place holder
       fz = new TFile("rootfiles/jme_bplusZ_merged_v28_2017emu_wTTJets.root","READ");
       fzjes = new TFile("rootfiles/jecdataBCDEF_V4.root","READ");
@@ -925,17 +778,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 			       +2.56e-08,  -8.5e-08, -5.39e-08);
       }
       else if (isUL16) {
-	/*
-	// V1 with |eta|<2.5 electrons and p2 constraint
-	// UL16 Run2016GH fit with minitools/drawZmass.C
-	f1mzee->SetParameters(1.00128, 0.00287, 0.00062);
-	f1ezee->SetParameters(+6.79e-08, +8.36e-08, +1.61e-08,
-			      +4.9e-08, -2.19e-09, +1.84e-08);
-	// UL16 Run2016GH from above
-	f1mgam->SetParameters(1.00128, 0.00287, 0.00062);
-	f1egam->SetParameters(+6.79e-08, +8.36e-08, +1.61e-08,
-			      +4.9e-08, -2.19e-09, +1.84e-08);
-	*/
 	// V2 with |eta|<1.3 elextrons and no p2 constraint
 	// UL16 2016GH fit with minitools/drawZmass.C
 	f1mzee->SetParameters(1.00175, 0.00349, 0.00159);
@@ -996,7 +838,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   // \END copy-paste from minitools/drawZmass.C
 
 
-  //TF1 *f2 = new TF1("f2","[p0]*pow(x,2)+[p1]",30,3000); // bug in V4?
   TF1 *f2 = new TF1("f2","[0]*pow(x,2)+[1]",30,3000);
   f2->SetParameters(0,0);
 
@@ -1005,7 +846,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 
     // Fits done in minitools/systMultijet.C on UL17BCDEF
     //f2 Chi2/NDF = 15.2 / 19
-    //TF1 *f2 = new TF1("f2","[p0]*pow(x,2)+[p1]",30,3000);
     f2->SetParameters(1.462e-07, -0.001596); // 20200419-SimpleL1 MPF
   }
 
@@ -1025,10 +865,11 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   TH2D *h2eta = (TH2D*)feta->Get("data"); assert(h2eta);
 
   // New 2D pT-eta distribution down to 5 GeV based on P8 dijet sample
-  TFile *feta2 = new TFile("rootfiles/P8_dijet_45M_TH2D_correct_weighting.root",
-			   "READ");
+  //TFile *feta2 = new TFile("rootfiles/P8_dijet_45M_TH2D_correct_weighting.root","READ");
+  //TH2D *h2pteta = (TH2D*)feta2->Get("pTjet_etajet"); assert(h2pteta);
+  TFile *feta2 = new TFile("rootfiles/RunIISummer20UL16NanoAODAPVv2_DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_LeadingJet2DDistribution.root","READ");
   assert(feta2 && !feta2->IsZombie());
-  TH2D *h2pteta = (TH2D*)feta2->Get("pTjet_etajet"); assert(h2pteta);
+  TH2D *h2pteta = (TH2D*)feta2->Get("Dist"); assert(h2pteta);
 
 
   // Store pointers to all files in a map for easy handling later
@@ -1090,24 +931,12 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   // Map variable names used in different files to common scheme
   map<string, map<string, const char*> > rename;
 
-  //rename["pfjet"]["mpfchs1"] = "tp";
-  //rename["pfjet"]["ptchs"] = ""; // "pt"
-
   // Note: non-CHS results are not available for all samples, so not used
   rename["dijet"]["mpfchs"] = "mpfchs";
   rename["dijet"]["mpfchs1"] = "mpfchs";
   rename["dijet"]["ptchs"] = "ptchs";
 
-  // Andrey and Run I
-//   rename["multijet"]["ratio"] = "Data";//"Ratio"; => PATCH
-//   rename["multijet"]["data"] = "Data";
-//   rename["multijet"]["mc"] = "MC";
-//   rename["multijet"]["crecoil"] = "CRecoil";
-//   rename["multijet"]["mpfchs"] = "MPF";
-//   rename["multijet"]["mpfchs1"] = "MPF";
-//   rename["multijet"]["ptchs"] = "MJB";
-
-// Minsuk in Run II
+  // Minsuk in Run II
   rename["multijet"]["ratio"] = "Data";// => PATCH
   rename["multijet"]["data"] = "Data";
   rename["multijet"]["mc"] = "MC";
@@ -1141,18 +970,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	rename["multijet"]["datacounts"] = "h2_MPF_leading_L1L2L3Res";
 	rename["multijet"]["mcptchs"] = "MPF1_leading_MG"; //MJB
 
-	/*
-	// new stuff v1
-	rename["multijet"]["ratiompf1"] = "MJB_leading_L1L2L3Res"; // Pt30
-	rename["multijet"]["ratiompfn"] = "MJB_leading_L1L2L3Res"; // -Pt15
-	rename["multijet"]["ratiompfu"] = "MPFue_leading_L1L2L3Res"; // Pt30
-	rename["multijet"]["datampf1"] = "MJB_leading_L1L2L3Res"; // Pt30
-	rename["multijet"]["datampfn"] = "MJB_leading_L1L2L3Res"; // -Pt15
-	rename["multijet"]["datampfu"] = "MPFue_leading_L1L2L3Res"; // Pt30
-	rename["multijet"]["mcmpf1"] = "MJB_leading_MG"; // Pt30
-	rename["multijet"]["mcmpfn"] = "MJB_leading_MG"; // -Pt15
-	rename["multijet"]["mcmpfu"] = "MPFue_leading_MG"; // Pt30
-	*/
 	// new stuff v2
 	rename["multijet"]["ratiompf1"] = "MPF1_leading_L1L2L3Res";
 	rename["multijet"]["ratiompfn"] = "MPFn_leading_L1L2L3Res";
@@ -1239,25 +1056,18 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
       rename["multijet"]["datacrecoil"] = "CRecoil_ptave_L1L2res";
       rename["multijet"]["mccrecoil"] = "CRecoil_ptave_MG";
       //
-      rename["multijet"]["ratiompfchs1"] = "MPF_ptave_L1L2res";//_metType2";
-      //rename["multijet"]["ratioptchs"] = "MJB_ptave_L1L2res";
+      rename["multijet"]["ratiompfchs1"] = "MPF_ptave_L1L2res";
       rename["multijet"]["ratioptchs"] = "MPF1_ptave_L1L2res";
-      rename["multijet"]["datampfchs1"] = "MPF_ptave_L1L2res";//_metType2";
-      //rename["multijet"]["dataptchs"] = "MJB_ptave_L1L2res";
+      rename["multijet"]["datampfchs1"] = "MPF_ptave_L1L2res";
       rename["multijet"]["dataptchs"] = "MPF1_ptave_L1L2res";
-      rename["multijet"]["mcmpfchs1"] = "MPF_ptave_MG";//_metType2";
-      //rename["multijet"]["mcptchs"] = "MJB_ptave_MG";
+      rename["multijet"]["mcmpfchs1"] = "MPF_ptave_MG";
       rename["multijet"]["mcptchs"] = "MPF1_ptave_MG";
 
-      //rename["multijet"]["mccounts"] = "h2_MPF_leading_MG";
       rename["multijet"]["ratiocounts"] = "Stats_ptave_L1L2res";
       rename["multijet"]["datacounts"] = "Stats_ptave_L1L2res";
       rename["multijet"]["mccounts"] = "Stats_ptave_MG";
 
       if (CorLevel=="L1L2Res") {
-	//rename["multijet"]["ratioptchs"] = "MPF1_ptave_L1L2res";
-	//rename["multijet"]["dataptchs"] = "MPF1_ptave_L1L2res";
-	//rename["multijet"]["mcptchs"] = "MPF1_ptave_MG";
       
 	// new stuff v3+UL16
 	rename["multijet"]["ratiompf1"] = "MPF1_ptave_L1L2res";
@@ -1271,24 +1081,10 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	rename["multijet"]["mcmpf1"] = "MPF1_ptave_MG";
 	rename["multijet"]["mcmpfn"] = "MPFn_ptave_MG";
 	rename["multijet"]["mcmpfu"] = "MPFu_ptave_MG";
-	//rename["multijet"]["mcrho"] = "prho_ptave_L1L2res"; // !! JECV3JERV1
-	rename["multijet"]["mcrho"] = "prho_ptave_MG"; // JECV5JERV2
+	rename["multijet"]["mcrho"] = "prho_ptave_MG";
       }
 
-
       if (CorLevel=="L1L2L3Res") { 
-	/* // Laura v1,v2
-	rename["multijet"]["ratiocrecoil"] = "CRecoil_ptave_L1L2L3res";
-	rename["multijet"]["datacrecoil"] = "CRecoil_ptave_L1L2L3res";
-	//rename["multijet"]["mccrecoil"] = "CRecoil_ptave_MG";
-	//
-	rename["multijet"]["ratiompfchs1"] = "MPF_ptave_L1L2L3res_metType2";
-	rename["multijet"]["ratioptchs"] = "MJB_ptave_L1L2L3res";
-	rename["multijet"]["datampfchs1"] = "MPF_ptave_L1L2L3res_metType2";
-	rename["multijet"]["dataptchs"] = "MJB_ptave_L1L2L3res";
-	//rename["multijet"]["mcmpfchs1"] = "MPF_ptave_MG_metType2";
-	//rename["multijet"]["mcptchs"] = "MJB_ptave_MG";
-	*/
 	// Minsuk v2
 	rename["multijet"]["ratiocrecoil"] = "CRecoil_ptave_L1L2L3res";
 	rename["multijet"]["ratiompfchs1"] = "MPF_ptave_L1L2L3res";
@@ -1298,10 +1094,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	rename["multijet"]["dataptchs"] = "MPF1_ptave_L1L2L3res";//MJB
 	rename["multijet"]["mcptchs"] = "MPF1_ptave_MG";//MJB
 	
-	// Use MPF0 or MPFx? We don't have MPFx. Probably either is fine
-	//rename["multijet"]["ratiocounts"] = "h2_MPF0_ptave_L1L2L3Res";
-	//rename["multijet"]["datacounts"] = "h2_MPF0_ptave_L1L2L3Res";
-
 	// new stuff v3
 	rename["multijet"]["ratiompf1"] = "MPF1_ptave_L1L2L3res";
 	rename["multijet"]["ratiompfn"] = "MPFn_ptave_L1L2L3res";
@@ -1314,12 +1106,10 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	rename["multijet"]["mcmpf1"] = "MPF1_ptave_MG";
 	rename["multijet"]["mcmpfn"] = "MPFn_ptave_MG";
 	rename["multijet"]["mcmpfu"] = "MPFu_ptave_MG";
-	//rename["multijet"]["mcrho"] = "prho_ptave_L1L2res"; // !! JECV3JERV1
-	rename["multijet"]["mcrho"] = "prho_ptave_MG"; // JECV5JERV2
+	rename["multijet"]["mcrho"] = "prho_ptave_MG";
       }
     }
     else if (isUL17 || isUL18) {
-      //else if (isUL17 || isUL16) { //useUL17 L1L2L3Res as placeholder
       rename["multijet"]["ratiocrecoil"] = "CRecoil_ptave_L1L2Res";
       rename["multijet"]["datacrecoil"] = "CRecoil_ptave_L1L2Res";
       rename["multijet"]["mccrecoil"] = "CRecoil_ptave_MG";
@@ -1330,7 +1120,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
       rename["multijet"]["dataptchs"] = "MJB_ptave_L1L2Res";
       rename["multijet"]["mcmpfchs1"] = "MPF_ptave_MG";
       rename["multijet"]["mcptchs"] = "MJB_ptave_MG";
-      //rename["multijet"]["mccounts"] = "h2_MPF_leading_MG";
       rename["multijet"]["ratiocounts"] = "h2_MPF0_ptave_L1L2Res";
       rename["multijet"]["mccounts"] = "h2_MPF0_ptave_MG";
       rename["multijet"]["datacounts"] = "h2_MPF0_ptave_L1L2Res";
@@ -1345,7 +1134,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
       rename["multijet"]["mcmpfn"] = "MPFn_ptave_MG";
       rename["multijet"]["mcmpfu"] = "MPFu_ptave_MG";
 
-      //if (CorLevel=="L1L2L3Res" || isUL16) {//useUL17 L1L2L3Res as placeholder
       if (CorLevel=="L1L2L3Res") {
 	rename["multijet"]["ratiocrecoil"] = "CRecoil_ptave_L1L2L3Res";
 	rename["multijet"]["ratiompfchs1"] = "MPF_ptave_L1L2L3Res";
@@ -1381,12 +1169,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
     rename["incjet"]["ptchs"] = "jet_Run18UL%s_det"; // copy
   }
   else if (isUL17) {
-    //rename["incjet"]["ratio"] = "Run17UL";
-    //rename["incjet"]["mpfchs1"] = "jet_Run17UL%s_fwd";
-    //rename["incjet"]["mpfchs1"] = "jet_Run17UL%s_fwd2"; // JER SF V2 + JER per IOV
     rename["incjet"]["mpfchs1"] = "jet_Run17UL%s_fwd3"; // JER V2 + JES fix
-    //rename["incjet"]["ptchs"] = "jet_Run17UL%s_dag";
-    //rename["incjet"]["ptchs"] = "jet_Run17UL%s_fwd2"; // copy
     rename["incjet"]["ptchs"] = "jet_Run17UL%s_fwd3"; // copy
   }
   else if (isUL16) {
@@ -1397,9 +1180,9 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   else
     assert(false);
 
-  rename["hadw"]["mpfchs1"] = "mass_ptave";//ptboth";
-  rename["hadw"]["ptchs"] = "mass_ptboth";//ptave";
-  rename["hadw"]["counts"] = "nevents_ptave";//ptboth";
+  rename["hadw"]["mpfchs1"] = "mass_ptave";
+  rename["hadw"]["ptchs"] = "mass_ptboth";
+  rename["hadw"]["counts"] = "nevents_ptave";
   rename["hadw"]["rho"] = "rho_ptave";
 
   rename["gamjet"]["ratio"] = "";
@@ -1432,14 +1215,12 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   rename["zeejet"]["mpf1"] = "MPF-leading-jet_CHS";
   rename["zeejet"]["mpfn"] = "MPF-subleading-jets_CHS";
   rename["zeejet"]["mpfu"] = "MPF-unclustered_CHS";
-  //rename["zeejet"]["rho"] = "Rho_vs_npumean_CHS";
   rename["zeejet"]["rho"] = "Rho_CHS";
 
   rename["zmmjet"]["ratio"] = "Ratio";
   rename["zmmjet"]["data"] = "Data";
   rename["zmmjet"]["mc"] = "MC";
   rename["zmmjet"]["mpfchs"] = "MPF-notypeI_CHS";
-  //rename["zmmjet"]["mpfchs1"] = "MPF-notypeI_CHS"; //TEMP TEMP TEMP!!!
   rename["zmmjet"]["mpfchs1"] = "MPF_CHS"; 
   //rename["zmmjet"]["ptchs"] = (isUL18 ? "MPF-leading-jet_CHS" : "PtBal_CHS"); 
   rename["zmmjet"]["ptchs"] = "MPF-leading-jet_CHS";
@@ -1453,7 +1234,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   rename["zmmjet"]["mpf1"] = "MPF-leading-jet_CHS";
   rename["zmmjet"]["mpfn"] = "MPF-subleading-jets_CHS";
   rename["zmmjet"]["mpfu"] = "MPF-unclustered_CHS";
-  //rename["zmmjet"]["rho"] = "Rho_vs_npumean_CHS";
   rename["zmmjet"]["rho"] = "Rho_CHS";
 
   // Results from Sami's Z+b analysis
@@ -1621,8 +1401,8 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   style["pfjet_mc"]["nef"] = kOpenSquare;
   style["pfjet_mc"]["cef"] = kOpenDiamond;
   style["pfjet_mc"]["muf"] = kOpenDiamond;
-  style["dijet"]["mpfchs1"] = kFullDiamond;//kFullCircle;
-  style["dijet"]["ptchs"] = kOpenDiamond;//kOpenSquare;
+  style["dijet"]["mpfchs1"] = kFullDiamond;
+  style["dijet"]["ptchs"] = kOpenDiamond;
   style["incjet"]["mpfchs1"] = kFullDiamond;
   style["incjet"]["ptchs"] = kOpenDiamond;
   style["hadw"]["mpfchs1"] = kFullCircle;
@@ -1726,7 +1506,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   color["pfjet_cef"] = kCyan+1;
   color["pfjet_muf"] = kMagenta+1;
   color["dijet"] = kBlack;
-  color["incjet"] = kOrange+2;//kBlack;
+  color["incjet"] = kOrange+2;
   color["hadw"] = kGreen+2;
   color["multijet"] = kBlack;
   color["multijet_mpf1"] = kRed;
@@ -1743,12 +1523,12 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   color["zeejet_mpfn"] = kGreen+2;
   color["zeejet_mpfu"] = kBlue;
   color["zeejet_rho"] = kBlack;
-  color["zeejet"] = kMagenta+2;//kRed;
+  color["zeejet"] = kMagenta+2;
   color["zmmjet_mpf1"] = kRed;
   color["zmmjet_mpfn"] = kGreen+2;
   color["zmmjet_mpfu"] = kBlue;
   color["zmmjet_rho"] = kBlack;
-  color["zlljet"] = kRed;//kMagenta+2;
+  color["zlljet"] = kRed;
   color["zlljet_mpf1"] = kRed;
   color["zlljet_mpfn"] = kGreen+2;
   color["zlljet_mpfu"] = kBlue;
@@ -1873,9 +1653,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   sets.push_back("znn");
 
   vector<pair<double,double> > etas;
-  // reference region |eta|<1.3
-  //if (epoch!="L4") etas.push_back(make_pair<double,double>(0,1.305));
-  //if (epoch=="L4") etas.push_back(make_pair<double,double>(0,2.4));
   etas.push_back(make_pair<double,double>(0,1.305));
   etas.push_back(make_pair<double,double>(0,2.500));
   // Narrow eta bins for L2Res
@@ -1973,6 +1750,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	
 	  string s = sets[iset];
 	  const char* ss = s.c_str();
+	  string sp = (rename[s]["parent"]!=0 ? rename[s]["parent"] : "");
 	  
 	  TFile *f = files[s];
 	  // pfjet has two files
@@ -1989,7 +1767,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	  assert(f || s=="zlljet" || (s=="pfjet" && d=="ratio"));
 
 	  if (eta1==0 && eta2==2.5 &&
-	      !(s=="zjet" || rename[s]["parent"]=="zjet" || s=="whad"))
+	      !(s=="zjet" || sp=="zjet" || s=="whad"))
 	    continue;
 
 	  // C_recoil is only meant for multijets
@@ -1998,20 +1776,17 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	  // MPF decomposition only for Z+jet for now (+multijet)
 	  if ((t=="mpf1" || t=="mpfn" || t=="mpfu" || t=="rho") &&
 	      !(((s=="zeejet" || s=="zmmjet" || s=="zlljet" || s=="zjet" ||
-		  //s=="zb" || s=="zc" || s=="zq" || s=="zg" ||
-		  rename[s]["parent"]=="zjet" ||
+		  sp=="zjet" ||
 		  s=="multijet") && isUL18) ||
-		//((s=="zjet") && isUL17))) // zll+jet missing MC, no multijet
 		((s=="zeejet" || s=="zmmjet" || s=="zlljet" || s=="zjet" ||
 		  s=="multijet") && (isUL17 || isUL16)) ||
-		//(s=="gamjet" && epoch=="2016EF" && t!="rho" && d!="ratio")
 		(s=="gamjet" && (epoch=="2016EF" || epoch=="2016GH" ||
 				 epoch=="2016BCD" || epoch=="2016BCDEF")
 		 && t!="rho")
 		)) 
 	    continue;
 	  //if (t=="rho" && s=="zjet") continue; // still missing for zjet
-	  if (t=="rho" && rename[s]["parent"]=="zjet") continue;
+	  if (t=="rho" && sp=="zjet") continue;
 	  if (t=="rho" && s=="multijet"  // and for multijet
 	      && !(CorLevel=="L1L2L3Res" && isUL16)) continue;
 
@@ -2019,10 +1794,8 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	  // (now adding fractions to zjet)
 	  bool isfrac = (t=="chf"||t=="nef"||t=="nhf"||
 			 t=="cef"||t=="muf"||t=="puf");
-	  if (isfrac && s!="pfjet" && s!="zjet" && // v26->v28
-	      s!="zeejet" && s!="zmmjet" && s!="zlljet") continue; // v25
-	  //if (isfrac && s!="pfjet" && s!="zjet") continue; // v25
-	  //if (isfrac && s!="pfjet") continue; // v24
+	  if (isfrac && s!="pfjet" && s!="zjet" && 
+	      s!="zeejet" && s!="zmmjet" && s!="zlljet") continue;
 	  if (!isfrac && s=="pfjet") continue;
 
 	  bool isflavor =
@@ -2041,8 +1814,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	      (s=="zn" || s=="zin" || s=="zni" || s=="znn" ||
 	       s=="zbn" || s=="zcn" || s=="zqn" || s=="zgn" || 
 	       s=="znb" || s=="znc" || s=="znq" || s=="zng"))// || 
-	    //(s=="multijet" &&
-	    //	(t=="counts"))))// || t=="mpf1" || t=="mpfn" || t=="mpfu"))))
 	      continue;
 
 	  // MPF composition
@@ -2056,19 +1827,11 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	    eta2 = etas[ieta].second; // reset to avoid trouble with below
 	    
 	    // Take wide and narrow bins from different file for dijet and Z+jet
-	    /*
-	      bool narrowBin = ((fabs(eta2-eta1)<0.4 && fabs(eta2)<3.1) ||
-	      (fabs(eta1-3.0)<0.1 && fabs(eta2-3.1)<0.1) ||
-	      (fabs(eta1-3.139)<0.1 && fabs(eta2-3.489)<0.1) ||
-	      fabs(eta1)>3.4);
-	    */
 	    bool narrowBin = ((fabs(eta2-eta1)<0.4 && 
 	    		       !(fabs(eta1-3.0)<0.05 && fabs(eta2-3.2)<0.05)) ||
 	    		      fabs(eta1)>3.8);
 	    if (narrowBin) {
 	    if (s=="dijet")  f = fdj2;
-	    //if (s=="zeejet") f = fzee2; // GH only
-	    //if (s=="zmmjet") f = fzmm2; // GH only
 	    }
 	    assert(f || s=="zlljet" || (s=="pfjet"&&d=="ratio"));
 
@@ -2076,13 +1839,11 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	    if ((isflavor||isflavormc) && !(alpha==0.30 || alpha==1.00))
 	      continue;
 
-	    //if (alpha>0.35 && s!="zjet") continue;
-	    //if (alpha>0.35 && (s!="zjet" && s!="zeejet" && s!="zmmjet" && s!="zlljet")) continue; // UL18-v1
-	    if (alpha>0.35 && (s!="zjet" && rename[s]["parent"]!="zjet" && s!="zeejet" && s!="zmmjet" && s!="zlljet" && s!="gamjet")) continue; // UL18-v4
+	    if (alpha>0.35 && (s!="zjet" && sp!="zjet" && s!="zeejet" && s!="zmmjet" && s!="zlljet" && s!="gamjet")) continue;
 	    if (alpha>0.35 && s=="gamjet" && isUL17) continue;
 
             if (t=="counts" && s!="zmmjet" && s!="zeejet" && s!="gamjet" &&
-		s!="zjet" && rename[s]["parent"]!="zjet" &&
+		s!="zjet" && sp!="zjet" &&
 		s!="hadw" && s!="multijet")
               continue; // counts available only for z+jet and gamjet, so far
 
@@ -2095,19 +1856,11 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	    if (s=="hadw" && !(fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1
 			       && fabs(alpha-0.30)<0.01)) // && t=="mpfchs1"))
 	      continue; // barrel only, no specific pt or alpha
-	    if (s=="multijet" && (!((epoch!="L4" &&
-				     fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1) ||
-				    (epoch=="L4" &&
-				     fabs(eta1-0)<0.1 && fabs(eta2-2.4)<0.1))
-				  //|| fabs(alpha-0.10)<0.01 
-				  //|| (fabs(alpha-0.15)<0.01 && isUL18)
-				  //|| (fabs(alpha-0.20)<0.01 && isUL18)
+	    if (s=="multijet" && (!(fabs(eta1-0)<0.1 && fabs(eta2-1.3)<0.1)
 				  || fabs(alpha-0.10)<0.01))
 	      continue; // only barrel for multijet balance, pT=(15),(20),30
 	    if (s=="gamjet"  && fabs(eta1-3.2)<0.1) { eta1=3.0; eta2=3.2; }
 
-	    //if (s=="gamjet" && epoch=="2016GH" && ismpfc && fabs(alpha-1.)>0.1)
-	    //continue;
 
 	    // Reconstruct naming scheme used in each of the files
 	    // If non-conventional naming schemes, patch here
@@ -2121,7 +1874,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
                        dd, 10.001*eta1, 10.001*eta2, rename[s][t], ss, 100.*alpha); 
 	    } // dijet
 	    if (s=="incjet") {
-	      //c = Form("jet_Run17UL%s",epoch=="BCDEF" ? "" : epoch.c_str());
 	      if (isUL18) {
 		c = Form(rename[s][t],fij_eras[epoch]);
 		if (epoch=="2018ABCD" && CorLevel=="L1L2Res")
@@ -2131,34 +1883,32 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 		c = Form(rename[s][t],fij_eras[epoch]);
 	      else if (isUL16) {
 		c = Form(rename[s][t],fij_eras[epoch]);
-		//if (epoch=="2016BCDEF") c = Form(rename[s][t],"BCD");
 	      }
 	      else
-		c = Form(rename[s][t],epoch=="BCDEF" ? "" : epoch.c_str());
+		assert(false);
 	    }
 	    if (s=="hadw") {
 	      if (CorLevel=="L1L2L3Res") {
 		if (isUL18 || isUL17)
 		  c = Form("%s_%s_%s_fitprob02_L1L2L3",dd,rename[s][t],ss);
-		else
+		else if (isUL16)
 		  c = Form("%s_%s_%s_fitprob001_L1L2L3",dd,rename[s][t],ss);
+		else
+		  assert(false);
 	      }
 	      if (CorLevel=="L1L2Res") {
 		if (isUL18 || isUL17)
 		  c = Form("%s_%s_%s_fitprob02_L1L2L3",dd,rename[s][t],ss);
-		else
+		else if (isUL16)
 		  c = Form("%s_%s_%s_fitprob001_L1L2L3",dd,rename[s][t],ss);
+		else
+		  assert(false);
 	      }
 	    }
 	    if (s=="multijet") {
-	      //c = Form("%s/Pt%1.0f/%s", rename[s][d], 100.*alpha, rename[s][t]);
-	      //if (isUL18)
-	      //c = Form("%s/%s", rename[s][d], rename[s][(d+t)]);
-	      //else 
-	      c = Form("%s/Pt%1.0f/%s", rename[s][d], 100.*alpha, rename[s][(d+t)]);
+	      c = Form("%s/Pt%1.0f/%s",rename[s][d], 100.*alpha,
+		       rename[s][(d+t)]);
 	    } // multijet
-	    
-	    //if (s=="gamjet" && t=="counts" && d=="ratio")continue;
 	    if (s=="gamjet" && t=="counts") {
 	      c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f_%s",
 		       rename[s]["mpfchs1"],
@@ -2176,7 +1926,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 		       100.*alpha, 10.*eta1, 10.*eta2);
 	    } // gamjet
 	    if (s=="zmmjet" || s=="zeejet") {
-	      //c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2L3",
 	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2Res",
 	    	       rename[s][d], rename[s][t], 100.*alpha,
 	    	       10.01*eta1, 10.01*eta2);
@@ -2186,18 +1935,16 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 			 10.01*eta1, 10.01*eta2);
 	    } // Zll+jet
 	    if (s=="zjet") {
-	      //c = Form("%s/eta_%02.0f_%02.0f/%s_zmmjet_quarktag_a%1.0f",
 	      c = Form("%s/eta_%02.0f_%02.0f/%s%s_zmmjet_a%1.0f",
 	    	       rename[s][d],10*eta1,10*eta2,
 		       ((d=="data"||d=="ratio"||t=="counts") ? "" : 
 			sPSWgtZ.c_str()),
 		       rename[s][t],100.*alpha);
 	      if (isfrac || t=="rho") {
-		//c = Form("%s/eta_%02.0f_%02.0f/h_Zpt_%s_alpha%1.0f_eta_%02.0f_%02.0f",rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha,10*eta1,10*eta2); // v24
 		c = Form("%s/eta_%02.0f_%02.0f/h_Zpt_%s_alpha%1.0f",rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha);
 	      }
-	    }
-	    if (rename[s]["parent"]=="zjet") {
+	    } // zjet
+	    if (sp=="zjet") {
 	      c = Form("%s/eta_%02.0f_%02.0f%s/%s%s_zmmjet%s_a%1.0f",
 	    	       rename["zjet"][d],10*eta1,10*eta2,
 		       (d=="mc" ? rename[s]["gen"] : ""),
@@ -2207,8 +1954,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	      if (isfrac) {
 		assert(false);
 	      }
-	    }
-	    //assert(c || s=="zlljet");
+	    } // Z+jet (Z+b)
 
 	    TObject *obj = ((s=="zlljet"||(s=="pfjet"&&d=="ratio")
 			     //||(s=="zjet"&&d=="ratio")
@@ -2253,7 +1999,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	      obj = (TObject*)g;
 	    }
 	    // Calculate data/MC ratio
-	    if ((s=="zjet" || rename[s]["parent"]=="zjet") &&
+	    if ((s=="zjet" || sp=="zjet") &&
 		d=="ratio" && (t=="mpfchs1"||t=="ptchs")) {
 	      TGraphErrors *gd = grs["data"][t][s][ieta][ialpha];
 	      TGraphErrors *gm = grs["mc"][t][s][ieta][ialpha];
@@ -2295,7 +2041,10 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 
 	    assert(obj);
 
-            if (t=="counts" && (s=="zmmjet" || s=="zeejet" || s=="gamjet" || s=="zjet" || rename[s]["parent"]=="zjet" || s=="hadw" || s=="multijet") ){ // write out counts to jecdata.root (as TH1F)
+	    // write out counts to jecdata.root (as TH1F)
+            if (t=="counts" && (s=="zmmjet" || s=="zeejet" || s=="gamjet" ||
+				s=="zjet" || sp=="zjet" || s=="hadw" ||
+				s=="multijet") ){
 	      // Multijet counts are retrieved from TH2D
 	      if (s=="multijet" && !isUL16) {
 		assert(obj->InheritsFrom("TH2D"));
@@ -2391,8 +2140,8 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	      else if (s=="multijet" &&
 		       (g->GetX()[i]<fmultijetptmin ||
 			g->GetX()[i]>fmultijetptmax ||
-			((epoch!="BCDEF" && epoch!="2017BCDEF" &&
-			  epoch!="2018ABCD" && epoch!="2016GH") &&
+			((epoch!="2018ABCD" && epoch!="2017BCDEF" &&
+			  epoch!="2016BCDEF" && epoch!="2016GH") &&
 			 g->GetX()[i]>fmultijetptmax2) ||
 			(t=="ptchs" && (g->GetX()[i]<fmultijetmjbptmin ||
 					g->GetX()[i]>fmultijetmjbptmax)) ||
@@ -2407,7 +2156,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	      else if (s=="zjet" &&
 		       (g->GetX()[i]<fzptmin || g->GetX()[i]>fzptmax))
 		g->RemovePoint(i);
-	      else if (rename[s]["parent"]=="zjet" && 
+	      else if (sp=="zjet" && 
 		       (g->GetX()[i]<fzptmin || g->GetX()[i]>fzbptmax))
 		g->RemovePoint(i);
 	      else if ((s=="zmmjet" || s=="zeejet") && t=="mpfchs1" &&
@@ -2491,25 +2240,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	      }
 	    }
 
-	    // PATCH new Jan15 EGamma corrections for Legacy 2016
-	    /*
-	    if (s=="gamjet" && (d=="data" || d=="ratio")) {
-
-	      for (int i = 0; i != g->GetN(); ++i) {
-
-		double x = g->GetX()[i];
-		double y = g->GetY()[i];
-		// Scale pT>450 GeV up by 0.8% based on minitools/drawGamVsGam.C
-		if (x>400 && x<500) {
-		  g->SetPoint(i, x, y*1.0040);//1.0045);
-		}
-		if (x>500) {
-		  g->SetPoint(i, x, y*1.0080);//1.0090);
-		}
-	      }
-	    } // patch EGamma corrections
-	    */
-
 	    // patch Z+jet pT ratio uncertainty (80X-590/pb)
 	    if ((s=="zeejet" || s=="zmmjet") && d=="ratio") {
 
@@ -2547,53 +2277,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 
 	      } // for i
 	    } // patch ratio uncertainty
-
-	    // patch botched grapin in 20200419-SimpleL1
-	    // by cloning alpha15
-	    if (patchMultijetPtAveMCMJBPt20 && multijetMode=="ptave" &&
-		s=="multijet" && d=="mc" && t=="ptchs" && alpha==0.20) {
-	      
-	      // The 1.01 shift is close but not enough at low pT
-	      //for (int i = 0; i != g->GetN(); ++i) {
-	      //assert(g->GetY()[i]<0.05);
-	      //g->SetPoint(i, g->GetX()[i], g->GetY()[i]+1.01);
-	      //} // for i
-	      TGraphErrors *gfixm = grs["mc"][t][s][ieta][1]; assert(gfixm);
-	      g = (TGraphErrors*)gfixm->Clone("ptchs_multijet_a20");
-	    } // patch botched bin
-	    //if (patchMultiJetStatOverPt>0 && s=="multijet") {
-	      // approximate RMS with minitools/systMultijet.C:doStat
-	      //double rms = (multijetMode=="ptave" ? 0.11 : 0.09);
-	      //for (int i = 0; i != g->GetN(); ++i) {
-	    //double pt = g->GetX();
-	    //	if (pt > patchMultiJetStatOverPt) {
-	    //	  g->SetPointError(i, g->GetEX()[i], rms/sqrt(n));
-	    //	}
-	    //}
-	    //} // patchMultiJetStatOverPt
-
-	    // Patch multijet mpfn as difference to MJB-Pt15 (stored as mpfn)
-	    if (false && s=="multijet" && (d=="data" || d=="mc") && t=="mpfn") {
-
-	      TGraphErrors *g15 = grs[d]["ptchs"][s][ieta][1];
-	      assert(g15);
-	      assert(g->GetN()==g15->GetN());
-	      for (int i = 0; i != g->GetN(); ++i) {
-		g->SetPoint(i, g->GetX()[i], g->GetY()[i]-g15->GetY()[i]);
-	      } // for i
-	    } // multijet mpfu patch from 1-MPFu to MPFu
-	    if (false && s=="multijet" && (d=="data" || d=="mc") && t=="mpfu") {
-
-	      for (int i = 0; i != g->GetN(); ++i) {
-		g->SetPoint(i, g->GetX()[i], 1-g->GetY()[i]);
-	      } // for i
-	    } // multijet mpfu patch
-	    if (false && s=="multijet" && (d=="data" || d=="mc") && t=="mpfu") {
-
-	      for (int i = 0; i != g->GetN(); ++i) {
-		g->SetPoint(i, g->GetX()[i], -g->GetY()[i]);
-	      } // for i
-	    } // multijet mpfu patch2
 
 	    // Patch missing multijet ratio
 	    if (s=="multijet" && d=="ratio") {
@@ -2638,14 +2321,9 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 		  g->SetPointError(i, 0.5*fabs(xd-xm), yd!=0 && ym!=0 ?
 				   sqrt(0.5*eyd*eyd + 0.5*eym*eym
 					+ pow(yd-ym,2)) : 0);
-		  //if (isUL18) { // PATCH upside down C_recoil
-		  //g->SetPoint(i, 0.5*(xd+xm), yd*ym!=0 ? 1./g->GetY()[i] : 0);
-		  //}
 		}
 		else { // mpfchs1, ptchs
 		  g->SetPoint(i, 0.5*(xd+xm), ym ? yd / ym : 0.);
-		  //g->SetPoint(i, 0.5*(xd+xm), ym ? 0.975 * yd / ym : 0.); // !!PATCH!!
-		  //g->SetPoint(i, 0.5*(xd+xm), yd ? ym / yd : 0.); // !!PATCH!!g => did't work as well, although post-fit better
 		  g->SetPointError(i, 0.5*fabs(xd-xm),
 				   yd!=0 && ym!=0 ?
 				   yd / ym * sqrt(pow(eyd/yd,2) + pow(eym/ym,2))
@@ -2666,7 +2344,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
  	      for (int i = 0; i != g->GetN(); ++i) {
 		double pt = g->GetX()[i];
  		double ipt = hmzmm->FindBin(pt);
-		//double k = max(0.99,min(1.01,hmzmm->GetBinContent(ipt)));
  		double ek = min(0.005,hmzmm->GetBinError(ipt));
 		if (useFixedFit) ek = max(fitUncMin,f1ezmm->Eval(pt));
 		double k = f1mzmm->Eval(pt);
@@ -2684,7 +2361,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	      for (int i = 0; i != g->GetN(); ++i) {
 		double pt = g->GetX()[i];
 		double ipt = hmzee->FindBin(pt);
-		//double k = max(0.99,min(1.01,hmzee->GetBinContent(ipt)));
 		double ek = min(0.005,hmzee->GetBinError(ipt));
 		if (useFixedFit) ek = max(fitUncMin,f1ezee->Eval(pt));
 		double k = f1mzee->Eval(pt);
@@ -2706,12 +2382,10 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	      for (int i = 0; i != g->GetN(); ++i) {
 		//assert(!correctGamScale); // UL17
 		double ptgam = g->GetX()[i];
-		double pt = 2*ptgam; // fix post Legacy2016
+		double pt = 2*ptgam;
 		//double ipt = hmzee->FindBin(pt);
 		double ipt = min(hmzee->FindBin(fzmmptmax), hmzee->FindBin(pt));
 		double ek = min(0.005,hmzee->GetBinError(ipt));
-		//if (useFixedFit) ek = max(fitUncMin,f1ezee->Eval(pt));
-		//double k = f1mzee->Eval(pt);
 		if (useFixedFit) ek = max(fitUncMin,f1egam->Eval(pt));
 		double k = f1mgam->Eval(pt); // vs pTZ
 		g->SetPoint(i, g->GetX()[i], g->GetY()[i]*k);
@@ -2733,7 +2407,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 
 
 	    // Multijet JER-hybrid corrections
-	    // 196.5/78 => 190.2/78; flatter at high pT, less MPF bias
 	    if (correctMultijetLeading && multijetMode=="leading" &&
 		s=="multijet" && (d=="data" || d=="ratio")) {
 
@@ -2746,7 +2419,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	    }
 	    // Multijet recoil scale correction
 	    if (correctMultijetRecoilScale && s=="multijet" &&
-		//(d=="ratio" || d=="data") &&
 		d=="data" && // ratio calculated on the fly, so propagates there
 		(t=="mpfchs1" || t=="ptchs" || t=="mpf1")) {
 	      for (int i = 0; i != g->GetN(); ++i) {
@@ -2755,7 +2427,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 		  double kScale = f1mjb->Eval(pt);
 		  if (halveMultijetRecoilScaleFunction) 
 		    kScale = 0.5*(kScale+1);
-		  g->SetPoint(i, pt, g->GetY()[i] / kScale);
+		  g->SetPoint(i, pt, g->GetY()[i]/kScale * multijetRecoilScale);
 		}
 		else 
 		  g->SetPoint(i, pt, g->GetY()[i] * multijetRecoilScale);
@@ -2770,7 +2442,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	    // Set uniform naming scheme and graphical style
 	    g->SetName(Form("%s_%s_a%1.0f",tt,ss,100.*alphas[ialpha]));
 	    g->UseCurrentStyle(); // Basic TDR style
-	    //g->SetMarkerStyle(style[t]);
 	    g->SetMarkerStyle(style[s][t]);
 	    g->SetMarkerColor(color[s]);
 	    g->SetLineColor(color[s]);
@@ -2782,7 +2453,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	      g->SetMarkerColor(color[s+"_"+t]!=0 ? color[s+"_"+t] : color[s]);
 	      g->SetLineColor(color[s+"_"+t]!=0 ? color[s+"_"+t] : color[s]);
 	    }
-	    if (rename[s]["parent"]=="zjet") {
+	    if (sp=="zjet") {
 	      g->SetMarkerStyle(style["zjet"][t]);
 	      g->SetMarkerColor(color[s]!=0 ? color[s] : color["zjet"]);
 	      g->SetLineColor(color[s]!=0 ? color[s] : color["zjet"]);
@@ -2827,8 +2498,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   hmz1_mc->Write("mass_zjet_a100");
 
   if (fdj) fdj->Close();
-  fp->Close(); // single file
-  //{ fp1->Close(); fp2->Close(); } // two files
+  fp->Close();
   fzee->Close();
   fzmm->Close();
   fz->Close();
@@ -2850,7 +2520,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   mera["2018D"] = "D";
   mera["2017BCDEF"] = "BCDEF";
   mera["2016BCDEF"] = "BCDEF";
-  mera["2016GH"] = "FGH";//"GH";
+  mera["2016GH"] = "FGH";
   mera["2016BCD"] = "BCD";
   mera["2016EF"] = "EF";
   mera["2016BCDEF"] = "BCDEF";
@@ -2860,102 +2530,62 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
   {
 
     const char *s, *s2;
+    // Usual directory for text files
     const char *cd = "CondFormats/JetMETObjects/data";
-    //const char *cdb = "../JECDatabase/textfiles/Summer19UL18_RunA_V4_DATA";
-    //const char *cpl = "../JERCProtoLab/Summer19UL18/global_fit/V3A2M1J2";
-    const char *cd16 = "../JERCProtoLab/Summer19UL16/global_fit/V2M1";
-    const char *cd16apv = "../JERCProtoLab/Summer19UL16/global_fit/V3M1";
+    // Directory for development version
+    const char *cdx = "../JERCProtoLab/Summer19UL16/global_fit/V5M1";
     const char *ce = epoch.c_str();
     
     // New JEC for plotting on the back and mcjec for softrad3.C
+    // ** Also used as reference for CorLevel=="L1L2L3Res" **
+    // So be careful when running minitools/createL2L3Res.C
     FactorizedJetCorrector *mcjec(0);
     FactorizedJetCorrector *jec(0), *jeca(0);
     FactorizedJetCorrector *jecb(0), *jecc(0), *jecd(0), *jece(0), *jecf(0);
     FactorizedJetCorrector *jecg(0), *jech(0);
-    double jecwb(0), jecwc(0), jecwd(0), jecwe(0), jecwf(0); // for BCDEF
-    double jecwa(0); // for UL18
-    double jecwg(0), jecwh(0); // for UL16
+    double jecwa(0), jecwb(0), jecwc(0), jecwd(0), jecwe(0), jecwf(0);
+    double jecwg(0), jecwh(0);
     {
-      /*
-      jec = getFJC("","",
-		   Form("Summer19UL17_Run%s_V2M5_SimpleL1_DATA_L2L3Residual",
-			epoch=="BCDEF" ? "B" : epoch.c_str()));
-      */
+      if (rp_debug) cout << "Individual JECs..." << endl << flush;
+
       if (isUL18) 
-	//getFJC("","",Form("Summer19UL18_Run%s_V3M1_DATA_L2L3Residual",
-	//jec = getFJC("","",Form("Summer19UL18_Run%s_V3A2M1J2_DATA_L2L3Residual",mera[epoch]),cpl);
 	jec = getFJC("","",Form("Summer19UL18_Run%s_V5_DATA_L2L3Residual",
 				epoch=="2018ABCD" ? "A" : mera[epoch]));
       else if (isUL17)
 	jec =getFJC("","",Form("Summer19UL17_Run%s_V5_DATA_L2L3Residual",
 			       epoch=="2017BCDEF" ? "C" : mera[epoch]));
-      //epoch=="BCDEF" ? "B" : epoch.c_str())));
-      else if (isUL16) {
-	// skip for now, but use UL17 as placeholder
-	//jec =getFJC("","",Form("Summer19UL17_Run%s_V5_DATA_L2L3Residual","C"));
-
-	jec = getFJC("","",Form("Summer19UL16_Run%s_V3M1_DATA_L2L3Residual",mera[epoch]),cd16apv);
-	if (isAPV)
-	  mcjec = getFJC("",Form("Summer19UL16APV_Run%s_V3_DATA_L2Relative",mera[epoch]),"",cd);
-	else
-	  mcjec = getFJC("",Form("Summer19UL16_Run%s_V2_DATA_L2Relative",mera[epoch]),"",cd);
-	//if (isAPV) {//epoch=="2016BCDEF")
-	  //jec = getFJC("","","Summer16_07Aug2017BCD_V11_DATA_L2L3Residual");
-	  //jec=getFJC("","",Form("Summer19UL16_Run%s_V3M1_DATA_L2L3Residual","BCDEF"),cd16apv);
-	  //jec=getFJC("","",Form("Summer19UL16_Run%s_V3M1_DATA_L2L3Residual",mera[epoch]),cd16apv);
-	//}
-	//else { //if (epoch=="2016GH")
-	  //jec = getFJC("","","Summer16_07Aug2017GH_V11_DATA_L2L3Residual");
-	  // Use UL17 as ref. These go as B>C>D>E>>F. Take E for 20/fb raddam
-	  //jec=getFJC("","",Form("Summer19UL17_Run%s_V5_DATA_L2L3Residual","E"));
-	  //jec=getFJC("","",Form("Summer19UL16_Run%s_V2M1_DATA_L2L3Residual","FGH"),cd16);
-	  //jec=getFJC("","",Form("Summer19UL16_Run%s_V3M1_DATA_L2L3Residual",mera[epoch]),cd16apv);
-	//}
-	//if (epoch=="2016BCDEF")
-	//jec =getFJC("","",Form("Summer19UL16APV_Run%s_V1_DATA_L2L3Residual",
-	//			 epoch=="2016BCDEF" ? "B" : mera[epoch]));
-	//if (epoch=="2016BGH")
-	//jec =getFJC("","",Form("Summer19UL16_Run%s_V1_DATA_L2L3Residual",
-	//			 epoch=="2016BGH" ? "G" : mera[epoch]));
+      // Add MC JEC for Runcl for UL16
+      else if (isUL16 && !isAPV) {
+	jec = getFJC("",Form("Summer19UL16_Run%s_V5_DATA_L2L3Residual",mera[epoch]),"",cd);
+	//jec = getFJC("",Form("Summer19UL16_Run%s_V5M1_DATA_L2L3Residual",mera[epoch]),"",cdx);
+	mcjec = getFJC("",Form("Summer19UL16_Run%s_V5_DATA_L2Relative",mera[epoch]),"",cd);
+      }
+      else if (isUL16 && isAPV) {
+	jec = getFJC("",Form("Summer19UL16APV_Run%s_V5_DATA_L2L3Residual",mera[epoch]),"",cd);
+	//jec = getFJC("",Form("Summer19UL16_Run%s_V5M1_DATA_L2L3Residual",mera[epoch]),"",cdx);
+	mcjec = getFJC("",Form("Summer19UL16APV_Run%s_V5_DATA_L2Relative",mera[epoch]),"",cd);
       }
       else
 	assert(false);
+
 
       if (rp_debug) cout << "Combined JECs..." << endl << flush;
       
       if (epoch=="2018ABCD") {
 	
-	/*
-	jeca =getFJC("","","Summer19UL18_RunA_V3M1_DATA_L2L3Residual");
-	jecb =getFJC("","","Summer19UL18_RunB_V3M1_DATA_L2L3Residual");
-	jecc =getFJC("","","Summer19UL18_RunC_V3M1_DATA_L2L3Residual");
-	jecd =getFJC("","","Summer19UL18_RunD_V3M1_DATA_L2L3Residual");
-	jecf =0;
-	*/
 	jeca =getFJC("","","Summer19UL18_RunA_V5_DATA_L2L3Residual");
 	jecb =getFJC("","","Summer19UL18_RunB_V5_DATA_L2L3Residual");
 	jecc =getFJC("","","Summer19UL18_RunC_V5_DATA_L2L3Residual");
 	jecd =getFJC("","","Summer19UL18_RunD_V5_DATA_L2L3Residual");
-	jecf =0;
 
-	//lumtot = 9.6+4.2+9.3; // UL17 just CDE, drop B,F
 	double lumtot = 14.0+7.1+6.9+31.9; //59.9/fb
 	jecwa = 14.0/lumtot;
 	jecwb = 7.1/lumtot;
 	jecwc = 6.9/lumtot;
 	jecwd = 31.9/lumtot;
-	jecwe = 0;
-	jecwf = 0;
       }
-      else if (epoch=="BCDEF" || epoch=="2017BCDEF") {
-	/*
-	jecb =getFJC("","","Summer19UL17_RunB_V2M5_SimpleL1_DATA_L2L3Residual");
-	jecc =getFJC("","","Summer19UL17_RunC_V2M5_SimpleL1_DATA_L2L3Residual");
-	jecd =getFJC("","","Summer19UL17_RunD_V2M5_SimpleL1_DATA_L2L3Residual");
-	jece =getFJC("","","Summer19UL17_RunE_V2M5_SimpleL1_DATA_L2L3Residual");
-	jecf =getFJC("","","Summer19UL17_RunF_V2M5_SimpleL1_DATA_L2L3Residual");
-	*/
-	jeca =0; // V4->V5
+      else if (epoch=="2017BCDEF") {
+
 	jecb =getFJC("","","Summer19UL17_RunB_V5_DATA_L2L3Residual");
 	jecc =getFJC("","","Summer19UL17_RunC_V5_DATA_L2L3Residual");
 	jecd =getFJC("","","Summer19UL17_RunD_V5_DATA_L2L3Residual");
@@ -2964,79 +2594,33 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	
 	// luminosity from Hugues Lattaud, photon+jet 11 June 2018
 	double lumtot = 4.8+9.6+4.2+9.3+13.4; // 41.3/fb
-	jecwa = 0;
 	jecwb = 4.8/lumtot;
 	jecwc = 9.6/lumtot;
 	jecwd = 4.2/lumtot;
 	jecwe = 9.3/lumtot;
 	jecwf = 13.4/lumtot;
       }
-      else if (false && epoch=="2016BCDEF") {
-
-	jeca =0;
-	jecb =getFJC("","","Summer16_07Aug2017BCD_V11_DATA_L2L3Residual");
-	jecc =0;
-	jecd =0;
-	jece =getFJC("","","Summer16_07Aug2017EF_V11_DATA_L2L3Residual");
-	jecf =0;
-	//jecg =getFJC("","","Summer16_07Aug2017GH_V11_DATA_L2L3Residual");
-	//jech =0;
-	
-	// luminosity from Hugues Lattaud, photon+jet 11 June 2018
-	double lumtot = 5.9+2.6+4.4 +4.0+3.2;
-	jecwa = 0;
-	jecwb = (5.9+2.6+4.4)/lumtot;
-	jecwc = 0;
-	jecwd = 0;
-	jecwe = (4.0+3.2)/lumtot;
-	jecwf = 0;
-      }
-      else if (epoch=="2016GH") {
-
-	jeca =0;
-	jecb =0;
-	jecc =0;
-	jecd =0;
-	jece = 0;//getFJC("","","Summer19UL17_RunE_V5_DATA_L2L3Residual");
-	jecf = 0;//getFJC("","","Summer19UL17_RunF_V5_DATA_L2L3Residual");
-	jecg = getFJC("","","Summer19UL16_RunFGH_V2M1_DATA_L2L3Residual",
-		      cd16);
-	jech =0;
-	
-	// luminosity from Hugues Lattaud, photon+jet 11 June 2018
-	double lumtot = 1;
-	jecwa = 0;
-	jecwb = 0;
-	jecwc = 0;
-	jecwd = 0;
-	jecwe = 0;//0.5;
-	jecwf = 0;//0.5;
-	jecwg = 1;
-      }
       else if (epoch=="2016BCDEF") {
 
-	jeca =0;
-	jecb =getFJC("","","Summer19UL16_RunBCDEF_V3M1_DATA_L2L3Residual",
-		      cd16apv);
-	jecc =0;
-	jecd =0;
-	jece = 0;//getFJC("","","Summer19UL17_RunE_V5_DATA_L2L3Residual");
-	jecf = 0;//getFJC("","","Summer19UL17_RunF_V5_DATA_L2L3Residual");
-	jecg = 0;
-	jech =0;
+	jecb = getFJC("","","Summer19UL16APV_RunBCD_V5_DATA_L2L3Residual");
+	jece = getFJC("","","Summer19UL16APV_RunEF_V5_DATA_L2L3Residual");
+	//jecb = getFJC("","","Summer19UL16_RunBCD_V5M1_DATA_L2L3Residual",cdx);
+	//jece = getFJC("","","Summer19UL16_RunEF_V5M1_DATA_L2L3Residual",cdx);
 	
 	// luminosity from Hugues Lattaud, photon+jet 11 June 2018
-	double lumtot = 1;
-	jecwa = 0;
-	jecwb = 1;
-	jecwc = 0;
-	jecwd = 0;
-	jecwe = 0;//0.5;
-	jecwf = 0;//0.5;
-	jecwg = 0;
+	double lumtot = 5.9+2.6+4.4 +4.0+3.2; // 20.1 (vs 19.8?)
+	jecwb = (5.9+2.6+4.4)/lumtot; // 12.9
+	jecwe = (4.0+3.2)/lumtot; // 7.2 (vs 6.8?)
       }
+      // Alternative combined JEC
+      //else if (epoch=="2016BCDEF") {
+      //
+      //jecb =getFJC("","","Summer19UL16_RunBCDEF_V5_DATA_L2L3Residual",
+      //	      cd);
+      //jecwb = 1;
+      //}
     }
-    //}
+
 
     if (rp_debug) cout << "Loading reference JECs..." << endl << flush;
     
@@ -3046,39 +2630,35 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 
     // Reference Run I JEC for plotting on the back
     jecrun1 =   getFJC("","","Winter14_V8_DATA_L2L3Residual_AK5PFchs"); 
-
+    
     // Store old JEC for undoing it in global fit
     // NB: global fit ideally needs a temporary pT-flat L3Res as input
     // But even with this pT-dependent L2Res can cause problems
     if (isUL18) {
-      //jecold =    getFJC("","",Form("Summer19UL18_Run%s_V3_DATA_L2Residual",
-      jecold =    getFJC("","",Form("Summer19UL18_Run%s_V5_DATA_L2L3Residual",
-				    epoch=="2018ABCD" ? "C" : mera[epoch]));
+      jecold = getFJC("","",Form("Summer19UL18_Run%s_V5_DATA_L2L3Residual",
+				 epoch=="2018ABCD" ? "C" : mera[epoch]));
     }
     else if (isUL17) {
-      //jecold =    getFJC("","","Summer19UL17_RunC_V1_SimpleL1_DATA_L2Residual");
-      //jecold = getFJC("","",Form("Summer19UL17_RunC_V5_DATA_L2Residual",
-      jecold = getFJC("","",Form("Summer19UL17_RunC_V5_DATA_L2L3Residual",
+      jecold = getFJC("","",Form("Summer19UL17_Run%s_V5_DATA_L2L3Residual",
 				 epoch=="2017BCDEF" ? "C" : mera[epoch]));
     }
-    else if (isUL16) {
-      // skip for now, but use UL17 as placeholder
-      //jecold =getFJC("","",Form("Summer19UL17_RunC_V5_DATA_L2L3Residual","C"));
-      //jecold =getFJC("","","Summer16_07Aug2017BCD_V11_DATA_L2L3Residual");
-      if (isAPV) { //epoch=="2016BCDEF")
-	jecold=getFJC("","",Form("Summer19UL16APV_Run%s_V3_DATA_L2Residual",
-				 mera[epoch]));//"BCDEF"));
-      }
-      else { //if (epoch=="2016GH")
-	jecold=getFJC("","",Form("Summer19UL16_Run%s_V2_DATA_L2Residual",
-				 mera[epoch]));//"FGH"));
-      }
-      //else
-      //assert(false);
-      //jecold=getFJC("","",Form("Summer19UL16_Run%s_V2M1_DATA_L2L3Residual","FGH"),cd16);
+    else if (isUL16 && !isAPV) {
+      if (CorLevel=="L1L2L3Res")
+	jecold = getFJC("","",Form("Summer19UL16_Run%s_V5_DATA_L2L3Residual",
+				   mera[epoch]));
+      else
+	assert(false);
+    }
+    else if (isUL16 && isAPV) {
+      if (CorLevel=="L1L2L3Res")
+	jecold = getFJC("","",Form("Summer19UL16APV_Run%s_V5_DATA_L2L3Residual",
+				   mera[epoch]));
+      else
+	assert(false);
     }
     else
       assert(false);
+
 
     if (rp_debug) cout << "Loading L1 JECs..." << endl << flush;
  
@@ -3091,36 +2671,24 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
       jecl1rcmc = getFJC("Summer19UL17_V1_SimpleL1_MC_L1RC");
       jecl1dt =   getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1FastJet");
     }
-    else if (isUL16) {
-      if (isAPV) { //epoch=="2016BCDEF") {
-	jecl1flat = getFJC("Summer19UL16APV_RunBCDEF_V3_DATA_L1RC");
-	jecl1rcdt = getFJC("Summer19UL16APV_RunBCDEF_V3_DATA_L1RC");
-	jecl1pt =   getFJC("Summer19UL16APV_RunBCDEF_V3_DATA_L1FastJet");
-	jecl1mc =   getFJC("Summer19UL16APV_RunBCDEF_V3_DATA_L1RC");
-	jecl1rcmc = getFJC("Summer19UL16APV_RunBCDEF_V3_DATA_L1RC");
-	jecl1dt =   getFJC("Summer19UL16APV_RunBCDEF_V3_DATA_L1FastJet");
-      }
-      else { //if (epoch=="2016GH") {
-	jecl1flat = getFJC("Summer19UL16_RunFGH_V2_DATA_L1RC");
-	jecl1rcdt = getFJC("Summer19UL16_RunFGH_V2_DATA_L1RC");
-	jecl1pt =   getFJC("Summer19UL16_RunFGH_V2_DATA_L1FastJet");
-	jecl1mc =   getFJC("Summer19UL16_RunFGH_V2_DATA_L1RC");
-	jecl1rcmc = getFJC("Summer19UL16_RunFGH_V2_DATA_L1RC");
-	jecl1dt =   getFJC("Summer19UL16_RunFGH_V2_DATA_L1FastJet");
-      }
-      //else
-      //assert(false);
-    } 
+    else if (isUL16 && !isAPV) {
+      jecl1flat = getFJC("Summer19UL16_RunFGH_V5_DATA_L1RC");
+      jecl1rcdt = getFJC("Summer19UL16_RunFGH_V5_DATA_L1RC");
+      jecl1pt =   getFJC("Summer19UL16_RunFGH_V5_DATA_L1FastJet");
+      jecl1mc =   getFJC("Summer19UL16_RunFGH_V5_DATA_L1RC");
+      jecl1rcmc = getFJC("Summer19UL16_RunFGH_V5_DATA_L1RC");
+      jecl1dt =   getFJC("Summer19UL16_RunFGH_V5_DATA_L1FastJet");
+    }
+    else if (isUL16 && isAPV) {
+      jecl1flat = getFJC("Summer19UL16APV_RunBCDEF_V5_DATA_L1RC");
+      jecl1rcdt = getFJC("Summer19UL16APV_RunBCDEF_V5_DATA_L1RC");
+      jecl1pt =   getFJC("Summer19UL16APV_RunBCDEF_V5_DATA_L1FastJet");
+      jecl1mc =   getFJC("Summer19UL16APV_RunBCDEF_V5_DATA_L1RC");
+      jecl1rcmc = getFJC("Summer19UL16APV_RunBCDEF_V5_DATA_L1RC");
+      jecl1dt =   getFJC("Summer19UL16APV_RunBCDEF_V5_DATA_L1FastJet");
+    }
     else 
       assert(false);
-    /*
-    jecl1flat = getFJC("Summer19UL17_RunC_V5_DATA_L1RC");
-    jecl1rcdt = getFJC("Summer19UL17_RunC_V5_DATA_L1RC");
-    jecl1pt =   getFJC("Summer19UL17_RunC_V5_DATA_L1FastJet");
-    jecl1mc =   getFJC("Summer19UL17_V5_MC_L1FastJet");
-    jecl1rcmc = getFJC("Summer19UL17_V5_MC_L1RC");
-    jecl1dt =   getFJC("Summer19UL17_RunC_V5_DATA_L1FastJet");
-    */
 
     // With L2Relative included
     if (isUL17 || isUL18) {
@@ -3135,56 +2703,38 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
       jecl2c =    getFJC("","Summer19UL17_V1_ComplexL1_MC_L2Relative");
       jecl2s =    getFJC("","Summer19UL17_V1_SimpleL1_MC_L2Relative");
     }
-    else if (isUL16) {
-      if (isAPV) {//epoch=="2016BCDEF") {
-	jecl1c =    getFJC("Summer19UL16APV_V3_MC_L1FastJet",
-			   "Summer19UL16APV_V3_MC_L2Relative");
-	jecl1s =    getFJC("Summer19UL16APV_V3_MC_L1FastJet",
-			   "Summer19UL16APV_V3_MC_L2Relative");
-	jecl1rc =   getFJC("Summer19UL16APV_V3_MC_L1RC",
-			   "Summer19UL16APV_V3_MC_L2Relative");
-	jecl2c =    getFJC("","Summer19UL16APV_V3_MC_L2Relative");
-	jecl2s =    getFJC("","Summer19UL16APV_V3_MC_L2Relative");
-      }
-      else {//if (epoch=="2016GH") {
-	jecl1c =    getFJC("Summer19UL16_V2_MC_L1FastJet",
-			   "Summer19UL16_V2_MC_L2Relative");
-	jecl1s =    getFJC("Summer19UL16_V2_MC_L1FastJet",
-			   "Summer19UL16_V2_MC_L2Relative");
-	jecl1rc =   getFJC("Summer19UL16_V2_MC_L1RC",
-			   "Summer19UL16_V2_MC_L2Relative");
-	jecl2c =    getFJC("","Summer19UL16_V2_MC_L2Relative");
-	jecl2s =    getFJC("","Summer19UL16_V2_MC_L2Relative");
-      }
-      //else
-      //assert(false);
+    else if (isUL16 && !isAPV) {
+      jecl1c =    getFJC("Summer19UL16_V5_MC_L1FastJet",
+			 "Summer19UL16_V5_MC_L2Relative");
+      jecl1s =    getFJC("Summer19UL16_V5_MC_L1FastJet",
+			 "Summer19UL16_V5_MC_L2Relative");
+      jecl1rc =   getFJC("Summer19UL16_V5_MC_L1RC",
+			 "Summer19UL16_V5_MC_L2Relative");
+      jecl2c =    getFJC("","Summer19UL16_V5_MC_L2Relative");
+      jecl2s =    getFJC("","Summer19UL16_V5_MC_L2Relative");
+    }
+    else if (isUL16 && isAPV) {
+      jecl1c =    getFJC("Summer19UL16APV_V5_MC_L1FastJet",
+			 "Summer19UL16APV_V5_MC_L2Relative");
+      jecl1s =    getFJC("Summer19UL16APV_V5_MC_L1FastJet",
+			 "Summer19UL16APV_V5_MC_L2Relative");
+      jecl1rc =   getFJC("Summer19UL16APV_V5_MC_L1RC",
+			 "Summer19UL16APV_V5_MC_L2Relative");
+      jecl2c =    getFJC("","Summer19UL16APV_V5_MC_L2Relative");
+      jecl2s =    getFJC("","Summer19UL16APV_V5_MC_L2Relative");
     }
     else
       assert(false);
 
-    /*
-    jecl1c =    getFJC("Summer19UL17_V5_MC_L1FastJet",
-		       // This is on purpose SimpleL1_L2 for ComplexL1_L1
-		       // Need L1C L2 on same footing with L1S and L1RC
-		       "Summer19UL17_V5_MC_L2Relative");
-    jecl1s =    getFJC("Summer19UL17_V5_MC_L1FastJet",
-		       "Summer19UL17_V5_MC_L2Relative");
-    jecl1rc =   getFJC("Summer19UL17_V5_MC_L1RC",
-		       "Summer19UL17_V5_MC_L2Relative");
-    jecl2c =    getFJC("","Summer19UL17_V5_MC_L2Relative");
-    jecl2s =    getFJC("","Summer19UL17_V5_MC_L2Relative");
-    */
 
     if (rp_debug) cout << "Loading L1 uncertainty JECs..." << endl << flush;
 
     // New additions (RC: mean vs median; L1: Simple vs SemiSimple)
-    FactorizedJetCorrector *jrcdnom, *jrcmnom, *jrcdalt, *jrcmalt; // 1
-    FactorizedJetCorrector *jl1dnomsf, *jl1daltsf, *jl1mnomsf; // 2a
-    FactorizedJetCorrector *jl1dnom, *jl1mnom, *jl1dalt, *jl1malt; // 2b,2c
+    FactorizedJetCorrector *jrcdnom(0),*jrcmnom(0),*jrcdalt(0),*jrcmalt(0); // 1
+    FactorizedJetCorrector *jl1dnomsf(0), *jl1daltsf(0), *jl1mnomsf(0); // 2a
+    FactorizedJetCorrector *jl1dnom(0),*jl1mnom(0),*jl1dalt(0),*jl1malt(0);// 2b
 
-    //jrcdnom = getFJC("Summer19UL17_RunE_V1_SimpleL1_DATA_L1RC"); // (1)
-    //jrcmnom = getFJC("Summer19UL17_V1_SimpleL1_MC_L1RC"); // (1)
-    // Use consistent BCDEF files instead of the official files above
+    // Use consistent BCDEF files instead of the official files
     if (isUL17 || isUL18 || isUL16) { // Add UL16, although uncert. may be old
       jrcdnom = getFJC("UL17_RunBCDEF_V1_DATA_L1RC"); // (1)
       jrcmnom = getFJC("UL17_RunBCDEF_V1_MC_L1RC"); // (1)
@@ -3192,7 +2742,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
       jrcmalt = getFJC("UL17_MED_RunBCDEF_V1_MC_L1RC"); // (1)
 
       // Use place-holder for the missing custom data files
-      //jl1dnomsf = getFJC("Summer19UL17_RunE_V1_SimpleL1_DATA_L1FastJet"); // (2a) -- placeholder for the two below
       jl1dnomsf = getFJC("UL17_RunBCDEF_L1Simple_L1FastJet_AK4PFchs"); // (2a)
       jl1daltsf = getFJC("UL17_RunBCDEF_L1Simple_L1FastJet_AK4PFMEDchs"); // (2a)
       jl1mnomsf = getFJC("Summer19UL17_V1_SimpleL1_MC_L1FastJet"); //xtra
@@ -3212,14 +2761,10 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
       //   tail -n82 dt3.txt >> dt4.txt
 
       // List of data files still needed (RunE->RunBCDEF, SimpleL1->SemiSimpleL1)
-      //jl1dnom = getFJC("Summer19UL17_RunE_V1_SimpleL1_DATA_L1FastJet", // (2b)--PH
       jl1dnom = getFJC("UL17_RunBCDEF_L1Simple_L1FastJet", //(2b)
 		       "Summer19UL17_V1_SimpleL1_MC_L2Relative"); // (2b)
       jl1mnom = getFJC("Summer19UL17_V1_SimpleL1_MC_L1FastJet", // (2b)
 		       "Summer19UL17_V1_SimpleL1_MC_L2Relative"); // (2b)
-      //jl1dalt = getFJC("Summer19UL17_RunBCDEF_V1_SemiSimpleL1_DATA_L1FastJet",
-      //jl1dalt = getFJC("ParallelMCL1_L1FastJet_AK4PFchs_L1SemiSimple",//(2b)--PH
-      //jl1dalt = getFJC("ParallelMCL1_RunE_L1SemiSimple_DATA_L1FastJet",//(2b)--PH
       jl1dalt = getFJC("UL17_RunBCDEF_L1SemiSimple_L1FastJet", //(2b)
 		       "ParallelMCL1_L2Relative_AK4PFchs_L1SemiSimple"
 		       "_L2L3Splines_ptclip8"); // (2b)
@@ -3228,43 +2773,37 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 		       "_L2L3Splines_ptclip8"); // (2b)
     }
     
+
     if (rp_debug) cout << "Loading uncertainty sources..." << endl << flush;
 
     // Run I uncertainty => 80XV6 uncertainty
     s = Form("%s/Winter14_V8_DATA_UncertaintySources_AK5PFchs.txt",cd); // V8 Run I
-    //s2 = "TotalNoFlavorNoTime";
-    s2 = "SubTotalAbsolute"; // 07AugV4
+    s2 = "SubTotalAbsolute";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_ref1 = new JetCorrectorParameters(s,s2);
     JetCorrectionUncertainty *unc_ref1 = new JetCorrectionUncertainty(*p_ref1);
 
     // Total uncertainty, excluding Flavor and Time
     if (isUL18) {
-      //s = Form("%s/Summer19UL18_RunA_V4_DATA_UncertaintySources_AK4PFchs.txt",cdb);
       s = Form("%s/Summer19UL18_RunA_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
     }
-    else if (isUL17) { // UL17
-      //s = Form("%s/Fall17_17Nov2017B_V32_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    else if (isUL17) {
       s = Form("%s/Summer19UL17_RunC_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
     }
-    else if (isUL16) {
-    // skip for now, but use UL17 as placeholder
-      //s = Form("%s/Summer19UL17_RunC_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
-      //s = Form("%s/Summer16_07Aug2017BCD_V11_DATA_UncertaintySources_AK4PFchs.txt",cd);
-      if (isAPV) {
-	s = Form("%s/Summer19UL16APV_RunBCDEF_V3_DATA_UncertaintySources_AK4PFchs.txt",cd);
-      }
-      else {
-	s = Form("%s/Summer19UL16_RunFGH_V2_DATA_UncertaintySources_AK4PFchs.txt",cd);
-      }
+    else if (isUL16 && !isAPV) {
+      s = Form("%s/Summer19UL16_RunFGH_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
     }
+    else if (isUL16 && isAPV) {
+      s = Form("%s/Summer19UL16APV_RunBCDEF_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
+    }
+    else
+      assert(false);
+
     s2 = "TotalNoFlavorNoTime";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_unc = new JetCorrectorParameters(s,s2);
     JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p_unc);
-
-    //s =Form("%s/Fall17_17Nov2017B_V32_DATA_UncertaintySources_AK4PFchs.txt",cd);
-    //s2 = "TotalNoFlavorNoTime";
+    //
     s2 = "SubTotalAbsolute";
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_ref = new JetCorrectorParameters(s,s2);
@@ -3332,22 +2871,15 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
       TDirectory *dout1 = fout->GetDirectory("ratio"); assert(dout1);
       double eta1 = etas[ieta].first; double eta2 = etas[ieta].second;
       const char *dd1 = Form("eta%02.0f-%02.0f",eta1*10.,eta2*10.);
-      //assert(gDirectory->cd(dd1)); // broke in ROOT 6.04/08
       assert(dout1->cd(dd1));
       TDirectory *dout2 = dout1->GetDirectory(dd1); assert(dout2);
       dout2->cd();
       cout << "Eta bin:" << eta1 <<"-"<< eta2 << endl;
 
-      
-      //const double ptbins[] = {15, 16, 17, 18, 19, 20, 22, 24, 26, 28,
-			       //30, 40, 50, 60, 75, 100, 125, 155, 180,
-      //const double ptbins[] = {29,30, 40, 50, 60, 75, 100, 125, 155, 180,
       const double ptbins[] = {15, 16, 18, 20, 22, 25,
-			       //30, 35, 40, 50, 60, 75, 100, 125, 155, 180,
 			       30, 35, 40, 50, 60, 70, 85, 100, 125, 155, 180,
 			       210, 250, 300, 350, 400, 500, 600, 800, 1000,
-			       1200, 1500, //1600, 1601};
-			       //1800, 2100, 2500, 3000, 3500, 3501};
+			       1200, 1500,
 			       1800, 2100, 2400, 2700, 3000, 3300, 3600,
 			       3900, 4200, 4500, 4501};
       const int npt = sizeof(ptbins)/sizeof(ptbins[0])-1;
@@ -3513,7 +3045,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 			      "[(L1_{dt,alt}/L1_{dt,nom})](#LT#rho#GT+20%)",
 			      npt, &ptbins[0]);
 
-      if(rp_debug) cout << "calculate reference R_uncl" << endl << flush;
+      if(rp_debug) cout << "calculate reference R_uncl (hruncl)" << endl<<flush;
       TH1D *hruncl = new TH1D("hruncl",";mode;Runcl",3,0.5,3.5);
       if (CorLevel=="L1L2L3Res") { // R_uncl
 	double ptref = 15.;
@@ -3540,8 +3072,11 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	  }
 	} // for ieta
 	hruncl->SetBinContent(1, sumw5/sumw8);
+	hruncl->GetXaxis()->SetBinLabel(1,"|#eta|<5.2");
 	hruncl->SetBinContent(2, suml2l3/sumw5);
+	hruncl->GetXaxis()->SetBinLabel(2,"L2L3");
 	hruncl->SetBinContent(3, suml2l3res/sumw5);
+	hruncl->GetXaxis()->SetBinLabel(2,"L2L3Res");
       } // R_uncl
 
       if(rp_debug) cout << "create reference JES bands" << endl << flush;
@@ -3550,8 +3085,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	double pt = herr->GetBinCenter(ipt);
 
 	int jpt = h2eta->GetXaxis()->FindBin(pt);
-	//jpt = max(0,min(jpt, h2eta->GetXaxis()->GetNbins()));
-	// 20200622: avoid underflow bin for pT<30 GeV
+	// avoid underflow bin for pT<30 GeV
 	jpt = max(1,min(jpt, h2eta->GetXaxis()->GetNbins()));
 
 	// Take Z+jet eta,pT distribution for correctly averaging JEC
@@ -3597,8 +3131,9 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	  }
 
 	  // JEC central values first
-	  double val = (epoch=="L4" ? 1 : 1./getJEC(jec,eta,pt));
+	  double val = 1./getJEC(jec,eta,pt);
 
+	  // Special combined JECs
 	  if (epoch=="2018ABCD") {
 	    assert(jeca); assert(jecb);assert(jecc);assert(jecd);
 	    assert(fabs(jecwa+jecwb+jecwc+jecwd-1)<1e-4);
@@ -3610,7 +3145,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 
 	    val = jecwa*vala +jecwb*valb +jecwc*valc +jecwd*vald;
 	  }
-	  else if (epoch=="BCDEF" || epoch=="2017BCDEF") {
+	  else if (epoch=="2017BCDEF") {
 	    assert(jecb);assert(jecc);assert(jecd);assert(jecf);
 	    assert(fabs(jecwb+jecwc+jecwd+jecwe+jecwf-1)<1e-4);
 	    
@@ -3623,42 +3158,36 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	    val = jecwb*valb +jecwc*valc +jecwd*vald +jecwe*vale +jecwf*valf;
 	  }
 	  else if (epoch=="2016BCDEF") {
-	    assert(jecb);
-	    assert(fabs(jecwb-1)<1e-4);
+	    assert(jecb); assert(jece);
+	    assert(fabs(jecwb+jecwe-1)<1e-4);
 	    
 	    double valb = 1./getJEC(jecb,eta,pt);
-	    //double vale = 1./getJEC(jece,eta,pt);
+	    double vale = 1./getJEC(jece,eta,pt);
 
-	    //val = jecwb*valb +jecwe*vale;
-	    val = jecwb*valb;
+	    val = jecwb*valb +jecwe*vale;
+	    //val = jecwb*valb; // alternative version
 	  }
-	  else if (epoch=="2016GH") {
-	    //assert(jece);assert(jecf);
-	    //assert(fabs(jecwe+jecwf-1)<1e-4);
-	    assert(jecg);
-	    assert(fabs(jecwg-1)<1e-4);
-	    
-	    double valg = 1./getJEC(jecg,eta,pt);
 
-	    val = jecwg*valg;
-	  }
+	  // reference JEC
+	  double jesrun1 = 1./getJEC(jecrun1,eta,pt);
+
+	  // old JEC
+	  double jes = 1./getJEC(jecold,eta,pt);
 
           //if(rp_debug) cout << "ABC/ABCD special treatment done" << endl;
 	  double vall2l3res = val; // For closure test 
-          if(CorLevel=="L1L2L3Res")val = 1.0; //to get proper bands during closure test
-	  if(CorLevel=="L1L2L3Res") val = 1;
+	  //double vall2l3res = jes; // For closure test  (V5M2)
+          //if(CorLevel=="L1L2L3Res") val = 1; //to get proper bands during closure test
+	  if(CorLevel=="L1L2L3Res") val /= jes; //to get proper bands during closure test
+	  if(CorLevel=="L1L2L3Res") jesrun1 /= jes;  //to get proper bands during closure test
+	  if(CorLevel=="L1L2L3Res") jes /= jes;  //to get proper bands during closure test
+
 	  sumvall2l3res += w*vall2l3res;
+	  sumrun1 += w*jesrun1;
 	  sumval += w*val;
+	  sumjes += w*jes;
 	  sumw += w; // sum weights only once
 	  
-	  // reference JEC
-	  double jesrun1 = (epoch=="L4" ? 1 : 1./getJEC(jecrun1,eta,pt));
-	  sumrun1 += w*jesrun1;
-
-	  // old JEC
-	  double jes = (epoch=="L4" ? 1 : 1./getJEC(jecold,eta,pt));
-	  sumjes += w*jes;
-
 	  // Various JEC for systematics
 	  sumvall1flat += w/     getJEC(jecl1flat, eta,pt);
 	  sumvall1rcdt += w/     getJEC(jecl1rcdt, eta,pt);
@@ -3771,7 +3300,7 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	// normalize by total weight for correct average
 	double vall2l3res = sumvall2l3res / sumw;
 	double val = sumval / sumw;
-        if(CorLevel=="L1L2L3Res")val = 1.0; //to get proper bands during closure test -- should already be 1.0 ... TESTING
+        //if(CorLevel=="L1L2L3Res") val = 1.0; //to get proper bands during closure test -- should already be 1.0 ... TESTING
 
 	// normalize uncertainties (quadratic instead of linear addition)
 	double err = sqrt(sumerr2 / sumw);
@@ -3816,12 +3345,12 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	herr_pt->SetBinError(ipt, val*sqrt(err_pt*err_pt+err_pu*err_pu));
 
 	double run1 = (sumrun1 / sumw);
-        if(CorLevel=="L1L2L3Res") run1 = 1.0;  //to get proper bands during closure test
+        //if(CorLevel=="L1L2L3Res") run1 = 1.0;  //to get proper bands during closure test
 	hrun1->SetBinContent(ipt, run1);
-	hrun1->SetBinError(ipt, run1*err_ref1);//run1*err);
+	hrun1->SetBinError(ipt, run1*err_ref1);
 
 	double jes = (sumjes / sumw);
-        if(CorLevel=="L1L2L3Res") jes = 1.0;  //to get proper bands during closure test
+        //if(CorLevel=="L1L2L3Res") jes = 1.0;  //to get proper bands during closure test
 	hjes->SetBinContent(ipt, jes);
 	double l1pt = (sumvall1pt / sumw);
 	double l1mc = (sumvall1mc / sumw);
@@ -3874,21 +3403,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	hl1sfalt->SetBinContent(ipt, (l1daltsf-1)/(l1mnomsf-1)); //xtra
 	hl1offdt->SetBinContent(ipt, offl1dnomsf); //xtra
 	hl1dt->SetBinContent(ipt, l1dnomsf); //xtra
-	/*
-	double l1dnomsf = (sumvall1dnomsf / sumw);
-	double offl1 = pt * (l1dnomsf - 1);
-	double offrcdnom = pt * (rcdnom - 1);
-	double offrcdalt = pt * (rcdalt - 1);
-	double offrcmnom = pt * (rcmnom - 1);
-	double offrcmalt = pt * (rcmalt - 1);
-	double sfnom = offrcdnom / offrcmnom;
-	double sfalt = offrcdalt / offrcmalt;
-	hl1sf->SetBinContent(ipt, (pt+offl1*sfalt-offl1*sfnom)/pt); //(2a)
-	hl1sfnom->SetBinContent(ipt, sfnom); //xtra
-	hl1sfalt->SetBinContent(ipt, sfalt); //xtra
-	hl1offdt->SetBinContent(ipt, offl1); //xtra
-	hl1dt->SetBinContent(ipt, pt/(pt+offl1)); //xtra
-	*/
 	//
 	double l1dnom = (sumvall1dnom / sumw);
 	double l1mnom = (sumvall1mnom / sumw);
@@ -3899,8 +3413,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 	hl1m->SetBinContent(ipt, l1malt/l1mnom); //xtra
 	hl1dnom->SetBinContent(ipt, l1dnom); //xtra
 	hl1mnom->SetBinContent(ipt, l1mnom); //xtra
-	//hl1dalt->SetBinContent(ipt, l1dalt); //xtra
-	//hl1malt->SetBinContent(ipt, l1malt); //xtra
 	//
 	double l1dnomsf20 = (sumvall1dnomsf20 / sumw);
 	double l1daltsf20 = (sumvall1daltsf20 / sumw);
@@ -3908,13 +3420,6 @@ fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_
 			      / (l1daltsf/l1dnomsf) ); //(3a)
 	hl1sf20->SetBinContent(ipt, l1daltsf20/l1dnomsf20); //xtra
 	hl1dt20->SetBinContent(ipt, l1dnomsf20); //xtra
-	/*
-	double offl120 = pt * (l1dnomsf20 - 1);
-	hl1sfr->SetBinContent(ipt, ((pt+offl120*sfalt-offl120*sfnom)/pt)
-			      / ((pt+offl1*sfalt-offl1*sfnom)/pt)); //(3a)
-	hl1sf20->SetBinContent(ipt, (pt+offl120*sfalt-offl120*sfnom)/pt); //xtra
-	hl1dt20->SetBinContent(ipt, (pt+offl120)/(pt+offl1)); //xtra
-	*/
 	//
 	double l1dnom20 = (sumvall1dnom20 / sumw);
 	double l1mnom20 = (sumvall1mnom20 / sumw);
@@ -4079,14 +3584,14 @@ FactorizedJetCorrector *getFJC(string l1, string l2, string res, string path) {
   }
   if (l2!="") {
     s = Form("%s/%s.txt",cd,cl2);
-    JetCorrectorParameters *pl2 = new JetCorrectorParameters(s);
     cout << s << endl << flush;
+    JetCorrectorParameters *pl2 = new JetCorrectorParameters(s);
     v.push_back(*pl2);
   }
   if (res!="") {
     s = Form("%s/%s.txt",cd,cres);
-    JetCorrectorParameters *pres = new JetCorrectorParameters(s);
     cout << s << endl << flush;
+    JetCorrectorParameters *pres = new JetCorrectorParameters(s);
     v.push_back(*pres);
   }
   FactorizedJetCorrector *jec = new FactorizedJetCorrector(v);

@@ -30,10 +30,10 @@
 #include <vector>
 #include <algorithm> // for std::min
 
-//const double fitProbRef = 0.2;// Z+b studies //0.01;//0.2;
-const double fitProbRef = 0.01; // JEC L2Res studies
-//const double etaMax = 2.5; // Z+b studies
-const double etaMax = 1.3; // JEC studies
+//const double fitProbRef = 0.2;// Z+b studies (def:0.2);
+const double fitProbRef = 0.01; // JEC L3Res studies (def:0.01)
+//const double etaMax = 2.5; // Z+b studies (def:2.5)
+const double etaMax = 1.3; // JEC studies (def:1.3)
 const double minLepPt = 35;//34;//30; // electron min pT 34, muon 26/29 GeV
 const bool redoJEC = false;
 const bool correctJetMassData = false; // data/MC ratio for mass
@@ -69,8 +69,6 @@ void hadW::Loop()
    if (fChain == 0) return;
 
    TDirectory *curdir = gDirectory;
-   //TFile *fout = new TFile(Form("rootfiles/hadW%s_MPDGcorrNoW.root",_s.c_str()),
-   //TFile *fout = new TFile(Form("rootfiles/hadW%s_EMUF.root",_s.c_str()),
    TFile *fout = new TFile(Form("rootfiles/hadW%s_Glu.root",_s.c_str()),
 			   "RECREATE");
    fout->mkdir("jet");
@@ -78,8 +76,7 @@ void hadW::Loop()
    TDirectory *doutjet = gDirectory;
    curdir->cd();
 
-   //parsePileUpJSON("rootfiles/pileup_ASCII_2018.txt");
-   parsePileUpJSON("rootfiles/pileup_ASCII_2017-2018.txt");
+   parsePileUpJSON("rootfiles/pileup_ASCII_2016-2018.txt");
 
    bool isMC = (TString(_s.c_str()).Contains("MC"));
    bool isDT = (TString(_s.c_str()).Contains("UL"));
@@ -88,7 +85,6 @@ void hadW::Loop()
    bool is17 = (TString(_s.c_str()).Contains("17"));
    bool is16 = (TString(_s.c_str()).Contains("16"));
    bool isAPV = (TString(_s.c_str()).Contains("APV"));
-   //assert((is18 || is17) && (!is18 || !is17)); // XOR
    assert(is18 || is17 || is16);
    if ( isMC) cout << "Looping over MC" << endl;
    if ( isDT) cout << "Looping over data" << endl;
@@ -114,13 +110,11 @@ void hadW::Loop()
    const int nxb = sizeof(xb)/sizeof(xb[0])-1;
    // For QGL studies to match dijet
    const double xd[] = {28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245};
-     //{15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395};
    const int nxd = sizeof(xd)/sizeof(xd[0])-1;
 
    // For 2D calibration in pT-eta (from deriveL2ResNarrow.C)
    const double yb[] = {0,0.261,0.522,0.783, 1.044,1.305,1.479,
-			1.653,1.93,2.172, 2.322,2.5,5.2};//,2.65};
-   //2.853,2.964,3.139, 3.489,3.839,5.191};
+			1.653,1.93,2.172, 2.322,2.5,5.2};
    const double nyb = sizeof(yb)/sizeof(yb[0])-1;
 
    // For quick mapping to indeces
@@ -148,31 +142,31 @@ void hadW::Loop()
    TH2D *hpt2 = new TH2D("hpt2",";p_{T,jet1};p_{T,jet2}",40,0,200,40,0,200);
    TH2D *hpt213 = new TH2D("hpt213",";p_{T,jet1};p_{T,jet2}",40,0,200,40,0,200);
    //
-   TH1D *hmw30 = new TH1D("hmw30",";m_{W};N",nbins,mwmin,mwmax);
-   TH1D *hmw40 = new TH1D("hmw40",";m_{W};N",nbins,mwmin,mwmax);
-   TH1D *hmw50 = new TH1D("hmw50",";m_{W};N",nbins,mwmin,mwmax);
-   TH1D *hmw60 = new TH1D("hmw60",";m_{W};N",nbins,mwmin,mwmax);
+   //TH1D *hmw30 = new TH1D("hmw30",";m_{W};N",nbins,mwmin,mwmax);
+   //TH1D *hmw40 = new TH1D("hmw40",";m_{W};N",nbins,mwmin,mwmax);
+   //TH1D *hmw50 = new TH1D("hmw50",";m_{W};N",nbins,mwmin,mwmax);
+   //TH1D *hmw60 = new TH1D("hmw60",";m_{W};N",nbins,mwmin,mwmax);
    //
-   TH1D *hmw1330 = new TH1D("hmw1330",";m_{W};N",nbins,mwmin,mwmax);
-   TH1D *hmw1340 = new TH1D("hmw1340",";m_{W};N",nbins,mwmin,mwmax);
-   TH1D *hmw1350 = new TH1D("hmw1350",";m_{W};N",nbins,mwmin,mwmax);
-   TH1D *hmw1360 = new TH1D("hmw1360",";m_{W};N",nbins,mwmin,mwmax);
+   //TH1D *hmw1330 = new TH1D("hmw1330",";m_{W};N",nbins,mwmin,mwmax);
+   //TH1D *hmw1340 = new TH1D("hmw1340",";m_{W};N",nbins,mwmin,mwmax);
+   //TH1D *hmw1350 = new TH1D("hmw1350",";m_{W};N",nbins,mwmin,mwmax);
+   //TH1D *hmw1360 = new TH1D("hmw1360",";m_{W};N",nbins,mwmin,mwmax);
    //
-   TH1D *hmm30 = new TH1D("hmm30",";m_{W,0};N",nbins,mwmin,mwmax);
-   TH1D *hmm40 = new TH1D("hmm40",";m_{W};N",nbins,mwmin,mwmax);
-   TH1D *hmm50 = new TH1D("hmm50",";m_{W};N",nbins,mwmin,mwmax);
-   TH1D *hmm60 = new TH1D("hmm60",";m_{W};N",nbins,mwmin,mwmax);
+   //TH1D *hmm30 = new TH1D("hmm30",";m_{W,0};N",nbins,mwmin,mwmax);
+   //TH1D *hmm40 = new TH1D("hmm40",";m_{W};N",nbins,mwmin,mwmax);
+   //TH1D *hmm50 = new TH1D("hmm50",";m_{W};N",nbins,mwmin,mwmax);
+   //TH1D *hmm60 = new TH1D("hmm60",";m_{W};N",nbins,mwmin,mwmax);
    //
-   TH1D *hmm1330 = new TH1D("hmm1330",";m_{W,0};N",nbins,mwmin,mwmax);
-   TH1D *hmm1340 = new TH1D("hmm1340",";m_{W,0};N",nbins,mwmin,mwmax);
-   TH1D *hmm1350 = new TH1D("hmm1350",";m_{W,0};N",nbins,mwmin,mwmax);
-   TH1D *hmm1360 = new TH1D("hmm1360",";m_{W,0};N",nbins,mwmin,mwmax);
+   //TH1D *hmm1330 = new TH1D("hmm1330",";m_{W,0};N",nbins,mwmin,mwmax);
+   //TH1D *hmm1340 = new TH1D("hmm1340",";m_{W,0};N",nbins,mwmin,mwmax);
+   //TH1D *hmm1350 = new TH1D("hmm1350",";m_{W,0};N",nbins,mwmin,mwmax);
+   //TH1D *hmm1360 = new TH1D("hmm1360",";m_{W,0};N",nbins,mwmin,mwmax);
    //
    TH1D *hptjet13 = new TH1D("hptjet13",";p_{T,jet}",nx1,xmin,xmax);
    TH1D *hptave13 = new TH1D("hptave13",";p_{T,ave}",nx1,xmin,xmax);
    TH1D *hptave13b = new TH1D("hptave13b",";p_{T,ave}",nxb,xb);
    TH1D *hptmin13 = new TH1D("hptmin13",";p_{T,min}",nx1,xmin,xmax);
-   TH1D *hptthr13 = new TH1D("hpttrh13",";p_{T,thr};N",nx1,xmin,xmax);
+   //TH1D *hptthr13 = new TH1D("hpttrh13",";p_{T,thr};N",nx1,xmin,xmax);
    TH1D *hptboth13 = new TH1D("hptboth13",";p_{T,both}",nx2,xmin,xmax);
    TH1D *hptboth13b = new TH1D("hptboth13b",";p_{T,both}",nxb,xb);
    TH1D *hptboth13f = new TH1D("hptboth13f",";p_{T,both}",170,30,200);
@@ -181,31 +175,32 @@ void hadW::Loop()
    TProfile *pptave13b = new TProfile("pptave13b",";p_{T,ave};p_{T,ave}",
 				      nxb,xb);
    //
-   TProfile *pmw13ptjet = new TProfile("pmw13ptjet",";p_{T,jet};"
-				       "#LTm_{W}#GT (GeV)",nx2,xmin,xmax);
-   TProfile *pmw13ptmin = new TProfile("pmw13ptmin",";p_{T,min};"
-				       "#LTm_{W}#GT (GeV)",nx2,xmin,xmax);
+   //TProfile *pmw13ptjet = new TProfile("pmw13ptjet",";p_{T,jet};"
+   //				       "#LTm_{W}#GT (GeV)",nx2,xmin,xmax);
+   //TProfile *pmw13ptmin = new TProfile("pmw13ptmin",";p_{T,min};"
+   //				       "#LTm_{W}#GT (GeV)",nx2,xmin,xmax);
    TProfile *pmw13ptave = new TProfile("pmw13ptave",";p_{T,ave};"
-				       "#LTm_{W}#GT (GeV)",nx2,xmin,xmax);
+   				       "#LTm_{W}#GT (GeV)",nx2,xmin,xmax);
    TProfile *pmw13bptave = new TProfile("pmw13bptave",";p_{T,ave};"
-					"#LTm_{W,0}#GT (GeV)",nxb,xb);
-   TProfile *pmw13ptthr = new TProfile("pmw13ptthr",";p_{T,thr};"
-				       "#LTm_{W}#GT (GeV)",nx2,xmin,xmax);
+   					"#LTm_{W,0}#GT (GeV)",nxb,xb);
+   //TProfile *pmw13ptthr = new TProfile("pmw13ptthr",";p_{T,thr};"
+   //				       "#LTm_{W}#GT (GeV)",nx2,xmin,xmax);
    TProfile *pmw13ptboth = new TProfile("pmw13ptboth",";p_{T,both};"
 					"#LTm_{W}#GT (GeV)",nx2,xmin,xmax);
    TProfile *pmw13bptboth = new TProfile("pmw13bptboth",";p_{T,both};"
-					 "#LTm_{W,0}#GT (GeV)",nxb,xb);
+   					 "#LTm_{W,0}#GT (GeV)",nxb,xb);
    //
-   TProfile *pmm13ptjet = new TProfile("pmm13ptjet",";p_{T,jet};"
-				       "#LTm_{W,0}#GT (GeV)",nx2,xmin,xmax);
-   TProfile *pmm13ptmin = new TProfile("pmm13ptmin",";p_{T,min};"
-				       "#LTm_{W,0}#GT (GeV)",nx2,xmin,xmax);
+   //TProfile *pmm13ptjet = new TProfile("pmm13ptjet",";p_{T,jet};"
+   //				       "#LTm_{W,0}#GT (GeV)",nx2,xmin,xmax);
+   //TProfile *pmm13ptmin = new TProfile("pmm13ptmin",";p_{T,min};"
+   //				       "#LTm_{W,0}#GT (GeV)",nx2,xmin,xmax);
    TProfile *pmm13ptave = new TProfile("pmm13ptave",";p_{T,ave};"
-				       "#LTm_{W,0}#GT (GeV)",nx2,xmin,xmax);
+   				       "#LTm_{W,0}#GT (GeV)",nx2,xmin,xmax);
    TProfile *pmm13bptave = new TProfile("pmm13bptave",";p_{T,ave};"
-					"#LTm_{W,0}#GT (GeV)",nxb,xb);
+   					"#LTm_{W,0}#GT (GeV)",nxb,xb);
    TProfile *pm2m13bptave = new TProfile("pm2m13bptave",";p_{T,ave};"
-					 "#LTm_{W,0}^{2}#GT (GeV)",nxb,xb);
+   					 "#LTm_{W,0}^{2}#GT (GeV)",nxb,xb);
+
    // Flavor composition for W>qq'
    TProfile *pfuds = new TProfile("pfuds",";p_{T,ave};Frac. of uds",nxb,xb);
    TProfile *pfud = new TProfile("pfud",";p_{T,ave};Frac. of ud",nxb,xb);
@@ -274,8 +269,16 @@ void hadW::Loop()
 						";p_{T,ave};"
 						"#LTm_{W,0,noL3Res}#GT (GeV)",
 						nxb,xb);
-   TProfile *pmm13ptthr = new TProfile("pmm13ptthr",";p_{T,thr};"
-				       "#LTm_{W,0}#GT (GeV)",nx2,xmin,xmax);
+   TProfile *pmm13bptave_FSRup = new TProfile("pmm13bptave_FSRup",
+					      ";p_{T,ave};"
+					      "#LTm_{W,0,FSRup}#GT (GeV)",
+					      nxb,xb);
+   TProfile *pmm13bptave_FSRdw = new TProfile("pmm13bptave_FSRdw",
+					      ";p_{T,ave};"
+					      "#LTm_{W,0,FSRdw}#GT (GeV)",
+					      nxb,xb);
+   //TProfile *pmm13ptthr = new TProfile("pmm13ptthr",";p_{T,thr};"
+   //				       "#LTm_{W,0}#GT (GeV)",nx2,xmin,xmax);
    TProfile *pmm13ptboth = new TProfile("pmm13ptboth",";p_{T,both};"
 					"#LTm_{W,0}#GT (GeV)",nx2,xmin,xmax);
    TProfile *pmm13bptboth = new TProfile("pmm13bptboth",";p_{T,both};"
@@ -425,6 +428,15 @@ void hadW::Loop()
    TProfile *plepiov = new TProfile("plepiov",";Run;#LTp_{T,lep}#GT (GeV)",niov,iovs);
 
    // UE studies
+   TH1D *hmus = new TH1D("hmus","#mu(smeared)",60,0,60);
+   TH1D *hmu = new TH1D("hmu","#mu",60,0,60);
+   TH1D *hnpv = new TH1D("hnpv","N_{PV}",60,0,60);
+   TH1D *hrho = new TH1D("hrho",";#rho (GeV)",60,0,60);
+   //
+   TProfile *pmu = new TProfile("pmu",";p_{T,ave};#LT#mu#GT",nxb,xb);
+   TProfile *pnpv = new TProfile("pnpv",";p_{T,ave};#LTN_{PV}#GT",nxb,xb);
+   TProfile *prho = new TProfile("prho",";p_{T,ave};#LT#rho#GT (GeV)",nxb,xb);
+   //
    TProfile *pmuiov = new TProfile("pmuiov",";Run;#LT#mu#GT",niov,iovs);
    TProfile *pnpviov = new TProfile("pnpviov",";Run;#LTN_{PV}#GT",niov,iovs);
    TProfile *prhoiov = new TProfile("prhoiov",";Run;#LT#rho#GT (GeV)",niov,iovs);
@@ -707,29 +719,21 @@ void hadW::Loop()
    const char *cfb = "Autumn18_V3_MC_Pythia8_b_L2Relative_AK4PFchs";
    const char *cf0 = "Autumn18_V3_MC_Pythia8_all_L2Relative_AK4PFchs";
    const char *cdref = "CondFormats/JetMETObjects/data";
-   //const char *cref = "Summer19UL17_Run%s_V2M5_SimpleL1_Data_L2L3Residual_AK4PFchs";//UL17??
    string sref, sref17, sref18, sref16, sref16apv;
-   //sref17 = "Summer19UL17_Run%s_V5_Data_L2Residual_AK4PFchs";//UL17??
-   //sref17 = "Summer19UL17_Run%s_V5_Data_L2L3Residual_AK4PFchs";//UL17 v2??
-   //sref17 = "Summer19UL17_RunBCDEF_V2M5_L2L3Residual_AK4PFchs";//UL17 v2?
-   sref18 = "Summer19UL18_Run%s_V3_Data_L2Residual_AK4PFchs";//UL18
-   sref17 = "Summer19UL17_Run%s_V2M5_SimpleL1_Data_L2L3Residual_AK4PFchs";//UL17??
-   sref16 = "Summer19UL16_RunFGH_V2_DATA_L2Residual_AK4PFchs";
-   sref16apv = "Summer19UL16APV_RunBCDEF_V3_DATA_L2Residual_AK4PFchs";
+   sref18 = "Summer19UL18_Run%s_V5_Data_L2L3Residual_AK4PFchs";
+   sref17 = "Summer19UL17_Run%s_V5_Data_L2L3Residual_AK4PFchs";
+   sref16 = "Summer19UL16_RunFGH_V5_DATA_L2L3Residual_AK4PFchs";
+   sref16apv = "Summer19UL16APV_RunBCDEF_V5_DATA_L2L3Residual_AK4PFchs";
    if (is18) sref = sref18;
    if (is17) sref = sref17;
    if (is16) sref = sref16;
    if (is16 && isAPV) sref = sref16apv;
    const char *cref = sref.c_str();
-   //const char *cref = "Summer19UL18_Run%s_V3_DATA_L2Residual_AK4PFchs";//UL18
-   //const char *cref = "Summer19UL18_Run%s_V4_DATA_L2L3Residual_AK4PFchs";
-   //const char *cnew = "Summer19UL18_Run%s_V4_DATA_L2L3Residual_AK4PFchs";//UL18
    string snew, snew17, snew18, snew16, snew16apv;
-   //snew18 = "Summer19UL18_Run%s_V4_DATA_L2L3Residual_AK4PFchs";//UL18
-   snew18 = "Summer19UL18_Run%s_V5_DATA_L2L3Residual_AK4PFchs";//UL18
-   snew17 = "Summer19UL17_Run%s_V5_DATA_L2L3Residual_AK4PFchs";//UL17
-   snew16 = "Summer19UL16_RunFGH_V2_DATA_L2Residual_AK4PFchs";
-   snew16apv = "Summer19UL16APV_RunBCDEF_V3_DATA_L2Residual_AK4PFchs";
+   snew18 = "Summer19UL18_Run%s_V5_DATA_L2L3Residual_AK4PFchs";
+   snew17 = "Summer19UL17_Run%s_V5_DATA_L2L3Residual_AK4PFchs";
+   snew16 = "Summer19UL16_RunFGH_V5_DATA_L2L3Residual_AK4PFchs";
+   snew16apv = "Summer19UL16APV_RunBCDEF_V5_DATA_L2L3Residual_AK4PFchs";
    if (is18) snew = snew18;
    if (is17) snew = snew17;
    if (is16) snew = snew16;
@@ -770,19 +774,6 @@ void hadW::Loop()
    FactorizedJetCorrector *jec0 = new FactorizedJetCorrector(v0);
    //
 
-
-   /*
-   const int nrunmax = 5;
-   const int nrun17 = 5;
-   const char* runs17[nrunmax] = {"B","C","D","E","F"};
-   double runlums17[nrunmax] = {4.8,9.6,4.2,9.3,13.4};
-   const int nrun18 = 4;
-   const char* runs18[nrunmax] = {"A","B","C","D", ""}; //UL18
-   double runlums18[nrunmax] = {14.0, 7.1, 6.9, 31.9, 0}; //UL18
-   int nrun(is17 ? nrun17 : (is18 ? nrun18 : 0));
-   const char* *runs = (is17 ? runs17 : (is18 ? runs18 : 0));
-   double *runlums = (is17 ? runlums17 : (is18 ? runlums18 : 0));
-   */
    const int nrun = pmtiov->GetNbinsX();
    const char *runs[] = {"MC","BCD","EF","GH", "B","C","D","E","F", "H",
 			 "A","B","C","D"};
@@ -792,17 +783,16 @@ void hadW::Loop()
 
    vector<FactorizedJetCorrector*> jecrefs(nrun);
    vector<FactorizedJetCorrector*> jecnews(nrun);
-   //for (int irun = 0; irun != nrun; ++irun) {
-   for (int irun = 1; irun != nrun; ++irun) {
+   for (int irun = 1; irun != nrun; ++irun) { // irun==0 is MC
 
-     //if (is16 && (irun<1||irun>3)) continue;
+     // Won't function properly for multiple years at once
      if (is16 &&  isAPV && (irun<1||irun>2)) continue;
      if (is16 && !isAPV && (irun<3||irun>3)) continue;
      if (is17 && (irun<4||irun>8)) continue;
      if (is18 && (irun<10||irun>13)) continue;
 
-     string srun = Form(cref,runs[irun]); // UL18,UL17
-     const char *cref = srun.c_str(); // UL18,UL17
+     string srun = Form(cref,runs[irun]);
+     const char *cref = srun.c_str();
      string sref = Form("%s/%s.txt",cdref,cref);
      cout << sref << endl;
      vector<JetCorrectorParameters> vref;
@@ -835,16 +825,6 @@ void hadW::Loop()
    int igood(0);
    int ibad(0);
 
-   // To-do:
-   // Separate out different flavor combinations
-   // TCut cs("(flav1==4&&flav2==-3)||(flav1==3&&flav2==-4)||(flav1==-4&&flav2==3)||(flav1==-3&&flav2==4)")
-   // TCut ud("(flav1==1&&flav2==-2)||(flav1==2&&flav2==-1)||(flav1==-2&&flav2==1)||(flav1==-1&&flav2==2)")
-   // TCut cd("(flav1==4&&flav2==-1)||(flav1==1&&flav2==-4)||(flav1==-4&&flav2==1)||(flav1==-1&&flav2==4)")
-   // TCut us("(flav1==3&&flav2==-2)||(flav1==2&&flav2==-3)||(flav1==-3&&flav2==2)||(flav1==-2&&flav2==3)")
-   // TCut hit = (cs||ud||cd||us);
-   // TCut miss = !hit;
-   // TCut g("flav1==21||flav2==2");
-   
    int cnt(0);
    map<int, map<int, map<int, int> > > dubs;
    
@@ -867,10 +847,8 @@ void hadW::Loop()
 
       if (jentry%100000==00) cout << "." << flush;
 
-      // Clean out duplicates for 2018 data
-      // MC18 also has duplicates and quadruplicates, plus unique event number
-      // UL17 quadruplicates have 1 filled, 3 empty
-      // and for now UL17 is missing event number branch
+      // Clean out duplicates
+      // These are from multiple solutions per events (typically swap b jets)
       if (is18 || is17 || is16) {
 	if (dubs[run][lumiBlock][event]==0) {
 	  dubs[run][lumiBlock][event] = 1;
@@ -881,10 +859,6 @@ void hadW::Loop()
 	  continue;
 	}
       }
-      // UL17 duplicates and quadruplicates have bpt1 empty
-      //if (is17) {
-      //if (bpt1==0) continue;
-      //}
 
       // Homogenize lepton pT cuts
       if (lep_pt < minLepPt) continue;
@@ -930,24 +904,6 @@ void hadW::Loop()
 	m2 *= 1./(1+0.01*fmd->Eval(pt2_orig));
       }
 
-      //double recoWmass = recoWMass;
-      // Alternative with massless jets
-      //double m0 = 0;
-      // or with quark masses (mostly charm mass)
-      //double mq = 0;//(0.5*0.03+0.25*0.095+0.25*1.275);
-      // with reco/gen corrected mass
-      //double mj1 = m1/fmj->Eval(pt1);
-      //double mj2 = m2/fmj->Eval(pt2);
-      // or with QCD jet mass (guesstimate sqrt(pt)) => too high, too uncertain
-      //double mj1 = sqrt(pt1);
-      //double mj2 = sqrt(pt2);
-      //j1.SetPtEtaPhiM(pt1,eta1,phi1,m1);
-      //j2.SetPtEtaPhiM(pt2,eta2,phi2,m2);
-      //double recoWmass0 = (j1+j2).M();
-
-      // Almost genWmass (keep reco jet directions): worse than reco
-      //j1.SetPtEtaPhiM(gen_pt1,eta1,phi1,mq);
-      //j2.SetPtEtaPhiM(gen_pt2,eta2,phi2,mq);
       // genWmass0 (McorrNoW: change mq=0 to gen_m1, gen_m2)
       j1.SetPtEtaPhiM(gen_pt1,gen_eta1,gen_phi1,gen_m1);
       j2.SetPtEtaPhiM(gen_pt2,gen_eta2,gen_phi2,gen_m2);
@@ -1087,14 +1043,6 @@ void hadW::Loop()
       j2.SetPtEtaPhiM(pt2*kUnc2,eta2,phi2,m2*kUnc2);
       //double recoWmassUnc = (j1+j2).M(); // TMP PATCH TMP
 
-      // Calculate recoWMassQNU with new L2L3Res
-      // (had a bug for j2, jesnew2->jesnew1, fixed 20201027)
-      //double kQNU21 = kQNU1; 
-      //double kQNU22 = kQNU2; 
-      //j1.SetPtEtaPhiM(pt1*kQNU21,eta1,phi1,m1*kQNU21);
-      //j2.SetPtEtaPhiM(pt2*kQNU22,eta2,phi2,m2*kQNU22);
-      //double recoWmassQNU2 = (j1+j2).M();
-
       // Replacements
       //
       double recoWmassUnc = recoWmassQNU2; // TMP PATCH TMP V4 closure
@@ -1133,8 +1081,8 @@ void hadW::Loop()
 
       // Two alternative pairings of b and hadronic W
       // (first one is now sorted to be hadronic top candidate)
-      t1 = (b1+qq); // (0D)
-      t2 = (b2+qq);
+      t1 = (qq + b1); // (0D) - 1st permutation for had top
+      t2 = (qq + b2); // (0D) - 2nd pertumatino for had top
       Wb = (W + b1); // (1D)
       WB = (W + b1 * (80.4 / qq.M())); // (2D)
       nu = (qq+b1+b2+l); // nu=MHT
@@ -1169,15 +1117,10 @@ void hadW::Loop()
       
       // Weight events with fitProb (as done in mt analysis)
       //double w = fitProb;
-      //double w = (isMC ? (*PSWgts)[1] : 1.);
-      // should use weights, but results unstable
       double w = (isMC ? weight : 1.);
-      //double w = (isMC ? min((double)weight,4.0e8) : 1.);
       double w_nopt = w; // no pT weights
 
       if (usePtWeight && isMC) {
-	//double pt = gt1.Pt();
-	//w *= (pt>1 ? f1pt->Eval(pt)*f1pt2->Eval(pt) : 1.);
 	w *= tptweight;
       }
 
@@ -1226,15 +1169,15 @@ void hadW::Loop()
 	  hmmveto2e->Fill(recoWmass0,w);
 	}
 
-	if (pt1>30 && pt2>30) hmw30->Fill(recoWmass,w);
-	if (pt1>40 && pt2>40) hmw40->Fill(recoWmass,w);
-	if (pt1>50 && pt2>50) hmw50->Fill(recoWmass,w);
-	if (pt1>60 && pt2>60) hmw60->Fill(recoWmass,w);
+	//if (pt1>30 && pt2>30) hmw30->Fill(recoWmass,w);
+	//if (pt1>40 && pt2>40) hmw40->Fill(recoWmass,w);
+	//if (pt1>50 && pt2>50) hmw50->Fill(recoWmass,w);
+	//if (pt1>60 && pt2>60) hmw60->Fill(recoWmass,w);
 	//
-	if (pt1>30 && pt2>30) hmm30->Fill(recoWmass0,w);
-	if (pt1>40 && pt2>40) hmm40->Fill(recoWmass0,w);
-	if (pt1>50 && pt2>50) hmm50->Fill(recoWmass0,w);
-	if (pt1>60 && pt2>60) hmm60->Fill(recoWmass0,w);
+	//if (pt1>30 && pt2>30) hmm30->Fill(recoWmass0,w);
+	//if (pt1>40 && pt2>40) hmm40->Fill(recoWmass0,w);
+	//if (pt1>50 && pt2>50) hmm50->Fill(recoWmass0,w);
+	//if (pt1>60 && pt2>60) hmm60->Fill(recoWmass0,w);
 
 	bool goodwa = (recoWmass0>55 && recoWmass0<110);
 	bool goodw = (recoWmass>65 && recoWmass<105);
@@ -1246,37 +1189,50 @@ void hadW::Loop()
 
 	if (fabs(eta1)<etaMax && fabs(eta2)<etaMax) {
 
-	  if (pt1>30 && pt2>30) hmw1330->Fill(recoWmass,w);
-	  if (pt1>40 && pt2>40) hmw1340->Fill(recoWmass,w);
-	  if (pt1>50 && pt2>50) hmw1350->Fill(recoWmass,w);
-	  if (pt1>60 && pt2>60) hmw1360->Fill(recoWmass,w);
+	  //if (pt1>30 && pt2>30) hmw1330->Fill(recoWmass,w);
+	  //if (pt1>40 && pt2>40) hmw1340->Fill(recoWmass,w);
+	  //if (pt1>50 && pt2>50) hmw1350->Fill(recoWmass,w);
+	  //if (pt1>60 && pt2>60) hmw1360->Fill(recoWmass,w);
 	  //
-	  if (pt1>30 && pt2>30) hmm1330->Fill(recoWmass0,w);
-	  if (pt1>40 && pt2>40) hmm1340->Fill(recoWmass0,w);
-	  if (pt1>50 && pt2>50) hmm1350->Fill(recoWmass0,w);
-	  if (pt1>60 && pt2>60) hmm1360->Fill(recoWmass0,w);
+	  //if (pt1>30 && pt2>30) hmm1330->Fill(recoWmass0,w);
+	  //if (pt1>40 && pt2>40) hmm1340->Fill(recoWmass0,w);
+	  //if (pt1>50 && pt2>50) hmm1350->Fill(recoWmass0,w);
+	  //if (pt1>60 && pt2>60) hmm1360->Fill(recoWmass0,w);
 
 	  if (goodw || goodw0 || goodwa) {
-	    hptjet13->Fill(pt1,w);
-	    hptjet13->Fill(pt2,w);
+	    //hptjet13->Fill(pt1,w);
+	    //hptjet13->Fill(pt2,w);
 	    hptave13->Fill(ptave,w);
 	    hptave13b->Fill(ptave,w);
 	    pptave13b->Fill(ptave,ptave,w);
-	    hptmin13->Fill(min(pt1,pt2),w);
+	    //hptmin13->Fill(min(pt1,pt2),w);
 	    //
-	    if (goodw) pmw13ptjet->Fill(pt1,recoWmass,w);
-	    if (goodw) pmw13ptjet->Fill(pt2,recoWmass,w);
+	    //if (goodw) pmw13ptjet->Fill(pt1,recoWmass,w);
+	    //if (goodw) pmw13ptjet->Fill(pt2,recoWmass,w);
 	    if (goodw) pmw13ptave->Fill(ptave,recoWmass,w);
 	    if (goodw) pmw13bptave->Fill(ptave,recoWmass,w);
-	    if (goodw) pmw13ptmin->Fill(min(pt1,pt2),recoWmass,w);
+	    //if (goodw) pmw13ptmin->Fill(min(pt1,pt2),recoWmass,w);
 	    //
-	    if (goodw0) pmm13ptjet->Fill(pt1,recoWmass0,w);
-	    if (goodw0) pmm13ptjet->Fill(pt2,recoWmass0,w);
+	    //if (goodw0) pmm13ptjet->Fill(pt1,recoWmass0,w);
+	    //if (goodw0) pmm13ptjet->Fill(pt2,recoWmass0,w);
 	    if (goodw0) pmm13ptave->Fill(ptave,recoWmass0,w);
 	    if (goodw0) pmm13bptave->Fill(ptave,recoWmass0,w);
 	    if (goodw0) pm2m13bptave->Fill(ptave,pow(recoWmass0,2),w);
-	    if (goodw0) pmm13bptave_noL3Res->Fill(ptave,recoWmassUnc,w);
-	    if (goodw0) pmm13ptmin->Fill(min(pt1,pt2),recoWmass0,w);
+	    // Final products going into JEC global fit
+	    if (goodw0) {
+	      pmm13bptave_noL3Res->Fill(ptave,recoWmassUnc,w);
+	      if (isMC) {
+		// PSWeights->GetXaxis()->GetBinLabel(5)
+		//"fsr:murfac=0.5"
+		pmm13bptave_FSRup->Fill(ptave,recoWmassUnc,
+					(*PSWgts)[4]/(*PSWgts)[0]*w);
+		//PSWeights->GetXaxis()->GetBinLabel(6)
+		//"fsr:murfac=2.0"
+		pmm13bptave_FSRdw->Fill(ptave,recoWmassUnc,
+					(*PSWgts)[5]/(*PSWgts)[0]*w);
+	      }
+	    }
+	    //if (goodw0) pmm13ptmin->Fill(min(pt1,pt2),recoWmass0,w);
 
 	    // Fill flavor composition compatible with pmm13bptave
 	    // i.e. recoWmass0 (recoWmassQNU2) and pt1,pt2
@@ -1386,7 +1342,24 @@ void hadW::Loop()
 	    bool goodmt2dw = (mt2dw>125 && mt2dw<220);
 	    bool goodbdr1 = (pow(beta1-gen_beta1,2)+pow(bphi1-gen_bphi1,2) < 0.2*0.2);
 	    bool goodbdr2 = (pow(beta2-gen_beta2,2)+pow(bphi2-gen_bphi2,2) < 0.2*0.2);
-	    if (isDT) TruePU = getTruePU(run,lumiBlock);
+	    double TruePUrms(0);
+	    if (isDT) TruePU = getTruePU(run,lumiBlock,&TruePUrms);
+	    if (goodw0) {
+	      if (isDT) {
+		for (int i=0; i!=100; ++i)
+		  hmus->Fill(gRandom->Gaus(TruePU,TruePUrms),0.01*w);
+	      }
+	      else
+		hmus->Fill(TruePU,w);
+	    }
+	    if (goodw0) hmu->Fill(TruePU,w);
+	    if (goodw0) hnpv->Fill(NPrVtx,w);
+	    if (goodw0) hrho->Fill(pfRho,w);
+	    //
+	    if (goodw0) pmu->Fill(ptave,TruePU,w);
+	    if (goodw0) pnpv->Fill(ptave,NPrVtx,w);
+	    if (goodw0) prho->Fill(ptave,pfRho,w);
+	    //
 	    if (goodw0) pmuiov->Fill(run+0.5,TruePU,w);
 	    if (goodw0) pnpviov->Fill(run+0.5,NPrVtx,w);
 	    if (goodw0) prhoiov->Fill(run+0.5,pfRho,w);
@@ -1784,15 +1757,14 @@ void hadW::Loop()
 	      htoppt->Fill(ptt1,w);
 	      htopptw0->Fill(ptt1,w_nopt);
 	      if (isMC) {
-		htoppt_fsr->Fill(ptt1, (*PSWgts)[4]/(*PSWgts)[0]);
-		htoppt_q2qg->Fill(ptt1, (*PSWgts)[12]/(*PSWgts)[0]);
-		htoppt_x2xg->Fill(ptt1, (*PSWgts)[14]/(*PSWgts)[0]);
-		htoppt_isr->Fill(ptt1, (*PSWgts)[26]/(*PSWgts)[0]);
+		htoppt_fsr->Fill(ptt1, (*PSWgts)[4]/(*PSWgts)[0]*w);
+		htoppt_q2qg->Fill(ptt1, (*PSWgts)[12]/(*PSWgts)[0]*w);
+		htoppt_x2xg->Fill(ptt1, (*PSWgts)[14]/(*PSWgts)[0]*w);
+		htoppt_isr->Fill(ptt1, (*PSWgts)[26]/(*PSWgts)[0]*w);
 	      }		
 
 	      // MPF components: 0=MHT(nu), 1=lep, 2=b2, 3=b1, 4=q1+q2 (, 5=t1)
 	      // bins 6,-0.5,5.5);
-	      //TLorentzVector ref = (nu * (1./nu.Mag()));
 	      TLorentzVector ref;
 	      ref.SetPtEtaPhiM(nu.Pt(),0,nu.Phi(),0);
 	      ref *= (ref.Pt()!=0 ? 1./nu.Pt() : 1);
@@ -1802,16 +1774,6 @@ void hadW::Loop()
 	      pmpf->Fill(3., b1.Dot(ref),w);
 	      pmpf->Fill(4., qq.Dot(ref),w);
 	      pmpf->Fill(5., t1.Dot(ref),w);
-	      /*
-	      TVector3 ref(nu.Px(),nu.Py(),0);
-	      ref *= (nu.Pt()!= 0 ? 1./nu.Pt() : 1);
-	      pmpf->Fill(0., ref * nu,w);
-	      pmpf->Fill(1., ref * l,w);
-	      pmpf->Fill(2., ref * b2,w);
-	      pmpf->Fill(3., ref * b1,w);
-	      pmpf->Fill(4., ref * qq,w);
-	      pmpf->Fill(5., ref * t1,w);
-	      */
 	      pbqiov->Fill(run+0.5,rbq,w);
 	      plbiov->Fill(run+0.5,mlb2,w);
 
@@ -1822,7 +1784,6 @@ void hadW::Loop()
 		assert(PSWgts->size()==nps);
 		for (int ips = 1; ips != nps; ++ips) {
 
-		  //double wps = (*PSWgts)[ips]/(*PSWgts)[0];
 		  double wps = (*PSWgts)[ips]/(*PSWgts)[0] * w;
 
 		  // Reco observables
@@ -2067,16 +2028,16 @@ void hadW::Loop()
 		hptetaboth13b->Fill(ptmid, eta2,w);
 	      }
 	    } // for i
-	    for (int i = 1; i != hptthr13->GetNbinsX()+1; ++i) {
-	      double ptmin = hptthr13->GetBinCenter(i);
-	      double ptmax = xmax;//150.;
-	      if (pt1>ptmin && pt2>ptmin &&
-		  pt1<ptmax && pt2<ptmax) {
-		hptthr13->Fill(ptmin,w);
-		if (goodw) pmw13ptthr->Fill(ptmin,recoWmass,w);
-		if (goodw0) pmm13ptthr->Fill(ptmin,recoWmass0,w);
-	      }
-	    } // for i
+	    //for (int i = 1; i != hptthr13->GetNbinsX()+1; ++i) {
+	    //double ptmin = hptthr13->GetBinCenter(i);
+	    //double ptmax = xmax;//150.;
+	    //if (pt1>ptmin && pt2>ptmin &&
+	    //	  pt1<ptmax && pt2<ptmax) {
+	    //	hptthr13->Fill(ptmin,w);
+		//if (goodw) pmw13ptthr->Fill(ptmin,recoWmass,w);
+		//if (goodw0) pmm13ptthr->Fill(ptmin,recoWmass0,w);
+	    //}
+	    //} // for i
 	  } // Wmass
 	} // barrel
 
@@ -2097,12 +2058,6 @@ void hadW::Loop()
 	int ib2 = (nxb+1)*(iy2-1) + (ix2-1);
 	// Symmetric filling of jets
 	const double mwpdg = 80.4;
-	//if (goodw0 && fitProb>0.2) {
-	//h2->Fill(ib1, ib2);
-	//h2->Fill(ib2, ib1);
-	//p2->Fill(ib1, ib2, recoWmass0 / mwpdg);
-	//p2->Fill(ib2, ib1, recoWmass0 / mwpdg);
-	//}
 	// Rapidity ordering of jets
 	int ifwd = (fabs(eta1)>=fabs(eta2) ? ib1 : ib2);
 	int icnt = (fabs(eta1)>=fabs(eta2) ? ib2 : ib1);
@@ -2190,11 +2145,11 @@ void hadW::Loop()
    } // for jentry
    
    // Post-processing
-   TH1D *ah[] = {hmw, hmw30, hmw40, hmw50, hmw60,
-		 hmm, hmm30, hmm40, hmm50, hmm60,
-		 hptthr13, 
-		 hmw1330, hmw1340, hmw1350, hmw1360,
-		 hmm1330, hmm1340, hmm1350, hmm1360,
+   TH1D *ah[] = {hmw, //hmw30, hmw40, hmw50, hmw60,
+		 hmm, //hmm30, hmm40, hmm50, hmm60,
+		 //hptthr13, 
+		 //hmw1330, hmw1340, hmw1350, hmw1360,
+		 //hmm1330, hmm1340, hmm1350, hmm1360,
 		 hmwveto1b,hmwveto2b,hmwveto1e,hmwveto2e,
 		 hmmveto1b,hmmveto2b,hmmveto1e,hmmveto2e};
    const int nh = sizeof(ah)/sizeof(ah[0]);
@@ -2230,50 +2185,52 @@ void hadW::Loop()
    hpt2->Write("hpt2",TObject::kOverwrite);
    hpt213->Write("hpt213",TObject::kOverwrite);
    //
-   hmw30->Write("hmw30",TObject::kOverwrite);
-   hmw40->Write("hmw40",TObject::kOverwrite);
-   hmw50->Write("hmw50",TObject::kOverwrite);
-   hmw60->Write("hmw60",TObject::kOverwrite);
-   hmw1330->Write("hmw1330",TObject::kOverwrite);
-   hmw1340->Write("hmw1340",TObject::kOverwrite);
-   hmw1350->Write("hmw1350",TObject::kOverwrite);
-   hmw1360->Write("hmw1360",TObject::kOverwrite);
+   //hmw30->Write("hmw30",TObject::kOverwrite);
+   //hmw40->Write("hmw40",TObject::kOverwrite);
+   //hmw50->Write("hmw50",TObject::kOverwrite);
+   //hmw60->Write("hmw60",TObject::kOverwrite);
+   //hmw1330->Write("hmw1330",TObject::kOverwrite);
+   //hmw1340->Write("hmw1340",TObject::kOverwrite);
+   //hmw1350->Write("hmw1350",TObject::kOverwrite);
+   //hmw1360->Write("hmw1360",TObject::kOverwrite);
    //
-   hmm30->Write("hmm30",TObject::kOverwrite);
-   hmm40->Write("hmm40",TObject::kOverwrite);
-   hmm50->Write("hmm50",TObject::kOverwrite);
-   hmm60->Write("hmm60",TObject::kOverwrite);
-   hmm1330->Write("hmm1330",TObject::kOverwrite);
-   hmm1340->Write("hmm1340",TObject::kOverwrite);
-   hmm1350->Write("hmm1350",TObject::kOverwrite);
-   hmm1360->Write("hmm1360",TObject::kOverwrite);
+   //hmm30->Write("hmm30",TObject::kOverwrite);
+   //hmm40->Write("hmm40",TObject::kOverwrite);
+   //hmm50->Write("hmm50",TObject::kOverwrite);
+   //hmm60->Write("hmm60",TObject::kOverwrite);
+   //hmm1330->Write("hmm1330",TObject::kOverwrite);
+   //hmm1340->Write("hmm1340",TObject::kOverwrite);
+   //hmm1350->Write("hmm1350",TObject::kOverwrite);
+   //hmm1360->Write("hmm1360",TObject::kOverwrite);
    //
-   hptjet13->Write("hptjet13",TObject::kOverwrite);
-   hptmin13->Write("hptmin13",TObject::kOverwrite);
+   //hptjet13->Write("hptjet13",TObject::kOverwrite);
+   //hptmin13->Write("hptmin13",TObject::kOverwrite);
    hptave13->Write("hptave13",TObject::kOverwrite);
    hptave13b->Write("hptave13b",TObject::kOverwrite);
-   hptthr13->Write("hptthr13",TObject::kOverwrite);
+   //hptthr13->Write("hptthr13",TObject::kOverwrite);
    hptboth13->Write("hptboth13",TObject::kOverwrite);
    hptboth13b->Write("hptboth13b",TObject::kOverwrite);
    hptboth13f->Write("hptboth13f",TObject::kOverwrite);
    pptboth13b->Write("pptboth13b",TObject::kOverwrite);
    pptave13b->Write("pptave13b",TObject::kOverwrite);
    //
-   pmw13ptjet->Write("pmw13ptjet",TObject::kOverwrite);
-   pmw13ptmin->Write("pmw13ptmin",TObject::kOverwrite);
+   //pmw13ptjet->Write("pmw13ptjet",TObject::kOverwrite);
+   //pmw13ptmin->Write("pmw13ptmin",TObject::kOverwrite);
    pmw13ptave->Write("pmw13ptave",TObject::kOverwrite);
    pmw13bptave->Write("pmw13bptave",TObject::kOverwrite);
-   pmw13ptthr->Write("pmw13ptthr",TObject::kOverwrite);
+   //pmw13ptthr->Write("pmw13ptthr",TObject::kOverwrite);
    pmw13ptboth->Write("pmw13ptboth",TObject::kOverwrite);
    pmw13bptboth->Write("pmw13bptboth",TObject::kOverwrite);
    //
-   pmm13ptjet->Write("pmm13ptjet",TObject::kOverwrite);
-   pmm13ptmin->Write("pmm13ptmin",TObject::kOverwrite);
+   //pmm13ptjet->Write("pmm13ptjet",TObject::kOverwrite);
+   //pmm13ptmin->Write("pmm13ptmin",TObject::kOverwrite);
    pmm13ptave->Write("pmm13ptave",TObject::kOverwrite);
    pmm13bptave->Write("pmm13bptave",TObject::kOverwrite);
    pm2m13bptave->Write("pm2m13bptave",TObject::kOverwrite);
    pmm13bptave_noL3Res->Write("pmm13bptave_noL3Res",TObject::kOverwrite);
-   pmm13ptthr->Write("pmm13ptthr",TObject::kOverwrite);
+   pmm13bptave_FSRup->Write("pmm13bptave_FSRup",TObject::kOverwrite);
+   pmm13bptave_FSRdw->Write("pmm13bptave_FSRdw",TObject::kOverwrite);
+   //pmm13ptthr->Write("pmm13ptthr",TObject::kOverwrite);
    pmm13ptboth->Write("pmm13ptboth",TObject::kOverwrite);
    pmm13bptboth->Write("pmm13bptboth",TObject::kOverwrite);
    pmm13bptboth_noL3Res->Write("pmm13bptboth_noL3Res",TObject::kOverwrite);
@@ -2403,6 +2360,13 @@ void hadW::Loop()
    pmtmin->Write("pmtmin",TObject::kOverwrite);
    pmtmax->Write("pmtmax",TObject::kOverwrite);
    //
+   hmus->Write("hmus",TObject::kOverwrite);
+   hmu->Write("hmu",TObject::kOverwrite);
+   hnpv->Write("hnpv",TObject::kOverwrite);
+   hrho->Write("hrho",TObject::kOverwrite);
+   pmu->Write("pmu",TObject::kOverwrite);
+   pnpv->Write("pnpv",TObject::kOverwrite);
+   prho->Write("prho",TObject::kOverwrite);
    pmuiov->Write("pmuiov",TObject::kOverwrite);
    pnpviov->Write("pnpviov",TObject::kOverwrite);
    prhoiov->Write("prhoiov",TObject::kOverwrite);
@@ -2645,7 +2609,6 @@ void hadW::Draw(string s) {//string sdt, string smc) {
    bool is17 = (TString(s.c_str()).Contains("17"));
    bool is16 = (TString(s.c_str()).Contains("16"));
    bool isAPV = (TString(s.c_str()).Contains("APV"));
-   //assert((is18 || is17) && (!is18 || !is17)); // XOR
    assert(is18 || is17 || is16);
    if ( is18) cout << "Drawing UL18" << endl;
    if ( is17) cout << "Drawing UL17" << endl;
@@ -2653,39 +2616,21 @@ void hadW::Draw(string s) {//string sdt, string smc) {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
-  //TFile *fdt = new TFile("rootfiles/hadWUL17.root","READ");
-  //TFile *fdt = new TFile("rootfiles/hadWUL18.root","READ");
-  //TFile *fdt = new TFile("rootfiles/hadWUL18V4_MPDGcorrNoW.root","READ");
-  //TFile *fdt = new TFile("rootfiles/hadWUL17V5_MPDGcorrNoW.root","READ");
-  //TFile *fdt = new TFile(Form("rootfiles/hadWUL%s_MPDGcorrNoW.root",c),"READ");
-  //TFile *fdt = new TFile(Form("rootfiles/hadWUL%s_EMUF.root",c),"READ");
+
   TFile *fdt = new TFile(Form("rootfiles/hadWUL%s_Glu.root",c),"READ");
   assert(fdt && !fdt->IsZombie());
-  //TFile *fmc = new TFile("rootfiles/hadWMC17.root","READ");
-  //TFile *fmc = new TFile("rootfiles/hadWMC18.root","READ");
-  //TFile *fmc = new TFile("rootfiles/hadWMC18V4_MPDGcorrNoW.root","READ");
-  //TFile *fmc = new TFile("rootfiles/hadWMC17V5_MPDGcorrNoW.root","READ");
-  //TFile *fmc = new TFile(Form("rootfiles/hadWMC%s_MPDGcorrNoW.root",c),"READ");
-  //TFile *fmc = new TFile(Form("rootfiles/hadWMC%s_EMUF.root",c),"READ");
   TFile *fmc = new TFile(Form("rootfiles/hadWMC%s_Glu.root",c),"READ");
   assert(fdt && !fdt->IsZombie());
-  //TFile *fout = new TFile("rootfiles/hadWUL17.root","RECREATE");
-  //TFile *fout = new TFile("rootfiles/hadWUL18.root","UPDATE");
-  //TFile *fout = new TFile("rootfiles/hadWUL18V4_MPDGcorrNoW.root","UPDATE");
-  //TFile *fout = new TFile("rootfiles/hadWUL17V5_MPDGcorrNoW.root","UPDATE");
-  //TFile *fout = new TFile(Form("rootfiles/hadW%s_MPDGcorrNoW.root",c),"UPDATE");
-  //TFile *fout = new TFile(Form("rootfiles/hadW%s_MPDGcorrNoW.root",c),"RECREATE");
-  //TFile *fout = new TFile(Form("rootfiles/hadW%s_EMUF.root",c),"RECREATE");
   TFile *fout = new TFile(Form("rootfiles/hadW%s_Glu.root",c),"RECREATE");
   curdir->cd();
 
-  TProfile *ptdt = (TProfile*)fdt->Get("pmw13ptthr"); assert(ptdt);
-  TProfile *ptmc = (TProfile*)fmc->Get("pmw13ptthr"); assert(ptmc);
-  TH1D *ptr = ptdt->ProjectionX("ptr");
+  //TProfile *ptdt = (TProfile*)fdt->Get("pmw13ptthr"); assert(ptdt);
+  //TProfile *ptmc = (TProfile*)fmc->Get("pmw13ptthr"); assert(ptmc);
+  //TH1D *ptr = ptdt->ProjectionX("ptr");
   TF1 *f1 = new TF1("f1","1",0,7500);
-  ptr->Divide(ptmc);
-  ptr->Add(f1,-1);
-  ptr->Scale(100.);
+  //ptr->Divide(ptmc);
+  //ptr->Add(f1,-1);
+  //ptr->Scale(100.);
 
   TProfile *pbdt = (TProfile*)fdt->Get("pmw13bptboth"); assert(pbdt);
   TProfile *pbmc = (TProfile*)fmc->Get("pmw13bptboth"); assert(pbmc);
@@ -2694,12 +2639,12 @@ void hadW::Draw(string s) {//string sdt, string smc) {
   pbr->Add(f1,-1);
   pbr->Scale(100.);
 
-  TProfile *pt0dt = (TProfile*)fdt->Get("pmm13ptthr"); assert(pt0dt);
-  TProfile *pt0mc = (TProfile*)fmc->Get("pmm13ptthr"); assert(pt0mc);
-  TH1D *pt0r = pt0dt->ProjectionX("pt0r");
-  pt0r->Divide(pt0mc);
-  pt0r->Add(f1,-1);
-  pt0r->Scale(100.);
+  //TProfile *pt0dt = (TProfile*)fdt->Get("pmm13ptthr"); assert(pt0dt);
+  //TProfile *pt0mc = (TProfile*)fmc->Get("pmm13ptthr"); assert(pt0mc);
+  //TH1D *pt0r = pt0dt->ProjectionX("pt0r");
+  //pt0r->Divide(pt0mc);
+  //pt0r->Add(f1,-1);
+  //pt0r->Scale(100.);
 
   TProfile *pa0dt = (TProfile*)fdt->Get("pmm13bptave"); assert(pa0dt);
   TProfile *pa0mc = (TProfile*)fmc->Get("pmm13bptave"); assert(pa0mc);
@@ -2717,17 +2662,29 @@ void hadW::Draw(string s) {//string sdt, string smc) {
 
   TProfile *pdt = (TProfile*)fdt->Get("pmm13bptboth_noL3Res"); assert(pdt);
   TProfile *pmc = (TProfile*)fmc->Get("pmm13bptboth_noL3Res"); assert(pmc);
-  TH1D *pr = pdt->ProjectionX("pr");
-  pr->Divide(pmc);
-  pr->Add(f1,-1);
-  pr->Scale(100.);
+  //TH1D *pr = pdt->ProjectionX("pr");
+  //pr->Divide(pmc);
+  //pr->Add(f1,-1);
+  //pr->Scale(100.);
 
   TProfile *padt = (TProfile*)fdt->Get("pmm13bptave_noL3Res"); assert(padt);
   TProfile *pamc = (TProfile*)fmc->Get("pmm13bptave_noL3Res"); assert(pamc);
-  TH1D *par = padt->ProjectionX("par");
-  par->Divide(pmc);
-  par->Add(f1,-1);
-  par->Scale(100.);
+  //TH1D *par = padt->ProjectionX("par");
+  //par->Divide(pmc);
+  //par->Add(f1,-1);
+  //par->Scale(100.);
+
+  TProfile *pamcup = (TProfile*)fmc->Get("pmm13bptave_FSRup"); assert(pamcup);
+  //TH1D *parup = padt->ProjectionX("parup");
+  //parup->Divide(pmcup);
+  //parup->Add(f1,-1);
+  //parup->Scale(100.);
+
+  TProfile *pamcdw = (TProfile*)fmc->Get("pmm13bptave_FSRdw"); assert(pamcdw);
+  //TH1D *pardw = padt->ProjectionX("pardw");
+  //pardw->Divide(pmcup);
+  //pardw->Add(f1,-1);
+  //pardw->Scale(100.);
 
   TH1D *hdt = (TH1D*)fdt->Get("hptboth13b"); assert(hdt);
   TH1D *hmc = (TH1D*)fmc->Get("hptboth13b"); assert(hmc);
@@ -2738,6 +2695,21 @@ void hadW::Draw(string s) {//string sdt, string smc) {
   TH1D *hamc = (TH1D*)fmc->Get("hptave13b"); assert(hamc);
   TH1D *har = (TH1D*)hadt->Clone("hptave13br");
   har->Divide(hamc);
+
+  TProfile *prhodt = (TProfile*)fdt->Get("prho"); assert(prhodt);
+  TH1D *hrhodt = prhodt->ProjectionX("hrhodt");
+  TProfile *prhomc = (TProfile*)fmc->Get("prho"); assert(prhomc);
+  TH1D *hrhomc = prhomc->ProjectionX("hrhomc");
+  TH1D *hrhor = (TH1D*)hrhodt->Clone("hrhor");
+  hrhor->Divide(hrhomc);
+
+  TH1D *hmusdt = (TH1D*)fdt->Get("hmus"); assert(hmusdt);
+  TH1D *hmudt = (TH1D*)fdt->Get("hmu"); assert(hmudt);
+  TH1D *hmumc = (TH1D*)fmc->Get("hmu"); assert(hmumc);
+  TH1D *hmur = (TH1D*)hmudt->Clone("hmur");
+  hmur->Divide(hmumc);
+  TH1D *hmusr = (TH1D*)hmusdt->Clone("hmusr");
+  hmusr->Divide(hmumc);
 
   TH1D *hup =tdrHist("hup","#LTm_{W}#GT (GeV)",73,90,"p_{T,jets} (GeV)",30,200);
   TH1D *hdw =tdrHist("hdw","Data/MC-1 (%)",-1.5,+1.5,"p_{T,jets} (GeV)",30,200);
@@ -2756,13 +2728,13 @@ void hadW::Draw(string s) {//string sdt, string smc) {
   gPad->SetLogx();
 
   l->DrawLine(30,80.4,200,80.4);
-  tdrDraw(ptdt,"Pz",kFullCircle,kRed);
-  tdrDraw(ptmc,"Pz",kOpenCircle,kRed);
+  //tdrDraw(ptdt,"Pz",kFullCircle,kRed);
+  //tdrDraw(ptmc,"Pz",kOpenCircle,kRed);
   tdrDraw(pbdt,"Pz",kFullCircle,kBlue);
   tdrDraw(pbmc,"Pz",kOpenCircle,kBlue);
   //
-  tdrDraw(pt0dt,"Pz",kFullCircle,kMagenta+2);
-  tdrDraw(pt0mc,"Pz",kOpenCircle,kMagenta+2);
+  //tdrDraw(pt0dt,"Pz",kFullCircle,kMagenta+2);
+  //tdrDraw(pt0mc,"Pz",kOpenCircle,kMagenta+2);
   tdrDraw(pb0dt,"Pz",kFullCircle,kCyan+2);
   tdrDraw(pb0mc,"Pz",kOpenCircle,kCyan+2);
 
@@ -2773,30 +2745,28 @@ void hadW::Draw(string s) {//string sdt, string smc) {
 
   TLegend *leg1 = tdrLeg(0.39,0.64,0.59,0.89);
   leg1->SetHeader("DT");
-  leg1->AddEntry(ptdt," ","PLE");
+  //leg1->AddEntry(ptdt," ","PLE");
   leg1->AddEntry(pbdt," ","PLE");
-  leg1->AddEntry(pt0dt," ","PLE");
+  //leg1->AddEntry(pt0dt," ","PLE");
   leg1->AddEntry(pb0dt," ","PLE");
 
   TLegend *leg2 = tdrLeg(0.45,0.64,0.65,0.89);
   leg2->SetHeader("MC");
-  leg2->AddEntry(ptmc,"p_{T,j}<200 GeV, m_{j}=0#otimesR_{dj}","PLE");
+  //leg2->AddEntry(ptmc,"p_{T,j}<200 GeV, m_{j}=0#otimesR_{dj}","PLE");
   leg2->AddEntry(pbmc,"m_{j}=0 & R_{dj}","PLE");
-  leg2->AddEntry(pt0mc,"p_{T,j}<200 GeV, m_{j}=0#otimesR_{q}#timesR_{#nu}","PLE");
+  //leg2->AddEntry(pt0mc,"p_{T,j}<200 GeV, m_{j}=0#otimesR_{q}#timesR_{#nu}","PLE");
   leg2->AddEntry(pb0mc,"m_{j}=0 & R_{udsc}#timesR_{#nu}","PLE");
 
   c1->cd(2);
   gPad->SetLogx();
 
   l->DrawLine(30,0,200,0);
-  tdrDraw(ptr,"Pz",kFullCircle,kRed);
+  //tdrDraw(ptr,"Pz",kFullCircle,kRed);
   tdrDraw(pbr,"Pz",kFullCircle,kBlue);
   //
-  tdrDraw(pt0r,"Pz",kFullCircle,kMagenta+2);
+  //tdrDraw(pt0r,"Pz",kFullCircle,kMagenta+2);
   tdrDraw(pb0r,"Pz",kFullCircle,kCyan+2);
 
-  //c1->SaveAs("pdf/hadW_MPDGcorrNoW.pdf");
-  //c1->SaveAs("pdf/hadW_UL17V5_MPDGcorrNoW.pdf");
   c1->SaveAs(Form("pdf/hadW_%s_MPDGcorrNoW.pdf",c));
 
   //
@@ -2810,13 +2780,23 @@ void hadW::Draw(string s) {//string sdt, string smc) {
   TGraphErrors *gb0r = new TGraphErrors(0);
   TGraphErrors *ga0dt = new TGraphErrors(0);
   TGraphErrors *ga0mc = new TGraphErrors(0);
+  TGraphErrors *ga0mcup = new TGraphErrors(0);
+  TGraphErrors *ga0mcdw = new TGraphErrors(0);
   TGraphErrors *ga0r = new TGraphErrors(0);
+  TGraphErrors *ga0rup = new TGraphErrors(0);
+  TGraphErrors *ga0rdw = new TGraphErrors(0);
   TGraphErrors *gdt = new TGraphErrors(0);
   TGraphErrors *gmc = new TGraphErrors(0);
+  TGraphErrors *gmcup = new TGraphErrors(0);
+  TGraphErrors *gmcdw = new TGraphErrors(0);
   TGraphErrors *gr = new TGraphErrors(0);
   TGraphErrors *gadt = new TGraphErrors(0);
   TGraphErrors *gamc = new TGraphErrors(0);
+  TGraphErrors *gamcup = new TGraphErrors(0);
+  TGraphErrors *gamcdw = new TGraphErrors(0);
   TGraphErrors *gar = new TGraphErrors(0);
+  TGraphErrors *garup = new TGraphErrors(0);
+  TGraphErrors *gardw = new TGraphErrors(0);
   for (int i = 1; i != pptdt->GetNbinsX()+1; ++i) {
     double ptdt = pptdt->GetBinContent(i);
     double ptmc = pptmc->GetBinContent(i);
@@ -2837,12 +2817,23 @@ void hadW::Draw(string s) {//string sdt, string smc) {
     ga0dt->SetPoint(i-1, ptadt, pa0dt->GetBinContent(j));
     ga0dt->SetPointError(i-1, pptadt->GetBinError(i), pa0dt->GetBinError(j));
     ga0mc->SetPoint(i-1, ptamc, pa0mc->GetBinContent(j));
-    ga0mc->SetPointError(i-1, pptamc->GetBinError(i), pa0mc->GetBinError(j));
+    ga0mc->SetPointError(i-1, pptamc->GetBinError(i),pa0mc->GetBinError(j));
+    ga0mcup->SetPoint(i-1, ptamc, pamcup->GetBinContent(j));
+    ga0mcup->SetPointError(i-1, pptamc->GetBinError(i),pamcup->GetBinError(j));
+    ga0mcdw->SetPoint(i-1, ptamc, pamcdw->GetBinContent(j));
+    ga0mcdw->SetPointError(i-1, pptamc->GetBinError(i),pamcdw->GetBinError(j));
     ga0r->SetPoint(i-1, 0.5*(ptadt+ptamc),
 		   100*(pa0dt->GetBinContent(j) / pa0mc->GetBinContent(j)-1));
     ga0r->SetPointError(i-1,0.5*(pptadt->GetBinError(i)+pptamc->GetBinError(i)),
 			sqrt(pow(pa0dt->GetBinError(j)/pa0dt->GetBinContent(j),2)+pow(pa0mc->GetBinError(j)/pa0mc->GetBinContent(j),2)) *
 			pa0dt->GetBinContent(j) / pa0mc->GetBinContent(j)*100);
+
+    ga0rup->SetPoint(i-1, 0.5*(ptadt+ptamc),
+		     100*(pa0dt->GetBinContent(j)/pamcup->GetBinContent(j)-1));
+    ga0rup->SetPointError(i-1,0.5*(pptadt->GetBinError(i)+pptamc->GetBinError(i)),sqrt(pow(pa0dt->GetBinError(j)/pa0dt->GetBinContent(j),2)+pow(pamcup->GetBinError(j)/pamcup->GetBinContent(j),2)) * pa0dt->GetBinContent(j) / pamcup->GetBinContent(j)*100);
+    ga0rdw->SetPoint(i-1, 0.5*(ptadt+ptamc),
+		     100*(pa0dt->GetBinContent(j)/pamcdw->GetBinContent(j)-1));
+    ga0rdw->SetPointError(i-1,0.5*(pptadt->GetBinError(i)+pptamc->GetBinError(i)),sqrt(pow(pa0dt->GetBinError(j)/pa0dt->GetBinContent(j),2)+pow(pamcdw->GetBinError(j)/pamcdw->GetBinContent(j),2)) * pa0dt->GetBinContent(j) / pamcdw->GetBinContent(j)*100);
     //
     double mw = 80.4;
     gdt->SetPoint(i-1, ptdt, pdt->GetBinContent(j)/mw);
@@ -2859,16 +2850,25 @@ void hadW::Draw(string s) {//string sdt, string smc) {
     gadt->SetPointError(i-1, pptadt->GetBinError(i), padt->GetBinError(j)/mw);
     gamc->SetPoint(i-1, ptamc, pamc->GetBinContent(j)/mw);
     gamc->SetPointError(i-1, pptamc->GetBinError(i), pamc->GetBinError(j)/mw);
+    gamcup->SetPoint(i-1, ptamc, pamcup->GetBinContent(j)/mw);
+    gamcup->SetPointError(i-1,pptamc->GetBinError(i),pamcup->GetBinError(j)/mw);
+    gamcdw->SetPoint(i-1, ptamc, pamcdw->GetBinContent(j)/mw);
+    gamcdw->SetPointError(i-1,pptamc->GetBinError(i),pamcdw->GetBinError(j)/mw);
     gar->SetPoint(i-1, 0.5*(ptadt+ptamc),
 		  padt->GetBinContent(j) / pamc->GetBinContent(j));
     gar->SetPointError(i-1, 0.5*(pptadt->GetBinError(i)+pptamc->GetBinError(i)),
 		       sqrt(pow(padt->GetBinError(j)/padt->GetBinContent(j),2)+pow(pamc->GetBinError(j)/pamc->GetBinContent(j),2)) *
 		       padt->GetBinContent(j) / pamc->GetBinContent(j));
+    garup->SetPoint(i-1, 0.5*(ptadt+ptamc),
+		    padt->GetBinContent(j) / pamcup->GetBinContent(j));
+    garup->SetPointError(i-1,0.5*(pptadt->GetBinError(i)+pptamc->GetBinError(i)), sqrt(pow(padt->GetBinError(j)/padt->GetBinContent(j),2)+pow(pamcup->GetBinError(j)/pamcup->GetBinContent(j),2)) * padt->GetBinContent(j) / pamcup->GetBinContent(j));
+    gardw->SetPoint(i-1, 0.5*(ptadt+ptamc),
+		    padt->GetBinContent(j) / pamcdw->GetBinContent(j));
+    gardw->SetPointError(i-1,0.5*(pptadt->GetBinError(i)+pptamc->GetBinError(i)), sqrt(pow(padt->GetBinError(j)/padt->GetBinContent(j),2)+pow(pamcdw->GetBinError(j)/pamcdw->GetBinContent(j),2)) * padt->GetBinContent(j) / pamcdw->GetBinContent(j));
   } // for i
 
   TH1D *hup2 = tdrHist("hup2","#LTm_{W}#GT (GeV)",75.0+1e-5,90.0-1e-5,
 		       "p_{T,jets} (GeV)",30,200);
-  //TH1D *hdw2 = tdrHist("hdw2","Data/MC-1 (%)",-1.2,+1.1,
   TH1D *hdw2 = tdrHist("hdw2","Data/MC-1 (%)",-3.5,+2.0,
 		       "p_{T,jets} (GeV)",30,200);
 
@@ -2880,10 +2880,12 @@ void hadW::Draw(string s) {//string sdt, string smc) {
   l->DrawLine(30,80.4,200,80.4);
   tdrDraw(pb0dt,"Pz",kFullCircle,kCyan+2);
   tdrDraw(pb0mc,"Pz",kOpenCircle,kCyan+2);
-  tdrDraw(gb0dt,"Pz",kFullCircle,kCyan+3);
-  tdrDraw(gb0mc,"Pz",kOpenCircle,kCyan+3);
+  //tdrDraw(gb0dt,"Pz",kFullCircle,kCyan+3);
+  //tdrDraw(gb0mc,"Pz",kOpenCircle,kCyan+3);
   tdrDraw(pa0dt,"Pz",kFullDiamond,kMagenta+1);
   tdrDraw(pa0mc,"Pz",kOpenDiamond,kMagenta+2);
+  tdrDraw(ga0mcup,"Pz",kDot,kMagenta+2,kDotted);
+  tdrDraw(ga0mcdw,"Pz",kDot,kMagenta+2,kDotted);
   pa0dt->SetMarkerSize(1.5);
   pa0mc->SetMarkerSize(1.5);
   // Check that L3Res was correctly removed
@@ -2894,11 +2896,15 @@ void hadW::Draw(string s) {//string sdt, string smc) {
   gb0mc->GetXaxis()->SetTitle("p_{T,jets} (GeV)");
   gdt->GetXaxis()->SetTitle("p_{T,jets} (GeV)");
   gmc->GetXaxis()->SetTitle("p_{T,jets} (GeV)");
+  gmcup->GetXaxis()->SetTitle("p_{T,jets} (GeV)");
+  gmcdw->GetXaxis()->SetTitle("p_{T,jets} (GeV)");
   //
   gb0dt->GetYaxis()->SetTitle("m_{W,0} (GeV)");
   gb0mc->GetYaxis()->SetTitle("m_{W,0} (GeV)");
   gdt->GetYaxis()->SetTitle("m_{W,0}/m_{W,PDG} (GeV)");
   gmc->GetYaxis()->SetTitle("m_{W,0}/m_{W,PDG} (GeV)");
+  gmcup->GetYaxis()->SetTitle("m_{W,0,FSRup}/m_{W,PDG} (GeV)");
+  gmcdw->GetYaxis()->SetTitle("m_{W,0,FSRdw}/m_{W,PDG} (GeV)");
 
   tex->DrawLatex(0.40,0.84,Form("fitProb>%1.2g",fitProbRef));
   tex->DrawLatex(0.40,0.78,Form("|#eta_{j}| < %1.1f",etaMax));
@@ -2925,6 +2931,8 @@ void hadW::Draw(string s) {//string sdt, string smc) {
   //tdrDraw(gr,"Pz",kFullCircle,kBlack);
   tdrDraw(pa0r,"Pz",kFullDiamond,kMagenta+1);
   tdrDraw(ga0r,"Pz",kFullDiamond,kMagenta+2);
+  tdrDraw(ga0rup,"Pz",kDot,kMagenta+2,kDotted);
+  tdrDraw(ga0rdw,"Pz",kDot,kMagenta+2,kDotted);
   pa0r->SetMarkerSize(1.5);
 
   gb0r->GetXaxis()->SetTitle("p_{T,jets} (GeV)");
@@ -2933,8 +2941,6 @@ void hadW::Draw(string s) {//string sdt, string smc) {
   gb0r->GetYaxis()->SetTitle("m_{W,0,data}/m_{W,0,MC}-1 (%)");
   gr->GetYaxis()->SetTitle("m_{W,0,data}/m_{W,0,MC}");
 
-  //c2->SaveAs("pdf/hadW0_MPDGcorrNoW.pdf");
-  //c2->SaveAs("pdf/hadW0_UL17V5_MPDGcorrNoW.pdf");
   c2->SaveAs(Form("pdf/hadW0_%s_MPDGcorrNoW.pdf",c));
   
   fout->cd();
@@ -2952,12 +2958,26 @@ void hadW::Draw(string s) {//string sdt, string smc) {
   hadt->Write("data_nevents_ptave_hadw_fitprob02_L1L2L3");
   hamc->Write("mc_nevents_ptave_hadw_fitprob02_L1L2L3");
   har->Write("ratio_nevents_ptave_hadw_fitprob02_L1L2L3");
+  //
+  hrhodt->Write("data_rho_ptave_hadw_fitprob02_L1L2L3");
+  hrhomc->Write("mc_rho_ptave_hadw_fitprob02_L1L2L3");
+  hrhor->Write("ratio_rho_ptave_hadw_fitprob02_L1L2L3");
+  hmusdt->Write("data_mus_hadw_fitprob02_L1L2L3");
+  hmudt->Write("data_mu_hadw_fitprob02_L1L2L3");
+  hmumc->Write("mc_mus_hadw_fitprob02_L1L2L3");
+  hmumc->Write("mc_mu_hadw_fitprob02_L1L2L3");
+  hmusr->Write("ratio_mus_hadw_fitprob02_L1L2L3");
+  hmur->Write("ratio_mu_hadw_fitprob02_L1L2L3");
   ga0dt->Write("data_mass_ptave_hadw_fitprob02_L1L2L3Res",TObject::kOverwrite);
   ga0mc->Write("mc_mass_ptave_hadw_fitprob02_L1L2L3Res",TObject::kOverwrite);
   ga0r->Write("ratio_mass_ptave_hadw_fitprob02_L1L2L3Res",TObject::kOverwrite);
   gadt->Write("data_mass_ptave_hadw_fitprob02_L1L2L3",TObject::kOverwrite);
   gamc->Write("mc_mass_ptave_hadw_fitprob02_L1L2L3",TObject::kOverwrite);
+  gamcup->Write("mc_massup_ptave_hadw_fitprob02_L1L2L3",TObject::kOverwrite);
+  gamcdw->Write("mc_massdw_ptave_hadw_fitprob02_L1L2L3",TObject::kOverwrite);
   gar->Write("ratio_mass_ptave_hadw_fitprob02_L1L2L3",TObject::kOverwrite);
+  garup->Write("ratio_massup_ptave_hadw_fitprob02_L1L2L3",TObject::kOverwrite);
+  gardw->Write("ratio_massdw_ptave_hadw_fitprob02_L1L2L3",TObject::kOverwrite);
   }
   if (fabs(fitProbRef-0.01)<1e-3) {
   hdt->Write("data_nevents_ptboth_hadw_fitprob001_L1L2L3");
@@ -2973,12 +2993,25 @@ void hadW::Draw(string s) {//string sdt, string smc) {
   hadt->Write("data_nevents_ptave_hadw_fitprob001_L1L2L3");
   hamc->Write("mc_nevents_ptave_hadw_fitprob001_L1L2L3");
   har->Write("ratio_nevents_ptave_hadw_fitprob001_L1L2L3");
+  hrhodt->Write("data_rho_ptave_hadw_fitprob001_L1L2L3");
+  hrhomc->Write("mc_rho_ptave_hadw_fitprob001_L1L2L3");
+  hrhor->Write("ratio_rho_ptave_hadw_fitprob001_L1L2L3");
+  hmusdt->Write("data_mus_hadw_fitprob001_L1L2L3");
+  hmudt->Write("data_mu_hadw_fitprob001_L1L2L3");
+  hmumc->Write("mc_mus_hadw_fitprob001_L1L2L3");
+  hmumc->Write("mc_mu_hadw_fitprob001_L1L2L3");
+  hmusr->Write("ratio_mus_hadw_fitprob001_L1L2L3");
+  hmur->Write("ratio_mu_hadw_fitprob001_L1L2L3");
   ga0dt->Write("data_mass_ptave_hadw_fitprob001_L1L2L3Res",TObject::kOverwrite);
   ga0mc->Write("mc_mass_ptave_hadw_fitprob001_L1L2L3Res",TObject::kOverwrite);
   ga0r->Write("ratio_mass_ptave_hadw_fitprob001_L1L2L3Res",TObject::kOverwrite);
   gadt->Write("data_mass_ptave_hadw_fitprob001_L1L2L3",TObject::kOverwrite);
   gamc->Write("mc_mass_ptave_hadw_fitprob001_L1L2L3",TObject::kOverwrite);
+  gamcup->Write("mc_massup_ptave_hadw_fitprob001_L1L2L3",TObject::kOverwrite);
+  gamcdw->Write("mc_massdw_ptave_hadw_fitprob001_L1L2L3",TObject::kOverwrite);
   gar->Write("ratio_mass_ptave_hadw_fitprob001_L1L2L3",TObject::kOverwrite);
+  garup->Write("ratio_massup_ptave_hadw_fitprob001_L1L2L3",TObject::kOverwrite);
+  gardw->Write("ratio_massdw_ptave_hadw_fitprob001_L1L2L3",TObject::kOverwrite);
   }
   fout->Close();
 
@@ -2995,21 +3028,8 @@ void hadW::DrawFP(string spt, string mode) {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
-  //TFile *fdt = new TFile("rootfiles/hadWUL17.root","READ");
-  //TFile *fdt = new TFile("rootfiles/hadWUL18.root","READ");
-  //TFile *fdt = new TFile("rootfiles/hadWUL18V4_MPDGcorrNoW.root","READ");
-  //TFile *fdt = new TFile("rootfiles/hadWUL17V5_MPDGcorrNoW.root","READ");
-  //TFile *fdt = new TFile("rootfiles/hadWUL17V5_MPDGcorrNoW.root","READ");
-  //TFile *fdt = new TFile(Form("rootfiles/hadWUL%s_MPDGcorrNoW.root",cm),"READ");
-  //TFile *fdt = new TFile(Form("rootfiles/hadWUL%s_EMUF.root",cm),"READ");
   TFile *fdt = new TFile(Form("rootfiles/hadWUL%s_Glu.root",cm),"READ");
   assert(fdt && !fdt->IsZombie());
-  //TFile *fmc = new TFile("rootfiles/hadWMC17.root","READ");
-  //TFile *fmc = new TFile("rootfiles/hadWMC18.root","READ");
-  //TFile *fmc = new TFile("rootfiles/hadWMC18V4_MPDGcorrNoW.root","READ");
-  //TFile *fmc = new TFile("rootfiles/hadWMC17V5_MPDGcorrNoW.root","READ");
-  //TFile *fmc = new TFile(Form("rootfiles/hadWMC%s_MPDGcorrNoW.root",cm),"READ");
-  //TFile *fmc = new TFile(Form("rootfiles/hadWMC%s_EMUF.root",cm),"READ");
   TFile *fmc = new TFile(Form("rootfiles/hadWMC%s_Glu.root",cm),"READ");
   assert(fdt && !fdt->IsZombie());
   curdir->cd();
@@ -3060,7 +3080,6 @@ void hadW::DrawFP(string spt, string mode) {
   TH1D *hup = tdrHist("hupfp","#LTm_{W,0}#GT (GeV)",75.1+1e-5,90.1-1e-5,
 		      "p_{T,jets} (GeV)",30,200);
   double djec = 0.3; // New L3Res
-  //TH1D *hdw = tdrHist("hdwfp","Data/MC-1 (%)",-1.9+djec,+0.9+djec,
   TH1D *hdw = tdrHist("hdwfp","Data/MC-1 (%)",-3.5,2.0,
 		      "p_{T,jets} (GeV)",30,200);
   if (spt=="ptboth") hdw->SetXTitle("p_{T,jets} (GeV)");
@@ -3144,16 +3163,8 @@ void hadW::DrawRMS(string s) {
   
   setTDRStyle();
   TDirectory *curdir = gDirectory;
-  //TFile *fdt = new TFile("rootfiles/hadWUL18V4_MPDGcorrNoW.root","READ");
-  //TFile *fdt = new TFile("rootfiles/hadWUL17V5_MPDGcorrNoW.root","READ");
-  //TFile *fdt = new TFile(Form("rootfiles/hadWUL%s_MPDGcorrNoW.root",c),"READ");
-  //TFile *fdt = new TFile(Form("rootfiles/hadWUL%s_EMUF.root",c),"READ");
   TFile *fdt = new TFile(Form("rootfiles/hadWUL%s_Glu.root",c),"READ");
   assert(fdt && !fdt->IsZombie());
-  //TFile *fmc = new TFile("rootfiles/hadWMC18V4_MPDGcorrNoW.root","READ");
-  //TFile *fmc = new TFile("rootfiles/hadWMC17V5_MPDGcorrNoW.root","READ");
-  //TFile *fmc = new TFile(Form("rootfiles/hadWMC%s_MPDGcorrNoW.root",c),"READ");
-  //TFile *fmc = new TFile(Form("rootfiles/hadWMC%s_EMUF.root",c),"READ");
   TFile *fmc = new TFile(Form("rootfiles/hadWMC%s_Glu.root",c),"READ");
   assert(fdt && !fdt->IsZombie());
   curdir->cd();
@@ -3263,8 +3274,6 @@ void hadW::DrawRMS(string s) {
   gPad->SetLogx();
   tdrDraw(hrms,"Pz",kFullCircle,kBlack);
 
-  //c1->SaveAs("pdf/hadw_drawRMS_ptave_MPDGcorrNoW.pdf");
-  //c1->SaveAs("pdf/hadw_drawRMS_ptave_UL17V5_MPDGcorrNoW.pdf");
   c1->SaveAs(Form("pdf/hadw_drawRMS_ptave_%s_MPDGcorrNoW.pdf",c));
 } // DrawRMS
 
@@ -3275,19 +3284,9 @@ void hadW::Draw2D(string set) {
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
-  //TFile *f = new TFile("rootfiles/hadWMC17_v2.root","READ");
-  //TFile *f = new TFile(Form("rootfiles/hadW%s_v2.root",set.c_str()),"READ");
-  //TFile *f = new TFile(Form("rootfiles/hadW%s.root",set.c_str()),"READ");
-  //TFile *f = new TFile(Form("rootfiles/hadW%s_EMUF2.root",set.c_str()),"READ");
   TFile *f = new TFile(Form("rootfiles/hadW%s_Glu2.root",set.c_str()),"READ");
   assert(f && !f->IsZombie());
 
-  //TFile *fout = new TFile("rootfiles/hadW.root","UPDATE");
-  //TFile *fout = new TFile("rootfiles/hadWUL18.root","UPDATE");
-  //TFile *fout = new TFile("rootfiles/hadWUL18V4_MPDGcorrNoW.root","UPDATE");
-  //TFile *fout = new TFile("rootfiles/hadWUL17V5_MPDGcorrNoW.root","UPDATE");
-  //TFile *fout = new TFile(Form("rootfiles/hadW%s_MPDGcorrNoW.root",set.c_str()),
-  //TFile *fout = new TFile(Form("rootfiles/hadW%s_EMUF.root",set.c_str()),
   TFile *fout = new TFile(Form("rootfiles/hadW%s_Glu.root",set.c_str()),
 			  "UPDATE");
   assert(fout && !fout->IsZombie());

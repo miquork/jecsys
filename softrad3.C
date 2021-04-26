@@ -404,9 +404,11 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      // ru = -2*Pu / (1 - Pu) <=> ru-ru*Pu=-2*Pu <=> Pu=-ru/(2-ru)
 	      double k = 1; // extra fudge factor => fixed in fma, fpa
 	      double Pnd = k*rn/(2+rn);
-	      double Pud = +k*ru/(2-ru); // Orig. PU had extra minus sign
+	      //double Pud = +k*ru/(2-ru); // Orig. PU had extra minus sign
+	      double Pud = k*ru/(2+ru); // Now fixed?
 	      double Pnm = k*qn/(2+qn);
-	      double Pum = +k*qu/(2-qu); // Orig. PU had extra minus sign
+	      //double Pum = +k*qu/(2-qu); // Orig. PU had extra minus sign
+	      double Pum = k*qu/(2+qu); // Now fixed?
 
 	      double Rd(0), Rm(0), dR(0), dR_d(0), dR_m(0);
 	      double xmin(0.1), xmax(1.9);
