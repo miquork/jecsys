@@ -96,6 +96,7 @@ bool useP6L1RC = true;   // Offset bias (def:true)
 bool useP7TrkD = true;   // Tracking without CHF change (def:true)
 bool useP8MB80pf = false;   // MinBias xsec=80 mb PF fractions (def:false)
 bool useP8MB80fit = false;  // MinBias xsec=80 mb (def:false)
+bool useP8Flv = true;    // Z+jet / Z+q response shape (def:true)
 
 // Other fit settings
 const int njesFit = 9;   // Number of fit parameters (def:9)
@@ -171,7 +172,7 @@ Double_t fitError(Double_t *xx, Double_t *p);
 TF1 *fhb(0), *fl1(0); // Run I functions
 TF1 *ft(0), *fc(0), *fcx(0); // Deprecating shapes
 TF1 *ftd(0), *ftm(0), *fhx(0), *fhh(0), *feh(0), *fp(0), *fhw(0); // Fit shapes
-TF1 *fm80(0); // new and experimental
+TF1 *fm80(0), *f1q3(0); // new and experimental
 string _epoch ="";
 Double_t jesFit(Double_t *x, Double_t *p) {
   
@@ -232,6 +233,10 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   //fl1->SetParameters(1.72396, 0, 0); // UL17 V1S hl1bias (p1=p2=0) (UL17_V1)
   fl1->SetParameters(0.350077, 0.553560, -0.0527681); // BCDEF hl1rcos (RC vs Simple)
 
+  // Z+q vs Z+jet for |eta|<1.3 from minitools/Zflavor.C through Flavor.C
+  // Extrapolated from [45,300] GeV range (1.02@45 to 1.06@15, so quite far)
+  if (!f1q3) f1q3 = new TF1("f1q3","1+0.01*([0]+[1]*(pow(0.01*x,[2])-1))",15,3500);
+  f1q3->SetParameters(0.7966, 0.9311, -1);
 
   double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
   // (or used to minimize in Run I: for Run II, 208.*sqrt(13/8)=265)
@@ -298,6 +303,7 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 	    + (useP6L1RC ? p[6]*(fl1->Eval(pt)-1) : 0) // L1RC-L1Simple diff.
 	    + (useP7TrkD ? p[7]*0.01*3*(ftd->Eval(pt)-ftm->Eval(pt)) : 0) // Tracker Data-MC ('3%' vs '1%' for useP0Trk)
 	    + (useP8MB80fit ? p[8]*0.01*fm80->Eval(pt) : 0)
+	    + (useP8Flv  ? p[8]*(1-f1q3->Eval(pt)) : 0)
 	    ) / jesref; // Divide by reference JEC for closure
   } // nJesFit==9
 
@@ -2213,7 +2219,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   if (!_paper && njesFit==9) {
 
     const char *name[] = {"trk","ph","hx","hh","he",
-			  "hw","rc","td","mb"};
+			  "hw","rc","td","flv"};//"mb"};
 
     tex->DrawLatex(0.54,0.70-0.09,Form("Full 9-par model"));
 

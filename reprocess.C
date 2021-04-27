@@ -63,6 +63,9 @@ bool correctMultijetRecoilScale = true; // recoil JES relative to leading JES (d
 double multijetRecoilScale = 1.000; // Extra data/MC difference in recoil JES
 bool useMultijetRecoilScaleFunction = true; // Implement function
 bool halveMultijetRecoilScaleFunction = false; // Halve effect for UL16
+bool snipeMultijetBins = true; // remove individual outliers from multijets
+bool snipeIncjetBins = true; // remove individual outliers from inclusive jets
+bool snipeZlljetBins = true; // remove individual outliers from Zll+jet
 
 // Which binning to use for PF composition ("tp","pt", "both" or "none" (off))
 string pfMode = "tp"; // "both" not supported at the moment
@@ -189,7 +192,10 @@ void reprocess(string epoch="") {
 
   // Multijet switches
   if (isUL16) { 
-    fmultijetptmin = 153;//230;//114; //153;
+    // 153/V6 1.2%; 700 0.4%, 800,900 0.35%, 1000 goes up again
+    // sniping: 700 0.3%, 153 1.2%, 230 1.1%, 400 1%, 500 0.9%, 600 0.5%
+    // 700: 0.2%, 800/900 0.1%, 600 0.3%
+    fmultijetptmin = 800;//700;//900;//700;//153;//700;//153;//230;//114; //153;
     //if (!isAPV) fmultijetptmin = 430;
     fmultijetptmax = 2116;//2684;
 
@@ -219,10 +225,12 @@ void reprocess(string epoch="") {
   // Z+jet switches
   if (isUL16) {
     // Z+jet pT<35 GeV biased?
-    fzllmpfptmin = 35;
-    fzllmpfptmax = 400;
-    if (!isAPV) fzllmpfptmax = 230;
-    fzllbalptmin = 35;
+    fzllmpfptmin = 30;//25;//30;//35;
+    if (!isAPV) fzllmpfptmin = 35;
+    fzllmpfptmax = 230;//400;
+    //if (!isAPV) fzllmpfptmax = 230;
+    fzllbalptmin = 30;//25;//30;//35;
+    if (!isAPV) fzllbalptmin = 35;
     fzllbalptmax = 175;
   }
   if (isUL18 && CorLevel=="L1L2Res") {
@@ -247,7 +255,7 @@ void reprocess(string epoch="") {
   // Inclusive jet switches
   if (isUL16) {
     fincjetptmin = 21;
-    if (epoch=="2016EF") fincjetptmin = 64;
+    //if (epoch=="2016EF") fincjetptmin = 64;
   }
 
 
@@ -2433,6 +2441,36 @@ void reprocess(string epoch="") {
 		  g->SetPoint(i, pt, g->GetY()[i] * multijetRecoilScale);
 	      }
 	    }
+	    // Remove targeted single outliers from multijet results
+	    if (snipeMultijetBins && s=="multijet") {
+	      for (int i = g->GetN()-1; i != -1; --i) {
+		double pt = g->GetX()[i];
+		//if (epoch=="2016BCDEF" && fabs(pt-1400)<100) {
+		if (isUL16 && isAPV && fabs(pt-1400)<100) {
+		  g->RemovePoint(i);
+		}
+	      }
+	    }
+	    // Remove targeted single outliers from inclusive jet results
+	    if (snipeIncjetBins && s=="incjet") {
+	      for (int i = g->GetN()-1; i != -1; --i) {
+		double pt = g->GetX()[i];
+		if (isUL16 && isAPV && fabs(pt-69)<5) {
+		  g->RemovePoint(i);
+		}
+	      }
+	    }
+	    // Remove targeted single outliers from Zll+jet results
+	    if (snipeZlljetBins && s=="zlljet") {
+	      for (int i = g->GetN()-1; i != -1; --i) {
+		double pt = g->GetX()[i];
+		//if (isUL16 && isAPV && epoch=="2016BCD" && fabs(pt-60)<10) {
+		if (isUL16 && isAPV && fabs(pt-65)<5) {
+		  g->RemovePoint(i);
+		}
+	      }
+	    }
+	    
 
 	    dout->cd("orig");
 	    g_orig->Write();

@@ -8,7 +8,16 @@
 
 #include "../tdrstyle_mod15.C"
 
-void drawJESunc(string set = "2016EF") {
+void drawJESuncSet(string set);
+void drawJESunc() {
+  drawJESuncSet("2016BCD");
+  drawJESuncSet("2016EF");
+  drawJESuncSet("2016BCDEF");
+  drawJESuncSet("2016GH");
+}
+
+void drawJESuncSet(string set) {
+//void drawJESunc(string set = "2016EF") {
 //void drawJESunc(string set = "2016BCD") {
 //void drawJESunc(string set = "2016BCDEF") {
   //void drawJESunc(string set = "2016GH") {
@@ -27,7 +36,10 @@ void drawJESunc(string set = "2016EF") {
   
   curdir->cd();
 
-  TH1D *hjes = (TH1D*)f->Get("ratio/eta00-13/sys/hjesfit"); assert(hjes);
+  //TH1D *hjes = (TH1D*)f->Get("ratio/eta00-13/sys/hjesfit"); assert(hjes);
+  TH1D *hjes = (TH1D*)f->Get("ratio/eta00-13/sys/hjesfit2"); assert(hjes);
+  TH1D *hjes_l2l3res = (TH1D*)f->Get("ratio/eta00-13/herr_l2l3res");
+  assert(hjes_l2l3res);
 
   int neig(0);
   TH1D *heig(0);
@@ -42,6 +54,15 @@ void drawJESunc(string set = "2016EF") {
   TH1D *hpar(0);
   vector<TH1D*> vhp;
   while ((hpar=(TH1D*)f->Get(Form("ratio/eta00-13/sys/hjesfit_par%d",npar)))) {
+    
+    // Rescale uncertainties around reference JES
+    for (int i = 1; i != hpar->GetNbinsX()+1; ++i) {
+      //int j = hjes_l2l3res->FindBin(hpar->GetBinCenter(i));
+      //double r = hjes_l2l3res->GetBinContent(j);
+      double r = hjes_l2l3res->Interpolate(hpar->GetBinCenter(i));
+      hpar->SetBinContent(i, hpar->GetBinContent(i)*r);
+    } // for i
+
     vhp.push_back(hpar);
     ++npar;
   }
@@ -49,11 +70,15 @@ void drawJESunc(string set = "2016EF") {
 
   // Turn hjesfit into uncertainty band in %'s around zero
   TH1D *herr = (TH1D*)hjes->Clone("herr");
+  //TH1D *herr_l2l3res = (TH1D*)hjes_l2l3res->Clone("herr_l2l3res");
   for (int i = 1; i != hjes->GetNbinsX()+1; ++i) {
+    //double j = hjes_l2l3res->FindBin(herr->GetBinCenter(i));
+    //double r = hjes_l2l3res->GetBinContent(j);
+    double r = hjes_l2l3res->Interpolate(herr->GetBinCenter(i));
     herr->SetBinError(i, 100.*hjes->GetBinError(i));///hjes->GetBinContent(i));
     herr->SetBinContent(i, 0);
     hjes->SetBinContent(i, 100.*(hjes->GetBinContent(i)-1));
-    hjes->SetBinError(i, 100.*hjes->GetBinError(i));
+    hjes->SetBinError(i, 100.*r*hjes->GetBinError(i));
   }
 
   double ptmin = 15;
@@ -118,7 +143,8 @@ void drawJESunc(string set = "2016EF") {
 		     //0.97,1.02,
 		     //-3,+2,
 		     //-2.5,+3, // UL17
-		     -3.5,+3.5, // UL16
+		     //-3.5,+3.5, // UL16
+		     -6.0,+10.0, // UL16V7
 		     "p_{T} (GeV)",ptmin,ptmax);
   TCanvas *c2 = tdrCanvas("c2",h2,4,0,kSquare);
   gPad->SetLogx();
@@ -135,7 +161,8 @@ void drawJESunc(string set = "2016EF") {
   leg2->AddEntry(hjes,"Total JES","FL");
 
   string names[] = {"Tracker","Photon","Hadron","HCAL","ECAL",
-		    "Herwig","L1RC","Trk data","#sigma_{MB}"};
+		    "Herwig","L1RC","Trk data","R_{Z+jet}-R_{q}"};
+		    //"#sigma_{MB}"};
   
   TH1D *sumhp = (TH1D*)vhp[0]->Clone("sumhp"); sumhp->Reset();
   for (int i = 0; i != vhp.size(); ++i) {
@@ -231,7 +258,8 @@ void drawJESunc(string set = "2016EF") {
 
   TH1D *h3 = tdrHist("h3","Cumulative JES components",
 		     //-3.5,+2, // UL17
-		     -3.5,+2, // UL16
+		     //-3.5,+2, // UL16
+		     -6.0,+10.0, // UL16V7
 		     "p_{T} (GeV)",ptmin,ptmax);
   TCanvas *c3 = tdrCanvas("c3",h3,4,0,kSquare);
   gPad->SetLogx();

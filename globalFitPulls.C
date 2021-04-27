@@ -11,10 +11,20 @@
 
 #include <string>
 
+void globalFitPull(string set);
+
+void globalFitPulls() {
+  globalFitPull("2016BCD");
+  globalFitPull("2016EF");
+  globalFitPull("2016BCDEF");
+  globalFitPull("2016GH");
+}
+
 //void globalFitPulls(string set="2016BCDEF") {
 //void globalFitPulls(string set="2016GH") {
-void globalFitPulls(string set="2016BCD") {
+//void globalFitPulls(string set="2016BCD") {
   //void globalFitPulls(string set="2016EF") {
+void globalFitPull(string set) { // singular
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
@@ -31,64 +41,6 @@ void globalFitPulls(string set="2016BCD") {
 
   // Map names to better ones for graph
   map<string,const char*> mpar;
-  mpar["bm1_fsru1"] = "Multijet HDM uncl.";
-  mpar["bm4_fsru1"] = "Z(ll)+jet HDM uncl.";
-  mpar["bm16_fsru1"] = "Multijet HDM uncl. v2";
-  mpar["bm32_hkfsr_mpfchs1_gamjet_eig0"] = "#gamma+jet MPF s_{0}";
-  mpar["bm64_fsru1"] = "Z(ll)+jet HDM uncl. v2";
-  mpar["bm1_fsrn1"] = "Multijet HDM jets";
-  mpar["bm4_fsrn1"] = "Z(ll)+jet HDM jets";
-  mpar["bm16_fsrn1"] = "Multijet HDM jets v2";
-  mpar["bm32_hkfsr_mpfchs1_gamjet_eig1"] = "s_{1}";//"#gamma+jet MPF s_{1}";
-  mpar["bm64_fsrn1"] = "Z(ll)+jet HDM jets v2";
-  //
-  mpar["bm1_hkfsr_ptchs_multijet_eig0"] = "Multijet p_{T} s_{0}";
-  mpar["bm2_hkfsr_ptchs_gamjet_eig0"] = "#gamma+jet p_{T} s_{0}";
-  mpar["bm4_hkfsr_ptchs_zlljet_eig0"] = "Z(ll)+jet p_{T} s_{0}";
-  mpar["bm8_hkfsr_mpfchs1_multijet_eig0"] = "Multijet MPF s_{0}";
-  mpar["bm16_hkfsr_mpfchs1_gamjet_eig0"] = "#gamma+jet MPF s_{0}";
-  mpar["bm32_hkfsr_mpfchs1_zlljet_eig0"] = "Z(ll)+jet MPF s_{0}";
-  mpar["bm1_hkfsr_ptchs_multijet_eig1"] = "s_{1}";//"multijet p_{T} s_{1}";
-  mpar["bm2_hkfsr_ptchs_gamjet_eig1"] = "s_{1}";//"#gamma+jet p_{T} s_{1}";
-  mpar["bm4_hkfsr_ptchs_zlljet_eig1"] = "s_{1}";//"Z(ll)+jet p_{T} s_{1}";
-  mpar["bm8_hkfsr_mpfchs1_multijet_eig1"] = "s_{1}";//"multijet MPF s_{1}";
-  mpar["bm16_hkfsr_mpfchs1_gamjet_eig1"] = "s_{1}";//"#gamma+jet MPF s_{1}";
-  mpar["bm32_hkfsr_mpfchs1_zlljet_eig1"] = "s_{1}";//"Z(ll)+jet MPF s_{1}";
-  //
-  mpar["bm34_scale_050_gamjet"] = "#gamma scale (0.5%)";
-  mpar["bm68_scale_010_zlljet"] = "Z(ll) scale (0.1%)";
-  mpar["bm32_mpfscale_02_mpfchs1_gamjet"] ="#gamma+jet MPF scale (0.2%)";
-  mpar["bm64_mpfscale_02_mpfchs1_zlljet"] = "Z(ll)+jet MPF scale (0.2%)";
-  //mpar["bm9_multijet_jer_src0"] = "multijet JER";
-  mpar["bm34_eesfromzee_gamjet_eig0"] = "EM scale s_{0}";
-  mpar["bm34_eesfromzee_gamjet_eig1"] = "s_{1}";//"EM scale s_{1}";
-  mpar["bm34_eesfromzee_gamjet_eig2"] = "s_{2}";//"EM scale s_{2}";
-  //
-  mpar["bm8_hadw_ptave_fitprob"] = "W>qq' fitProb s_{0}";
-  mpar["bm128_hadw_ptboth_fitprob"] = "W>qq' fitProb s_{2}";
-  mpar["bm8_hadw_ptave_fitprob2"] = "W>qq' fitProb s_{1}";
-  mpar["bm128_hadw_ptboth_fitprob2"] = "W>qq' fitProb s_{3}";
-  /*
-  mpar["bm1_hkfsr_ptchs_multijet_eig2"] = "s_{2}";//"multijet p_{T} s_{2}";
-  mpar["bm2_hkfsr_ptchs_gamjet_eig2"] = "s_{2}";//"#gamma+jet p_{T} s_{2}";
-  mpar["bm4_hkfsr_ptchs_zlljet_eig2"] = "s_{2}";//"Z(ll)+jet p_{T} s_{2}";
-  mpar["bm8_hkfsr_mpfchs1_multijet_eig2"] = "s_{2}";//"multijet MPF s_{2}";
-  mpar["bm16_hkfsr_mpfchs1_gamjet_eig2"] = "s_{2}";//"#gamma+jet MPF s_{2}";
-  mpar["bm32_hkfsr_mpfchs1_zlljet_eig2"] = "s_{2}";//"Z(ll)+jet MPF s_{2}";
-  mpar["bm1_hkfsr_ptchs_multijet_eig3"] = "s_{3}";//"multijet p_{T} s_{3}";
-  mpar["bm8_hkfsr_mpfchs1_multijet_eig3"] = "s_{3}";//"multijet MPF s_{3}";
-  mpar["bm16_hkfsr_mpfchs1_gamjet_eig3"] = "s_{3}";//"#gamma+jet MPF s_{3}";
-  mpar["bm32_hkfsr_mpfchs1_zlljet_eig3"] = "s_{3}";//"Z(ll)+jet MPF s_{3}";
-  */
-  mpar["bm18_scale_050_gamjet"] = "#gamma scale (0.5%)";
-  mpar["bm36_scale_020_zlljet"] = "Z(ll) scale (0.2%)";
-  mpar["bm16_mpfscale_02_mpfchs1_gamjet"] ="#gamma+jet MPF scale (0.2%)";
-  mpar["bm32_mpfscale_02_mpfchs1_zlljet"] = "Z(ll)+jet MPF scale (0.2%)";
-  mpar["bm9_multijet_jer_src0"] = "multijet JER";
-  mpar["bm18_eesfromzee_gamjet_eig0"] = "EM scale s_{0}";
-  mpar["bm18_eesfromzee_gamjet_eig1"] = "s_{1}";//"EM scale s_{1}";
-  mpar["bm18_eesfromzee_gamjet_eig2"] = "s_{2}";//"EM scale s_{2}";
-  //
   mpar["p0"] = "Tracks (p0)";
   mpar["p1"] = "Photons (p1)";
   mpar["p2"] = "Hadrons (p2)";
@@ -97,16 +49,40 @@ void globalFitPulls(string set="2016BCD") {
   mpar["p5"] = "Herwig (p5)";
   mpar["p6"] = "L1RC (p6)";
   mpar["p7"] = "Trk data (p7)";
+  //
+  mpar["bm68_scale_010_zlljet"] = "Z(ll) scale (0.10%)";
+  mpar["bm34_scale_020_gamjet"] = "#gamma scale (0.20%)";
+  mpar["bm34_eesfromzee_gamjet_eig0"] = "EM scale s_{0}";
+  mpar["bm34_eesfromzee_gamjet_eig1"] = "s_{1}";//"EM scale s_{1}";
+  mpar["bm34_eesfromzee_gamjet_eig2"] = "s_{2}";//"EM scale s_{2}";
+  mpar["bm34_hdmscale_020_mpfchs1_gamjet"] ="#gamma+jet HDM scale (0.20%)";
+  mpar["bm68_hdmscale_020_mpfchs1_zlljet"] = "Z(ll)+jet HDM scale (0.20%)";
+  //mpar["bm9_multijet_jer_src0"] = "multijet JER";
+  //
+  mpar["bm8_hadw_ptave_fitprob"] = "W>qq' fitProb (pTave) s_{0}";
+  mpar["bm8_hadw_ptave_fitprob2"] = "s_{1}";//W>qq' fitProb (pTave) s_{1}";
+  mpar["bm128_hadw_ptboth_fitprob"] = "W>qq' fitProb (pTboth) s_{0}";
+  mpar["bm128_hadw_ptboth_fitprob2"] = "s_{1}";//W>qq' fitProb (pTboth) s_{1}";
+  //
+  mpar["bm4_zlljet_fsru1"] = "Z(ll)+jet FSR uncl. (DB)";
+  mpar["bm4_zlljet_fsrn1"] = "Z(ll)+jet FSR jets (DB)";
+  mpar["bm1_multijet_fsru1"] = "Multijet FSR uncl. (DB)";
+  mpar["bm1_multijet_fsrn1"] = "Multijet FSR jets (DB)";
+  mpar["bm2_gamjet_hkfsr_ptchs_gamjet_eig0"] = "#gamma+jet FSR (DB) s_{0}";
+  mpar["bm2_gamjet_hkfsr_ptchs_gamjet_eig1"] = "s_{1}";//#gamma+jet FSR (DB) s_{0}";
+  //
+  mpar["bm32_gamjet_hkfsr_mpfchs1_gamjet_eig0"] = "#gamma+jet FSR (MPF) s_{0}";
+  mpar["bm32_gamjet_hkfsr_mpfchs1_gamjet_eig1"] = "s_{1}";
+  mpar["bm16_multijet_fsru1"] = "Multijet FSR uncl. (MPF)";
+  mpar["bm16_multijet_fsrn1"] = "Multijet FSR jets (MPF)";
+  mpar["bm64_zlljet_fsru1"] = "Z(ll)+jet FSR uncl. (MPF)";
+  mpar["bm64_zlljet_fsrn1"] = "Z(ll)+jet HDM jets (MPF)";
 
 
-
-  //TH1D *h = new TH1D("h",";(#hat{#theta}-#theta_{0})/#Delta#theta;",
-  //		     100,-2, 2);
   TH2D *h2 = new TH2D("h2",";(#hat{#theta}-#theta_{0})/#Delta#theta;",
 		      100,-3,+3,hp->GetNbinsX(),-0.5,hp->GetNbinsX()-0.5);
 
-  //TCanvas *c1 = tdrCanvas("c1",h,4,11,kSquare);
-  lumi_13TeV = set.c_str();//"UL17";
+  lumi_13TeV = set.c_str();
   if (set=="2016BCDEF") lumi_13TeV = "2016BCDEF";
   if (set=="2016GH")    lumi_13TeV = "2016GH";
   TCanvas *c2 = tdrCanvas("c2",(TH1D*)h2,4,0,kSquare);
@@ -144,64 +120,6 @@ void globalFitPulls(string set="2016BCD") {
   const int nfsr = 6+6; // FSR sources
   const int nf = 8 - 1; // number of fit parameters -1
   const int n = np - nfsr - 1;  // number of non-FSR sources -1
-  midx["bm1_fsru1"] = n+1;
-  midx["bm2_hkfsr_ptchs_gamjet_eig0"] = n+3;//2;
-  midx["bm2_hkfsr_ptchs_gamjet_eig1"] = n+4;//3;
-  midx["bm4_fsru1"] = n+5;//4;
-  midx["bm16_fsru1"] = n+7;//5;
-  midx["bm32_hkfsr_mpfchs1_gamjet_eig0"] = n+9;//6;
-  midx["bm64_fsru1"] = n+11;//7;
-  midx["bm1_fsrn1"] = n+2;//8;
-  midx["bm4_fsrn1"] = n+6;//9;
-  midx["bm16_fsrn1"] = n+8;//10;
-  midx["bm32_hkfsr_mpfchs1_gamjet_eig1"] = n+10;//11;
-  midx["bm64_fsrn1"] = n+12;//12;
-  //
-  midx["bm34_scale_050_gamjet"] = nf+2;
-  midx["bm68_scale_010_zlljet"] = nf+1;
-  midx["bm32_mpfscale_02_mpfchs1_gamjet"] = nf+7;
-  midx["bm64_mpfscale_02_mpfchs1_zlljet"] = nf+6;
-  midx["bm34_eesfromzee_gamjet_eig0"] = nf+3;
-  midx["bm34_eesfromzee_gamjet_eig1"] = nf+4;
-  midx["bm34_eesfromzee_gamjet_eig2"] = nf+5;
-  //
-  midx["bm8_hadw_ptave_fitprob"] = nf+8;
-  midx["bm128_hadw_ptboth_fitprob"] = nf+9;
-  midx["bm8_hadw_ptave_fitprob2"] = nf+10;
-  midx["bm128_hadw_ptboth_fitprob2"] = nf+11;
-  /*
-  // 
-  midx["bm32_hkfsr_mpfchs1_zlljet_eig0"] = n+1;
-  midx["bm32_hkfsr_mpfchs1_zlljet_eig1"] = n+2;
-  midx["bm16_hkfsr_mpfchs1_gamjet_eig0"] = n+3;//5;
-  midx["bm16_hkfsr_mpfchs1_gamjet_eig1"] = n+4;//6;
-  midx["bm8_hkfsr_mpfchs1_multijet_eig0"] = n+5;//9;
-  midx["bm8_hkfsr_mpfchs1_multijet_eig1"] = n+6;//10;
-  midx["bm4_hkfsr_ptchs_zlljet_eig0"] = n+7;//13;
-  midx["bm4_hkfsr_ptchs_zlljet_eig1"] = n+8;//14;
-  midx["bm2_hkfsr_ptchs_gamjet_eig0"] = n+9;//16;
-  midx["bm2_hkfsr_ptchs_gamjet_eig1"] = n+10;//17;
-  midx["bm1_hkfsr_ptchs_multijet_eig0"] = n+11;//19;
-  midx["bm1_hkfsr_ptchs_multijet_eig1"] = n+12;//20;
-  */
-  //midx["bm1_hkfsr_ptchs_multijet_eig2"] = n+21;
-  //midx["bm2_hkfsr_ptchs_gamjet_eig2"] = n+18;
-  //midx["bm4_hkfsr_ptchs_zlljet_eig2"] = n+15;
-  //midx["bm8_hkfsr_mpfchs1_multijet_eig2"] = n+11;
-  //midx["bm16_hkfsr_mpfchs1_gamjet_eig2"] = n+7;
-  //midx["bm32_hkfsr_mpfchs1_zlljet_eig2"] = n+3;
-  //midx["bm1_hkfsr_ptchs_multijet_eig3"] = n+22;
-  //midx["bm8_hkfsr_mpfchs1_multijet_eig3"] = n+12;
-  //midx["bm16_hkfsr_mpfchs1_gamjet_eig3"] = n+8;
-  //midx["bm32_hkfsr_mpfchs1_zlljet_eig3"] = n+4;
-  midx["bm18_scale_050_gamjet"] = nf+2;
-  midx["bm36_scale_020_zlljet"] = nf+1;
-  midx["bm16_mpfscale_02_mpfchs1_gamjet"] = nf+7;
-  midx["bm32_mpfscale_02_mpfchs1_zlljet"] = nf+6;
-  //midx["bm9_multijet_jer_src0"] = 7;
-  midx["bm18_eesfromzee_gamjet_eig0"] = nf+3;
-  midx["bm18_eesfromzee_gamjet_eig1"] = nf+4;
-  midx["bm18_eesfromzee_gamjet_eig2"] = nf+5;
   midx["p0"] = 0;
   midx["p1"] = 1;
   midx["p2"] = 2;
@@ -210,6 +128,33 @@ void globalFitPulls(string set="2016BCD") {
   midx["p5"] = 5;
   midx["p6"] = 6;
   midx["p7"] = 7;
+  //
+  midx["bm68_scale_010_zlljet"] = nf+1;
+  midx["bm34_scale_020_gamjet"] = nf+2;
+  midx["bm34_eesfromzee_gamjet_eig0"] = nf+3;
+  midx["bm34_eesfromzee_gamjet_eig1"] = nf+4;
+  midx["bm34_eesfromzee_gamjet_eig2"] = nf+5;
+  midx["bm34_hdmscale_020_mpfchs1_gamjet"] = nf+7;
+  midx["bm68_hdmscale_020_mpfchs1_zlljet"] = nf+6;
+  //
+  midx["bm8_hadw_ptave_fitprob"] = nf+8;
+  midx["bm8_hadw_ptave_fitprob2"] = nf+9;
+  midx["bm128_hadw_ptboth_fitprob"] = nf+10;
+  midx["bm128_hadw_ptboth_fitprob2"] = nf+11;
+  //
+  midx["bm4_zlljet_fsru1"] = n+1;
+  midx["bm4_zlljet_fsrn1"] = n+2;
+  midx["bm1_multijet_fsru1"] = n+3;
+  midx["bm1_multijet_fsrn1"] = n+4;
+  midx["bm2_gamjet_hkfsr_ptchs_gamjet_eig0"] = n+5;
+  midx["bm2_gamjet_hkfsr_ptchs_gamjet_eig1"] = n+6;
+  //
+  midx["bm64_zlljet_fsru1"] = n+7;
+  midx["bm64_zlljet_fsrn1"] = n+8;
+  midx["bm16_multijet_fsru1"] = n+9;
+  midx["bm16_multijet_fsrn1"] = n+10;
+  midx["bm32_gamjet_hkfsr_mpfchs1_gamjet_eig0"] = n+11;
+  midx["bm32_gamjet_hkfsr_mpfchs1_gamjet_eig1"] = n+12;
 
   bool reorder = true;
   if (reorder) {
@@ -237,6 +182,21 @@ void globalFitPulls(string set="2016BCD") {
       g2->SetPoint(j, g->GetX()[i], j);
       g2->SetPointError(j, g->GetEX()[i], 0);
       h2->GetYaxis()->SetBinLabel(j+1, mpar[spar]);
+      if (mpar[spar]==0) {
+	cout << "Label missing for " << spar << endl << flush;
+      }
+      if (fabs(g->GetX()[i])>3.0) {
+
+	double x = g->GetX()[i];	
+	TArrow *arr = new TArrow(TMath::Sign(2.2,x),j,TMath::Sign(3,x),j,0.02);
+	arr->SetLineWidth(2);
+	arr->SetLineColor(kRed);
+	arr->Draw();
+	TLatex *tex = new TLatex();
+	tex->SetTextSize(0.035); tex->SetTextColor(kRed);
+	tex->DrawLatex(x<0 ? -1.8: 0.1, j-0.25,
+		       Form("%+1.1f#pm%1.1f",x,g->GetEX()[i]));
+      }
     }
     g2->Draw("SAMEP");
   }
