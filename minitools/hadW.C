@@ -431,19 +431,28 @@ void hadW::Loop()
    TH1D *hmus = new TH1D("hmus","#mu(smeared)",60,0,60);
    TH1D *hmu = new TH1D("hmu","#mu",60,0,60);
    TH1D *hnpv = new TH1D("hnpv","N_{PV}",60,0,60);
+   TH1D *hnpvall = new TH1D("hnpvall","N_{PV,all}",60,0,60);
    TH1D *hrho = new TH1D("hrho",";#rho (GeV)",60,0,60);
    //
    TProfile *pmu = new TProfile("pmu",";p_{T,ave};#LT#mu#GT",nxb,xb);
    TProfile *pnpv = new TProfile("pnpv",";p_{T,ave};#LTN_{PV}#GT",nxb,xb);
+   TProfile *pnpvall = new TProfile("pnpvall",";p_{T,ave};#LTN_{PV,all}#GT",
+				    nxb,xb);
    TProfile *prho = new TProfile("prho",";p_{T,ave};#LT#rho#GT (GeV)",nxb,xb);
    //
    TProfile *pmuiov = new TProfile("pmuiov",";Run;#LT#mu#GT",niov,iovs);
    TProfile *pnpviov = new TProfile("pnpviov",";Run;#LTN_{PV}#GT",niov,iovs);
+   TProfile *pnpvalliov = new TProfile("pnpvalliov",";Run;#LTN_{PV,all}#GT",
+				       niov,iovs);
    TProfile *prhoiov = new TProfile("prhoiov",";Run;#LT#rho#GT (GeV)",niov,iovs);
    //
    TProfile *pmuvsmu = new TProfile("pmuvsmu",";#mu;#LT#mu#GT",60,0,60);
    TProfile *pnpvvsmu = new TProfile("pnpvvsmu",";#mu;#LTN_{PV}#GT",60,0,60);
+   TProfile *pnpvallvsmu = new TProfile("pnpvallvsmu",";#mu;#LTN_{PV,all}#GT",
+					60,0,60);
    TProfile *prhovsmu = new TProfile("prhovsmu",";#mu;#LT#rho#GT (GeV)",60,0,60);
+   TProfile *prhovsnpv = new TProfile("prhovsnpv",";N_{PV};#LT#rho#GT (GeV)",60,0,60);
+   TProfile *prhovsnpvall = new TProfile("prhovsnpvall",";N_{PV,all};#LT#rho#GT (GeV)",60,0,60);
 
    // bJES
    TProfile *prb = new TProfile("prb",";p_{T,reco-b} (GeV);"
@@ -1353,20 +1362,26 @@ void hadW::Loop()
 		hmus->Fill(TruePU,w);
 	    }
 	    if (goodw0) hmu->Fill(TruePU,w);
-	    if (goodw0) hnpv->Fill(NPrVtx,w);
+	    if (goodw0) hnpv->Fill(NPrVtxGood,w);
+	    if (goodw0) hnpvall->Fill(NPrVtx,w);
 	    if (goodw0) hrho->Fill(pfRho,w);
 	    //
 	    if (goodw0) pmu->Fill(ptave,TruePU,w);
-	    if (goodw0) pnpv->Fill(ptave,NPrVtx,w);
+	    if (goodw0) pnpv->Fill(ptave,NPrVtxGood,w);
+	    if (goodw0) pnpvall->Fill(ptave,NPrVtx,w);
 	    if (goodw0) prho->Fill(ptave,pfRho,w);
 	    //
 	    if (goodw0) pmuiov->Fill(run+0.5,TruePU,w);
-	    if (goodw0) pnpviov->Fill(run+0.5,NPrVtx,w);
+	    if (goodw0) pnpviov->Fill(run+0.5,NPrVtxGood,w);
+	    if (goodw0) pnpvalliov->Fill(run+0.5,NPrVtx,w);
 	    if (goodw0) prhoiov->Fill(run+0.5,pfRho,w);
 	    //
 	    if (goodw0) pmuvsmu->Fill(TruePU,TruePU,w);
-	    if (goodw0) pnpvvsmu->Fill(TruePU,NPrVtx,w);
+	    if (goodw0) pnpvvsmu->Fill(TruePU,NPrVtxGood,w);
+	    if (goodw0) pnpvallvsmu->Fill(TruePU,NPrVtx,w);
 	    if (goodw0) prhovsmu->Fill(TruePU,pfRho,w);
+	    if (goodw0) prhovsnpv->Fill(NPrVtxGood,pfRho,w);
+	    if (goodw0) prhovsnpvall->Fill(NPrVtx,pfRho,w);
 	    
 	    if (goodw0) pmwiov->Fill(run+0.5,recoWmass0,w);
 
@@ -2363,16 +2378,22 @@ void hadW::Loop()
    hmus->Write("hmus",TObject::kOverwrite);
    hmu->Write("hmu",TObject::kOverwrite);
    hnpv->Write("hnpv",TObject::kOverwrite);
+   hnpvall->Write("hnpvall",TObject::kOverwrite);
    hrho->Write("hrho",TObject::kOverwrite);
    pmu->Write("pmu",TObject::kOverwrite);
    pnpv->Write("pnpv",TObject::kOverwrite);
+   pnpvall->Write("pnpvall",TObject::kOverwrite);
    prho->Write("prho",TObject::kOverwrite);
    pmuiov->Write("pmuiov",TObject::kOverwrite);
    pnpviov->Write("pnpviov",TObject::kOverwrite);
+   pnpvalliov->Write("pnpvalliov",TObject::kOverwrite);
    prhoiov->Write("prhoiov",TObject::kOverwrite);
    pmuvsmu->Write("pmuvsmu",TObject::kOverwrite);
    pnpvvsmu->Write("pnpvvsmu",TObject::kOverwrite);
+   pnpvallvsmu->Write("pnpvallvsmu",TObject::kOverwrite);
    prhovsmu->Write("prhovsmu",TObject::kOverwrite);
+   prhovsnpv->Write("prhovsnpv",TObject::kOverwrite);
+   prhovsnpvall->Write("prhovsnpvall",TObject::kOverwrite);
    //
    h1rb->Write("h1rb",TObject::kOverwrite);
    h1gb->Write("h1gb",TObject::kOverwrite);

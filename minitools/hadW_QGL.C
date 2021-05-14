@@ -6,6 +6,7 @@
 #include "TProfile.h"
 #include "TLine.h"
 #include "TF1.h"
+#include "TGraphErrors.h"
 #include "TMultiGraph.h"
 
 #include "../tdrstyle_mod15.C"
@@ -15,14 +16,18 @@
 
 // Plot MC on top pad?
 bool plotMChist = false; // c1 QGL template
-bool plotMC = false;//true; // c0 efficiency vs pT
+bool plotMC = true;//false;//true; // c0 efficiency vs pT
 bool debug = false;
 
+double _etamax(0);
 void getDijetQGL(TFile *fjd, TFile *fjm, TFile *fjd2, TFile *fjm2,
 		 TH2D **h2jd, TH2D **h2jm, TH2D **h2jmq, TH2D **h2jmg);
 
-void hadW_QGL() {
+//void hadW_QGL(double EtaMax = 2.5) {
+void hadW_QGL(double EtaMax = 1.3) {
   
+  _etamax = EtaMax;
+
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
@@ -34,12 +39,19 @@ void hadW_QGL() {
   tex->SetTextSize(0.045);
 
   //TFile *fd = new TFile("rootfiles/hadWUL1718V5_EMUF.root","READ");
-  TFile *fd = new TFile("rootfiles/hadWUL1718V5_Glu_v4.root","READ");
-  //TFile *fd = new TFile("rootfiles/hadWUL1718V5_Glu.root","READ");
+  TFile *fd(0), *fm(0);
+  if (_etamax==2.5) {
+    fd = new TFile("rootfiles/hadWUL1718V5_Glu_v4.root","READ");
+    //TFile *fd = new TFile("rootfiles/hadWUL1718V5_Glu.root","READ");
+    //TFile *fm = new TFile("rootfiles/hadWMC1718V5_EMUF.root","READ");
+    fm = new TFile("rootfiles/hadWMC1718V5_Glu_v4.root","READ");
+    //TFile *fm = new TFile("rootfiles/hadWMC1718V5_Glu.root","READ");
+  }
+  if (_etamax==1.3) {
+    fd = new TFile("rootfiles/hadWUL1718V5_Glu_Eta13.root","READ");
+    fm = new TFile("rootfiles/hadWMC1718V5_Glu_Eta13.root","READ");
+  }
   assert(fd && !fd->IsZombie());
-  //TFile *fm = new TFile("rootfiles/hadWMC1718V5_EMUF.root","READ");
-  TFile *fm = new TFile("rootfiles/hadWMC1718V5_Glu_v4.root","READ");
-  //TFile *fm = new TFile("rootfiles/hadWMC1718V5_Glu.root","READ");
   assert(fm && !fm->IsZombie());
   TFile *fz = new TFile("rootfiles/jecdata2018ABCD.root","READ");
   assert(fz && !fz->IsZombie());
@@ -100,8 +112,10 @@ void hadW_QGL() {
   TH1D *h1g0m = (TH1D*)fm->Get("hqglg"); assert(h1g0m);
 
   // Z+jet
-  TH2D *h2zd = (TH2D*)fz2->Get("data/eta_00_25/h_JetPt_QGL_alpha100");
-  TH2D *h2zm = (TH2D*)fz2->Get("mc/eta_00_25/h_JetPt_QGL_alpha100");
+  TH2D *h2zd = (TH2D*)fz2->Get(Form("data/eta_00_%1.0f/h_JetPt_QGL_alpha100",
+				    10*_etamax));
+  TH2D *h2zm = (TH2D*)fz2->Get(Form("mc/eta_00_%1.0f/h_JetPt_QGL_alpha100",
+				    10*_etamax));
   assert(h2zd);
   assert(h2zm);
   // Dijet
@@ -145,18 +159,19 @@ void hadW_QGL() {
   TH1D *hjeg  = h2jd->ProjectionX("hjeg",1,1);  hjeg->Reset();
 
 
-  TH1D *hziim = (TH1D*)fz->Get("mc/eta00-25/counts_zii_a100");
+  int zeta = int(10*_etamax+0.5);
+  TH1D *hziim = (TH1D*)fz->Get(Form("mc/eta00-%d/counts_zii_a100",zeta));
   assert(hziim);
 
-  TH1D *hzium = (TH1D*)fz->Get("mc/eta00-25/counts_ziq_a100");
+  TH1D *hzium = (TH1D*)fz->Get(Form("mc/eta00-%d/counts_ziq_a100",zeta));
   assert(hzium);
-  TH1D *hzuum = (TH1D*)fz->Get("mc/eta00-25/counts_zqq_a100");
+  TH1D *hzuum = (TH1D*)fz->Get(Form("mc/eta00-%d/counts_zqq_a100",zeta));
   assert(hzuum);
-  TH1D *hzicm = (TH1D*)fz->Get("mc/eta00-25/counts_zic_a100");
+  TH1D *hzicm = (TH1D*)fz->Get(Form("mc/eta00-%d/counts_zic_a100",zeta));
   assert(hzicm);
-  TH1D *hzucm = (TH1D*)fz->Get("mc/eta00-25/counts_zqc_a100");
+  TH1D *hzucm = (TH1D*)fz->Get(Form("mc/eta00-%d/counts_zqc_a100",zeta));
   assert(hzucm);
-  TH1D *hzccm = (TH1D*)fz->Get("mc/eta00-25/counts_zcc_a100");
+  TH1D *hzccm = (TH1D*)fz->Get(Form("mc/eta00-%d/counts_zcc_a100",zeta));
   assert(hzccm);
   // Add charm to uds to stay compatible with W>qq' and dijet
   TH1D *hzqqm = (TH1D*)hzuum->Clone("hzqqm");
@@ -167,9 +182,9 @@ void hadW_QGL() {
   TH1D *hzqm = (TH1D*)hzqqm->Clone("hzqm");
   hzqm->Divide(hziqm);
 
-  TH1D *hzigm = (TH1D*)fz->Get("mc/eta00-25/counts_zig_a100");
+  TH1D *hzigm = (TH1D*)fz->Get(Form("mc/eta00-%d/counts_zig_a100",zeta));
   assert(hzigm);
-  TH1D *hzggm = (TH1D*)fz->Get("mc/eta00-25/counts_zgg_a100");
+  TH1D *hzggm = (TH1D*)fz->Get(Form("mc/eta00-%d/counts_zgg_a100",zeta));
   assert(hzggm);
   TH1D *hzgm = (TH1D*)hzggm->Clone("hzgm");
   hzgm->Divide(hzigm);
@@ -210,10 +225,12 @@ void hadW_QGL() {
     c1->cd(1);
     gPad->SetLogy();
     
-    tex->DrawLatex(0.19,0.70,Form("|#eta| < 2.5, %1.0f--%1.0f GeV",
+    tex->DrawLatex(0.19,0.70,Form("|#eta| < %1.1f, %1.0f--%1.0f GeV",
+				  _etamax,
 				  h2qd->GetYaxis()->GetBinLowEdge(j),
 				  h2qd->GetYaxis()->GetBinLowEdge(j+1)));
     if (!plotMChist) tex->DrawLatex(0.19,0.65,"Data only");
+    if ( plotMChist) tex->DrawLatex(0.19,0.65,"Open markers MC");
 
     TLegend *leg1 = tdrLeg(0.65,0.90-5*0.05,0.85,0.90);
 
@@ -571,8 +588,8 @@ void hadW_QGL() {
       delete c2;
     }
     else {
-      c1->SaveAs("pdf/hadW_QGL_84_97.pdf");
-      c2->SaveAs("pdf/hadW_QGL_84_97_f.pdf");
+      c1->SaveAs(Form("pdf/hadW_QGL_84_97_Eta%1.0f.pdf",10*_etamax));
+      c2->SaveAs(Form("pdf/hadW_QGL_84_97_f_Eta%1.0f.pdf",10*_etamax));
     }
 
   } // for j
@@ -684,7 +701,6 @@ void hadW_QGL() {
 
 
   // Calculate expected dijet and Z+jet efficiencies using QGL SF from TT
-  // xxx  
   //TH1D* hqes = (TH1D*)hqem->Clone("hqes");
   TH1D* hzes = (TH1D*)hzem->Clone("hzes");
   TH1D* hjes = (TH1D*)hjem->Clone("hjes");
@@ -739,18 +755,44 @@ void hadW_QGL() {
       double eq = heq->GetBinContent(j);
       double eg = heg->GetBinContent(j);
       double ex = hem->GetBinContent(i);
-      double kq = 1.084;
-      double kg = 1.723;
-      
+      double kq(1), kg(1);
+      if (_etamax==2.5) {
+	kq = 1.084;
+	kg = 1.723;
+      }
+      if (_etamax==1.3) {
+	kq = 1.062;
+	kg = 1.721;
+      }
+
       // Correct efficiency assuming MC fractions
       double es = ex + eq*(kq-1)*pq + eg*(kg-1)*pg;
       double esq = eq*kq;
       double esg = eg*kg;
       // Except for dijet: gluon JES+FSR changes reconstructed gluon fraction
-      // by 25% for 5% change in JES (1-2%) and FSR (3-4%)
+      // by 25% for 5% change in JES (1-2%) and FSR (3-4%) (pT^-5 slope)
       if (string(s)=="j" && true) {
-	double pqd = pq + 0.25*pg;
-	double pgd = pg - 0.25*pg;
+	double pqd(pq), pgd(pg);
+	if (_etamax==2.5) {
+	  pqd = pq + (1-0.75)*pg;
+	  pgd = pg - (1-0.75)*pg;
+	}
+	if (_etamax==1.3) {
+	  pqd = pq + (1-0.90)*pg;
+	  pgd = pg - (1-0.90)*pg;
+	}
+	es = ex + (pqd-pq)*eq + (pgd-pg)*eg + eq*(kq-1)*pqd + eg*(kg-1)*pgd;
+	//esq = eq*kq;
+	//esg = eg*kg;
+      }
+      // And for Z+jet: gluon JES+FSR changes reconstructed gluon fraction
+      // by 20% for 5% change in JES (1-2%) and FSR (3-4%) (pT^-4 slope)?
+      // No, need to go the other way, 25% more gluons?
+      if (string(s)=="z" && false) { // little contrived hypothesis?
+	//double pqd = pq + 0.20*pg;
+	//double pgd = pg - 0.20*pg;
+	double pqd = pq - 0.25*pg;
+	double pgd = pg + 0.25*pg;
 	es = ex + (pqd-pq)*eq + (pgd-pg)*eg + eq*(kq-1)*pqd + eg*(kg-1)*pgd;
 	//esq = eq*kq;
 	//esg = eg*kg;
@@ -758,8 +800,12 @@ void hadW_QGL() {
       // Assume Z+jet MC flavor effiencies are 5% higher than W>qq' and dijet
       // due to some extra simulation artefact, and are the same in data
       // Maybe gluon-tagged quark jets radiate more FSR?
-      if (string(s)=="z" && true) {
-	double rz = 0.95;
+      // Could it be less UE in Z+jet contributing less soft particles, thus
+      // making both quarks and gluons more quark-like?
+      // Then the question is how well UE in MC matches data => check
+      // For now, assume efficiency scale factors for Z+jet 3% smaller
+      if (string(s)=="z" && true) { // switched off MC scaling
+	double rz = 0.97;//0.95;
 	double kqd = kq*rz;
 	double kgd = kg*rz;
 	es = ex + eq*(kqd-1)*pq + eg*(kgd-1)*pg;
@@ -787,7 +833,7 @@ void hadW_QGL() {
 
   TLegend *leg5 = tdrLeg(0.65,0.90-5*0.05,0.85,0.90);
 
-  tex->DrawLatex(0.19,0.70,"|#eta| < 2.5");
+  tex->DrawLatex(0.19,0.70,Form("|#eta| < %1.1f",_etamax));
   if (!plotMC) tex->DrawLatex(0.19,0.65,"Data only");
 
   l->DrawLine(30,0.5,200,0.5);
@@ -823,22 +869,29 @@ void hadW_QGL() {
   tdrDraw(hze, "Pz",kFullSquare,kMagenta+2);
   tdrDraw(hje, "Pz",kFullStar,kGreen+2);
 
-  c5->SaveAs("pdf/hadW_QGL_DataVsPt.pdf");
+  c5->SaveAs(Form("pdf/hadW_QGL_DataVsPt_Eta%1.0f.pdf",10*_etamax));
 
   c7->cd(1);
   gPad->SetLogx();
 
   TLegend *leg7 = tdrLeg(0.65,0.90-4*0.05,0.85,0.90);
 
-  tex->DrawLatex(0.19,0.70,"|#eta| < 2.5");
+  tex->DrawLatex(0.19,0.70,Form("|#eta| < %1.1f",EtaMax));
   tex->DrawLatex(0.19,0.65,"Sim only");
 
   l->DrawLine(30,0.5,200,0.5);
 
   tex->DrawLatex(0.19,0.20,"Simulation settings:");
-  tex->DrawLatex(0.19,0.15,"All samples, eff(g)#times1.723, eff(q)#times1.084");
-  tex->DrawLatex(0.19,0.10,"+ for Z+jet, eff(g')#times0.95, eff(q')#times0.95");
-  tex->DrawLatex(0.19,0.05,"+ for dijet, frac(g)#times0.75");
+  if (_etamax==2.5) {
+    tex->DrawLatex(0.19,0.15,"All samples, eff(g)#times1.723, eff(q)#times1.084");
+    //tex->DrawLatex(0.19,0.10,"+ for Z+jet, eff(g')#times0.95, eff(q')#times0.95");
+    //tex->DrawLatex(0.19,0.05,"+ for dijet, frac(g)#times0.75");
+    tex->DrawLatex(0.19,0.10,"+ for dijet, frac(g)#times0.75");
+  }
+  if (_etamax==1.3) {
+    tex->DrawLatex(0.19,0.15,"All samples, eff(g)#times1.721, eff(q)#times1.062");
+    tex->DrawLatex(0.19,0.10,"+ for dijet, frac(g)#times0.90");
+  }
 
   //tdrDraw(hzes,"Pz",kFullSquare,kMagenta+2);
   //tdrDraw(hjes,"Pz",kFullStar,kGreen+2);
@@ -881,7 +934,7 @@ void hadW_QGL() {
   tdrDraw(mhr["z"], "Pz",kFullSquare,kMagenta+2);
   tdrDraw(mhr["j"], "Pz",kFullStar,kGreen+2);
 
-  c7->SaveAs("pdf/hadW_QGL_SimVsPt.pdf");
+  c7->SaveAs(Form("pdf/hadW_QGL_SimVsPt_Eta%1.0f.pdf",10*_etamax));
 
 
   c6->cd(1);
@@ -889,7 +942,7 @@ void hadW_QGL() {
 
   TLegend *leg6 = tdrLeg(0.65,0.90-6*0.05,0.85,0.90);
 
-  tex->DrawLatex(0.19,0.70,"|#eta| < 2.5");
+  tex->DrawLatex(0.19,0.70,Form("|#eta| < %1.1f",_etamax));
   tex->DrawLatex(0.19,0.65,"MC only");
 
   l->DrawLine(30,0.5,200,0.5);
@@ -931,8 +984,10 @@ void hadW_QGL() {
   tdrDraw(hgerx,"Pz",kFullSquare,kOrange+2);
 
   TF1 *fg = new TF1("fg","[0]",32,200);
+  //TF1 *fg = new TF1("fg","[0]",45,200);
   fg->SetLineColor(kOrange+2);
-  TF1 *fq = new TF1("fq","[0]",32,200);
+  //TF1 *fq = new TF1("fq","[0]",32,200);
+  TF1 *fq = new TF1("fq","[0]",45,200);
   fq->SetLineColor(kBlue);
 
   hqerx->Fit(fq,"QRN");
@@ -957,7 +1012,7 @@ void hadW_QGL() {
   tex->SetTextColor(kBlack);
   tex->SetTextSize(0.045);
 
-  c6->SaveAs("pdf/hadW_QGL_MCvsPt.pdf");
+  c6->SaveAs(Form("pdf/hadW_QGL_MCvsPt_Eta%1.0f.pdf",10*_etamax));
 
   c3->cd(1);
   gPad->SetLogx();
@@ -965,13 +1020,13 @@ void hadW_QGL() {
 
   TLegend *leg3 = tdrLeg(0.65,0.90-4*0.05,0.85,0.90);
 
-  tex->DrawLatex(0.19,0.70,"|#eta| < 2.5");
+  tex->DrawLatex(0.19,0.70,Form("|#eta| < %1.1f",_etamax));
   tex->DrawLatex(0.19,0.65,"MC only");
   tex->DrawLatex(0.50,0.33,"#uparrow Quark jets (udsc)");
   tex->DrawLatex(0.50,0.26,"#downarrow Gluon jets (g)");
   
-  hzqm->Scale(0.95);
-  hzgm->Scale(0.95);
+  //hzqm->Scale(0.95);
+  //hzgm->Scale(0.95);
   tdrDraw(hzqm,"Pz",kOpenSquare,kMagenta+2);
   tdrDraw(hzgm,"Pz",kOpenSquare,kMagenta+2);
 
@@ -985,7 +1040,8 @@ void hadW_QGL() {
   //tdrDraw(hegu,"Pz",kOpenDiamond,kOrange+4);//extra
   tdrDraw(hegq,"Pz",kOpenDiamond,kOrange+2);
   
-  leg3->AddEntry(hzqm,"Z+jet (#times0.95)","PLE");
+  //leg3->AddEntry(hzqm,"Z+jet (#times0.95)","PLE");
+  leg3->AddEntry(hzqm,"Z+jet","PLE");
   leg3->AddEntry(heqq,"W>qq'","PLE");
   leg3->AddEntry(hjemq,"Dijet","PLE");
   leg3->AddEntry(hegq,"TT+jet","PLE");
@@ -1001,6 +1057,7 @@ void hadW_QGL() {
   mgmg->Add(new TGraphErrors(hjemg));//mhsg["j"]));
   mgmg->Add(new TGraphErrors(hegg));//mhsg["g"]));
   
+  // Combined efficiency from TT and dijet
   TF1 *f1mq = new TF1("f1mq","[0]+[1]*pow(x,[2])",34,200);
   f1mq->SetParameters(0.8,-0.5,-0.5);
   mgmq->Fit(f1mq,"QRNW");
@@ -1015,6 +1072,26 @@ void hadW_QGL() {
   f1m->SetParameters(f1mq->GetParameter(0),f1mq->GetParameter(1),
 		     f1mq->GetParameter(2),f1mg->GetParameter(0),
 		     f1mg->GetParameter(1),f1mg->GetParameter(2));
+
+  // Same for Z+jet (different UE affecting QGL?)
+  TF1 *f1mqz = new TF1("f1mqz","[0]+[1]*pow(x,[2])",40,200);//34,200);
+  f1mqz->SetParameters(0.8,-0.5,-0.5);
+  f1mqz->SetLineColor(kMagenta+2);
+  hzqm->Fit(f1mqz,"QRNW");
+  f1mqz->Draw("SAME");
+
+  TF1 *f1mgz = new TF1("f1mgz","[0]+[1]*pow(x,[2])",40,200);//34,200);
+  f1mgz->SetParameters(0.25,+0.5,-0.5);
+  f1mgz->SetLineColor(kMagenta+2);
+  hzgm->Fit(f1mgz,"QRNW");
+  f1mgz->Draw("SAME");
+
+  TF1 *f1mz = new TF1("f1mz","([0]+[1]*pow(x,[2]))/([3]+[4]*pow(x,[5]))",
+		      40,200);//34,200);
+  f1mz->SetLineColor(kMagenta+2);
+  f1mz->SetParameters(f1mqz->GetParameter(0),f1mqz->GetParameter(1),
+		      f1mqz->GetParameter(2),f1mgz->GetParameter(0),
+		      f1mgz->GetParameter(1),f1mgz->GetParameter(2));
 
   c3->cd(2);
   gPad->SetLogx();
@@ -1034,8 +1111,9 @@ void hadW_QGL() {
   tdrDraw(hgrm,"Pz",kOpenDiamond,kOrange+2);
 
   f1m->Draw("SAME");
+  f1mz->Draw("SAME");
 
-  c3->SaveAs("pdf/hadW_QGL_MCefficiencies.pdf");
+  c3->SaveAs(Form("pdf/hadW_QGL_MCefficiencies_Eta%1.0f.pdf",10*_etamax));
 
   c8->cd(1);
   gPad->SetLogx();
@@ -1043,7 +1121,7 @@ void hadW_QGL() {
 
   TLegend *leg8 = tdrLeg(0.65,0.90-4*0.05,0.85,0.90);
 
-  tex->DrawLatex(0.19,0.70,"|#eta| < 2.5");
+  tex->DrawLatex(0.19,0.70,Form("|#eta| < %1.1f",_etamax));
   tex->DrawLatex(0.19,0.65,"Sim only");
   //tex->DrawLatex(0.50,0.33,"#uparrow Quark jets (udsc)");
   //tex->DrawLatex(0.50,0.26,"#downarrow Gluon jets (g)");
@@ -1085,6 +1163,18 @@ void hadW_QGL() {
   f1sg->SetParameters(0.45,+0.5,-0.5);
   mgsg->Fit(f1sg,"QRNW");
   f1sg->Draw("SAME");
+
+  TF1 *f1sqz = new TF1("f1sqz","[0]+[1]*pow(x,[2])",40,200);//34,200);
+  f1sqz->SetParameters(0.8,-0.5,-0.5);
+  f1sqz->SetLineColor(kMagenta+2);
+  mhsq["z"]->Fit(f1sqz,"QRNW");
+  f1sqz->Draw("SAME");
+
+  TF1 *f1sgz = new TF1("f1sgz","[0]+[1]*pow(x,[2])",40,200);//34,200);
+  f1sgz->SetParameters(0.45,+0.5,-0.5);
+  f1sgz->SetLineColor(kMagenta+2);
+  mhsg["z"]->Fit(f1sgz,"QRNW");
+  f1sgz->Draw("SAME");
 
   c8->cd(2);
   gPad->SetLogx();
@@ -1151,7 +1241,7 @@ void hadW_QGL() {
     tdrDraw(hgrs,"Pz",kOpenDiamond,kOrange+2);
   }
 
-  c8->SaveAs("pdf/hadW_QGL_SimEfficiencies.pdf");
+  c8->SaveAs(Form("pdf/hadW_QGL_SimEfficiencies_Eta%1.0f.pdf",10*_etamax));
   
   
   c4->cd(1);
@@ -1159,7 +1249,7 @@ void hadW_QGL() {
 
   TLegend *leg4 = tdrLeg(0.65,0.90-4*0.05,0.85,0.90);
 
-  tex->DrawLatex(0.19,0.70,"|#eta| < 2.5");
+  tex->DrawLatex(0.19,0.70,Form("|#eta| < %1.1f",10*_etamax));
   tex->DrawLatex(0.19,0.65,"MC only");
 
   l->DrawLine(30,1.0,200,1.0);
@@ -1197,28 +1287,45 @@ void hadW_QGL() {
   tdrDraw(hdfj,"Pz",kOpenStar,kGreen+2);
   tdrDraw(hdfg,"Pz",kOpenDiamond,kOrange+2);
 
-  c4->SaveAs("pdf/hadW_QGL_MCfractions.pdf");
+  c4->SaveAs(Form("pdf/hadW_QGL_MCfractions_Eta%1.0f.pdf",10*_etamax));
 
   // Print out QGL>0.5 efficiency fits
   cout << endl;
   cout << "  // hadW_QGL.C QGL>0.5 efficiency fits\n";
   cout << "  // For Z+jet, multiply MC results by 1.05\n";
-  cout << "  TF1 *f1mq = new TF1(\"f1mq\",\"[0]+[1]*pow(x,[2])\",34,200);\n";
   cout << "  TF1 *f1mg = new TF1(\"f1mg\",\"[0]+[1]*pow(x,[2])\",34,200);\n";
-  cout << "  TF1 *f1dq = new TF1(\"f1dq\",\"[0]+[1]*pow(x,[2])\",34,200);\n";
   cout << "  TF1 *f1dg = new TF1(\"f1dg\",\"[0]+[1]*pow(x,[2])\",34,200);\n";
-  cout << Form("  f1mq->SetParameters(%1.4g,%1.4g,%1.4g);\n",
-	       f1mq->GetParameter(0),f1mq->GetParameter(1),
-	       f1mq->GetParameter(2));
+  cout << "  TF1 *f1mq = new TF1(\"f1mq\",\"[0]+[1]*pow(x,[2])\",34,200);\n";
+  cout << "  TF1 *f1dq = new TF1(\"f1dq\",\"[0]+[1]*pow(x,[2])\",34,200);\n";
   cout << Form("  f1mg->SetParameters(%1.4g,%1.4g,%1.4g);\n",
 	       f1mg->GetParameter(0),f1mg->GetParameter(1),
 	       f1mg->GetParameter(2));
-  cout << Form("  f1dq->SetParameters(%1.4g,%1.4g,%1.4g);\n",
-	       f1sq->GetParameter(0),f1sq->GetParameter(1),
-	       f1sq->GetParameter(2));
   cout << Form("  f1dg->SetParameters(%1.4g,%1.4g,%1.4g);\n",
 	       f1sg->GetParameter(0),f1sg->GetParameter(1),
 	       f1sg->GetParameter(2));
+  cout << Form("  f1mq->SetParameters(%1.4g,%1.4g,%1.4g);\n",
+	       f1mq->GetParameter(0),f1mq->GetParameter(1),
+	       f1mq->GetParameter(2));
+  cout << Form("  f1dq->SetParameters(%1.4g,%1.4g,%1.4g);\n",
+	       f1sq->GetParameter(0),f1sq->GetParameter(1),
+	       f1sq->GetParameter(2));
+  //
+  cout << "  TF1 *f1mgz = new TF1(\"f1mgz\",\"[0]+[1]*pow(x,[2])\",34,200);\n";
+  cout << "  TF1 *f1dgz = new TF1(\"f1dgz\",\"[0]+[1]*pow(x,[2])\",34,200);\n";
+  cout << "  TF1 *f1mqz = new TF1(\"f1mqz\",\"[0]+[1]*pow(x,[2])\",34,200);\n";
+  cout << "  TF1 *f1dqz = new TF1(\"f1dqz\",\"[0]+[1]*pow(x,[2])\",34,200);\n";
+  cout << Form("  f1mgz->SetParameters(%1.4g,%1.4g,%1.4g);\n",
+	       f1mgz->GetParameter(0),f1mgz->GetParameter(1),
+	       f1mgz->GetParameter(2));
+  cout << Form("  f1dgz->SetParameters(%1.4g,%1.4g,%1.4g);\n",
+	       f1sgz->GetParameter(0),f1sgz->GetParameter(1),
+	       f1sgz->GetParameter(2));
+  cout << Form("  f1mqz->SetParameters(%1.4g,%1.4g,%1.4g);\n",
+	       f1mqz->GetParameter(0),f1mqz->GetParameter(1),
+	       f1mqz->GetParameter(2));
+  cout << Form("  f1dqz->SetParameters(%1.4g,%1.4g,%1.4g);\n",
+	       f1sqz->GetParameter(0),f1sqz->GetParameter(1),
+	       f1sqz->GetParameter(2));
   cout << endl;
 } // hadW_QGL
 
@@ -1227,7 +1334,8 @@ void  getDijetQGL(TFile *fjd, TFile *fjm, TFile *fjd2, TFile *fjm2,
 		  TH2D **h2jd, TH2D **h2jm, TH2D **h2jmq, TH2D **h2jmg) {
 
   double eta[] = {0,0.5,1.0,1.5,2.0,2.5};
-  const int neta = sizeof(eta)/sizeof(eta[0])-1;
+  if (_etamax==1.3) eta[1] = 1.3;
+  const int neta = (_etamax==1.3 ? 1 : sizeof(eta)/sizeof(eta[0])-1);
 
   //for (int ieta = 0; ieta != neta; ++ieta) {
   for (int ieta = neta-1; ieta != -1; --ieta) {

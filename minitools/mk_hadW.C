@@ -26,9 +26,10 @@ R__LOAD_LIBRARY(minitools/hadW.C+g)
 //void mk_hadW(string mode = "161718V5") {
 //void mk_hadW(string mode = "16V2") { // L2Res
 //void mk_hadW(string mode = "16GHV5") { // L2L3Res
-  //void mk_hadW(string mode = "16APVV5") {
+void mk_hadW(string mode = "16APVV5") {
 //void mk_hadW(string mode = "16BCDV5") {
-void mk_hadW(string mode = "16EFV5") {
+//void mk_hadW(string mode = "16EFV5") {
+//void mk_hadW(string mode = "17V5") {
 
   if (!(mode=="16APVV5" || mode=="16BCDV5" || mode=="16EFV5" || mode=="16V2" ||
 	mode=="16GHV5" || mode=="17V5" || mode=="18V5" ||
