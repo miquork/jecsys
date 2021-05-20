@@ -19,5 +19,6 @@
   gROOT->ProcessLine(".L tools.C+g");
   gROOT->ProcessLine(".L minitools/drawOffset.C+g");
 
-  drawOffset();
+  drawOffset("UL16BCDEF");
+  drawOffset("UL16GH");
 }

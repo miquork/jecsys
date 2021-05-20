@@ -1,6 +1,8 @@
 // Purpose: Recreate Sifu's offset vs pTgen plots from L1RC files
 // (e.g. https://indico.cern.ch/event/759372/contributions/3149363/attachments/1721390/2783446/20180924_JERC_Status_2016_2017.pdf, slides 3 and 5)
 // Compare 2016 to either RC offset or to 2017 offset
+//
+// Run with 'root -l -b -q minitools/mk_drawOffset.C'
 #include "TFile.h"
 #include "TGraphErrors.h"
 #include "TH1D.h"
@@ -26,14 +28,19 @@
 
 using namespace std;
 
-FactorizedJetCorrector *getJEC(string version) {
+FactorizedJetCorrector *getJEC(string version, string tag="") {
 
   string s;
-  const char *cd = "CondFormats/JetMETObjects/data";
-  const char *gt = "Summer16_07Aug2017";
+  //const char *cd = "CondFormats/JetMETObjects/data";
+  //const char *gt = "Summer16_07Aug2017";
+  const char *cd = "../JECDatabase/textFiles/";
+  //const char *gt = (tag=="" ? "Summer19UL16_V7_MC" : tag.c_str());
+  //const char *gt = (tag=="" ? "Summer19UL16_RunFGH_V7_DATA" : tag.c_str());
+  const char *gt = (tag=="" ? "Summer19UL16APV_RunBCDEF_V7_DATA" : tag.c_str());
 
   FactorizedJetCorrector *jecl1;
-  s = Form("%s/%s%s.txt",cd,gt,version.c_str());
+  //s = Form("%s/%s%s.txt",cd,gt,version.c_str());
+  s = Form("%s/%s/%s_%s.txt",cd,gt,gt,version.c_str());
   cout << s << endl << flush;
   JetCorrectorParameters *l1 = new JetCorrectorParameters(s);
   vector<JetCorrectorParameters> v;
@@ -59,14 +66,15 @@ Double_t fCorrPt(Double_t *x, Double_t *p) {
 }
 
 // Solve JEC (which is a function of pTreco) for given pTgen
-double getCorrGen(FactorizedJetCorrector *jec, double ptgen, double eta, double rho) {
+double getCorrGen(FactorizedJetCorrector *jec, double ptgen, double eta,
+		  double rho) {
 
   // First invert JEC to get ptreco that corresponds to given ptcorr=ptgen
   _fjec = jec;
   if (_fCorrPt==0) _fCorrPt = new TF1("_fCorrPt",fCorrPt,0,6500.,2);
   _fCorrPt->SetParameters(eta, rho);
-  double ptreco = _fCorrPt->GetX(ptgen, max(5.,0.5*ptgen), min(6500./cosh(eta),2*ptgen),
-				 1e-4);
+  double ptreco = _fCorrPt->GetX(ptgen, max(5.,0.5*ptgen),
+				 min(6500./cosh(eta),2*ptgen), 1e-4);
   // Then recalculate ptgen=ptcorr in case ptreco hit boundaries above
   double ptcorr = _fCorrPt->Eval(ptreco);
   double corr = ptcorr / ptreco;
@@ -89,33 +97,41 @@ double getRho(double mu) {
 }
 
 
-void drawOffset() {
+void drawOffset(string iov = "UL16BCDEF") {
 
   setTDRStyle();
 
-  FactorizedJetCorrector *jecrc = getJEC("_V15_MC_L1RC_AK4PFchs");
-  FactorizedJetCorrector *jecl1 = getJEC("_V15_MC_L1FastJet_AK4PFchs");
+  //FactorizedJetCorrector *jecrc = getJEC("_V15_MC_L1RC_AK4PFchs");
+  //FactorizedJetCorrector *jecl1 = getJEC("_V15_MC_L1FastJet_AK4PFchs");
+  string gt("");
+  if (iov=="UL16GH")    gt = "Summer19UL16_RunFGH_V7_DATA";
+  if (iov=="UL16BCDEF") gt = "Summer19UL16APV_RunBCDEF_V7_DATA";
+  FactorizedJetCorrector *jecrc = getJEC("L1RC_AK4PFchs",gt);
+  FactorizedJetCorrector *jecl1 = getJEC("L1FastJet_AK4PFchs",gt);
 
   const double vx[] = //{1, 5, 6, 8, 
-    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3637, 3832, 4037};
+    //{10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3637, 3832, 4037};
   //, 4252, 4477, 4713, 4961, 5220, 5492, 5777, 6076, 6389, 6717, 7000};
+    {15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500};
   const int nx = sizeof(vx)/sizeof(vx[0])-1;
   
   const double veta[] = {0., 0.25, 0.5, 0.75, 1.0, 1.25};
   const int neta = sizeof(veta)/sizeof(veta[0]);
 
-  const double vmu[] = {5, 15, 25, 35, 45, 55};
+  //const double vmu[] = {5, 15, 25, 35, 45, 55};
+  const double vmu[] = {0, 10, 20, 30, 40};
   const int nmu = sizeof(vmu)/sizeof(vmu[0]); 
-  const int color[nmu] = {kRed+1, kOrange+1, kYellow+2, kGreen-9+2, kGreen+2, kCyan+1};
+  //const int color[nmu] = {kRed+1, kOrange+1, kYellow+2, kGreen-9+2, kGreen+2, kCyan+1};
+  const int color[nmu] = {kBlack, kRed+1, kOrange+1, kGreen+2, kCyan+1};
 
   TH1D *h = new TH1D("h",";p_{T}^{GEN};#LToffset#GT (GeV)",nx,vx);
-  h->SetMinimum(-10.);
-  h->SetMaximum(+25.);
+  h->SetMinimum(-2);//-10.);
+  h->SetMaximum(+16);//+25.);
   h->GetXaxis()->SetMoreLogLabels();
   h->GetXaxis()->SetNoExponent();
 
   extraText = "Simulation";
-  lumi_13TeV = "Summer16_07Aug2017_V15_MC";
+  lumi_13TeV = gt.c_str();
   TCanvas *c1 = tdrCanvas("c1",h,4,11,kSquare);
   c1->SetLogx();
 
@@ -123,8 +139,11 @@ void drawOffset() {
   tex->SetNDC(); tex->SetTextSize(0.045);
   tex->DrawLatex(0.50,0.87,"Anti-k_{T} R=0.4 PF+CHS");
   tex->DrawLatex(0.50,0.82,"|#eta|<1.3");
+  tex->SetTextSize(0.038);
+  tex->DrawLatex(0.50,0.73,"Full markers L1FastJet");
+  tex->DrawLatex(0.50,0.69,"Open markers + line L1RC");
 
-  TLegend *leg = tdrLeg(0.40,0.80-0.04*nmu,0.60,0.80);
+  TLegend *leg = tdrLeg(0.20,0.78-0.04*nmu,0.40,0.78);
 
   for (int imu = 0; imu != nmu; ++imu) {
 
@@ -145,8 +164,8 @@ void drawOffset() {
 	double eta = veta[ieta];
 	
 	double w = 1;
-	double l1p = getCorrGen(jecl1, ptgen, eta, rho);
-	double rcp = getCorrGen(jecrc, ptgen, eta, rho);
+	double l1p = getCorrGen(jecl1, ptgen, +eta, rho);
+	double rcp = getCorrGen(jecrc, ptgen, +eta, rho);
 	sumcorrl1 += l1p*w;
 	sumcorrrc += rcp*w;
 	sumw += w;
@@ -167,13 +186,16 @@ void drawOffset() {
       hrc->SetBinContent(i, offrc);
     } // for i
 
-    tdrDraw(hl1,"HISTP",kFullCircle,color[imu]);//kGreen+2);
-    tdrDraw(hrc,"HISTP",kOpenDiamond,color[imu]);//kGreen+2);
+    tdrDraw(hl1,"HISTP",kFullCircle,color[imu]); hl1->SetMarkerSize(0.7);
+    tdrDraw(hrc,"HISTPL",kOpenDiamond,color[imu],kSolid,-1,kNone);
     leg->AddEntry(hl1,Form("N_{PU} = %1.0f",mu),"PL");
   } // for imu
   //h->Draw();
 
   c1->RedrawAxis();
 
-  c1->SaveAs("pdf/drawOffset_AK4PFchs.pdf");
+  //c1->SaveAs("pdf/drawOffset_AK4PFchs.pdf");
+  //c1->SaveAs("pdf/drawOffset_UL16GH.pdf");
+  //c1->SaveAs("pdf/drawOffset_UL16BCDEF.pdf");
+  c1->SaveAs(Form("pdf/drawOffset_%s.pdf",iov.c_str()));
 }
