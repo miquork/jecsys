@@ -30,14 +30,26 @@
 #include <vector>
 #include <algorithm> // for std::min
 
-//const double fitProbRef = 0.2;// Z+b studies (def:0.2);
+/*
+const double fitProbRef = 0.2;// Z+b studies (def:0.2);
+const double etaMax = 2.5; // Z+b studies (def:2.5)
+*/
 const double fitProbRef = 0.01; // JEC L3Res studies (def:0.01)
-//const double etaMax = 2.5; // Z+b studies (def:2.5)
 const double etaMax = 1.3; // JEC studies (def:1.3)
+
 const double minLepPt = 35;//34;//30; // electron min pT 34, muon 26/29 GeV
 const bool redoJEC = false;
 const bool correctJetMassData = false; // data/MC ratio for mass
 const bool usePtWeight = true; // reweigh top pT in MC
+
+// Extra weights
+const bool useRunMCWeight = true;
+const bool useSLBRWeight = false;//true; // Semileptonic decay branching fraction
+const bool useBH1 = true; // Use hadronic B for weights
+const bool useBH2 = true; // Use leptonic B for weights
+const bool fillBH1 = true; // Fill hadronic B for weights
+const bool fillBH2 = true; // Fill leptonic B for weights
+
 
 using namespace std;
 
@@ -413,15 +425,18 @@ void hadW::Loop()
     //{ {297020,299329},{299330,302029},{302030,303434},{303435,304899},{304900,306460} }, // B,C,D,E,F: DE fused at 303434},{303435,
     //{ {306926,307082} }, // H
     //{ {315000,316999},{317000,319319},{319320,320399},{320400,326000} } // A,B, C,D
-   double iovs[] = {1,
-		    272760, 276820, 278802, 
-		    297020, 299330, 302030, 303435, 304900,
-		    306926,
-		    315000, 317000, 319320, 320400,326000+1};
+   double iovs[] = {1, 10000,
+		    272760, 276820, 278802, 284046,
+		    297020, 299330, 302030, 303435, 304900, 306461,
+		    306926, 307083,
+		    315000, 317000, 319320, 320400,326001};
    const int niov = sizeof(iovs)/sizeof(iovs[0])-1;
    TProfile *pmwiov = new TProfile("pmwiov",";Run;#LTm_{W}#GT (GeV)",niov,iovs);
    TProfile *pbqiov = new TProfile("pbqiov",";Run;#LTR_{bq}#GT",niov,iovs);
+   TProfile *pbbiov = new TProfile("pbbiov",";Run;#LTP_{T,bb}#GT",niov,iovs);
+   TProfile *pqqiov = new TProfile("pqqiov",";Run;#LTP_{T,qq}#GT",niov,iovs);
    TProfile *plbiov = new TProfile("plbiov",";Run;#LTm_{lb}#GT (GeV)",niov,iovs);
+   TProfile *plbmetiov = new TProfile("plbmetiov",";Run;#LTm_{lbmet}#GT (GeV)",niov,iovs);
    TProfile *pmtiov = new TProfile("pmtiov",";Run;#LTm_{t}#GT (GeV)",niov,iovs);
    TProfile *pmt1iov = new TProfile("pmt1iov",";Run;#LTm_{t,1}#GT (GeV)",niov,iovs);
    TProfile *ppt1iov = new TProfile("pptt1iov",";Run;#LTp_{T,t,1}#GT (GeV)",niov,iovs);
@@ -453,6 +468,14 @@ void hadW::Loop()
    TProfile *prhovsmu = new TProfile("prhovsmu",";#mu;#LT#rho#GT (GeV)",60,0,60);
    TProfile *prhovsnpv = new TProfile("prhovsnpv",";N_{PV};#LT#rho#GT (GeV)",60,0,60);
    TProfile *prhovsnpvall = new TProfile("prhovsnpvall",";N_{PV,all};#LT#rho#GT (GeV)",60,0,60);
+   //
+   TProfile *pmwvsmu = new TProfile("pmwvsmu",";m_{W} (GeV);#LT#mu#GT",60,0,60);
+   TProfile *pbqvsmu = new TProfile("pbqvsmu",";R_{bq};#LT#mu#GT",60,0,60);
+   TProfile *pbbvsmu = new TProfile("pbbvsmu",";p_{T,bb};#LT#mu#GT",60,0,60);
+   TProfile *pqqvsmu = new TProfile("pqqvsmu",";p_{T,qq};#LT#mu#GT",60,0,60);
+   TProfile *pmtvsmu = new TProfile("pmtvsmu",";m_{t} (GeV);#LT#mu#GT",60,0,60);
+   TProfile *plbvsmu = new TProfile("plbvsmu",";m_{lb} (GeV);#LT#mu#GT",60,0,60);
+   TProfile *plbmetvsmu = new TProfile("plbmetvsmu",";m_{lbmet} (GeV);#LT#mu#GT",60,0,60);
 
    // bJES
    TProfile *prb = new TProfile("prb",";p_{T,reco-b} (GeV);"
@@ -524,6 +547,22 @@ void hadW::Loop()
    TProfile *pbmufa = new TProfile("pbmufa",";p_{T,b} (GeV);Incl. Muf",nxb,xb);
    TProfile *pbmufb = new TProfile("pbmufb",";p_{T,b} (GeV);Excl. Muf",nxb,xb);
    TProfile *pbmufn = new TProfile("pbmufn",";p_{T,b} (GeV);MuN frac.",nxb,xb);
+
+   // B-hadron level studies on semileptonic decays
+   const int nbh = 7;
+   int abh[nbh] = {521,511,531,5122,5132,5232,0};
+   TProfile *pbhfrac = new TProfile("pbhfrac",";B-hadron;Fraction",7,0,7);
+   TProfile *pbhslbr = new TProfile("pbhslbr",";B-hadron;SL BR",7,0,7);
+   TProfile *pbhslnu = new TProfile("pbhslnu",";B-hadron;E_{f,SL-#nu}",7,0,7);
+   TProfile *pbhslmu = new TProfile("pbhslmu",";B-hadron;E_{f,SL-#mu}",7,0,7);
+   TProfile *pbhslnuf = new TProfile("pbhslnuf",";B-hadron;f_{SL-#nu}",7,0,7);
+   TProfile *pbhslmuf = new TProfile("pbhslmuf",";B-hadron;f_{SL-#mu}",7,0,7);
+   //
+   TProfile *pbhnunf = new TProfile("pbhnunf",";B-hadron;f_{#nu}",7,0,7);
+   TProfile *pbhmunf = new TProfile("pbhmunf",";B-hadron;f_{#mu}",7,0,7);
+   TProfile *pbhnuef = new TProfile("pbhnuef",";B-hadron;E_{f,#nu}",7,0,7);
+   TProfile *pbhmuef = new TProfile("pbhmuef",";B-hadron;E_{f,#mu}",7,0,7);
+
 
    // QGL shape for quarks
    TH1D *hqglq = new TH1D("hqglq",";QGL (q);N_{jets}",100,0,1);
@@ -784,10 +823,12 @@ void hadW::Loop()
    //
 
    const int nrun = pmtiov->GetNbinsX();
-   const char *runs[] = {"MC","BCD","EF","GH", "B","C","D","E","F", "H",
-			 "A","B","C","D"};
+   const char *runs[] = {"MC", "X",
+    "BCD","EF","GH", "X",
+    "B","C","D","E","F", "X", "H", "X",
+    "A","B","C","D"};
    assert(nrun==(sizeof(runs)/sizeof(runs[0])));
-   double runlums[] = {150, 1,1,1, 4.8,9.6,4.2,9.3,13.4, 1,
+   double runlums[] = {150, 1,1,1, 0, 4.8,9.6,4.2,9.3,13.4, 1,
 		       14.0,7.1,6.9,31.9}; //UL18
 
    vector<FactorizedJetCorrector*> jecrefs(nrun);
@@ -795,10 +836,16 @@ void hadW::Loop()
    for (int irun = 1; irun != nrun; ++irun) { // irun==0 is MC
 
      // Won't function properly for multiple years at once
+     /*
      if (is16 &&  isAPV && (irun<1||irun>2)) continue;
      if (is16 && !isAPV && (irun<3||irun>3)) continue;
      if (is17 && (irun<4||irun>8)) continue;
      if (is18 && (irun<10||irun>13)) continue;
+     */
+     if (is16 &&  isAPV && (irun<2||irun>3)) continue;
+     if (is16 && !isAPV && (irun<4||irun>4)) continue;
+     if (is17 && (irun<6||irun>10)) continue;
+     if (is18 && (irun<14||irun>17)) continue;
 
      string srun = Form(cref,runs[irun]);
      const char *cref = srun.c_str();
@@ -1132,6 +1179,68 @@ void hadW::Loop()
       if (usePtWeight && isMC) {
 	w *= tptweight;
       }
+      if (useRunMCWeight && isMC) {
+	w *= runMCWeight;
+      }
+      if (useSLBRWeight && isMC) {
+
+	if (useBH1) {
+	  double slweight(1);
+	  //{521,511,531,5122,5132,5232,0};
+	  if (gen_bLeadId1==511 || gen_bLeadId1==521 || gen_bLeadId1==531 ||
+	      gen_bLeadId1==5122) {
+	    
+	    if (gen_bLeadId1==511)  slweight = 0.997;//1.002; // B0
+	    if (gen_bLeadId1==521)  slweight = 1.000;//1.005; // B+
+	    if (gen_bLeadId1==531)  slweight = 1.095;//1.107; // B0s
+	    if (gen_bLeadId1==5122) slweight = 1.398;//1.385; // Lambdab
+	    
+	    // Inverse weight for non-SL events to keep B hadron counts constant
+	    if (!(gen_bFlags1 & 1)) {
+	      
+	      double br(0.104096); // across all events
+	      double sf(slweight); // 1.018); // across all events
+	      if (gen_bLeadId1==511)  br = 0.10335;//0.10282; // B0
+	      if (gen_bLeadId1==521)  br = 0.11075;//0.11027; // B+
+	      if (gen_bLeadId1==531)  br = 0.09352;//0.09253; // B0s
+	      if (gen_bLeadId1==5122) br = 0.07338;//0.07407; // Lambdab
+	      
+	      // 2*br*sf + (1-2*br)*x = 1
+	      slweight = (1-2*br*sf) / (1-2*br);
+	    } // hadronic decay
+	  } // target B hadron
+	  w *= slweight;
+	} // useBH1
+
+	if (useBH2) {
+	  double slweight(1);
+	  //{521,511,531,5122,5132,5232,0};
+	  if (gen_bLeadId2==511 || gen_bLeadId2==521 || gen_bLeadId2==531 ||
+	      gen_bLeadId2==5122) {
+
+	    if (gen_bLeadId2==511)  slweight = 0.997;//1.002; // B0
+	    if (gen_bLeadId2==521)  slweight = 1.000;//1.005; // B+
+	    if (gen_bLeadId2==531)  slweight = 1.095;//1.107; // B0s
+	    if (gen_bLeadId2==5122) slweight = 1.398;//1.385; // Lambdab
+	    
+	    // Inverse weight for non-SL events to keep B hadron counts constant
+	    if (!(gen_bFlags2 & 1)) {
+	      
+	      double br(0.104096); // across all events
+	      double sf(slweight); // 1.018); // across all events
+	      if (gen_bLeadId2==511)  br = 0.10335;//0.10282; // B0
+	      if (gen_bLeadId2==521)  br = 0.11075;//0.11027; // B+
+	      if (gen_bLeadId2==531)  br = 0.09352;//0.09253; // B0s
+	      if (gen_bLeadId2==5122) br = 0.07338;//0.07407; // Lambdab
+
+	      // 2*br*sf + (1-2*br)*x = 1
+	      slweight = (1-2*br*sf) / (1-2*br);
+	    } // hadronic decay
+	  } // target B hadron
+	  w *= slweight;
+	} // useBH2
+
+      } // useSLBRWeight
 
       // Should this also get corrections?
       double ptave = 0.5*(pt1+pt2);
@@ -1376,22 +1485,35 @@ void hadW::Loop()
 	    if (goodw0) pnpvalliov->Fill(run+0.5,NPrVtx,w);
 	    if (goodw0) prhoiov->Fill(run+0.5,pfRho,w);
 	    //
+	    if (goodw0) pmuiov->Fill(runMC,TruePU,w);
+	    if (goodw0) pnpviov->Fill(runMC,NPrVtxGood,w);
+	    if (goodw0) pnpvalliov->Fill(runMC,NPrVtx,w);
+	    if (goodw0) prhoiov->Fill(runMC,pfRho,w);
+	    //
 	    if (goodw0) pmuvsmu->Fill(TruePU,TruePU,w);
 	    if (goodw0) pnpvvsmu->Fill(TruePU,NPrVtxGood,w);
 	    if (goodw0) pnpvallvsmu->Fill(TruePU,NPrVtx,w);
 	    if (goodw0) prhovsmu->Fill(TruePU,pfRho,w);
 	    if (goodw0) prhovsnpv->Fill(NPrVtxGood,pfRho,w);
 	    if (goodw0) prhovsnpvall->Fill(NPrVtx,pfRho,w);
-	    
+	    //
+	    if (goodw0) pmwvsmu->Fill(TruePU,recoWmass0,w);
 	    if (goodw0) pmwiov->Fill(run+0.5,recoWmass0,w);
+	    if (goodw0) pmwiov->Fill(runMC,recoWmass0,w);
 
 	    // TOP1
 	    if (fabs(beta1)<etaMax && goodw0) {
 
 	      if (goodmt1) pmtiov->Fill(run+0.5,mt1,w);
+	      if (goodmt1) pmtvsmu->Fill(TruePU,mt1,w);
 	      if (goodmt1) pmt1iov->Fill(run+0.5,mt1,w);
 	      if (goodmt1) ppt1iov->Fill(run+0.5,ptt1,w);
 	      if (goodmt1) plepiov->Fill(run+0.5,lep_pt,w);
+	      //
+	      if (goodmt1) pmtiov->Fill(runMC,mt1,w);
+	      if (goodmt1) pmt1iov->Fill(runMC,mt1,w);
+	      if (goodmt1) ppt1iov->Fill(runMC,ptt1,w);
+	      if (goodmt1) plepiov->Fill(runMC,lep_pt,w);
 	      h1mt->Fill(     mt1,w);
 	      h2mt->Fill(bpt1,mt1,w);
 	      if (goodmt1)   pmt  ->Fill(bpt1,mt1,w);
@@ -1440,6 +1562,7 @@ void hadW::Loop()
 	    if (fabs(beta2)<etaMax && goodw0) {
 
 	      if (goodmt2) pmtiov->Fill(run+0.5,mt2,w);
+	      if (goodmt2) pmtiov->Fill(runMC,mt2,w);
 	      h1mt->Fill(     mt2,w);
 	      h2mt->Fill(bpt2,mt2,w);
 	      if (goodmt2)   pmt  ->Fill(bpt2,mt2,w);
@@ -1638,6 +1761,48 @@ void hadW::Loop()
 	      pbmufn->Fill(kBNU1*bpt1, bmuf1>0 ? 1 : 0, w);
 	      pbmufn->Fill(kBNU2*bpt2, bmuf2>0 ? 1 : 0, w);
 
+	      // Further studies of SL decays per B hadron
+	      int pdgid1(0), pdgid2(0);
+	      for (int ih = 0; ih != nbh; ++ih) {
+		
+		if (fillBH1) {
+		  bool isbh = (gen_bLeadId1==abh[ih] || (pdgid1==abh[ih]));
+		  bool issl = (gen_bFlags1 & 1);
+		  pbhfrac->Fill(ih, isbh ? 1 : 0, w);
+		  if (isbh) {
+		    pdgid1 = gen_bLeadId1;
+		    pbhslbr->Fill(ih, issl ? 1 : 0, w);
+		    if (issl) pbhslnu->Fill(ih, max(gen_bNuCorr1-1,0.0f), w);
+		    if (issl) pbhslmu->Fill(ih, bmuf1, w);
+		    if (issl) pbhslnuf->Fill(ih, gen_bNuCorr1>1.001 ? 1 : 0, w);
+		    if (issl) pbhslmuf->Fill(ih, bmuf1>0.001 ? 1 : 0, w);
+		    //
+		    pbhnunf->Fill(ih, gen_bNuCorr1>1.001 ? 1 : 0, w);
+		    pbhmunf->Fill(ih, bmuf1>0.001 ? 1 : 0, w);
+		    pbhnuef->Fill(ih, max(gen_bNuCorr1-1,0.0f), w);
+		    pbhmuef->Fill(ih, bmuf1, w);
+		  } // isbh
+		}
+		if (fillBH2) {
+		  bool isbh = (gen_bLeadId2==abh[ih] || (pdgid2==abh[ih]));
+		  bool issl = (gen_bFlags2 & 1);
+		  pbhfrac->Fill(ih, isbh ? 1 : 0, w);
+		  if (isbh) {
+		    pdgid2 = gen_bLeadId2;
+		    pbhslbr->Fill(ih, issl ? 1 : 0, w);
+		    if (issl) pbhslnu->Fill(ih, max(gen_bNuCorr2-1,0.0f), w);
+		    if (issl) pbhslmu->Fill(ih, bmuf2, w);
+		    if (issl) pbhslnuf->Fill(ih, gen_bNuCorr2>1.001 ? 1 : 0, w);
+		    if (issl) pbhslmuf->Fill(ih, bmuf2>0.001 ? 1 : 0, w);
+		    //
+		    pbhnunf->Fill(ih, gen_bNuCorr2>1.001 ? 1 : 0, w);
+		    pbhmunf->Fill(ih, bmuf2>0.001 ? 1 : 0, w);
+		    pbhnuef->Fill(ih, max(gen_bNuCorr2-1,0.0f), w);
+		    pbhmuef->Fill(ih, bmuf2, w);
+		  } // isbh
+		}
+	      } // for ih in nbh
+
 	      // QGL shape for quarks
 	      hqglq->Fill(qgl1, w);
 	      hqglq->Fill(qgl2, w);
@@ -1790,7 +1955,20 @@ void hadW::Loop()
 	      pmpf->Fill(4., qq.Dot(ref),w);
 	      pmpf->Fill(5., t1.Dot(ref),w);
 	      pbqiov->Fill(run+0.5,rbq,w);
+	      pbbiov->Fill(run+0.5,rbb,w);
+	      pqqiov->Fill(run+0.5,rqq,w);
+	      pbqiov->Fill(runMC,rbq,w);
+	      pbbiov->Fill(runMC,rbb,w);
+	      pqqiov->Fill(runMC,rqq,w);
+	      pbqvsmu->Fill(TruePU,rbq,w);
+	      pbbvsmu->Fill(TruePU,rbb,w);
+	      pqqvsmu->Fill(TruePU,rqq,w);
 	      plbiov->Fill(run+0.5,mlb2,w);
+	      plbiov->Fill(runMC,mlb2,w);
+	      plbvsmu->Fill(TruePU,mlb2,w);
+	      plbmetiov->Fill(run+0.5,mlb2met,w);
+	      plbmetiov->Fill(runMC,mlb2met,w);
+	      plbmetvsmu->Fill(TruePU,mlb2met,w);
 
 	      // Fill PS weights variations with ATLAS cuts
 	      // all jets in barrel, good mw, mt, mlb plus fitProb>0.2
@@ -2361,7 +2539,10 @@ void hadW::Loop()
    h2mtmax->Write("h2mtmax",TObject::kOverwrite);
    pmwiov->Write("pmwiov",TObject::kOverwrite);
    pbqiov->Write("prbqiov",TObject::kOverwrite);
+   pbbiov->Write("ppbbiov",TObject::kOverwrite);
+   pqqiov->Write("ppqqiov",TObject::kOverwrite);
    plbiov->Write("pmlbiov",TObject::kOverwrite);
+   plbmetiov->Write("pmlbmetiov",TObject::kOverwrite);
    ppt1iov->Write("pptt1iov",TObject::kOverwrite);
    plepiov->Write("plepiov",TObject::kOverwrite);
    pmtiov->Write("pmtiov",TObject::kOverwrite);
@@ -2394,6 +2575,14 @@ void hadW::Loop()
    prhovsmu->Write("prhovsmu",TObject::kOverwrite);
    prhovsnpv->Write("prhovsnpv",TObject::kOverwrite);
    prhovsnpvall->Write("prhovsnpvall",TObject::kOverwrite);
+   //
+   pmwvsmu->Write("pmwvsmu",TObject::kOverwrite);
+   pbqvsmu->Write("prbqvsmu",TObject::kOverwrite);
+   pbbvsmu->Write("ppbbvsmu",TObject::kOverwrite);
+   pqqvsmu->Write("ppqqvsmu",TObject::kOverwrite);
+   pmtvsmu->Write("pmtvsmu",TObject::kOverwrite);
+   plbvsmu->Write("pmlbvsmu",TObject::kOverwrite);
+   plbmetvsmu->Write("pmlbmetvsmu",TObject::kOverwrite);
    //
    h1rb->Write("h1rb",TObject::kOverwrite);
    h1gb->Write("h1gb",TObject::kOverwrite);
@@ -2453,6 +2642,18 @@ void hadW::Loop()
    pbmufa->Write("pbmufa",TObject::kOverwrite);
    pbmufb->Write("pbmufb",TObject::kOverwrite);
    pbmufn->Write("pbmufn",TObject::kOverwrite);
+   //
+   pbhfrac->Write("pbhfrac",TObject::kOverwrite);
+   pbhslbr->Write("pbhslbr",TObject::kOverwrite);
+   pbhslnu->Write("pbhslnu",TObject::kOverwrite);
+   pbhslmu->Write("pbhslmu",TObject::kOverwrite);
+   pbhslnuf->Write("pbhslnuf",TObject::kOverwrite);
+   pbhslmuf->Write("pbhslmuf",TObject::kOverwrite);
+   //
+   pbhnunf->Write("pbhnunf",TObject::kOverwrite);
+   pbhmunf->Write("pbhmunf",TObject::kOverwrite);
+   pbhnuef->Write("pbhnuef",TObject::kOverwrite);
+   pbhmuef->Write("pbhmuef",TObject::kOverwrite);
 
    hqglq->Write("hqglq",TObject::kOverwrite);
    hqglb->Write("hqglb",TObject::kOverwrite);
