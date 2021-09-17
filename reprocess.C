@@ -33,6 +33,10 @@
 
 using namespace std;
 
+// plot in DP2021 style instead of Sep 18, 2020 style:
+// https://indico.cern.ch/event/955359/contributions/4014344/attachments/2104773/3539752/UL18V3M1_L3Res_2020_09_18.pdf
+const bool DP2021 = true;
+
 // rho used to calculate l1bias
 //const double gRho = 15.36; // 2017-06-02 for 2016 data
 //const double gRho = 19.21; // EOY17 DE jt450
@@ -360,7 +364,8 @@ void reprocess(string epoch="") {
   //if (epoch=="2018ABCD" ||
   //  epoch=="2018A" || epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
   if (isUL18) {
-    fp = new TFile(Form("../JERCProtoLab/Summer19UL18/L3Residual_gamma/Gjet_combinationfile_only_L2Res_%s_only_L2Res.root",fp_files[epoch]),"READ");
+    //fp = new TFile(Form("../JERCProtoLab/Summer19UL18/L3Residual_gamma/Gjet_combinationfile_only_L2Res_%s_only_L2Res.root",fp_files[epoch]),"READ");
+    fp = new TFile(Form("../JERCProtoLab/Summer19UL18/L3Residual_gamma/Gjet_combinationfile_only_L2Res_%s_only_L2Res_tribeni.root",fp_files[epoch]),"READ"); // DP2021
   }
   else { // UL17
     fp = new TFile(Form("rootfiles/2020-04-02/SimpleL1_only_L2Res/Gjet_combinationfile_SimpleL1_only_L2Res_%s_SimpleL1_only_L2Res.root",fp_files[epoch]),"READ");
@@ -400,8 +405,10 @@ void reprocess(string epoch="") {
   //if (epoch=="2018ABCD" ||
   //  epoch=="2018A" || epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
   if (isUL18) {
-    fzmm = new TFile("../JERCProtoLab/Summer19UL18/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV3_L1L2Res.root","READ"); // UL18-v1
-    fzee = new TFile("../JERCProtoLab/Summer19UL18/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV3_L1L2Res.root","READ"); // UL18-v1
+    //fzmm = new TFile("../JERCProtoLab/Summer19UL18/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV3_L1L2Res.root","READ"); // UL18-v1
+    fzmm = new TFile("../JERCProtoLab/Summer19UL18/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV3_L1L2Res_olderversion.root","READ"); // UL18-v1
+    //fzee = new TFile("../JERCProtoLab/Summer19UL18/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV3_L1L2Res.root","READ"); // UL18-v1
+    fzee = new TFile("../JERCProtoLab/Summer19UL18/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV3_L1L2Res_olderversion.root","READ"); // UL18-v1
   }
   else { // UL17
     fzmm = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV4_L1L2Res.root","READ"); // V4 as above, V5 new and worse
@@ -862,6 +869,10 @@ void reprocess(string epoch="") {
   color["zeejet"] = kGreen+2;
   color["zmmjet"] = kRed;
   color["zlljet"] = kMagenta+2;
+  if (DP2021) {
+    color["zmmjet"] = kMagenta+2; // DP2021
+    color["zlljet"] = kRed; // DP2021
+  }  
   color["zlljet_chf"] = kRed;
   color["zlljet_nhf"] = kGreen+2;
   color["zlljet_nef"] = kBlue;
@@ -1689,6 +1700,7 @@ void reprocess(string epoch="") {
   /////////////////////////////////////////////////////
 
   // Calculate L2L3Res with JEC uncertainty
+  cout << "Calculating JECs..." << endl << flush;
   {
 
     const char *s, *s2;
@@ -1698,7 +1710,9 @@ void reprocess(string epoch="") {
     // New JEC for plotting on the back
     FactorizedJetCorrector *jec;
     FactorizedJetCorrector *jecb(0), *jecc(0), *jecd(0), *jece(0), *jecf(0);
+    FactorizedJetCorrector *jeca(0); // for ABCD, DP2021
     double jecwb(1), jecwc(0), jecwd(0), jecwe(0), jecwf(0);       // for BCDEF
+    double jecwa(0); // for ABCD, DP2021
     {
       /*
       jec = getFJC("","",
@@ -1722,6 +1736,8 @@ void reprocess(string epoch="") {
 	//  epoch=="2018B" || epoch=="2018C" || epoch=="2018D")
 	if (isUL18)
 	  lumtot = 9.6+4.2+9.3; // just CDE, drop B,F
+	if (isUL18 && DP2021)
+	  lumtot = 14.0+7.1+6.9+31.9; // DP2021
 	/*
 	jecb =getFJC("","","Summer19UL17_RunB_V2M5_SimpleL1_DATA_L2L3Residual");
 	jecc =getFJC("","","Summer19UL17_RunC_V2M5_SimpleL1_DATA_L2L3Residual");
@@ -1729,6 +1745,7 @@ void reprocess(string epoch="") {
 	jece =getFJC("","","Summer19UL17_RunE_V2M5_SimpleL1_DATA_L2L3Residual");
 	jecf =getFJC("","","Summer19UL17_RunF_V2M5_SimpleL1_DATA_L2L3Residual");
 	*/
+
 	jecb =getFJC("","","Summer19UL17_RunB_V4_DATA_L2L3Residual");
 	jecc =getFJC("","","Summer19UL17_RunC_V4_DATA_L2L3Residual");
 	jecd =getFJC("","","Summer19UL17_RunD_V4_DATA_L2L3Residual");
@@ -1745,6 +1762,20 @@ void reprocess(string epoch="") {
 	if (isUL18) {
 	  jecwb = 0;
 	  jecwf = 0;
+	}
+
+	// DP2021
+	if (isUL18 && DP2021) {
+
+	  jeca =getFJC("","","Summer19UL18_RunA_V5_DATA_L2L3Residual");
+	  jecb =getFJC("","","Summer19UL18_RunB_V5_DATA_L2L3Residual");
+	  jecc =getFJC("","","Summer19UL18_RunC_V5_DATA_L2L3Residual");
+	  jecd =getFJC("","","Summer19UL18_RunD_V5_DATA_L2L3Residual");
+
+	  jecwa = 14.0/lumtot;
+	  jecwb = 7.1/lumtot;
+	  jecwc = 6.9/lumtot;
+	  jecwd = 31.9/lumtot;
 	}
       }
     }
@@ -2088,8 +2119,9 @@ void reprocess(string epoch="") {
 
 	  //if (epoch=="BCDEF" || epoch=="2018ABCD" || epoch=="2018A" || 
 	  //  epoch=="2018B" || epoch=="2018C" || epoch=="2018D") {
-	  if (isUL18) {
+	  if (isUL18 && !DP2021) {
 	  
+
 	    assert(jecb);assert(jecc);assert(jecd);assert(jece);assert(jecf);
 	    assert(fabs(jecwb+jecwc+jecwd+jecwe+jecwf-1)<1e-4);
 	    
@@ -2100,6 +2132,18 @@ void reprocess(string epoch="") {
 	    double valf = 1./getJEC(jecf,eta,pt);
 
 	    val = jecwb*valb +jecwc*valc +jecwd*vald +jecwe*vale +jecwf*valf;
+	  }
+	  // DP2021
+	  if (isUL18 && DP2021) {
+	    assert(jeca);assert(jecb);assert(jecc);assert(jecd);
+	    assert(fabs(jecwa+jecwb+jecwc+jecwd-1)<1e-4);
+	    
+	    double vala = 1./getJEC(jeca,eta,pt);
+	    double valb = 1./getJEC(jecb,eta,pt);
+	    double valc = 1./getJEC(jecc,eta,pt);
+	    double vald = 1./getJEC(jecd,eta,pt);
+	    
+	    val = jecwa*vala +jecwb*valb +jecwc*valc +jecwd*vald;
 	  }
           //if(rp_debug) cout << "ABC/ABCD special treatment done" << endl;
           if(CorLevel=="L1L2L3Res")val = 1.0; //to get proper bands during closure test

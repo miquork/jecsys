@@ -39,6 +39,10 @@
 
 using namespace std;
 
+// plot in DP2021 style instead of Sep 18, 2020 style:
+// https://indico.cern.ch/event/955359/contributions/4014344/attachments/2104773/3539752/UL18V3M1_L3Res_2020_09_18.pdf
+bool DP2021b = true;
+
 // Global fit settings
 double alpha = 0.30; // reference alpha value for zlljet, gamjet (def:0.3)
 double ptmj = 30.; // reference pTmin value for multijet (def:30)
@@ -322,6 +326,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   TDirectory *curdir = gDirectory;
   setTDRStyle();
+
+  if (DP2021b) _paper = true;
 
   bool isUL18 = (epoch=="2018ABCD" || epoch=="2018A" || 
 		 epoch=="2018B" || epoch=="2018C" || epoch=="2018D");
@@ -1500,7 +1506,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   lumimap["2018B"] = "2018B"; // placeholder
   lumimap["2018C"] = "2018C"; // placeholder
   lumimap["2018D"] = "2018D"; // placeholder
-  lumimap["2018ABCD"] = "2018"; // placeholder
+  lumimap["2018ABCD"] = "2018, 59.8 fb^{-1}"; // placeholder
   lumi_13TeV = lumimap[epoch];
 
   TCanvas *c0 = tdrCanvas("c0",h,4,11,true);
@@ -2351,6 +2357,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       c0b->SaveAs(Form("pdf/%s/globalFitL3res_raw.pdf",cep));
       c0->SaveAs(Form("pdf/%s/globalFitL3res_orig.pdf",cep));
       c1->SaveAs(Form("pdf/%s/globalFitL3res_shifted.pdf",cep));
+      c1->SaveAs(Form("pdf/%s/globalFitL3res_shifted.root",cep));
     }
     if (writeTextFile) {
       ofstream fout("textFiles/globalFitL3Res.txt",ios::app);
