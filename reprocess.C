@@ -408,13 +408,15 @@ void reprocess(string epoch="") {
     else if (isUL16 && !isAPV) {
       fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V2V1_%s.root",
 			     fpf_files[epoch]),"READ");
-      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V2V1_%s.root",
+      // DP2021: need 'oldv1' version to match April 27, 2021 talk plots on V7
+      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V2V1_%s_oldv1.root",
 			     fpf_files[epoch]),"READ");
     }
     else if (isUL16 && isAPV) {
       fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V3V1_%s.root",
 			     fpf_files[epoch]),"READ");
-      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V3V1_%s.root",
+      // DP2021: need 'oldv1' version to match April 27, 2021 talk plots on V7
+      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V3V1_%s_oldv1.root",
 			     fpf_files[epoch]),"READ");
     }
     else

@@ -240,8 +240,8 @@ TGraphErrors *tools::mergeGraphs(TGraphErrors *g1, TGraphErrors *g2) {
       //double w2 = g1->GetEY()[i] / (g2->GetEY()[j] + g1->GetEY()[i]);
       // Updated logic: 1/err^2 ~ N, since err ~ 1/sqrt(N)
       double w1(0.5), w2(0.5);
-      if      (g2->GetN()==0) { w1==1; w2==0; }
-      else if (g1->GetN()==0) { w1==0; w2==1; }
+      if      (g2->GetN()==0) { w1=1; w2=0; }
+      else if (g1->GetN()==0) { w1=0; w2=1; }
       else {
 	double n1 = 1./pow(g1->GetEY()[i],2);
 	double n2 = 1./pow(g2->GetEY()[j],2);
