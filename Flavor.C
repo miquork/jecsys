@@ -307,10 +307,18 @@ void Flavor::loadRES() {
   if (true) {
 
     // Eta13
+    /*
     f1q->SetParameters(0.7966, 0.9311, -1); // chi2/NDF=9.6/7
     f1g->SetParameters(-1.764, -1.194, -1); // chi2/NDF=12.5/7
     f1c->SetParameter(0,-0.6218); // chi2/NDF=25.2/8
     f1b->SetParameter(0,0.3651); // chi2/NDF=15.3/8
+    f1z->SetParameters(0, 0.5, -1); // chi2/NDF=0.0/0
+    */
+    // New Run2Test values
+    f1q->SetParameters(0.2746, 0.1031, -1); // chi2/NDF=20.3/7
+    f1g->SetParameters(-1.07, -0.5904, -1); // chi2/NDF=14.3/7
+    f1c->SetParameter(0,-0.2341); // chi2/NDF=16.1/8
+    f1b->SetParameter(0,0.5346); // chi2/NDF=24.1/8
     f1z->SetParameters(0, 0.5, -1); // chi2/NDF=0.0/0
 
     _mres["ud"] = f1q;
@@ -322,10 +330,18 @@ void Flavor::loadRES() {
   if (true) {
 
     // Eta13
+    /*
     f1q3->SetParameters(0.7966, 0.9311, -1); // chi2/NDF=9.6/7
     f1g3->SetParameters(-1.764, -1.194, -1); // chi2/NDF=12.5/7
     f1c3->SetParameter(0,-0.6218); // chi2/NDF=25.2/8
     f1b3->SetParameter(0,0.3651); // chi2/NDF=15.3/8
+    f1z3->SetParameters(0, 0.5, -1); // chi2/NDF=0.0/0
+    */
+    // New Run2Test values
+    f1q3->SetParameters(0.2746, 0.1031, -1); // chi2/NDF=20.3/7
+    f1g3->SetParameters(-1.07, -0.5904, -1); // chi2/NDF=14.3/7
+    f1c3->SetParameter(0,-0.2341); // chi2/NDF=16.1/8
+    f1b3->SetParameter(0,0.5346); // chi2/NDF=24.1/8
     f1z3->SetParameters(0, 0.5, -1); // chi2/NDF=0.0/0
 
     _mres["ud13"] = f1q3;
@@ -337,10 +353,18 @@ void Flavor::loadRES() {
   if (true) {
 
     // Eta25
+    /*
     f1q5->SetParameters(0.9382, 1.03, -1); // chi2/NDF=9.6/7
     f1g5->SetParameters(-2.264, -1.981, -1); // chi2/NDF=5.3/7
     f1c5->SetParameter(0, -0.1573); // chi2/NDF=19.8/8
     f1b5->SetParameter(0, 0.1104); // chi2/NDF=16.3/8
+    f1z5->SetParameters(0, 0.5, -1); // chi2/NDF=0.0/0
+    */
+    // New Run2Test values
+    f1q5->SetParameters(0.269, 0.0725, -1); // chi2/NDF=16.6/7
+    f1g5->SetParameters(-1.37, -1.056, -1); // chi2/NDF=12.1/7
+    f1c5->SetParameter(0,0.0836); // chi2/NDF=10.4/8
+    f1b5->SetParameter(0,0.314); // chi2/NDF=23.7/8
     f1z5->SetParameters(0, 0.5, -1); // chi2/NDF=0.0/0
 
     _mres["ud25"] = f1q5;
