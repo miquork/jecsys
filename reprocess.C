@@ -33,6 +33,10 @@
 
 using namespace std;
 
+// Update results in April 27, 2021 talk to DP2021 style (and vs UL16V7):
+// https://indico.cern.ch/event/1005573/contributions/4334265/attachments/2233159/3786559/UL16V5M3_L3Res_2021_04_27.pdf?#page=20
+const bool DP2021 = true;
+
 // rho used to calculate l1bias
 // These values from Z(mm)+jet UL17BCDEF |eta|<1.3 at close to 202.5 GeV
 // Maximilian: [MC,Data]_Rho_CHS_a30_eta_00_13_L1L2Res at 198 GeV (alpha<1.0)
@@ -2585,6 +2589,7 @@ void reprocess(string epoch="") {
     FactorizedJetCorrector *jecg(0), *jech(0);
     double jecwa(0), jecwb(0), jecwc(0), jecwd(0), jecwe(0), jecwf(0);
     double jecwg(0), jecwh(0);
+    FactorizedJetCorrector *jecdp1(0), *jecdp2(0); // DP2021
     {
       if (rp_debug) cout << "Individual JECs..." << endl << flush;
 
@@ -2599,11 +2604,18 @@ void reprocess(string epoch="") {
 	jec = getFJC("",Form("Summer19UL16_Run%s_V5_DATA_L2L3Residual",mera[epoch]),"",cd);
 	//jec = getFJC("",Form("Summer19UL16_Run%s_V5M1_DATA_L2L3Residual",mera[epoch]),"",cdx);
 	mcjec = getFJC("",Form("Summer19UL16_Run%s_V5_DATA_L2Relative",mera[epoch]),"",cd);
+	if (DP2021) {
+	  jecdp1 = getFJC("","Summer19UL16_RunFGH_V7_DATA_L2L3Residual");
+	}
       }
       else if (isUL16 && isAPV) {
 	jec = getFJC("",Form("Summer19UL16APV_Run%s_V5_DATA_L2L3Residual",mera[epoch]),"",cd);
 	//jec = getFJC("",Form("Summer19UL16_Run%s_V5M1_DATA_L2L3Residual",mera[epoch]),"",cdx);
 	mcjec = getFJC("",Form("Summer19UL16APV_Run%s_V5_DATA_L2Relative",mera[epoch]),"",cd);
+	if (DP2021) {
+	  jecdp1 = getFJC("","Summer19UL16APV_RunBCD_V7_DATA_L2L3Residual");
+	  jecdp2 = getFJC("","Summer19UL16APV_RunEF_V7_DATA_L2L3Residual");
+	}
       }
       else
 	assert(false);
@@ -2651,6 +2663,11 @@ void reprocess(string epoch="") {
 	double lumtot = 5.9+2.6+4.4 +4.0+3.2; // 20.1 (vs 19.8?)
 	jecwb = (5.9+2.6+4.4)/lumtot; // 12.9
 	jecwe = (4.0+3.2)/lumtot; // 7.2 (vs 6.8?)
+
+	//if (DP2021) {
+	//jecdp1 = getFJC("","","Summer19UL16APV_RunBCD_V7_DATA_L2L3Residual");
+	//jecdp2 = getFJC("","","Summer19UL16APV_RunEF_V7_DATA_L2L3Residual");
+	//}
       }
       // Alternative combined JEC
       //else if (epoch=="2016BCDEF") {
@@ -2927,8 +2944,10 @@ void reprocess(string epoch="") {
       // Uncertainty bands
       TH1D *herr = new TH1D("herr",";p_{T} (GeV);JEC uncertainty;",
 			    npt, &ptbins[0]);
-      TH1D *herr_l2l3res = new TH1D("herr_l2l3res",";p_{T} (GeV);L2L3Res;",
+      TH1D *herr_l2l3res = new TH1D("herr_l2l3res",";p_{T} (GeV);L2L3Res(V5);",
 				npt, &ptbins[0]);
+      TH1D *herr_dp = new TH1D("herr_dp",";p_{T} (GeV);L2L3Res(V7);",
+			       npt, &ptbins[0]); // DP2021
       TH1D *herr_ref = new TH1D("herr_ref",";p_{T} (GeV);TotalNoFlavorNoTime;",
 				npt, &ptbins[0]);
       TH1D *herr_spr = new TH1D("herr_spr",";p_{T} (GeV);SPR uncertainty;",
@@ -3155,6 +3174,8 @@ void reprocess(string epoch="") {
 	double sumvall1dnom20(0),sumvall1mnom20(0);
 	double sumvall1dalt20(0),sumvall1malt20(0);
 
+	// DP2021
+	double sumvaldp(0), onevaldp(0);
 
 	for (int jeta = 0; jeta != neta; ++jeta) {
 
@@ -3206,6 +3227,15 @@ void reprocess(string epoch="") {
 
 	    val = jecwb*valb +jecwe*vale;
 	    //val = jecwb*valb; // alternative version
+
+	    // DP2021
+	    double valdp1 = 1./getJEC(jecdp1,eta,pt);
+	    double valdp2 = 1./getJEC(jecdp2,eta,pt);
+	    onevaldp = jecwb*valdp1 + jecwe*valdp2;
+	  }
+	  else if (epoch=="2016GH") {
+	    // DP2021
+	    onevaldp = 1./getJEC(jecdp1,eta,pt);
 	  }
 
 	  // reference JEC
@@ -3223,6 +3253,7 @@ void reprocess(string epoch="") {
 	  if(CorLevel=="L1L2L3Res") jes /= jes;  //to get proper bands during closure test
 
 	  sumvall2l3res += w*vall2l3res;
+	  sumvaldp += w*onevaldp;
 	  sumrun1 += w*jesrun1;
 	  sumval += w*val;
 	  sumjes += w*jes;
@@ -3339,6 +3370,7 @@ void reprocess(string epoch="") {
 
 	// normalize by total weight for correct average
 	double vall2l3res = sumvall2l3res / sumw;
+	double valdp = sumvaldp / sumw;
 	double val = sumval / sumw;
         //if(CorLevel=="L1L2L3Res") val = 1.0; //to get proper bands during closure test -- should already be 1.0 ... TESTING
 
@@ -3361,6 +3393,7 @@ void reprocess(string epoch="") {
 	// center uncertainties around JEC central value
 	herr->SetBinContent(ipt, val);
 	herr_l2l3res->SetBinContent(ipt, vall2l3res);
+	herr_dp->SetBinContent(ipt, valdp);
 	herr_ref->SetBinContent(ipt, val);
 	herr_spr->SetBinContent(ipt, val);
 	herr_pu->SetBinContent(ipt, 1);
@@ -3370,6 +3403,7 @@ void reprocess(string epoch="") {
 
 	herr->SetBinError(ipt, val*err);
 	herr_l2l3res->SetBinError(ipt, vall2l3res*err_ref);
+	herr_dp->SetBinError(ipt, valdp*err_ref);
 	herr_ref->SetBinError(ipt, val*err_ref);
 	herr_spr->SetBinError(ipt,val*sqrt(err_hcal*err_hcal
 					   + err_ecal*err_ecal));
@@ -3484,6 +3518,11 @@ void reprocess(string epoch="") {
       herr_l2l3res->SetFillStyle(1001);
       herr_l2l3res->SetFillColorAlpha(kYellow+1,0.5);
       herr_l2l3res->Write();
+
+      herr_dp->SetMarkerSize(0);
+      herr_dp->SetFillStyle(1001);
+      herr_dp->SetFillColorAlpha(kYellow+1,0.5);
+      herr_dp->Write();
 
       herr_ref->SetMarkerSize(0);
       herr_ref->SetFillStyle(1001);
