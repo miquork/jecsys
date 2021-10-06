@@ -49,7 +49,7 @@ bool dol1bias = false; // correct MPF for L1L2L3-L1 (instead of L1L2L3-RC)
 // see also ScalingForL2OrL3Fit below (left there since long explanation)
 
 // Plotting settings
-bool _paper = false; // switch of plotting fit parameters
+bool _paper = true; // switch of plotting fit parameters
 bool _useZoom = true; // also affects the kind of uncertainty band plotted: useZoom=true comes by default with AbsoluteScale+TotalNoFlavorNoTime; false--> Run1 and reference AbsoluteScale
 bool plotMultijetDown = true; // plot gray downward points for multijets
 double ptmaxMultijetDown = 300; // max pT for downward multijet points
@@ -1496,6 +1496,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       c0b->SaveAs(Form("pdf/%s/globalFitL3res_raw.pdf",cep));
       c0->SaveAs(Form("pdf/%s/globalFitL3res_orig.pdf",cep));
       c1->SaveAs(Form("pdf/%s/globalFitL3res_shifted.pdf",cep));
+      c1->SaveAs(Form("pdf/%s/globalFitL3res_shifted.root",cep));
     }
     if (writeTextFile) {
       ofstream fout("textFiles/globalFitL3Res.txt",ios::app);

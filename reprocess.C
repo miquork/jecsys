@@ -616,7 +616,7 @@ void reprocess(string epoch="") {
   color["gamjet"] = kBlue;
   color["zeejet"] = kGreen+2;
   color["zmmjet"] = kRed;
-  color["zlljet"] = kMagenta+2;
+  color["zlljet"] = kRed;//kMagenta+2; // DP2021
 
   map<double, double> size;
   size[0.10] = 0.6;
@@ -1225,7 +1225,8 @@ void reprocess(string epoch="") {
       //       epoch=="BCDEF" ? "B" : 
       //       (epoch=="D"||epoch=="E") ? "DE" : epoch.c_str());
       //s = Form("%s/Summer19UL17_Run%s_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd,epoch=="BCDEF"||epoch=="DE" ? "E" : epoch.c_str());
-      s = Form("textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_Run%s_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",epoch=="BCDEF" ? "B" : epoch.c_str());
+      //s = Form("textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_Run%s_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",epoch=="BCDEF" ? "B" : epoch.c_str());
+      s = Form("CondFormats/JetMETObjects/data/Summer19UL17_Run%s_V5_DATA_L2L3Residual_AK4PFchs.txt",epoch=="BCDEF" ? "B" : epoch.c_str()); // DP2021
 
       cout << s << endl;
       JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
@@ -1241,7 +1242,8 @@ void reprocess(string epoch="") {
 
 	//s=Form("%s/Fall17_17Nov2017C_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	//s = Form("%s/Summer19UL17_RunC_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);
-	s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunC_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
+	//s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunC_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
+	s = "CondFormats/JetMETObjects/data/Summer19UL17_RunC_V5_DATA_L2L3Residual_AK4PFchs.txt"; // DP2021
 	cout << s << endl;
 	JetCorrectorParameters *par_c = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_c;
@@ -1252,7 +1254,8 @@ void reprocess(string epoch="") {
 
 	//s=Form("%s/Fall17_17Nov2017D_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	//s = Form("%s/Summer19UL17_RunD_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
-	s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunD_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
+	//s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunD_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
+	s = "CondFormats/JetMETObjects/data/Summer19UL17_RunD_V5_DATA_L2L3Residual_AK4PFchs.txt"; // DP2021
 	cout << s << endl;
 	JetCorrectorParameters *par_d = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_d;
@@ -1262,7 +1265,8 @@ void reprocess(string epoch="") {
 
 	//s=Form("%s/Fall17_17Nov2017E_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	//s = Form("%s/Summer19UL17_RunE_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
-	s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunE_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
+	//s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunE_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
+	s = "CondFormats/JetMETObjects/data/Summer19UL17_RunE_V5_DATA_L2L3Residual_AK4PFchs.txt"; // DP2021
 	cout << s << endl;
 	JetCorrectorParameters *par_e = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_e;
@@ -1283,7 +1287,8 @@ void reprocess(string epoch="") {
 	//s=Form("%s/Fall17_17Nov2017F_V10_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	//s=Form("%s/Fall17_17Nov2017F_V32_DATA_L2L3Residual_AK4PFchs.txt",cd);
 	//s = Form("%s/Summer19UL17_RunF_V1_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt",cd);	
-	s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunF_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
+	//s = "textFiles/UL17V2M3-L2L3Res+JERSF/Summer19UL17_RunF_V2M3_SimpleL1_DATA_L2L3Residual_AK4PFchs.txt";
+	s = "CondFormats/JetMETObjects/data/Summer19UL17_RunF_V5_DATA_L2L3Residual_AK4PFchs.txt"; // DP2021
 	cout << s << endl;
 	JetCorrectorParameters *par_f = new JetCorrectorParameters(s);
 	vector<JetCorrectorParameters> vpar_f;
