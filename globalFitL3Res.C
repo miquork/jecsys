@@ -49,12 +49,15 @@ bool dofsrcombo1 = false;  // use input refIOV for FSR in IOVs (def: true)
 bool dofsrcombo2 = false;  // use output refIOV for FSR in IOVs (def:false)
 bool dofsr3 = true;        // use softrad3.C corrections instead of softrad.C
 bool dofsr3zj = true;      // secondary softrad3.C switch for Z+jet
+bool dofsr3gj = true;      // secondary softrad3.C switch for gamma+jet
 bool dofsr3mj = true;      // secondary softrad3.C switch for multijet
 bool fixfsrcombo = false;  // do not refit FSR (except refIOV) (def:false)
 bool useZJet50 = false;    // Use Z+jet MPF with alpha<0.50 (def:false)
-bool alsoPtBal50 = false;  // Use Z+jet DB with alpha<0.50 (def:false)
+bool useGJet50 = false;    // Use gamma+jet MPF with alpha<0.50 (def:false)
+bool alsoPtBal50 = false;  // Use Z/gamma+jet DB with alpha<0.50 (def:false)
 bool useZJet100 = true;    // Use Z+jet MPF with alpha<1.00 (def:true)
-bool alsoPtBal100 = dofsr3;// Use Z+jet DB with alpha<1.00 (def:dofsr3)
+bool useGJet100 = true;    // Use gamma+jet MPF with alpha<1.00 (def:true)
+bool alsoPtBal100 = dofsr3;// Use Z/gamma+jet DB with alpha<1.00 (def:dofsr3)
 //bool usePFJet100 = true; // Use PFJet compsition with alpha<1.00
 double alphaeffmax = 0.45; // max alphaeff for FSR corrections (def:0.45)
 
@@ -65,7 +68,7 @@ double ptreco_zjet = 15.;  // same for Z+jet (def:15)
 bool dol1bias = false;     // correct MPF to L1L2L3-L1 from L1L2L3-RC (def:false)
 
 // Inclusive jet settings (for IOV fits vs reference)
-bool useIncJetRefIOVUncert = true; // Include refIOV fit uncertainty? (def:no)
+bool useIncJetRefIOVUncert = false;//true; // Include refIOV fit uncertainty? (def:no)
 
 // PF composition settings
 bool usePF = true;     // Load dijet PF fractions in the fit (def:true for now)
@@ -159,6 +162,8 @@ map<string, map<int, TF1*> > _mpf; // map of PF fraction variations
 
 // Reference for L1L2L3Res closure test
 TH1D *_hjesref(0);
+// Reference for new JEC (DP2021)
+TH1D *_hjesrefnew(0);
 
 void jesFitter(Int_t &npar, Double_t *grad, Double_t &chi2, Double_t *par,
 	       Int_t flag);
@@ -167,7 +172,10 @@ void jesFitter(Int_t &npar, Double_t *grad, Double_t &chi2, Double_t *par,
 TF1 *_fitError_func(0);
 TMatrixD *_fitError_emat(0);
 Double_t fitError(Double_t *xx, Double_t *p);
-
+Double_t fitError1d(Double_t *xx, Double_t *p);
+Double_t origJES(Double_t *x, Double_t *);
+Double_t newJES(Double_t *x, Double_t *);
+void multiplyGraph(TGraphErrors *g, TF1 *f);
 
 TF1 *fhb(0), *fl1(0); // Run I functions
 TF1 *ft(0), *fc(0), *fcx(0); // Deprecating shapes
@@ -338,14 +346,17 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 		 epoch=="2016EF" || epoch=="2016GH");
   bool isAPV = (epoch=="2016BCDEF" || epoch=="2016BCD" ||
 		epoch=="2016EF");
+  bool isRun2 = (epoch=="Run2Test");
   string srefIOV = (isUL18 ? "2018ABCD" :
 		    (isUL17 ? "2017BCDEF" :
 		     (isUL16 ? "2016BCDEF" :
-		      "2018ABCD")));
+		      (isRun2 ? "Run2Test" :
+		       "2018ABCD"))));
   const char *refIOV = srefIOV.c_str();
   bool isRefIOV = (epoch=="2018ABCD" ||
 		   epoch=="2017BCDEF" ||
-		   epoch=="2016BCDEF");
+		   epoch=="2016BCDEF" ||
+		   epoch=="Run2Test");
   
   // Input data
   TFile *f = new TFile(Form("rootfiles/jecdata%s.root",cep),"READ");
@@ -375,6 +386,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 		new TFile("../JERCProtoLab/Summer19UL16/L3Residual_incljet/drawDeltaJEC_16ULJECV5_vsBCDEF.root","READ") :
 		isUL18 ?
 		new TFile("rootfiles/drawDeltaJEC_18UL_JECv3.root","READ") :
+		isRun2 ?
+		new TFile("rootfiles/drawDeltaJEC_Run2_vsUL4X.root","READ") :
 		new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ"));
   assert(fij && !fij->IsZombie());
 
@@ -525,6 +538,15 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   izllmap["MJDJ_inc_gam_zll_hadw"] = 1;
   iwmhmap["MJDJ_inc_gam_zll_hadw"] = 2;
 
+  // Global fit with all samples and inclusive jets + hadw as extra
+  samplesmap["MJDJ_inc_gam_z_hadw"] =   { (isl3 ? "multijet" : "dijet"),"incjet","gamjet", "zjet", "hadw"};
+  nsample0map["MJDJ_inc_gam_z_hadw"] = 2;
+  igjmap["MJDJ_inc_gam_z_hadw"] = 0;
+  izeemap["MJDJ_inc_gam_z_hadw"] = -1;
+  izmmmap["MJDJ_inc_gam_z_hadw"] = -1;
+  izllmap["MJDJ_inc_gam_z_hadw"] = 1;
+  iwmhmap["MJDJ_inc_gam_z_hadw"] = 2;
+
   // Global fit with: multijets/dijets, gamma+jet, merged Z+jet, hadronic w
   samplesmap["MJDJ_gam_zll_hadw"] =   { (isl3 ? "multijet" : "dijet"),"gamjet", "zlljet","hadw"};
   nsample0map["MJDJ_gam_zll_hadw"] = 1;
@@ -647,11 +669,21 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	  gnhfz = (TGraphErrors*)d->Get("nhf_zmmjet_a100");
 	  gnefz = (TGraphErrors*)d->Get("nef_zmmjet_a100");
 	}
+	if (sampleset.find("zjet")!=sampleset.end()) {
+	  gchfz = (TGraphErrors*)d->Get("chf_zjet_a100");
+	  gnhfz = (TGraphErrors*)d->Get("nhf_zjet_a100");
+	  gnefz = (TGraphErrors*)d->Get("nef_zjet_a100");
+	}
       }
       else {
 	gchfz = (TGraphErrors*)d->Get("chf_zlljet_a30");
 	gnhfz = (TGraphErrors*)d->Get("nhf_zlljet_a30");
 	gnefz = (TGraphErrors*)d->Get("nef_zlljet_a30");
+	if (sampleset.find("zjet")!=sampleset.end()) {
+	  gchfz = (TGraphErrors*)d->Get("chf_zjet_a30");
+	  gnhfz = (TGraphErrors*)d->Get("nhf_zjet_a30");
+	  gnefz = (TGraphErrors*)d->Get("nef_zjet_a30");
+	}
       }
       assert(gchfz);
       assert(gnhfz);
@@ -850,16 +882,20 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 			 ss=="zlljet") &&
 	  (sm=="mpfchs1" || alsoPtBal50))
 	s = Form("%s_%s_a%02.0f",cm,cs,50.);
+      if (useGJet50  && ss=="gamjet" && (sm=="mpfchs1" || alsoPtBal50))
+	s = Form("%s_%s_a%02.0f",cm,cs,50.);
       if (useZJet100 && (ss=="zjet" || ss=="zeejet" || ss=="zmmjet" ||
 			 ss=="zlljet") &&
 	  (sm=="mpfchs1" || alsoPtBal100))
+	s = Form("%s_%s_a%02.0f",cm,cs,100.);
+      if (useGJet100  && ss=="gamjet" && (sm=="mpfchs1" || alsoPtBal100))
 	s = Form("%s_%s_a%02.0f",cm,cs,100.);
       TGraphErrors *g = (TGraphErrors*)d->Get(s.c_str());
       if (!g) cout << "Graph "<<s<<" not found!" << endl << flush;
       assert(g);
 
       // Clone to keep original data in file intact
-      g = (TGraphErrors*)g->Clone(Form("g_%s",g->GetName()));
+      g = (TGraphErrors*)g->Clone(Form("g_%s_%s_%s",g->GetName(),cs,cm));
       
       // Clean out empty points
       // as well as trigger-biased ones for dijets
@@ -956,13 +992,16 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     fij_files["2016GH"] = "GH";
     fij_files["2016BCDEF"] = "BCDEF";
 
+    fij_files["Run2Test"] = "UL4X";
+
     if (isUL18)
       hij = (TH1D*)fij->Get(Form("jet_Run18UL%s_det",fij_files[epoch]));
     else if (isUL17)
       hij = (TH1D*)fij->Get(Form("jet_Run17UL%s_fwd3",fij_files[epoch]));
-    else if (isUL16) {
+    else if (isUL16)
       hij = (TH1D*)fij->Get(Form("jet_Run16UL%s_fwd",fij_files[epoch]));
-    }
+    else if (isRun2)
+      hij = (TH1D*)fij->Get(Form("jet_Run%s_fwd",fij_files[epoch]));
     else
       assert(false);
 
@@ -1023,7 +1062,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	if (fsrcombo && !isRefIOV) hfsr = (TH1D*)dfsr->Get(s.c_str());
 	if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet" ||
 				     ss=="zmmjet")) ||
-		       (dofsr3mj && ss=="multijet"))) {
+		       (dofsr3mj && ss=="multijet") ||
+		       (dofsr3gj && ss=="gamjet"))) {
 	  s = Form("fsr/hkfsr3_%s_%s",cm,cs);
 	  hfsr = (TH1D*)d->Get(s.c_str());
 	  if (fsrcombo && !isRefIOV) hfsr = (TH1D*)dfsr->Get(s.c_str());
@@ -1061,7 +1101,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	if (dofsr) kfsr = 1./(1+aeff*hfsr->GetBinContent(hfsr->FindBin(pt)));
 	if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet" ||
 				     ss=="zmmjet")) ||
-		       (dofsr3mj && ss=="multijet"))) // override regular dofsr
+		       (dofsr3mj && ss=="multijet") ||
+		       (dofsr3gj && ss=="gamjet"))) // override regular dofsr
 	  kfsr = (r + hfsr->GetBinContent(hfsr->FindBin(pt))) / r;
 	double l1(1);
 	if (dol1bias && sm=="mpfchs1" && ss=="gamjet")
@@ -1150,7 +1191,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	string s = Form("fsr/hkfsr_%s_%s_eig%d",cm,cs,ieig);
 	if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet" ||
 				     ss=="zmmjet")) ||
-		       (dofsr3mj && ss=="multijet"))) {
+		       (dofsr3mj && ss=="multijet") ||
+		       (dofsr3gj && ss=="gamjet"))) {
 	  s = Form("fsr/hkfsr3_%s_%s_%s",cm,cs,meig[ieig]);
 	}
 
@@ -1203,7 +1245,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	  if (ss=="gamjet") ptreco = ptreco_gjet;
 	  if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet" ||
 				       ss=="zmmjet" || ss=="zeejet")) ||
-			 (dofsr3mj && ss=="multijet"))) {
+			 (dofsr3mj && ss=="multijet") ||
+			 (dofsr3gj && ss=="gamjet"))) {
 	    h->SetBinContent(i, h->GetBinContent(i));
 	  }
 	  else {
@@ -1560,6 +1603,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   lumimap["2016GH"] = "Run2016GH, 16.8 fb^{-1}";
   lumimap["2016BCDEF"] = "Run2016BCDEF, 19.8 fb^{-1}";
   lumimap["2016BCDEFGH"] = "Run2016BCDEFGH, 36.5 fb^{-1}";
+  lumimap["Run2Test"] = "Run 2, 137.6 fb^{-1}";
   lumi_13TeV = lumimap[epoch];
 
   TCanvas *c0 = tdrCanvas("c0",h,4,11,true);
@@ -1634,6 +1678,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   herr_ref->SetLineWidth(2);
   herr_ref->SetLineColor(kYellow+3);
   herr_ref->SetLineStyle(kDashed);
+  herr_ref->SetFillColor(kYellow+1);
   herr_ref->SetFillColorAlpha(herr_ref->GetFillColor(),0.8);
 
   if (!_useZoom) {
@@ -1728,6 +1773,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       else if (isUL16)
 	//legm->AddEntry(herr_ref,"UL16 V5M1","FL");
 	legm->AddEntry(herr_ref,"UL16 V5","FL");
+      else if (isRun2)
+	legm->AddEntry(herr_ref,"Run2","FL");
       else
 	assert(false);
     }
@@ -2147,11 +2194,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   _jesFit->SetNpx(1000);
   _jesFit->DrawClone("SAME");
+  vector<TGraphErrors*> vgc1ds;
   for (unsigned int i = 0; i != _vdt2->size(); ++i) {
     
     TGraphErrors *g2 = (*_vdt2)[i];
     string ss = samples[i%nsamples];
     string sm = methods[i/nsamples];
+    const char *cs = ss.c_str();
 
     // Add multijet downward points
     if (ss=="multijet") {
@@ -2170,6 +2219,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	if (plotMultijetDown) {
 	  TGraphErrors *gf2tmp = (TGraphErrors*)gf2->DrawClone("SAMEPz");
 	  gf2tmp->SetMarkerSize(0.5); // UL17
+	  vgc1ds.push_back((TGraphErrors*)gf2tmp->Clone(Form("%sd2",cs)));
 	}
       }
     }
@@ -2196,7 +2246,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if (ss=="hadw")     { g2->SetMarkerSize(0.5); }
 
     g2->DrawClone("SAMEPz");
-  }
+    vgc1ds.push_back((TGraphErrors*)g2->Clone(Form("%s2",cs)));
+  } // for i in _vdt2
 
   TF1 *fke = new TF1("fitError", fitError, minpt, maxpt, 1);
   _fitError_func = jesfit;
@@ -2212,9 +2263,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   fke->SetLineStyle(kDotted);
   fke->SetLineColor(jesfit->GetLineColor());
   fke->SetParameter(0,-1);
-  fke->DrawClone("SAME");
+  ((TF1*)fke->DrawClone("SAME"))->SetName("fitError_down");
   fke->SetParameter(0,+1);
-  fke->DrawClone("SAME");
+  ((TF1*)fke->DrawClone("SAME"))->SetName("fitError_down");
 
   if (!_paper && njesFit==9) {
 
@@ -2346,21 +2397,134 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     hjesfit2->SetBinError(i, sqrt(sume2));
   } // for i
 
+
+  ////////////////////////////
+  // Draw doubly-shifted data
+  ///////////////////////////
+
+  cout << "Draw doubly-shifted data" <<endl;
+  
+  h = (TH1D*)h->Clone("h2");
+  h->SetYTitle("Post-fit jet response (ratio)");  
+  h->GetYaxis()->SetRangeUser(0.94+1e-5,1.06-1e-5);
+
+  TCanvas *c1d = tdrCanvas("c1d",h,4,11,true);
+  gPad->SetLogx();
+
+  gPad->SetLogx();
+
+  legpf->Draw();
+  legmf->Draw();
+  legp->Draw();
+  legm->Draw();
+  legi->Draw();
+
+  l->SetLineStyle(kDashed);
+  l->DrawLine(h->GetMinimum(),
+	      6500./cosh(etamin),
+	      h->GetMinimum()+0.5*(h->GetMaximum()-h->GetMinimum()),
+	      6500./cosh(etamin));
+
+  tex->SetTextColor(kBlack);
+  tex->SetTextSize(0.045);
+  if (etamin==0 && fabs(etamax-1.3)<0.1 && useZJet100)
+    tex->DrawLatex(0.20,0.73,"|#eta|<1.3, #alpha<1.0#rightarrow0");
+  tex->DrawLatex(0.20,0.17,Form("#chi^{2} / NDF = %1.1f / %d",chi2_gbl,Nk-np));
+
+  // DP2021: error as in herr_ref, expand for herr
+  TH1D *herr_dp = (TH1D*)herr_l2l3res->Clone("herr_dp");
+  herr_dp->SetLineWidth(2);
+  herr_dp->SetLineColor(kYellow+3);
+  herr_dp->SetLineStyle(kDashed);
+  herr_dp->SetFillColorAlpha(kYellow+1,0.8);
+  ((TH1D*)herr_dp->DrawClone("SAME E5"))->SetName("herr_dp_band");
+  ((TGraph*)(new TGraph(herr_dp))->DrawClone("SAMEL"))
+    ->SetName("herr_dp_line");
+  TF1 *forigJES = new TF1("origJES",origJES,minpt,maxpt,0);
+  TF1 *fnewJES = new TF1("newJES",newJES,minpt,maxpt,0);
+  _hjesrefnew = herr_dp; // DP2021
+
+  TH1D *herr1d = (TH1D*)herr->Clone("herr1d");
+  herr1d->Multiply(fnewJES);
+  ((TH1D*)herr1d->DrawClone("SAME E5"))->SetName("herr1d_band");
+  ((TGraph*)(new TGraph(herr1d))->DrawClone("SAMEL"))
+    ->SetName("herr1d_line");
+
+  TH1D *herr_ref1d = (TH1D*)herr_ref->Clone("herr_ref1d");
+  herr_ref1d->Multiply(fnewJES);
+  herr_ref1d->SetFillColorAlpha(kYellow+1,0.8);
+  ((TH1D*)herr_ref1d->DrawClone("SAME E5"))->SetName("herr_ref1d_band");
+  ((TGraph*)(new TGraph(herr_ref1d))->DrawClone("SAMEL"))
+    ->SetName("herr_ref1d_line");
+
+  //if (epoch=="2016BCDEF") {
+  TGraphErrors *gij1d = (TGraphErrors*)gij->Clone("gij1d");
+  multiplyGraph(gij1d,fnewJES);
+  tdrDraw(gij1d,"Pz",kFullDiamond,kOrange+2);
+  //}
+
+  herr1d->SetFillStyle(kNone);
+  ((TH1D*)herr1d->DrawClone("SAME E5"))->SetName("herr1d_band2");
+  ((TGraph*)(new TGraph(herr1d))->DrawClone("SAMEL"))
+    ->SetName("herr1d_line2");
+  herr1d->SetFillStyle(1001);
+
+  herr_ref1d->SetFillStyle(kNone);
+  ((TH1D*)herr_ref1d->DrawClone("SAME E5"))->SetName("herr_ref1d_band2");
+  ((TGraph*)(new TGraph(herr_ref1d))->DrawClone("SAMEL"))
+    ->SetName("herr_ref1d_line2");
+  herr_ref1d->SetFillStyle(1001);
+
+  //_jesFit->SetNpx(1000);
+  //_jesFit->DrawClone("SAME");
+
+  for (int i = 0; i != vgc1ds.size(); ++i) {
+    multiplyGraph(vgc1ds[i],forigJES);
+    vgc1ds[i]->Draw("SAMEPz");
+  }
+
+  TF1 *fke1d = new TF1("fitError1d", fitError1d, minpt, maxpt, 1);
+  _fitError_func = jesfit;
+  _fitError_emat = &emat2;
+  //_origJES = new TF1("_origJES","[0]",minpt,maxpt);
+  //_origJES->SetParameter(0,1);
+
+  fke1d->SetNpx(1000);
+  fke1d->SetLineStyle(kDotted);
+  fke1d->SetLineColor(jesfit->GetLineColor());
+  fke1d->SetParameter(0,-1);
+  ((TF1*)fke1d->DrawClone("SAME"))->SetName("fitError1d_down");
+  fke1d->SetParameter(0,+1);
+  ((TF1*)fke1d->DrawClone("SAME"))->SetName("fitError1d_up");
+  fke1d->SetLineStyle(kSolid);
+  fke1d->SetParameter(0,0);
+  ((TF1*)fke1d->DrawClone("SAME"))->SetName("fitError1d_mid");
+
+  //////////////////////////////////
+  // End drawing doubly-shifted data
+  //////////////////////////////////
+
+
   //TLine *l = new TLine();
   l->SetLineStyle(kDashed);
   c0->cd();  l->DrawLine(minpt,1,maxpt,1);
   c0b->cd(); l->DrawLine(minpt,1,maxpt,1);
   c1->cd();  l->DrawLine(minpt,1,maxpt,1);
+  c1d->cd(); l->DrawLine(minpt,1,maxpt,1);
 
   c0->RedrawAxis();
   c0b->RedrawAxis();
   c1->RedrawAxis();
+  c1d->RedrawAxis();
 
   if (etamin==0 && (fabs(etamax-1.3)<0.1 || fabs(etamax-2.4)<0.1)) {
     if (dofsr) {
       c0b->SaveAs(Form("pdf/%s/globalFitL3res_raw.pdf",cep));
       c0->SaveAs(Form("pdf/%s/globalFitL3res_orig.pdf",cep));
       c1->SaveAs(Form("pdf/%s/globalFitL3res_shifted.pdf",cep));
+      c1->SaveAs(Form("pdf/%s/globalFitL3res_shifted.root",cep));
+      c1d->SaveAs(Form("pdf/%s/globalFitL3res_doublyshifted.pdf",cep));
+      c1d->SaveAs(Form("pdf/%s/globalFitL3res_doublyshifted.root",cep));
     }
     if (writeTextFile) {
       ofstream fout("textFiles/globalFitL3Res.txt",ios::app);
@@ -2503,7 +2667,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	if (ss=="gamjet") ptreco = ptreco_gjet;
 	if (dofsr3 && ((dofsr3zj && (ss=="zjet" || ss=="zlljet" ||
 				     ss=="zmmjet")) ||
-		       (dofsr3mj && ss=="multijet"))) {
+		       (dofsr3mj && ss=="multijet") ||
+		       (dofsr3gj && ss=="gamjet"))) {
 	  hke->SetBinContent(ipt, hk->GetBinContent(ipt) - yeig);
 	  hke->SetBinError(ipt, sqrt(err2));
 	}
@@ -2588,7 +2753,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   double ptmin(15), ptmax(4500);
   TH1D *h4 = tdrHist("hpfjet","PF composition changes (10^{-2})",
-		     -1.2,1.3,"p_{T} (GeV)",ptmin,ptmax);
+		     -2.0+1e-5,2.5-1e-5,"p_{T} (GeV)",ptmin,ptmax); // Run2Test
+		     //-1.2,1.3,"p_{T} (GeV)",ptmin,ptmax);
   if (isUL18) {
     h4->SetMinimum(-2.4);
     h4->SetMaximum(+2.6);
@@ -2604,7 +2770,9 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   leg4->SetHeader(fitPF_delta==0? "Dijet" : 
 		  Form("Dijet (#Delta=%1.2f%%)",fitPF_delta));
   TLegend *leg4z = tdrLeg(0.40,0.72,0.70,0.90);
-  leg4z->SetHeader("Z+jet");
+  //leg4z->SetHeader("Z+jet");
+  leg4z->SetHeader(fitPFZ_delta==0? "Dijet" : 
+		   Form("Dijet (#Delta=%1.2f%%)",fitPFZ_delta));
   TLine *l4 = new TLine(); l4->SetLineStyle(kDashed);
   l4->DrawLine(ptmin,0,ptmax,0);
 
@@ -2616,7 +2784,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     string sf = _vpfx[ic].first;
     const char *cf = sf.c_str();
     TGraphErrors *g2 = _vpfx2[ic].second;
-    TGraphErrors *gc2 = (TGraphErrors*)g2->Clone("gc2");
+    TGraphErrors *gc2 = (TGraphErrors*)g2->Clone(Form("gc2_%d",ic));
     // Turn units to percentages (10^-2)
     for (int i = 0; i != gc2->GetN(); ++i) {
       gc2->SetPoint(i, gc2->GetX()[i], 100.*gc2->GetY()[i]);
@@ -2648,7 +2816,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       } // njesFit==9
     } // for i
     // Remove points outside fit range
-    TGraphErrors *gc4 = (TGraphErrors*)gc3->Clone("gc4");
+    TGraphErrors *gc4 = (TGraphErrors*)gc3->Clone(Form("gc4_%d",ic));
     for (int i = gc4->GetN()-1; i != -1; --i) {
       double pt = gc4->GetX()[i];
       if ((!fitPF && !fitPFZ) ||
@@ -2668,7 +2836,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     tdrDraw(gc4,"E3",g2->GetMarkerStyle(),g2->GetMarkerColor()+1,kSolid,-1,
 	    1001,g2->GetMarkerColor());
     gc4->SetFillColorAlpha(g2->GetMarkerColor(),0.7);
-    tdrDraw((TGraphErrors*)gc2->Clone(),"LX",
+    tdrDraw((TGraphErrors*)gc2->Clone(Form("gc5_%d",ic)),"LX",
 	    kNone,g2->GetMarkerColor(),kSolid,-1,kNone);
   } // for ic
 
@@ -2677,7 +2845,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     string sf = _vpfz[ic].first;
     const char *cf = sf.c_str();
     TGraphErrors *g = _vpfz[ic].second;
-    TGraphErrors *gc = (TGraphErrors*)g->Clone();
+    TGraphErrors *gc = (TGraphErrors*)g->Clone(Form("gc6_%d",ic));
     for (int i = 0; i != gc->GetN(); ++i) {
       gc->SetPoint(i, g->GetX()[i], 100.*g->GetY()[i]);
       gc->SetPointError(i, g->GetEX()[i], 100.*g->GetEY()[i]);
@@ -2690,7 +2858,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     string sf = _vpf[ic].first;
     const char *cf = sf.c_str();
     TGraphErrors *g = _vpf[ic].second;
-    TGraphErrors *gc = (TGraphErrors*)g->Clone();
+    TGraphErrors *gc = (TGraphErrors*)g->Clone(Form("gc7_%d",ic));
     for (int i = 0; i != gc->GetN(); ++i) {
       gc->SetPoint(i, g->GetX()[i], 100.*g->GetY()[i]);
       gc->SetPointError(i, g->GetEX()[i], 100.*g->GetEY()[i]);
@@ -2702,6 +2870,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 
   if (isl3) {
     c4->SaveAs(Form("pdf/%s/globalFitL3res_pfjet.pdf",cep));
+    c4->SaveAs(Form("pdf/%s/globalFitL3res_pfjet.root",cep));
   }
   else
     c4->SaveAs(Form("pdf/%s/globalFitL3res_pfjet_eta%02.0f-%02.0f.pdf",
@@ -2981,3 +3150,20 @@ Double_t fitError(Double_t *xx, Double_t *pp) {
   return (f->Eval(x) + k*err);
 }
 
+// DP2021
+Double_t fitError1d(Double_t *xx, Double_t *pp) {
+  return (fitError(xx,pp) * origJES(xx,pp));
+}
+Double_t origJES(Double_t *x, Double_t *p) {
+  return (_hjesref->Interpolate(*x));
+}
+Double_t newJES(Double_t *x, Double_t *p) {
+  return (_hjesrefnew->Interpolate(*x));
+}
+void multiplyGraph(TGraphErrors *g, TF1 *f) {
+
+  for (int i = 0; i != g->GetN(); ++i) {
+    g->SetPoint(i, g->GetX()[i], g->GetY()[i]*f->Eval(g->GetX()[i]));
+    g->SetPointError(i, g->GetEX()[i], g->GetEY()[i]*f->Eval(g->GetX()[i]));
+  }
+}

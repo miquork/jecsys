@@ -79,7 +79,8 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   bool isUL16 = (epoch=="2016BCDEF" || epoch=="2016BCD" ||
 		 epoch=="2016EF" || epoch=="2016GH");
   bool isAPV = (epoch=="2016BCDEF" || epoch=="2016BCD" || epoch=="2016EF");
-  
+  bool isRun2 = (epoch=="Run2Test");
+
   setTDRStyle();
   
   TDirectory *curdir = gDirectory;
@@ -123,12 +124,62 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
     samples.push_back("zlljet");
     samples.push_back("zeejet");
     samples.push_back("zmmjet");
-    if (epoch=="2016EF" || epoch=="2016GH" || epoch=="2016BCD")
-      //epoch=="2016BCDEF")
+    if (epoch=="2016EF" || epoch=="2016GH" || epoch=="2016BCD" ||
+	epoch=="2018ABCD" || epoch=="2017BCDEF" || epoch=="2016BCDEF" ||
+	epoch=="Run2Test")
       samples.push_back("gamjet");
+
+      samples.push_back("gi");
+      samples.push_back("gb");
+      samples.push_back("gc");
+      samples.push_back("gq");
+      samples.push_back("gg");
+      samples.push_back("gn");
+      //
+      samples.push_back("gii");
+      samples.push_back("gib");
+      samples.push_back("gic");
+      samples.push_back("giq");
+      samples.push_back("gig");
+      samples.push_back("gin");
+      //
+      samples.push_back("gbi");
+      samples.push_back("gbb");
+      samples.push_back("gbc");
+      samples.push_back("gbq");
+      samples.push_back("gbg");
+      samples.push_back("gbn");
+      //
+      samples.push_back("gci");
+      samples.push_back("gcb");
+      samples.push_back("gcc");
+      samples.push_back("gcq");
+      samples.push_back("gcg");
+      samples.push_back("gcn");
+      //
+      samples.push_back("gqi");
+      samples.push_back("gqb");
+      samples.push_back("gqc");
+      samples.push_back("gqq");
+      samples.push_back("gqg");
+      samples.push_back("gqn");
+      //
+      samples.push_back("ggi");
+      samples.push_back("ggb");
+      samples.push_back("ggc");
+      samples.push_back("ggq");
+      samples.push_back("ggg");
+      samples.push_back("ggn");
+      //
+      samples.push_back("gni");
+      samples.push_back("gnb");
+      samples.push_back("gnc");
+      samples.push_back("gnq");
+      samples.push_back("gng");
+      samples.push_back("gnn");
   }
   samples.push_back("zjet");
-  if (isUL18) {
+  if (isUL18||isUL17||isUL16||isRun2) {
   samples.push_back("zi");
   samples.push_back("zb");
   samples.push_back("zc");
@@ -211,7 +262,13 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	   s=="zic" || s=="zbc" || s=="zcc" || s=="zqc" || s=="zgc" ||s=="znc"||
 	   s=="ziq" || s=="zbq" || s=="zcq" || s=="zqq" || s=="zgq" ||s=="znq"||
 	   s=="zig" || s=="zbg" || s=="zcg" || s=="zqg" || s=="zgg" ||s=="zng"||
-	   s=="zin" || s=="zbn" || s=="zcn" || s=="zqn" || s=="zgn" ||s=="znn");
+	   s=="zin" || s=="zbn" || s=="zcn" || s=="zqn" || s=="zgn" ||s=="znn"||
+	   s=="gii" || s=="gbi" || s=="gci" || s=="gqi" || s=="ggi" ||s=="gni"||
+	   s=="gib" || s=="gbb" || s=="gcb" || s=="gqb" || s=="ggb" ||s=="gnb"||
+	   s=="gic" || s=="gbc" || s=="gcc" || s=="gqc" || s=="ggc" ||s=="gnc"||
+	   s=="giq" || s=="gbq" || s=="gcq" || s=="gqq" || s=="ggq" ||s=="gnq"||
+	   s=="gig" || s=="gbg" || s=="gcg" || s=="gqg" || s=="ggg" ||s=="gng"||
+	   s=="gin" || s=="gbn" || s=="gcn" || s=="gqn" || s=="ggn" ||s=="gnn");
 	if (isflavormc && d!="mc") continue;
 
 	if (m=="counts") {
@@ -282,7 +339,13 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	   s=="zic" || s=="zbc" || s=="zcc" || s=="zqc" || s=="zgc" ||s=="znc"||
 	   s=="ziq" || s=="zbq" || s=="zcq" || s=="zqq" || s=="zgq" ||s=="znq"||
 	   s=="zig" || s=="zbg" || s=="zcg" || s=="zqg" || s=="zgg" ||s=="zng"||
-	   s=="zin" || s=="zbn" || s=="zcn" || s=="zqn" || s=="zgn" ||s=="znn");
+	   s=="zin" || s=="zbn" || s=="zcn" || s=="zqn" || s=="zgn" ||s=="znn"||
+	   s=="gii" || s=="gbi" || s=="gci" || s=="gqi" || s=="ggi" ||s=="gni"||
+	   s=="gib" || s=="gbb" || s=="gcb" || s=="gqb" || s=="ggb" ||s=="gnb"||
+	   s=="gic" || s=="gbc" || s=="gcc" || s=="gqc" || s=="ggc" ||s=="gnc"||
+	   s=="giq" || s=="gbq" || s=="gcq" || s=="gqq" || s=="ggq" ||s=="gnq"||
+	   s=="gig" || s=="gbg" || s=="gcg" || s=="gqg" || s=="ggg" ||s=="gng"||
+	   s=="gin" || s=="gbn" || s=="gcn" || s=="gqn" || s=="ggn" ||s=="gnn");
 
 	// mpf1, mpfn and mpfu must be loaded before correcting mpfchs1
 	// statistics needed for checking pT binning
@@ -568,38 +631,41 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 		   <<" Pnm="<<Pnm<<" Pum="<<Pum<<endl;
 	      cout << "Rd="<<Rd<<" Rm="<<Rm<<endl;
 	    } // multijet
+	    
 
+	    // xmin(0.5), xmax(1.5)
+	    double xmin(0.1), xmax(1.9);
 	    if (m=="mpfchs1" && s!="multijet") {
 
 	      // Solve master equation numerically
 	      // R1 = r0 + [(R1-Rn)/Rn] * rn + [(R1-Ru)/Rn] * ru
 	      // => fm = "x - ([0] + (x/[3]-1)*[1] + (x/[4]-1)*[2])"
 	      fm->SetParameters(r0, rn, ru, Rn_d, Ru_d);
-	      double R1_d = fm->GetX(0,0.50,1.50);
+	      double R1_d = fm->GetX(0,xmin,xmax);
 	      fm->SetParameters(q0, qn, qu, Rn_m, Ru_m);
-	      double R1_m = fm->GetX(0,0.50,1.50);
+	      double R1_m = fm->GetX(0,xmin,xmax);
 	      double dR = R1_d / R1_m - r0 / q0;
 	      double dR_d = R1_d - r0;
 	      double dR_m = R1_m - q0;
 
 	      fm->SetParameters(r0, rn, ru, Rn_d+dRnd, Ru_d);
-	      double R1_dn1 = fm->GetX(0,0.50,1.50);
+	      double R1_dn1 = fm->GetX(0,xmin,xmax);
 	      double dRn1 = (R1_dn1 - R1_d) / R1_m;
 	      //
 	      fm->SetParameters(r0, rn, ru, Rn_d+dRnm, Ru_d);
-	      double R1_dn2 = fm->GetX(0,0.50,1.50);
+	      double R1_dn2 = fm->GetX(0,xmin,xmax);
 	      fm->SetParameters(q0, qn, qu, Rn_m+dRnm, Ru_m);
-	      double R1_mn2 = fm->GetX(0,0.50,1.50);
+	      double R1_mn2 = fm->GetX(0,xmin,xmax);
 	      double dRn2 = R1_dn2/R1_mn2 - R1_d/R1_m; 
 	      //
 	      fm->SetParameters(r0, rn, ru, Rn_d, Ru_d+dRud);
-	      double R1_du1 = fm->GetX(0,0.50,1.50);
+	      double R1_du1 = fm->GetX(0,xmin,xmax);
 	      double dRu1 = (R1_du1 - R1_d) / R1_m;
 	      //
 	      fm->SetParameters(r0, rn, ru, Rn_d, Ru_d+dRum);
-	      double R1_du2 = fm->GetX(0,0.50,1.50);
+	      double R1_du2 = fm->GetX(0,xmin,xmax);
 	      fm->SetParameters(q0, qn, qu, Rn_m, Ru_m+dRum);
-	      double R1_mu2 = fm->GetX(0,0.50,1.50);
+	      double R1_mu2 = fm->GetX(0,xmin,xmax);
 	      double dRu2 = R1_du2/R1_mu2 - R1_d/R1_m; 
 
 	      // Statistical variations with error propagation from r1, rn, ru
@@ -613,7 +679,8 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 		cout <<s<<": r0/q0="<<r0/q0<<" mpf="<<mpf
 		     << " diff="<<fabs(r0/q0-mpf)<<endl<<flush;
 		//assert(fabs(r0/q0-mpf)<1e-3);
-		assert(fabs(r0/q0-mpf)<3.1e-3); // Eta13ee_v2
+		assert(fabs(r0/q0-mpf)<3.9e-3 || mpf==0); // Run2Test
+		//assert(fabs(r0/q0-mpf)<3.1e-3 || mpf==0); // Eta13ee_v2
 		//assert(fabs(r0/q0-mpf)<2.3e-3); // Eta13ee_v1
 		//assert(fabs(r0/q0-mpf)<1.2e-3); // Eta25ee
 		//assert(fabs(r0/q0-mpf)<1e-3 ||
@@ -710,9 +777,9 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 	      // temp check
 	      //fm->SetParameters(r0, rn, ru, Rn_d, Ru_d);
-	      //double R1m_d = fm->GetX(0,0.50,1.50);
+	      //double R1m_d = fm->GetX(0,xmin,xmax);
 	      //fm->SetParameters(q0, qn, qu, Rn_m, Ru_m);
-	      //double R1m_m = fm->GetX(0,0.50,1.50);
+	      //double R1m_m = fm->GetX(0,xmin,xmax);
 	      //dR = R1_d / R1_m - r1 / q1;
 	      // temp check
 	      /*

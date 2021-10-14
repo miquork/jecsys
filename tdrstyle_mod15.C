@@ -46,10 +46,12 @@ void tdrDraw(TH1* h, string opt,
 void tdrDraw(TGraph* g, string opt,
 	     int marker=kFullCircle, int mcolor = kBlack,
 	     int lstyle=kSolid, int lcolor=-1,
-	     int fstyle=1001, int fcolor=kYellow+1) {
+	     int fstyle=1001, int fcolor=kYellow+1,
+	     double msize=1) {
   if (g==0) return;
   g->SetMarkerStyle(marker);
   g->SetMarkerColor(mcolor);
+  g->SetMarkerSize(msize);
   g->SetLineStyle(lstyle);
   g->SetLineColor(lcolor==-1 ? mcolor : lcolor);
   g->SetFillStyle(fstyle);

@@ -52,7 +52,7 @@ bool correctZmmMass = true; // pT with mumu mass (def:true)
 bool correctZeeMass = true; // pT with ee mass (def:true)
 bool correctGamMass = true; //!!UL17_V3 false, pT with ee mass at 2*pT
 bool correctGamScale = true; // additional to GamMass, with value below
-double valueGamScale = 1.01; //1.;
+double valueGamScale = 1;//1.01; //1.;
 bool correctUncert = false;  // ll mass uncertainty => globalFitSyst.C
 string sPSWgtZ = "";//"PSWeight0/"; // use PSWeight[X]/ variant of Z+jet MC (def:"") [PSWeight0 has very poor effective statistics]
 
@@ -65,7 +65,7 @@ bool useMultijetRecoilScaleFunction = true; // Implement function
 bool halveMultijetRecoilScaleFunction = false; // Halve effect for UL16
 bool snipeMultijetBins = true; // remove individual outliers from multijets
 bool snipeIncjetBins = true; // remove individual outliers from inclusive jets
-bool snipeZlljetBins = true; // remove individual outliers from Zll+jet
+bool snipeZlljetBins = false; // remove individual outliers from Zll+jet
 
 // Which binning to use for PF composition ("tp","pt", "both" or "none" (off))
 string pfMode = "tp"; // "both" not supported at the moment
@@ -77,9 +77,9 @@ bool confirmedGamJet=false; // to avoid too many confirmations
 //"L1L2": "MCTruth corrections" applied, in reality L1Data/MC,L2
 //"L1L2Res": MCTruth + L2Res applied
 //"L1L2L3Res": MCTruth + L2L3Res applied; reference JES central values set to 1.0 (affects plotting as well)
-//string CorLevel="L1L2";    // Rarely used
-//string CorLevel="L1L2Res"; // Input to (L2)L3Res
-string CorLevel="L1L2L3Res"; // Closure test for L2L3Res
+//string CorLevel = "L1L2";    // Rarely used
+//string CorLevel = "L1L2Res"; // Input to (L2)L3Res
+string CorLevel = "L1L2L3Res"; // Closure test for L2L3Res
 
 
 // Settings for cleaned up global fit
@@ -107,9 +107,11 @@ double fzbptmax(300.); // Z+b (Sami) pTmax
 
 // PF composition (for plots, tighter range in global fit)
 double fpfjetptmin(15.);   // Dijet PF composition pTmin
-double fpfjetptmax(2116.); // Dijet PF compoisition pTmax
+double fpfjetptmax(2116.); // Dijet PF composition pTmax
 double fzllpfzptmin(20);   // Z+jet PF composition pTmin
 double fzllpfzptmax(230);  // Z+jet PF composition pTmax
+double fzpfzptmin(20);   // Z+jet PF composition pTmin
+double fzpfzptmax(230);  // Z+jet PF composition pTmax
 
 // Inclusive jets
 double fincjetptmin(21);    // Inclusive jets pTmin
@@ -178,6 +180,8 @@ void reprocess(string epoch="") {
 		 epoch=="2016EF" || epoch=="2016GH");
   bool isAPV = (epoch=="2016BCDEF" || epoch=="2016BCD" || 
 		epoch=="2016EF");
+  bool isRun2 = (epoch=="Run2Test");
+
   string sd;
   string sd18 = "../JERCProtoLab/Summer19UL18/L3Residual_";
   string sd17 = "../JERCProtoLab/Summer19UL17/L3Residual_";
@@ -188,39 +192,57 @@ void reprocess(string epoch="") {
   const char *cd = sd.c_str();
 
   // Overall switches
-  if (isUL16) { CorLevel = "L1L2L3Res"; } // Closure
+  if (isUL16 || isUL17) { CorLevel = "L1L2L3Res"; } // Closure
 
   // Multijet switches
-  if (isUL16) { 
-    // 153/V6 1.2%; 700 0.4%, 800,900 0.35%, 1000 goes up again
-    // sniping: 700 0.3%, 153 1.2%, 230 1.1%, 400 1%, 500 0.9%, 600 0.5%
-    // 700: 0.2%, 800/900 0.1%, 600 0.3%
-    fmultijetptmin = 800;//700;//900;//700;//153;//700;//153;//230;//114; //153;
-    //if (!isAPV) fmultijetptmin = 430;
-    fmultijetptmax = 2116;//2684;
+  if (isUL16 || isUL17 || isUL18 || isRun2) { 
+    fmultijetptmin = 800;//153;
+    fmultijetptmax = 2116;
 
     // Turn MJB "off" to avoid double counting HDM
-    fmultijetmjbptmin = 153;//230;//114;//790;
-    fmultijetmjbptmax = 2116;//905;
+    fmultijetmjbptmin = 153;
+    fmultijetmjbptmax = 2116;
 
     // Recoil ranges are {0,97},{97,196},{196,220},{220,272},{272,395},{395,468},{468,592},{592,686},{686,790},{790,6500}
   }
-  if (isUL17) {
-    fmultijetptmax = 2116;
-  }
+  //if (isUL17) {
+  //fmultijetptmax = 2116;
+  //}
   if (isUL18 && CorLevel=="L1L2Res") {
     fmultijetptmin = 330;
   }
+  if (isRun2) {
+    fmultijetptmin = 114;//153;//196;//114; //300;//800;//153;
+    fmultijetptmax = 2500;//2116;
+
+    // Turn MJB "off" to avoid double counting HDM
+    fmultijetmjbptmin = 114;//153;//196;//114; //300;//153;
+    fmultijetmjbptmax = 2500;//2116;
+  }
 
   // Photon+jet switches
-  if (isUL16) { 
+  if (isUL16 || isUL17 || isUL18) { 
     correctGamMass = true;
     correctGamScale = false;
-    fpmpfptmin = 230;
+    if (false && (isUL17 || isUL18)) {
+      correctGamScale = true;
+      valueGamScale = 1.01; // ad-hoc to match Z+jet
+      if (isUL18) valueGamScale = 1;//1.005;
+    }
+    // 230-300 GeV still systematically low in UL18 and others?
+    fpmpfptmin = 40;//20;//230;
     fpmpfptmax = 1200;
-    fpbalptmin = 300;
-    fpbalptmax = 600;
+    fpbalptmin = 40;//20;//300;
+    fpbalptmax = 1200;//600;
   } 
+  if (isRun2) {
+    correctGamMass = true;
+    correctGamScale = false;
+    fpmpfptmin = 40;//130;//40; //100;//175;
+    fpmpfptmax = 1200;
+    fpbalptmin = 40;//130;//40; //230;//175;
+    fpbalptmax = 1200;//500;//600;
+  }
 
   // Z+jet switches
   if (isUL16) {
@@ -232,11 +254,42 @@ void reprocess(string epoch="") {
     fzllbalptmin = 30;//25;//30;//35;
     if (!isAPV) fzllbalptmin = 35;
     fzllbalptmax = 175;
+
+    // For UH same settings
+    fzmpfptmin = 30;
+    if (!isAPV) fzmpfptmin = 30;
+    fzmpfptmax = 230;
+    fzbalptmin = 30;
+    if (!isAPV) fzbalptmin = 35;
+    fzbalptmax = 175;
+  }
+  if (isUL17 || isUL18) {
+    fzllmpfptmin = 30;
+    fzllmpfptmax = 230;
+    if (isUL18) fzllmpfptmax = 300;
+    fzllbalptmin = 30;
+    fzllbalptmax = 230;
+    if (isUL18) fzllbalptmax = 300;
+
+    // For UH same settings
+    fzmpfptmin = 30;
+    fzmpfptmax = 230;
+    if (isUL18) fzmpfptmax = 300;
+    fzbalptmin = 30;
+    fzbalptmax = 230;
+    if (isUL18) fzbalptmax = 300;
   }
   if (isUL18 && CorLevel=="L1L2Res") {
     fzllbalptmin = 35;
     fzllbalptmax = 400;
   }
+  if (isRun2) {
+    fzllmpfptmin = 20;//15;//30;
+    fzllmpfptmax = 800;//600;//400;
+    fzllbalptmin = 20;//15;//30;
+    fzllbalptmax = 800;//600;
+  }
+
 
   // W>qq' switches
   if (isUL16 && CorLevel=="L1L2Res") {
@@ -245,11 +298,17 @@ void reprocess(string epoch="") {
     fhadwptbmin = 60;
     fhadwptbmax = 70;
   }
-  if (isUL16 && CorLevel=="L1L2L3Res") {
-    fhadwptamin = 70;//45;//40;//35;//60;
-    fhadwptamax = 175;//200;//175;
-    fhadwptbmin = 70;//45;//40;//70;
-    fhadwptbmax = 80;//175;//80;
+  if ((isUL16 || isUL17 || isUL18) && CorLevel=="L1L2L3Res") {
+    fhadwptamin = 70;
+    fhadwptamax = 175;
+    fhadwptbmin = 70;
+    fhadwptbmax = 80;
+  }
+  if (isRun2) {
+    fhadwptamin = 40;
+    fhadwptamax = 150;//200;
+    fhadwptbmin = 70;
+    fhadwptbmax = 80;
   }
 
   // Inclusive jet switches
@@ -288,6 +347,9 @@ void reprocess(string epoch="") {
     else if (isUL16) {
       // skip or now
     }
+    else if (isRun2) {
+      // skip for now
+    }
     else
       assert(false);
   }
@@ -325,6 +387,9 @@ void reprocess(string epoch="") {
     else if (isUL16) {
       fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV5_jerV2.root",fm_files[epoch]),"READ");
     }
+    else if (isRun2) {
+      assert(false);
+    }
     else
       assert(false);
   }
@@ -337,7 +402,12 @@ void reprocess(string epoch="") {
       fmj = new TFile(Form("rootfiles/multijet_Rebin2_20201209_UL2017%s_jecV6_jerV3.root",fm_files[epoch]),"READ");
     }
     else if (isUL16) {
-      fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV5_jerV2_closure.root",fm_files[epoch]),"READ");
+      //fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV5_jerV2_closure.root",fm_files[epoch]),"READ");
+      fmj = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_multijet/multijet_UL2016%s_jecV7_jerV2_closure.root",fm_files[epoch]),"READ");
+    }
+    else if (isRun2) {
+      // Inputs created with recombine.C
+      fmj = new TFile("rootfiles/jecdataRun2TestData.root","READ");
     }
     else
       assert(false);
@@ -354,11 +424,13 @@ void reprocess(string epoch="") {
   fij_eras["2018B"] = "B";
   fij_eras["2018C"] = "C";
   fij_eras["2018D"] = "D";
+  fij_eras["2018ABCD"] = "";
   fij_eras["2017BCDEF"] = "";
   fij_eras["2016BCD"] = "BCD";
   fij_eras["2016EF"] = "EF";
   fij_eras["2016BCDEF"] = "BCDEF";
   fij_eras["2016GH"] = "GH";
+  fij_eras["Run2Test"] = "UL4X";
   TFile *fij(0);
   if (CorLevel=="L1L2Res" || CorLevel=="L1L2L3Res") {
     if (isUL18) {
@@ -368,7 +440,10 @@ void reprocess(string epoch="") {
       fij = new TFile("rootfiles/drawDeltaJEC_17UL_V2M4res_cp2_all_v4.root","READ");
     }
     else if (isUL16) {
-      fij = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_incljet/drawDeltaJEC_16ULJECV5_vsBCDEF.root","READ");
+      fij = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_incljet/drawDeltaJEC_16ULJECV7_vsBCDEF.root","READ"); // was V5_vsBCDandEF
+    }
+    else if (isRun2) {
+      fij = new TFile("rootfiles/drawDeltaJEC_Run2_vsUL4X.root","READ");
     }
     else
       assert(false);
@@ -405,17 +480,21 @@ void reprocess(string epoch="") {
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
 			     fpf_files[epoch]),"READ");
     }
-    else if (isUL16 && !isAPV) {
-      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V2V1_%s.root",
+    else if (isUL16 && !isAPV) { // old UL16V2V1, should update MC
+      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V5V2_%s.root",
 			     fpf_files[epoch]),"READ");
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V2V1_%s.root",
 			     fpf_files[epoch]),"READ");
     }
-    else if (isUL16 && isAPV) {
-      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V3V1_%s.root",
+    else if (isUL16 && isAPV) { // old UL16V3V1, should update MC
+      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V5V2_%s.root",
 			     fpf_files[epoch]),"READ");
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V3V1_%s.root",
 			     fpf_files[epoch]),"READ");
+    }
+    else if (isRun2) {
+      fpfdt = new TFile("rootfiles/jecdataRun2TestData.root","READ");
+      fpfmc = new TFile("rootfiles/jecdataRun2TestData.root","READ");
     }
     else
       assert(false);
@@ -453,6 +532,9 @@ void reprocess(string epoch="") {
     else if (isUL16 && isAPV) {
       fw = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_W/hadW16%sV3_Glu.root",fw_files[epoch]),"READ");
     }
+    else if (isRun2) {
+      assert(false);
+    }
     else
       assert(false);
   }
@@ -461,15 +543,22 @@ void reprocess(string epoch="") {
     // NB: newer files use |eta|<2.5 instead of |eta|<1.3
     if (isUL18) {
       //fw = new TFile("rootfiles/hadW18V5_MPDGcorrNoW.root","READ"); // fp02
-      fw = new TFile("rootfiles/hadW1718V5_MPDGcorrNoW.root","READ"); // fp02
+      //fw = new TFile("rootfiles/hadW1718V5_MPDGcorrNoW.root","READ"); // fp02
+      fw = new TFile("rootfiles/hadW18V5_JEC.root","READ"); // fp001, |eta|<1.3
     }
     else if (isUL17) {
       //fw = new TFile("rootfiles/hadWUL17V5_MPDGcorrNoW.root","READ"); // fitprob001
-      fw = new TFile("rootfiles/hadW17V5_MPDGcorrNoW.root","READ"); // fp02
+      //fw = new TFile("rootfiles/hadW17V5_MPDGcorrNoW.root","READ"); // fp02
+      //fw = new TFile("rootfiles/hadW17V5_Glu.root","READ"); // fp001
+      fw = new TFile("rootfiles/hadW17V5_JEC.root","READ"); // fp001, |eta|<1.3
     }
     else if (isUL16) {
-      fw = new TFile(Form("rootfiles/hadW16%sV5_Glu.root",fw_files[epoch]),
+      //fw = new TFile(Form("rootfiles/hadW16%sV5_Glu.root",fw_files[epoch]),
+      fw = new TFile(Form("rootfiles/hadW16%sV7_JEC.root",fw_files[epoch]),
 		     "READ");
+    }
+    else if (isRun2) {
+      fw = new TFile("rootfiles/jecdataRun2TestData.root","READ");
     }
     else
       assert(false);
@@ -512,27 +601,41 @@ void reprocess(string epoch="") {
       else
 	assert(false);
     }
+    else if (isRun2) {
+      assert(false);
+    }
     else
       assert(false);
   } // L2L3Res
 
   if(CorLevel=="L1L2L3Res"){
     if (isUL18) {
-      fp = new TFile(Form("%sgamma/Gjet_combinationfile_L2L3Res_%s_L2L3Res_JEC-v4_Data-v2_MC.root",cd,fp_files[epoch]),"READ");
+      //fp = new TFile(Form("%sgamma/Gjet_combinationfile_L2L3Res_%s_L2L3Res_JEC-v4_Data-v2_MC.root",cd,fp_files[epoch]),"READ");
+      fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8_v18.root");
     }
     else if (isUL17) {
-      fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V31_L2L3res_%s.root", fp_files[epoch]),"READ");
+      //fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V31_L2L3res_%s.root", fp_files[epoch]),"READ");
+      fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8_v18.root");
     }
     else if (isUL16 && !isAPV) {
-      fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16NonAPVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
+      //fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16NonAPVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
+      //fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V7Closure/ClosureV7UL16NONAPVFGHjet_combinationfile_L2L3Res_%s_L2L3Res_V2.root",fp_files[epoch]),"READ");
+      fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8_v18.root");
     }
     else if (isUL16 && isAPV) {
       if (epoch=="2016BCDEF") 
-	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
-      else if (epoch=="2016EF" || epoch=="2016BCD") 
-	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVSplitGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
+	//fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
+	//fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V7Closure/ClosureV7UL16APVBCDEFjet_combinationfile_L2L3Res_%s_L2L3Res_V2.root",fp_files[epoch]),"READ");
+	fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8APV_v18.root");
+      else if (epoch=="2016EF" || epoch=="2016BCD")  {
+	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVSplitGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ"); // NB: old!
+	assert(false); // don't trip on old files
+      }
       else
 	assert(false);
+    }
+    else if (isRun2) {
+      fp = new TFile("rootfiles/jecdataRun2TestData.root","RAED");
     }
     else
       assert(false);
@@ -570,10 +673,15 @@ void reprocess(string epoch="") {
     else if (isUL16 && !isAPV) {
       fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_L1L2Res.root","READ");
       fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V2_L1L2Res.root","READ"); // |eta|<1.3 for electrons
+      assert(false); // make sure not going here when testing V7 closure
     }
     else if (isUL16 && isAPV) {
       fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2Res.root","READ");
       fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zee/electrons_in_barrel/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V3_L1L2Res.root","READ");
+      assert(false); // make sure not going here when testing V7 closure
+    }
+    else if (isRun2) {
+      assert(false);
     }
     else
       assert(false);
@@ -585,16 +693,20 @@ void reprocess(string epoch="") {
       fzee = new TFile(Form("%sZ/JEC_Combination_Zee/splitZPtBin70/ZJetCombination_Zee_DYJets_Madgraph_12Nov2019_Summer19UL18_JECV4_L1L2L3Res.root",cd),"READ");
     }
     else if (isUL17) {
-      fzmm = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV5_L1L2L3Res.root","READ");
-      fzee = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV5_L1L2L3Res.root","READ");
+      fzmm = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV6_L1L2L3Res.root","READ"); // was V5
+      fzee = new TFile("../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV6_L1L2L3Res.root","READ"); // was V5
     }
     else if (isUL16 && !isAPV) {
-      fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V5old_L1L2L3Res.root","READ");
-      fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V5old_L1L2L3Res.root","READ"); // |eta|<1.3 for electrons
+      fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V7_L1L2L3Res.root","READ"); // was V5old
+      fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V7_L1L2L3Res.root","READ"); // was V5old (|eta|<1.3 for electrons?)
     }
     else if (isUL16 && isAPV) {
-      fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V5old_L1L2L3Res.root","READ");
-      fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V5old_L1L2L3Res.root","READ");
+      fzmm = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zmm/ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V7_L1L2L3Res.root","READ"); // was V5old
+      fzee = new TFile("../JERCProtoLab/Summer19UL16/L3Residual_Z/APV/JEC_Combination_Zee/ZJetCombination_Zee_DYJets_amc_21Feb2020_Summer19UL16_V7_L1L2L3Res.root","READ"); // was V5old
+    }
+    else if (isRun2) {
+      fzmm = new TFile("rootfiles/jecdataRun2TestData.root","READ");
+      fzee = new TFile("rootfiles/jecdataRun2TestData.root","READ");
     }
     else
       assert(false);
@@ -634,6 +746,9 @@ void reprocess(string epoch="") {
       assert(false);
     */
   }
+  else if (isRun2) {
+    // do nothing extra
+  }
   else
     assert(false);
 
@@ -663,22 +778,34 @@ void reprocess(string epoch="") {
       fzjes = new TFile("rootfiles/jecdataBCDEF_V4.root","READ");
       hzjes = (TH1D*)fzjes->Get("ratio/eta00-13/herr_ref");
     }
+    else if (isRun2) {
+      assert(false);
+    }
     else
       assert(false);
   }    
 
   if(CorLevel=="L1L2L3Res"){
     if (isUL18) {
-      fz = new TFile("rootfiles/jme_bplusZ_merged_v35.root","READ"); // test (17+18 e+mu)
+      //fz = new TFile("rootfiles/jme_bplusZ_merged_v35.root","READ"); // test (17+18 e+mu)
+      fz = new TFile("rootfiles/jme_bplusZ_merged_v35_2018_emu_wTTJets.root","READ");
     }
     else if (isUL17) {
-      fz = new TFile("rootfiles/jme_bplusZ_merged_v28_2017emu_wTTJets.root","READ");
+      //fz = new TFile("rootfiles/jme_bplusZ_merged_v28_2017emu_wTTJets.root","READ");
+      fz = new TFile("rootfiles/jme_bplusZ_merged_v35_2017_emu_wTTJets.root","READ");
     }
-    else if (isUL16) { // placeholder (L2Res)
-      // skip for now, use UL17 L2L3Res as place holder
-      fz = new TFile("rootfiles/jme_bplusZ_merged_v28_2017emu_wTTJets.root","READ");
-      fzjes = new TFile("rootfiles/jecdataBCDEF_V4.root","READ");
-      hzjes = (TH1D*)fzjes->Get("ratio/eta00-13/herr_ref");
+    else if (isUL16 && !isAPV) {
+      //fz = new TFile("rootfiles/jme_bplusZ_merged_v36_2016fh_emu_wTTJets.root","READ"); // was v35; v36 buggy, used BCDEF JEC for MC
+      //fz = new TFile("rootfiles/jme_bplusZ_merged_vX_2016FH_mu.root","READ"); // was v35
+      fz = new TFile("rootfiles/jme_bplusZ_merged_v37_2016FH_mu.root","READ"); // was v35
+      //fzjes = new TFile("rootfiles/jecdataBCDEF_V4.root","READ");
+      //hzjes = (TH1D*)fzjes->Get("ratio/eta00-13/herr_ref");
+    }
+    else if (isUL16 && isAPV) {
+      fz = new TFile("rootfiles/jme_bplusZ_merged_v36_2016bf_emu_wTTJets.root","READ"); // was v35
+    }
+    else if (isRun2) {
+      fz = new TFile("rootfiles/jecdataRun2TestData.root","READ");
     }
     else
       assert(false);
@@ -701,45 +828,94 @@ void reprocess(string epoch="") {
   const char *cl = CorLevel.c_str();
   TH1D *hmzee = (TH1D*)fmzee->Get(Form("Ratio_ZMass_CHS_a30_%s_%s",cr,cl));
   TH1D *hmzmm = (TH1D*)fmzmm->Get(Form("Ratio_ZMass_CHS_a30_%s_%s",cr,cl));
+  TH1D *hmz(0);
+  if (isRun2) {
+    hmzee = (TH1D*)fmzee->Get("ratio/eta00-13/mass_zeejet_a30");
+    hmzmm = (TH1D*)fmzmm->Get("ratio/eta00-13/mass_zmmjet_a30");
+    hmz = (TH1D*)fmz->Get("ratio/eta00-13/mass_zjet_a30");
+  }
   assert(hmzee);
   assert(hmzmm);
+  assert(hmz || !isRun2);
+
   TH2D *hmz_dt2 = (TH2D*)fmz->Get(Form("data/%s/h_Zpt_mZ_alpha30",cr));
-  assert(hmz_dt2);
-  TH1D *hmz_dt = hmz_dt2->ProfileX()->ProjectionX("hmz_dt");
+  if (!hmz_dt2) hmz_dt2 = (TH2D*)fmz->Get(Form("data/%s/h_Zpt_mZ_alpha100",cr));
+  assert(hmz_dt2 || isRun2);
+  TH1D *hmz_dt = (hmz_dt2 ? hmz_dt2->ProfileX()->ProjectionX("hmz_dt") : 0);
   TH1D *hmzee_dt = (TH1D*)fmzee->Get(Form("Data_ZMass_CHS_a30_%s_%s",cr,cl));
   TH1D *hmzmm_dt = (TH1D*)fmzmm->Get(Form("Data_ZMass_CHS_a30_%s_%s",cr,cl));
+  if (isRun2) {
+    hmzee_dt = (TH1D*)fmzee->Get("data/eta00-13/mass_zeejet_a30");
+    hmzmm_dt = (TH1D*)fmzmm->Get("data/eta00-13/mass_zmmjet_a30");
+    hmz_dt = (TH1D*)fmz->Get("data/eta00-13/mass_zjet_a30");
+  }
   assert(hmzee_dt);
   assert(hmzmm_dt);
+  assert(hmz_dt);
+
   TH2D *hmz_mc2 = (TH2D*)fmz->Get(Form("mc/%s/h_Zpt_mZ_alpha30",cr));
-  assert(hmz_mc2);
-  TH1D *hmz_mc = hmz_mc2->ProfileX()->ProjectionX("hmz_mc");
+  if (!hmz_mc2) hmz_mc2 = (TH2D*)fmz->Get(Form("mc/%s/h_Zpt_mZ_alpha100",cr));
+  assert(hmz_mc2 || isRun2);
+  TH1D *hmz_mc = (hmz_mc2 ? hmz_mc2->ProfileX()->ProjectionX("hmz_mc") : 0);
   TH1D *hmzee_mc = (TH1D*)fmzee->Get(Form("MC_ZMass_CHS_a30_%s_%s",cr,cl));
   TH1D *hmzmm_mc = (TH1D*)fmzmm->Get(Form("MC_ZMass_CHS_a30_%s_%s",cr,cl));
+  if (isRun2) {
+    hmzee_mc = (TH1D*)fmzee->Get("mc/eta00-13/mass_zeejet_a30");
+    hmzmm_mc = (TH1D*)fmzmm->Get("mc/eta00-13/mass_zmmjet_a30");
+    hmz_mc = (TH1D*)fmz->Get("mc/eta00-13/mass_zjet_a30");
+  }
   assert(hmzee_mc);
   assert(hmzmm_mc);
+  assert(hmz_mc);
 
   TH1D *hmzee1 = (TH1D*)fmzee->Get(Form("Ratio_ZMass_CHS_a100_%s_%s",cr,cl));
   TH1D *hmzmm1 = (TH1D*)fmzmm->Get(Form("Ratio_ZMass_CHS_a100_%s_%s",cr,cl));
+  TH1D *hmz1(0);
+  if (isRun2) {
+    hmzee1 = (TH1D*)fmzee->Get("ratio/eta00-13/mass_zeejet_a100");
+    hmzmm1 = (TH1D*)fmzmm->Get("ratio/eta00-13/mass_zmmjet_a100");
+    hmz1 = (TH1D*)fmz->Get("ratio/eta00-13/mass_zjet_a100");
+  }
   assert(hmzee1);
   assert(hmzmm1);
+  assert(hmz1 || !isRun2);
+
   TH2D *hmz1_dt2 = (TH2D*)fmz->Get(Form("data/%s/h_Zpt_mZ_alpha100",cr));
-  assert(hmz1_dt2);
-  TH1D *hmz1_dt = hmz1_dt2->ProfileX()->ProjectionX("hmz1_dt");
+  assert(hmz1_dt2 || isRun2);
+  TH1D *hmz1_dt = (hmz1_dt2 ? hmz1_dt2->ProfileX()->ProjectionX("hmz1_dt") : 0);
   TH1D *hmzee1_dt =(TH1D*)fmzee->Get(Form("Data_ZMass_CHS_a100_%s_%s",cr,cl));
   TH1D *hmzmm1_dt =(TH1D*)fmzmm->Get(Form("Data_ZMass_CHS_a100_%s_%s",cr,cl));
+  if (isRun2) {
+    hmzee1_dt = (TH1D*)fmzee->Get("data/eta00-13/mass_zeejet_a100");
+    hmzmm1_dt = (TH1D*)fmzmm->Get("data/eta00-13/mass_zmmjet_a100");
+    hmz1_dt = (TH1D*)fmz->Get("data/eta00-13/mass_zjet_a100");
+  }
   assert(hmzee1_dt);
   assert(hmzmm1_dt);
+  assert(hmz1_dt);
+
   TH2D *hmz1_mc2 = (TH2D*)fmz->Get(Form("mc/%s/h_Zpt_mZ_alpha100",cr));
-  TH1D *hmz1_mc = hmz1_mc2->ProfileX()->ProjectionX("hmz_mc");
+  assert(hmz1_mc2 || isRun2);
+  TH1D *hmz1_mc = (hmz1_mc2 ? hmz1_mc2->ProfileX()->ProjectionX("hmz1_mc") : 0);
   TH1D *hmzee1_mc = (TH1D*)fmzee->Get(Form("MC_ZMass_CHS_a100_%s_%s",cr,cl));
   TH1D *hmzmm1_mc = (TH1D*)fmzmm->Get(Form("MC_ZMass_CHS_a100_%s_%s",cr,cl));
+  if (isRun2) {
+    hmzee1_mc = (TH1D*)fmzee->Get("mc/eta00-13/mass_zeejet_a100");
+    hmzmm1_mc = (TH1D*)fmzmm->Get("mc/eta00-13/mass_zmmjet_a100");
+    hmz1_mc = (TH1D*)fmz->Get("mc/eta00-13/mass_zjet_a100");
+  }
   assert(hmzee1_mc);
   assert(hmzmm1_mc);
+  assert(hmz1_mc);
 
-  TH1D *hmz = (TH1D*)hmz_dt->Clone("hmz");
-  hmz->Divide(hmz_mc);
-  TH1D *hmz1 = (TH1D*)hmz1_dt->Clone("hmz1");
-  hmz1->Divide(hmz1_mc);
+  if (!isRun2) {
+    hmz = (TH1D*)hmz_dt->Clone("hmz");
+    hmz->Divide(hmz_mc);
+    hmz1 = (TH1D*)hmz1_dt->Clone("hmz1");
+    hmz1->Divide(hmz1_mc);
+  }
+  assert(hmz);
+  assert(hmz1);
 
 
   // Extra functions for gamma+jet, modified from Zee+jet
@@ -766,26 +942,33 @@ void reprocess(string epoch="") {
 
       if (isUL18) {
 	// UL18 Run2018ABCD fit with minitools/drawZmass.C
-	f1mzee->SetParameters(1.00153, 0.00214, -0.00012);
-	f1ezee->SetParameters( +5.5e-08,  +1.5e-07, +3.01e-07,
-			       +2.35e-08, -7.73e-08, -4.34e-08);
+	//f1mzee->SetParameters(1.00153, 0.00214, -0.00012);
+	//f1ezee->SetParameters( +5.5e-08,  +1.5e-07, +3.01e-07,
+	//		       +2.35e-08, -7.73e-08, -4.34e-08);
+	f1mzee->SetParameters(1.00132, 0.00186, 0.00061);
+	f1ezee->SetParameters(+1.31e-08, +2.53e-08, +9.92e-09,
+			      +8.94e-09, -1.28e-09, +1.08e-08);
 	// UL18 Run2018ABCD Zee from above
-	f1mgam->SetParameters(1.00153, 0.00214, -0.00012);
-	f1egam->SetParameters( +5.5e-08,  +1.5e-07, +3.01e-07,
-			       +2.35e-08, -7.73e-08, -4.34e-08);
+	f1mgam->SetParameters(1.00132, 0.00186, 0.00061);
+	f1egam->SetParameters(+1.31e-08, +2.53e-08, +9.92e-09,
+			      +8.94e-09, -1.28e-09, +1.08e-08);
       }
       else if (isUL17) {
 	//assert(false); // CHECK
 	// UL17 RunBCDEF fit with minitools/drawZmass.C
-	f1mzee->SetParameters(0.99780, 0.00225, 0.00031);
-	f1ezee->SetParameters( +6.1e-08, +1.66e-07, +3.27e-07,
-			       +2.56e-08,  -8.5e-08, -5.39e-08);
+	//f1mzee->SetParameters(0.99780, 0.00225, 0.00031);
+	//f1ezee->SetParameters( +6.1e-08, +1.66e-07, +3.27e-07,
+	//		       +2.56e-08,  -8.5e-08, -5.39e-08);
+	// UL17 Run2017BCDEF fit with minitools/drawZmass.C
+	f1mzee->SetParameters(1.00080, 0.00215, 0.00048);
+	f1ezee->SetParameters(+2.58e-08, +4.18e-08,  +1.3e-08,
+			      +1.84e-08, -1.88e-09, +1.38e-08);
 	// UL17 RunBCDEF Zee from above
-	f1mgam->SetParameters(0.99780, 0.00225, 0.00031);
-	f1egam->SetParameters( +6.1e-08, +1.66e-07, +3.27e-07,
-			       +2.56e-08,  -8.5e-08, -5.39e-08);
+	f1mgam->SetParameters(1.00080, 0.00215, 0.00048);
+	f1egam->SetParameters(+2.58e-08, +4.18e-08,  +1.3e-08,
+			      +1.84e-08, -1.88e-09, +1.38e-08);
       }
-      else if (isUL16) {
+      else if (isUL16 && !isAPV) {
 	// V2 with |eta|<1.3 elextrons and no p2 constraint
 	// UL16 2016GH fit with minitools/drawZmass.C
 	f1mzee->SetParameters(1.00175, 0.00349, 0.00159);
@@ -795,7 +978,28 @@ void reprocess(string epoch="") {
 	f1mgam->SetParameters(1.00175, 0.00349, 0.00159);
 	f1egam->SetParameters(+1.09e-07, +2.61e-07, +1.37e-07,
 			      +5.34e-08, -2.42e-08, +1.48e-07);
+      }
+      else if (isUL16 && isAPV) {
+	// UL16 2016BCDEF fit with minitools/drawZmass.C
+	f1mzee->SetParameters(1.00122, 0.00256, 0.00098);
+	f1ezee->SetParameters(+1.05e-07, +2.65e-07, +1.33e-07,
+			      +5.45e-08, -2.02e-08,  +1.5e-07);
+	// UL16 Run2016BCDEF from above Zee
+	f1mgam->SetParameters(1.00122, 0.00256, 0.00098);
+	f1egam->SetParameters(+1.05e-07, +2.65e-07, +1.33e-07,
+			      +5.45e-08, -2.02e-08,  +1.5e-07);
+      }
+      else if (isRun2) { // 137.6/fb
 
+	// Run2Test fit with minitools/drawZmass.C
+	f1mzee->SetParameters(1.00101, 0.00206, 0.00055);
+	f1ezee->SetParameters(+7.14e-09, +1.54e-08, +6.75e-09,
+			      +4.57e-09, -8.73e-10, +7.45e-09);
+	
+	// Run2Test Zee from above
+	f1mgam->SetParameters(1.00101, 0.00206, 0.00055);
+	f1egam->SetParameters(+7.14e-09, +1.54e-08, +6.75e-09,
+			      +4.57e-09, -8.73e-10, +7.45e-09);
       }
       else
 	assert(false);
@@ -818,21 +1022,41 @@ void reprocess(string epoch="") {
       
       if (isUL18) {
 	// UL18 ABCD fit with minitools/drawZmass.C
-	f1mzmm->SetParameters(0.99839, 0.00000, 0.00000);
-	f1ezmm->SetParameters(+1.64e-08,        +0,        +0,
-			             +0,        +0,        +0);	
+	//f1mzmm->SetParameters(0.99839, 0.00000, 0.00000);
+	//f1ezmm->SetParameters(+1.64e-08,        +0,        +0,
+	//		             +0,        +0,        +0);	
+	f1mzmm->SetParameters(0.99796, 0.00000, 0.00000);
+	f1ezmm->SetParameters(+2.36e-09,        +0,        +0,
+			      +0,        +0,        +0);
       }
       else if (isUL17) {
 	//assert(false); // CHECK
 	// UL17 BCDEF fit with minitools/drawZmass.C
-	f1mzmm->SetParameters(0.99821, 0.00000, 0.00000);
-	f1ezmm->SetParameters(+3.43e-08,        +0,        +0,
-			             +0,        +0,        +0);
+	//f1mzmm->SetParameters(0.99821, 0.00000, 0.00000);
+	//f1ezmm->SetParameters(+3.43e-08,        +0,        +0,
+	//		             +0,        +0,        +0);
+	// UL17 2017BCDEF fit with minitools/drawZmass.C
+	f1mzmm->SetParameters(0.99889, 0.00000, 0.00000);
+	f1ezmm->SetParameters(+4.82e-09,        +0,        +0,
+			      +0,        +0,        +0);
       }
-      else if (isUL16) {
+      else if (isUL16 && !isAPV) {
 	// UL16 2016GH fit with minitools/drawZmass.C
 	f1mzmm->SetParameters(1.00017, 0.00000, 0.00000);
 	f1ezmm->SetParameters(+1.21e-08,        +0,        +0,
+			      +0,        +0,        +0);
+      }
+      else if (isUL16 && isAPV) {
+	// UL16 2016BCDEF fit with minitools/drawZmass.C
+	f1mzmm->SetParameters(1.00053, 0.00000, 0.00000);
+	f1ezmm->SetParameters(+1.17e-08,        +0,        +0,
+			      +0,        +0,        +0);
+      }
+      else if (isRun2) {
+
+	// Run2Test fit with minitools/drawZmass.C
+	f1mzmm->SetParameters(0.99888, 0.00000, 0.00000);
+	f1ezmm->SetParameters(+1.31e-09,        +0,        +0,
 			      +0,        +0,        +0);
       }
       else
@@ -859,7 +1083,9 @@ void reprocess(string epoch="") {
 
   // MultijetRecoilScale from minitools/drawFlavor.C
   TF1 *f1mjb = new TF1("f1mjb","[p0]+[p1]*pow(x,[p2])",114,2500);
-  f1mjb->SetParameters(1.001, 8.262, -1.315); // chi2/NDF=0.0/2383
+  //f1mjb->SetParameters(1.001, 8.262, -1.315); // chi2/NDF=0.0/2383
+  // New Run2Test update for Flavor.C
+  f1mjb->SetParameters(1.002, 99.07, -1.97); // chi2/NDF=2718.9/2383
 
   // Link to Z+jet 2D distribution for JEC calculations
   // This is used for correctly averaging JEC and its uncertainty
@@ -873,11 +1099,12 @@ void reprocess(string epoch="") {
   TH2D *h2eta = (TH2D*)feta->Get("data"); assert(h2eta);
 
   // New 2D pT-eta distribution down to 5 GeV based on P8 dijet sample
-  //TFile *feta2 = new TFile("rootfiles/P8_dijet_45M_TH2D_correct_weighting.root","READ");
-  //TH2D *h2pteta = (TH2D*)feta2->Get("pTjet_etajet"); assert(h2pteta);
-  TFile *feta2 = new TFile("rootfiles/RunIISummer20UL16NanoAODAPVv2_DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_LeadingJet2DDistribution.root","READ");
+  TFile *feta2 = new TFile("rootfiles/P8_dijet_45M_TH2D_correct_weighting.root","READ");
   assert(feta2 && !feta2->IsZombie());
-  TH2D *h2pteta = (TH2D*)feta2->Get("Dist"); assert(h2pteta);
+  TH2D *h2pteta = (TH2D*)feta2->Get("pTjet_etajet"); assert(h2pteta);
+  //TFile *feta2 = new TFile("rootfiles/RunIISummer20UL16NanoAODAPVv2_DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_LeadingJet2DDistribution.root","READ");
+  //assert(feta2 && !feta2->IsZombie());
+  //TH2D *h2pteta = (TH2D*)feta2->Get("Dist"); assert(h2pteta);
 
 
   // Store pointers to all files in a map for easy handling later
@@ -892,7 +1119,7 @@ void reprocess(string epoch="") {
   files["zeejet"] = fzee;
   files["zmmjet"] = fzmm;
   files["zjet"] = fz;
-  // Flavor response variants
+  // Flavor response variants (Z+jet)
   files["zi"] = fz;
   files["zb"] = fz;
   files["zc"] = fz;
@@ -935,6 +1162,51 @@ void reprocess(string epoch="") {
   files["znq"] = fz;
   files["zng"] = fz;
   files["znn"] = fz;
+  /*
+  // Flavor response variants (photon+jet)
+  files["gi"] = fp;
+  files["gb"] = fp;
+  files["gc"] = fp;
+  files["gq"] = fp;
+  files["gg"] = fp;
+  files["gn"] = fp;
+  files["gii"] = fp;
+  files["gib"] = fp;
+  files["gic"] = fp;
+  files["giq"] = fp;
+  files["gig"] = fp;
+  files["gin"] = fp;
+  files["gbi"] = fp;
+  files["gbb"] = fp;
+  files["gbc"] = fp;
+  files["gbq"] = fp;
+  files["gbg"] = fp;
+  files["gbn"] = fp;
+  files["gci"] = fp;
+  files["gcb"] = fp;
+  files["gcc"] = fp;
+  files["gcq"] = fp;
+  files["gcg"] = fp;
+  files["gcn"] = fp;
+  files["gqi"] = fp;
+  files["gqb"] = fp;
+  files["gqc"] = fp;
+  files["gqq"] = fp;
+  files["gqg"] = fp;
+  files["gqn"] = fp;
+  files["ggi"] = fp;
+  files["ggb"] = fp;
+  files["ggc"] = fp;
+  files["ggq"] = fp;
+  files["ggg"] = fp;
+  files["ggn"] = fp;
+  files["gni"] = fp;
+  files["gnb"] = fp;
+  files["gnc"] = fp;
+  files["gnq"] = fp;
+  files["gng"] = fp;
+  files["gnn"] = fp;
+  */
 
   // Map variable names used in different files to common scheme
   map<string, map<string, const char*> > rename;
@@ -1166,6 +1438,9 @@ void reprocess(string epoch="") {
 	rename["multijet"]["mcmpfu"] = "MPFu_ptave_MG";
       }
     }
+    else if (isRun2) {
+      // nothing extra
+    }
     else
       assert(false);
   }
@@ -1184,6 +1459,10 @@ void reprocess(string epoch="") {
     rename["incjet"]["mpfchs1"] = "jet_Run16UL%s_fwd";
     rename["incjet"]["ptchs"] = "jet_Run16UL%s_fwd";
 
+  }
+  else if (isRun2) {
+    rename["incjet"]["mpfchs1"] = "jet_Run%s_fwd";
+    rename["incjet"]["ptchs"] = "jet_Run%s_fwd";
   }
   else
     assert(false);
@@ -1248,21 +1527,22 @@ void reprocess(string epoch="") {
   rename["zjet"]["ratio"] = "data"; // missing => PATCH
   rename["zjet"]["data"] = "data";
   rename["zjet"]["mc"] = "mc";
-  rename["zjet"]["mpfchs"] = "mpfchs";
-  rename["zjet"]["mpfchs1"] = "mpfchs"; 
-  rename["zjet"]["ptchs"] = "mpfjet1";//"ptchs"; 
-  rename["zjet"]["counts"] = "statistics_mpfchs";
+  rename["zjet"]["mpfchs"] = (isUL16 && !isAPV ? "rmpf" : "mpfchs");
+  rename["zjet"]["mpfchs1"] = (isUL16 && !isAPV ? "rmpf" : "mpfchs"); 
+  rename["zjet"]["ptchs"] = (isUL16 && !isAPV ? "rmpfjet1" : "mpfjet1");//"ptchs"; 
+  rename["zjet"]["counts"] = (isUL16 && !isAPV ? "statistics_rmpf" : "statistics_mpfchs");
   rename["zjet"]["chf"] = "chHEF";
   rename["zjet"]["nef"] = "neEmEF";
   rename["zjet"]["nhf"] = "neHEF";
   rename["zjet"]["cef"] = "chEmEF";
   rename["zjet"]["muf"] = "muEF";
   //
-  rename["zjet"]["mpf1"] = "mpfjet1";
-  rename["zjet"]["mpfn"] = "mpfjetn";
-  rename["zjet"]["mpfu"] = "mpfuncl";
+  rename["zjet"]["mpf1"] = (isUL16 && !isAPV ? "rmpfjet1" : "mpfjet1");
+  rename["zjet"]["mpfn"] = (isUL16 && !isAPV ? "rmpfjetn" : "mpfjetn");
+  rename["zjet"]["mpfu"] = (isUL16 && !isAPV ? "rmpfuncl" : "mpfuncl");
   rename["zjet"]["rho"] = "rho";
 
+  // Flavor response variants (Z+jet)
   rename["zi"]["tag"] = "";
   rename["zb"]["tag"] = "_btagdeepbtight";
   rename["zc"]["tag"] = "_btagdeepctight";
@@ -1395,6 +1675,23 @@ void reprocess(string epoch="") {
   rename["znq"]["gen"] = "_genuds";
   rename["zng"]["gen"] = "_geng";
   rename["znn"]["gen"] = "_unclassified";
+
+  // Photon+jet flavor
+  rename["gi"]["parent"] = rename["gb"]["parent"] = rename["gc"]["parent"] =
+  rename["gq"]["parent"] = rename["gg"]["parent"] = rename["gn"]["parent"] =
+  rename["gii"]["parent"] = rename["gib"]["parent"] = rename["gic"]["parent"] =
+  rename["giq"]["parent"] = rename["gig"]["parent"] = rename["gin"]["parent"] =
+  rename["gbi"]["parent"] = rename["gbb"]["parent"] = rename["gbc"]["parent"] =
+  rename["gbq"]["parent"] = rename["gbg"]["parent"] = rename["gbn"]["parent"] =
+  rename["gci"]["parent"] = rename["gcb"]["parent"] = rename["gcc"]["parent"] =
+  rename["gcq"]["parent"] = rename["gcg"]["parent"] = rename["gcn"]["parent"] =
+  rename["gqi"]["parent"] = rename["gqb"]["parent"] = rename["gqc"]["parent"] =
+  rename["gqq"]["parent"] = rename["gqg"]["parent"] = rename["gqn"]["parent"] =
+  rename["ggi"]["parent"] = rename["ggb"]["parent"] = rename["ggc"]["parent"] =
+  rename["ggq"]["parent"] = rename["ggg"]["parent"] = rename["ggn"]["parent"] =
+  rename["gni"]["parent"] = rename["gnb"]["parent"] = rename["gnc"]["parent"] =
+  rename["gnq"]["parent"] = rename["gng"]["parent"] = rename["gnn"]["parent"] =
+    "gamjet";
 
   // color and style codes
   map<string, map<string, int> > style;
@@ -1659,6 +1956,55 @@ void reprocess(string epoch="") {
   sets.push_back("znq");
   sets.push_back("zng");
   sets.push_back("znn");
+  //
+  sets.push_back("gi");
+  sets.push_back("gb");
+  sets.push_back("gc");
+  sets.push_back("gq");
+  sets.push_back("gg");
+  sets.push_back("gn");
+  //
+  sets.push_back("gii");
+  sets.push_back("gib");
+  sets.push_back("gic");
+  sets.push_back("giq");
+  sets.push_back("gig");
+  sets.push_back("gin");
+  //
+  sets.push_back("gbi");
+  sets.push_back("gbb");
+  sets.push_back("gbc");
+  sets.push_back("gbq");
+  sets.push_back("gbg");
+  sets.push_back("gbn");
+  //
+  sets.push_back("gci");
+  sets.push_back("gcb");
+  sets.push_back("gcc");
+  sets.push_back("gcq");
+  sets.push_back("gcg");
+  sets.push_back("gcn");
+  //
+  sets.push_back("gqi");
+  sets.push_back("gqb");
+  sets.push_back("gqc");
+  sets.push_back("gqq");
+  sets.push_back("gqg");
+  sets.push_back("gqn");
+  //
+  sets.push_back("ggi");
+  sets.push_back("ggb");
+  sets.push_back("ggc");
+  sets.push_back("ggq");
+  sets.push_back("ggg");
+  sets.push_back("ggn");
+  //
+  sets.push_back("gni");
+  sets.push_back("gnb");
+  sets.push_back("gnc");
+  sets.push_back("gnq");
+  sets.push_back("gng");
+  sets.push_back("gnn");
 
   vector<pair<double,double> > etas;
   etas.push_back(make_pair<double,double>(0,1.305));
@@ -1761,6 +2107,7 @@ void reprocess(string epoch="") {
 	  string sp = (rename[s]["parent"]!=0 ? rename[s]["parent"] : "");
 	  
 	  TFile *f = files[s];
+	  if (!f && sp=="gamjet") f = files[sp];
 	  // pfjet has two files
 	  if (!f && s=="pfjet") f = files[s+"_"+d];
 	  if (s=="pfjet" && pfMode=="none") continue;
@@ -1781,20 +2128,25 @@ void reprocess(string epoch="") {
 	  // C_recoil is only meant for multijets
 	  if (t=="crecoil" && s!="multijet") continue;
 
-	  // MPF decomposition only for Z+jet for now (+multijet)
+	  // MPF decomposition only for Z+jet for now (+multijet, +photon+jet)
 	  if ((t=="mpf1" || t=="mpfn" || t=="mpfu" || t=="rho") &&
 	      !(((s=="zeejet" || s=="zmmjet" || s=="zlljet" || s=="zjet" ||
 		  sp=="zjet" ||
 		  s=="multijet") && isUL18) ||
 		((s=="zeejet" || s=="zmmjet" || s=="zlljet" || s=="zjet" ||
-		  s=="multijet") && (isUL17 || isUL16)) ||
+		  s=="multijet") && (isUL17 || isUL16 || isRun2)) ||
 		(s=="gamjet" && (epoch=="2016EF" || epoch=="2016GH" ||
-				 epoch=="2016BCD" || epoch=="2016BCDEF")
-		 && t!="rho")
+				 epoch=="2016BCD" || epoch=="2016BCDEF" ||
+				 epoch=="2018ABCD" || epoch=="2017BCDEF" ||
+				 epoch=="Run2Test")
+		 && t!="rho") ||
+		(sp=="gamjet") ||
+		(s=="zjet" || sp=="zjet")
 		)) 
 	    continue;
 	  //if (t=="rho" && s=="zjet") continue; // still missing for zjet
 	  if (t=="rho" && sp=="zjet") continue;
+	  if (t=="rho" && sp=="gamjet") continue;
 	  if (t=="rho" && s=="multijet"  // and for multijet
 	      && !(CorLevel=="L1L2L3Res" && isUL16)) continue;
 
@@ -1806,23 +2158,30 @@ void reprocess(string epoch="") {
 	      s!="zeejet" && s!="zmmjet" && s!="zlljet") continue;
 	  if (!isfrac && s=="pfjet") continue;
 
-	  bool isflavor =
-	    (s=="zi"  || s=="zb"  || s=="zc"  || s=="zq"  || s=="zg"||s=="zn");
+	  bool isflavor = 
+	    (s=="zi"  || s=="zb"  || s=="zc"  || s=="zq"  || s=="zg"||s=="zn")||
+	    (s=="gi"  || s=="gb"  || s=="gc"  || s=="gq"  || s=="gg"||s=="gn");
 	  bool isflavormc = 
-	    (s=="zii" || s=="zbi" || s=="zci" || s=="zqi" ||s=="zgi"||s=="zni"||
-	     s=="zib" || s=="zbb" || s=="zcb" || s=="zqb" ||s=="zgb"||s=="znb"||
-	     s=="zic" || s=="zbc" || s=="zcc" || s=="zqc" ||s=="zgc"||s=="znc"||
-	     s=="ziq" || s=="zbq" || s=="zcq" || s=="zqq" ||s=="zgq"||s=="znq"||
-	     s=="zig" || s=="zbg" || s=="zcg" || s=="zqg" ||s=="zgg"||s=="zng"||
-	     s=="zin" || s=="zbn" || s=="zcn" || s=="zqn" ||s=="zgn"||s=="znn");
+	    (s=="zii" || s=="zbi" || s=="zci" || s=="zqi"||s=="zgi"||s=="zni"||
+	     s=="zib" || s=="zbb" || s=="zcb" || s=="zqb"||s=="zgb"||s=="znb"||
+	     s=="zic" || s=="zbc" || s=="zcc" || s=="zqc"||s=="zgc"||s=="znc"||
+	     s=="ziq" || s=="zbq" || s=="zcq" || s=="zqq"||s=="zgq"||s=="znq"||
+	     s=="zig" || s=="zbg" || s=="zcg" || s=="zqg"||s=="zgg"||s=="zng"||
+	     s=="zin" || s=="zbn" || s=="zcn" || s=="zqn"||s=="zgn"||s=="znn")||
+	    (s=="gii" || s=="gbi" || s=="gci" || s=="gqi"||s=="ggi"||s=="gni"||
+	     s=="gib" || s=="gbb" || s=="gcb" || s=="gqb"||s=="ggb"||s=="gnb"||
+	     s=="gic" || s=="gbc" || s=="gcc" || s=="gqc"||s=="ggc"||s=="gnc"||
+	     s=="giq" || s=="gbq" || s=="gcq" || s=="gqq"||s=="ggq"||s=="gnq"||
+	     s=="gig" || s=="gbg" || s=="gcg" || s=="gqg"||s=="ggg"||s=="gng"||
+	     s=="gin" || s=="gbn" || s=="gcn" || s=="gqn"||s=="ggn"||s=="gnn");
 	  if (isflavormc && d!="mc") continue;
 
-	  // Some inputs missing for UL16
-	  if (isUL16 && 
-	      (s=="zn" || s=="zin" || s=="zni" || s=="znn" ||
-	       s=="zbn" || s=="zcn" || s=="zqn" || s=="zgn" || 
-	       s=="znb" || s=="znc" || s=="znq" || s=="zng"))// || 
-	      continue;
+	  // Some inputs missing for UL16 and UL17
+	  //if ((isUL16 || isUL17 || isRun2) && 
+	  //  (s=="zn" || s=="zin" || s=="zni" || s=="znn" ||
+	  //   s=="zbn" || s=="zcn" || s=="zqn" || s=="zgn" || 
+	  //   s=="znb" || s=="znc" || s=="znq" || s=="zng"))// || 
+	  //  continue;
 
 	  // MPF composition
 	  bool ismpfc = (t=="mpf1" || t=="mpfn" || t=="mpfu" || t=="rho");
@@ -1843,15 +2202,20 @@ void reprocess(string epoch="") {
 	    }
 	    assert(f || s=="zlljet" || (s=="pfjet"&&d=="ratio"));
 
-	    // Only store a30,a100 for zb,zc,zq,zg for now to now bloat the file
-	    if ((isflavor||isflavormc) && !(alpha==0.30 || alpha==1.00))
+	    // Only store a30,a100 for zb,zc,zq,zg for now to not bloat the file
+	    //if ((isflavor||isflavormc) && !(alpha==0.30 || alpha==1.00))
+	    if ((isflavor||isflavormc) && alpha!=1.00)
 	      continue;
 
-	    if (alpha>0.35 && (s!="zjet" && sp!="zjet" && s!="zeejet" && s!="zmmjet" && s!="zlljet" && s!="gamjet")) continue;
-	    if (alpha>0.35 && s=="gamjet" && isUL17) continue;
+	    if (alpha!=1.00 && isUL16 && !isAPV && (s=="zjet" || sp=="zjet"))
+	      continue;
+	    if (alpha!=1.00 && sp=="gamjet") continue;
+	    if (alpha>0.35 && (s!="zjet" && sp!="zjet" && s!="zeejet" && s!="zmmjet" && s!="zlljet" && s!="gamjet" && sp!="gamjet")) continue;
+	    //if (alpha>0.35 && s=="gamjet" && isUL17) continue;
+	    //if (alpha>0.35 && s=="gamjet" && isRun2) continue;
 
             if (t=="counts" && s!="zmmjet" && s!="zeejet" && s!="gamjet" &&
-		s!="zjet" && sp!="zjet" &&
+		s!="zjet" && sp!="zjet" && sp!="gamjet" &&
 		s!="hadw" && s!="multijet")
               continue; // counts available only for z+jet and gamjet, so far
 
@@ -1870,6 +2234,9 @@ void reprocess(string epoch="") {
 	    if (s=="gamjet"  && fabs(eta1-3.2)<0.1) { eta1=3.0; eta2=3.2; }
 
 
+	    int ieta1 = int(10.*eta1+0.5);
+	    int ieta2 = int(10.*eta2+0.5);
+
 	    // Reconstruct naming scheme used in each of the files
 	    // If non-conventional naming schemes, patch here
 	    const char *c(0);
@@ -1887,9 +2254,7 @@ void reprocess(string epoch="") {
 		if (epoch=="2018ABCD" && CorLevel=="L1L2Res")
 		  c = Form(rename[s][t],"");
 	      }
-	      else if (isUL17)
-		c = Form(rename[s][t],fij_eras[epoch]);
-	      else if (isUL16) {
+	      else if (isUL17 || isUL16 || isRun2) {
 		c = Form(rename[s][t],fij_eras[epoch]);
 	      }
 	      else
@@ -1897,12 +2262,14 @@ void reprocess(string epoch="") {
 	    }
 	    if (s=="hadw") {
 	      if (CorLevel=="L1L2L3Res") {
-		if (isUL18 || isUL17)
-		  c = Form("%s_%s_%s_fitprob02_L1L2L3",dd,rename[s][t],ss);
-		else if (isUL16)
+		//if (isUL18 || isUL17)
+		//if (isUL18)
+		//c = Form("%s_%s_%s_fitprob02_L1L2L3",dd,rename[s][t],ss);
+		//else 
+		if (isUL16 || isUL17 || isUL18)
 		  c = Form("%s_%s_%s_fitprob001_L1L2L3",dd,rename[s][t],ss);
 		else
-		  assert(false);
+		  assert(isRun2);
 	      }
 	      if (CorLevel=="L1L2Res") {
 		if (isUL18 || isUL17)
@@ -1933,14 +2300,23 @@ void reprocess(string epoch="") {
 		       rename[s][t], rename[s][d],
 		       100.*alpha, 10.*eta1, 10.*eta2);
 	    } // gamjet
+	    if (sp=="gamjet") {
+	      c = Form("flavor/%s_%s_%s",tt,ss,dd);
+	    }
 	    if (s=="zmmjet" || s=="zeejet") {
-	      c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2Res",
-	    	       rename[s][d], rename[s][t], 100.*alpha,
-	    	       10.01*eta1, 10.01*eta2);
-	      if(CorLevel=="L1L2L3Res")
+	      if (CorLevel=="L1L2Res") {
+		c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2Res",
+			 rename[s][d], rename[s][t], 100.*alpha,
+			 10.01*eta1, 10.01*eta2);
+		assert(false); // make sure not going here for V7 closure
+	      }
+	      else if (CorLevel=="L1L2L3Res") {
 		c = Form("%s_%s_a%1.0f_eta_%02.0f_%02.0f_L1L2L3Res",
 			 rename[s][d], rename[s][t], 100.*alpha,
 			 10.01*eta1, 10.01*eta2);
+	      }
+	      else
+		assert(false);
 	    } // Zll+jet
 	    if (s=="zjet") {
 	      c = Form("%s/eta_%02.0f_%02.0f/%s%s_zmmjet_a%1.0f",
@@ -1963,6 +2339,16 @@ void reprocess(string epoch="") {
 		assert(false);
 	      }
 	    } // Z+jet (Z+b)
+
+	    // Run 2: overwrite any previous object name c, except incjet
+	    // Inputs created with recombine.C
+	    if (isRun2 && s!="incjet")
+	      c = Form("%s/eta%02d-%02d/orig/%s_%s_a%1.0f",
+		       dd,ieta1,ieta2,tt,ss,100.*alpha);
+	    if (isRun2 && t=="counts")
+	      c = Form("%s/eta%02d-%02d/%s_%s_a%1.0f",
+		       dd,ieta1,ieta2,tt,ss,100.*alpha);
+
 
 	    TObject *obj = ((s=="zlljet"||(s=="pfjet"&&d=="ratio")
 			     //||(s=="zjet"&&d=="ratio")
@@ -2024,7 +2410,23 @@ void reprocess(string epoch="") {
 	      assert(gd);
 	      assert(gm);
 
-	      if (t=="mpf1") {
+	      if (t=="mpf1" || t=="mpfchs1") {
+		TGraphErrors *g = tools::ratioGraphs(gd, gm);
+		obj = (TObject*)g;
+	      }
+	      else {
+		TGraphErrors *g = tools::diffGraphs(gd, gm);
+		obj = (TObject*)g;
+	      }
+	    }
+	    // Calculate data/MC ratio or difference for gamjet-derivates
+	    if (sp=="gamjet" && d=="ratio" && (ismpfc || t=="mpfchs1")) {
+	      TGraphErrors *gd = grs["data"][t][s][ieta][ialpha];
+	      TGraphErrors *gm = grs["mc"][t][s][ieta][ialpha];
+	      assert(gd);
+	      assert(gm);
+
+	      if (t=="mpf1" || t=="mpfchs1") {
 		TGraphErrors *g = tools::ratioGraphs(gd, gm);
 		obj = (TObject*)g;
 	      }
@@ -2047,14 +2449,17 @@ void reprocess(string epoch="") {
 	      obj = (TObject*)g;
 	    }
 
+	    if (!obj) {
+	      cout << "Missing " << c << endl << flush;
+	    }
 	    assert(obj);
 
 	    // write out counts to jecdata.root (as TH1F)
             if (t=="counts" && (s=="zmmjet" || s=="zeejet" || s=="gamjet" ||
 				s=="zjet" || sp=="zjet" || s=="hadw" ||
-				s=="multijet") ){
+				s=="multijet" || sp=="gamjet") ){
 	      // Multijet counts are retrieved from TH2D
-	      if (s=="multijet" && !isUL16) {
+	      if (s=="multijet" && !(isUL16 || isRun2)) {
 		assert(obj->InheritsFrom("TH2D"));
 		dout->cd();
 		obj = ((TH2D*)obj)->RebinX(2);
@@ -2121,10 +2526,10 @@ void reprocess(string epoch="") {
               // remove points with large error (more than 0.2 right now)
               if (g->GetEY()[i]>0.2 && !isflavormc)  g->RemovePoint(i);
 	      // Clean out point outside good ranges
-	      else if (s=="gamjet" && (t=="mpfchs1" || ismpfc) &&
+	      else if ((s=="gamjet"||sp=="gamjet") && (t=="mpfchs1"||ismpfc) &&
 		       (g->GetX()[i]<fpmpfptmin || g->GetX()[i]>fpmpfptmax))
 		g->RemovePoint(i);
-	      else if (s=="gamjet" && t=="ptchs" &&
+	      else if ((s=="gamjet"||sp=="gamjet") && t=="ptchs" &&
 		       (g->GetX()[i]<fpbalptmin || g->GetX()[i]>fpbalptmax))
 		g->RemovePoint(i);
 	      else if (s=="dijet" && t=="mpfchs1" &&
@@ -2181,6 +2586,9 @@ void reprocess(string epoch="") {
 		g->RemovePoint(i);
 	      else if ((s=="zmmjet" || s=="zeejet") && isfrac &&
 		       (g->GetX()[i]<fzllpfzptmin || g->GetX()[i]>fzllpfzptmax))
+		g->RemovePoint(i);
+	      else if ((s=="zjet") && isfrac &&
+		       (g->GetX()[i]<fzpfzptmin || g->GetX()[i]>fzpfzptmax))
 		g->RemovePoint(i);
               else if (s=="zmmjet" || s=="zeejet" || s=="gamjet" || s=="zjet"){ // patch: clean away points with low statistics based on event counts histograms, currently Z+jet
                 assert(counts[d][s][ieta][ialpha]);
@@ -2465,7 +2873,8 @@ void reprocess(string epoch="") {
 	      for (int i = g->GetN()-1; i != -1; --i) {
 		double pt = g->GetX()[i];
 		//if (isUL16 && isAPV && epoch=="2016BCD" && fabs(pt-60)<10) {
-		if (isUL16 && isAPV && fabs(pt-65)<5) {
+		if ((isUL16 && isAPV && fabs(pt-65)<5) ||
+		    (isUL18 && fabs(pt-37.5)<2.5)) {
 		  g->RemovePoint(i);
 		}
 	      }
@@ -2491,10 +2900,10 @@ void reprocess(string epoch="") {
 	      g->SetMarkerColor(color[s+"_"+t]!=0 ? color[s+"_"+t] : color[s]);
 	      g->SetLineColor(color[s+"_"+t]!=0 ? color[s+"_"+t] : color[s]);
 	    }
-	    if (sp=="zjet") {
-	      g->SetMarkerStyle(style["zjet"][t]);
-	      g->SetMarkerColor(color[s]!=0 ? color[s] : color["zjet"]);
-	      g->SetLineColor(color[s]!=0 ? color[s] : color["zjet"]);
+	    if (sp=="zjet" || sp=="gamjet") {
+	      g->SetMarkerStyle(style[sp][t]);
+	      g->SetMarkerColor(color[s]!=0 ? color[s] : color[sp]);
+	      g->SetLineColor(color[s]!=0 ? color[s] : color[sp]);
 	    }
 	    g->SetMarkerSize(size[alpha]);
 	    g->SetDrawOption("SAMEP");
@@ -2583,25 +2992,38 @@ void reprocess(string epoch="") {
     FactorizedJetCorrector *jecg(0), *jech(0);
     double jecwa(0), jecwb(0), jecwc(0), jecwd(0), jecwe(0), jecwf(0);
     double jecwg(0), jecwh(0);
+    // all of Run 2 in a more systematic fashion
+    vector< pair<double,FactorizedJetCorrector*> > vjec;
     {
       if (rp_debug) cout << "Individual JECs..." << endl << flush;
 
-      if (isUL18) 
+      if (isUL18) {
 	jec = getFJC("","",Form("Summer19UL18_Run%s_V5_DATA_L2L3Residual",
 				epoch=="2018ABCD" ? "A" : mera[epoch]));
-      else if (isUL17)
+	mcjec = getFJC("",Form("Summer19UL18_Run%s_V5_DATA_L2Relative",
+			       epoch=="2018ABCD" ? "A" : mera[epoch]));
+      }
+      else if (isUL17) {
 	jec =getFJC("","",Form("Summer19UL17_Run%s_V5_DATA_L2L3Residual",
 			       epoch=="2017BCDEF" ? "C" : mera[epoch]));
+	mcjec = getFJC("",Form("Summer19UL17_Run%s_V5_DATA_L2Relative",
+			       epoch=="2017BCDEF" ? "C" : mera[epoch]));
+      }
       // Add MC JEC for Runcl for UL16
       else if (isUL16 && !isAPV) {
-	jec = getFJC("",Form("Summer19UL16_Run%s_V5_DATA_L2L3Residual",mera[epoch]),"",cd);
+	jec = getFJC("",Form("Summer19UL16_Run%s_V7_DATA_L2L3Residual",mera[epoch]),"",cd); // was V5
 	//jec = getFJC("",Form("Summer19UL16_Run%s_V5M1_DATA_L2L3Residual",mera[epoch]),"",cdx);
-	mcjec = getFJC("",Form("Summer19UL16_Run%s_V5_DATA_L2Relative",mera[epoch]),"",cd);
+	mcjec = getFJC("",Form("Summer19UL16_Run%s_V7_DATA_L2Relative",mera[epoch]),"",cd); // was V5
       }
       else if (isUL16 && isAPV) {
-	jec = getFJC("",Form("Summer19UL16APV_Run%s_V5_DATA_L2L3Residual",mera[epoch]),"",cd);
+	jec = getFJC("",Form("Summer19UL16APV_Run%s_V7_DATA_L2L3Residual",mera[epoch]),"",cd); // was V5
 	//jec = getFJC("",Form("Summer19UL16_Run%s_V5M1_DATA_L2L3Residual",mera[epoch]),"",cdx);
-	mcjec = getFJC("",Form("Summer19UL16APV_Run%s_V5_DATA_L2Relative",mera[epoch]),"",cd);
+	mcjec = getFJC("",Form("Summer19UL16APV_Run%s_V7_DATA_L2Relative",mera[epoch]),"",cd); // was V5
+      }
+      else if (isRun2) { // clone 2018A
+	//jec = getFJC("","","Summer19UL18_RunA_V5_DATA_L2L3Residual");
+	jec = getFJC("","","mergeL2L3ResTextFiles_Run2Test","textFiles");
+	mcjec = getFJC("","Summer19UL18_RunA_V5_DATA_L2Relative");
       }
       else
 	assert(false);
@@ -2640,8 +3062,9 @@ void reprocess(string epoch="") {
       }
       else if (epoch=="2016BCDEF") {
 
-	jecb = getFJC("","","Summer19UL16APV_RunBCD_V5_DATA_L2L3Residual");
-	jece = getFJC("","","Summer19UL16APV_RunEF_V5_DATA_L2L3Residual");
+	// were V5
+	jecb = getFJC("","","Summer19UL16APV_RunBCD_V7_DATA_L2L3Residual");
+	jece = getFJC("","","Summer19UL16APV_RunEF_V7_DATA_L2L3Residual");
 	//jecb = getFJC("","","Summer19UL16_RunBCD_V5M1_DATA_L2L3Residual",cdx);
 	//jece = getFJC("","","Summer19UL16_RunEF_V5M1_DATA_L2L3Residual",cdx);
 	
@@ -2649,6 +3072,25 @@ void reprocess(string epoch="") {
 	double lumtot = 5.9+2.6+4.4 +4.0+3.2; // 20.1 (vs 19.8?)
 	jecwb = (5.9+2.6+4.4)/lumtot; // 12.9
 	jecwe = (4.0+3.2)/lumtot; // 7.2 (vs 6.8?)
+      }
+      else if (isRun2) {
+
+#define PAIR(a,b) (make_pair<double,FactorizedJetCorrector*>((a),getFJC("","",(b))))
+
+	vjec.push_back(PAIR(12.9,"Summer19UL16APV_RunBCD_V7_DATA_L2L3Residual"));
+	vjec.push_back(PAIR( 6.8,"Summer19UL16APV_RunEF_V7_DATA_L2L3Residual"));
+	vjec.push_back(PAIR(16.8,"Summer19UL16_RunFGH_V7_DATA_L2L3Residual"));
+
+	vjec.push_back(PAIR( 4.8,"Summer19UL17_RunB_V5_DATA_L2L3Residual"));
+	vjec.push_back(PAIR( 9.6,"Summer19UL17_RunC_V5_DATA_L2L3Residual"));
+	vjec.push_back(PAIR( 4.2,"Summer19UL17_RunD_V5_DATA_L2L3Residual"));
+	vjec.push_back(PAIR( 9.3,"Summer19UL17_RunE_V5_DATA_L2L3Residual"));
+	vjec.push_back(PAIR(13.4,"Summer19UL17_RunF_V5_DATA_L2L3Residual"));
+
+	vjec.push_back(PAIR(14.0,"Summer19UL18_RunA_V5_DATA_L2L3Residual"));
+	vjec.push_back(PAIR( 7.1,"Summer19UL18_RunB_V5_DATA_L2L3Residual"));
+	vjec.push_back(PAIR( 6.9,"Summer19UL18_RunC_V5_DATA_L2L3Residual"));
+	vjec.push_back(PAIR(31.9,"Summer19UL18_RunD_V5_DATA_L2L3Residual"));
       }
       // Alternative combined JEC
       //else if (epoch=="2016BCDEF") {
@@ -2673,26 +3115,33 @@ void reprocess(string epoch="") {
     // NB: global fit ideally needs a temporary pT-flat L3Res as input
     // But even with this pT-dependent L2Res can cause problems
     if (isUL18) {
-      jecold = getFJC("","",Form("Summer19UL18_Run%s_V5_DATA_L2L3Residual",
+      //jecold = getFJC("","",Form("Summer19UL18_Run%s_V5_DATA_L2L3Residual",
+      //			 epoch=="2018ABCD" ? "C" : mera[epoch]));
+      jecold = getFJC("","",Form("Summer19UL18_Run%s_V3M1_DATA_L2L3Residual",
 				 epoch=="2018ABCD" ? "C" : mera[epoch]));
     }
     else if (isUL17) {
-      jecold = getFJC("","",Form("Summer19UL17_Run%s_V5_DATA_L2L3Residual",
-				 epoch=="2017BCDEF" ? "C" : mera[epoch]));
+      //jecold = getFJC("","",Form("Summer19UL17_Run%s_V5_DATA_L2L3Residual",
+      //epoch=="2017BCDEF" ? "C" : mera[epoch]));
+      jecold = getFJC("","",Form("Summer19UL17_Run%s_V2M5_SimpleL1_DATA_L2L3Residual",mera[epoch]));
     }
     else if (isUL16 && !isAPV) {
       if (CorLevel=="L1L2L3Res")
-	jecold = getFJC("","",Form("Summer19UL16_Run%s_V5_DATA_L2L3Residual",
-				   mera[epoch]));
+	jecold = getFJC("","",Form("Summer19UL16_Run%s_V7_DATA_L2L3Residual",
+				   mera[epoch])); // was V5
       else
 	assert(false);
     }
     else if (isUL16 && isAPV) {
       if (CorLevel=="L1L2L3Res")
-	jecold = getFJC("","",Form("Summer19UL16APV_Run%s_V5_DATA_L2L3Residual",
-				   mera[epoch]));
+	jecold = getFJC("","",Form("Summer19UL16APV_Run%s_V7_DATA_L2L3Residual",
+				   mera[epoch])); // was V5
       else
 	assert(false);
+    }
+    else if (isRun2) { // use UL18D
+      //jecold = getFJC("","","Summer19UL18_RunD_V5_DATA_L2L3Residual");
+      jecold = getFJC("","","mergeL2L3ResTextFiles_Run2Test","textFiles");
     }
     else
       assert(false);
@@ -2701,7 +3150,7 @@ void reprocess(string epoch="") {
     if (rp_debug) cout << "Loading L1 JECs..." << endl << flush;
  
     // Difference between pT-dependent and flat L1
-    if (isUL17 || isUL18) {
+    if (isUL17 || isUL18 || isRun2) {
       jecl1flat = getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1RC");
       jecl1rcdt = getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1RC");
       jecl1pt =   getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1FastJet");
@@ -2710,26 +3159,28 @@ void reprocess(string epoch="") {
       jecl1dt =   getFJC("Summer19UL17_RunC_V1_SimpleL1_DATA_L1FastJet");
     }
     else if (isUL16 && !isAPV) {
-      jecl1flat = getFJC("Summer19UL16_RunFGH_V5_DATA_L1RC");
-      jecl1rcdt = getFJC("Summer19UL16_RunFGH_V5_DATA_L1RC");
-      jecl1pt =   getFJC("Summer19UL16_RunFGH_V5_DATA_L1FastJet");
-      jecl1mc =   getFJC("Summer19UL16_RunFGH_V5_DATA_L1RC");
-      jecl1rcmc = getFJC("Summer19UL16_RunFGH_V5_DATA_L1RC");
-      jecl1dt =   getFJC("Summer19UL16_RunFGH_V5_DATA_L1FastJet");
+      // were V5 
+      jecl1flat = getFJC("Summer19UL16_RunFGH_V7_DATA_L1RC");
+      jecl1rcdt = getFJC("Summer19UL16_RunFGH_V7_DATA_L1RC");
+      jecl1pt =   getFJC("Summer19UL16_RunFGH_V7_DATA_L1FastJet");
+      jecl1mc =   getFJC("Summer19UL16_RunFGH_V7_DATA_L1RC");
+      jecl1rcmc = getFJC("Summer19UL16_RunFGH_V7_DATA_L1RC");
+      jecl1dt =   getFJC("Summer19UL16_RunFGH_V7_DATA_L1FastJet");
     }
     else if (isUL16 && isAPV) {
-      jecl1flat = getFJC("Summer19UL16APV_RunBCDEF_V5_DATA_L1RC");
-      jecl1rcdt = getFJC("Summer19UL16APV_RunBCDEF_V5_DATA_L1RC");
-      jecl1pt =   getFJC("Summer19UL16APV_RunBCDEF_V5_DATA_L1FastJet");
-      jecl1mc =   getFJC("Summer19UL16APV_RunBCDEF_V5_DATA_L1RC");
-      jecl1rcmc = getFJC("Summer19UL16APV_RunBCDEF_V5_DATA_L1RC");
-      jecl1dt =   getFJC("Summer19UL16APV_RunBCDEF_V5_DATA_L1FastJet");
+      // were V5
+      jecl1flat = getFJC("Summer19UL16APV_RunBCDEF_V7_DATA_L1RC");
+      jecl1rcdt = getFJC("Summer19UL16APV_RunBCDEF_V7_DATA_L1RC");
+      jecl1pt =   getFJC("Summer19UL16APV_RunBCDEF_V7_DATA_L1FastJet");
+      jecl1mc =   getFJC("Summer19UL16APV_RunBCDEF_V7_DATA_L1RC");
+      jecl1rcmc = getFJC("Summer19UL16APV_RunBCDEF_V7_DATA_L1RC");
+      jecl1dt =   getFJC("Summer19UL16APV_RunBCDEF_V7_DATA_L1FastJet");
     }
     else 
       assert(false);
 
     // With L2Relative included
-    if (isUL17 || isUL18) {
+    if (isUL17 || isUL18 || isRun2) {
       jecl1c =    getFJC("Summer19UL17_V1_ComplexL1_MC_L1FastJet",
 			 // This is on purpose SimpleL1_L2 for ComplexL1_L1
 			 // Need L1C L2 on same footing with L1S and L1RC
@@ -2742,24 +3193,26 @@ void reprocess(string epoch="") {
       jecl2s =    getFJC("","Summer19UL17_V1_SimpleL1_MC_L2Relative");
     }
     else if (isUL16 && !isAPV) {
-      jecl1c =    getFJC("Summer19UL16_V5_MC_L1FastJet",
-			 "Summer19UL16_V5_MC_L2Relative");
-      jecl1s =    getFJC("Summer19UL16_V5_MC_L1FastJet",
-			 "Summer19UL16_V5_MC_L2Relative");
-      jecl1rc =   getFJC("Summer19UL16_V5_MC_L1RC",
-			 "Summer19UL16_V5_MC_L2Relative");
-      jecl2c =    getFJC("","Summer19UL16_V5_MC_L2Relative");
-      jecl2s =    getFJC("","Summer19UL16_V5_MC_L2Relative");
+      // were V5
+      jecl1c =    getFJC("Summer19UL16_V7_MC_L1FastJet",
+			 "Summer19UL16_V7_MC_L2Relative");
+      jecl1s =    getFJC("Summer19UL16_V7_MC_L1FastJet",
+			 "Summer19UL16_V7_MC_L2Relative");
+      jecl1rc =   getFJC("Summer19UL16_V7_MC_L1RC",
+			 "Summer19UL16_V7_MC_L2Relative");
+      jecl2c =    getFJC("","Summer19UL16_V7_MC_L2Relative");
+      jecl2s =    getFJC("","Summer19UL16_V7_MC_L2Relative");
     }
     else if (isUL16 && isAPV) {
-      jecl1c =    getFJC("Summer19UL16APV_V5_MC_L1FastJet",
-			 "Summer19UL16APV_V5_MC_L2Relative");
-      jecl1s =    getFJC("Summer19UL16APV_V5_MC_L1FastJet",
-			 "Summer19UL16APV_V5_MC_L2Relative");
-      jecl1rc =   getFJC("Summer19UL16APV_V5_MC_L1RC",
-			 "Summer19UL16APV_V5_MC_L2Relative");
-      jecl2c =    getFJC("","Summer19UL16APV_V5_MC_L2Relative");
-      jecl2s =    getFJC("","Summer19UL16APV_V5_MC_L2Relative");
+      // were V5
+      jecl1c =    getFJC("Summer19UL16APV_V7_MC_L1FastJet",
+			 "Summer19UL16APV_V7_MC_L2Relative");
+      jecl1s =    getFJC("Summer19UL16APV_V7_MC_L1FastJet",
+			 "Summer19UL16APV_V7_MC_L2Relative");
+      jecl1rc =   getFJC("Summer19UL16APV_V7_MC_L1RC",
+			 "Summer19UL16APV_V7_MC_L2Relative");
+      jecl2c =    getFJC("","Summer19UL16APV_V7_MC_L2Relative");
+      jecl2s =    getFJC("","Summer19UL16APV_V7_MC_L2Relative");
     }
     else
       assert(false);
@@ -2773,7 +3226,7 @@ void reprocess(string epoch="") {
     FactorizedJetCorrector *jl1dnom(0),*jl1mnom(0),*jl1dalt(0),*jl1malt(0);// 2b
 
     // Use consistent BCDEF files instead of the official files
-    if (isUL17 || isUL18 || isUL16) { // Add UL16, although uncert. may be old
+    if (isUL17 || isUL18 || isUL16 || isRun2) { // Add UL16, although uncert. may be old
       jrcdnom = getFJC("UL17_RunBCDEF_V1_DATA_L1RC"); // (1)
       jrcmnom = getFJC("UL17_RunBCDEF_V1_MC_L1RC"); // (1)
       jrcdalt = getFJC("UL17_MED_RunBCDEF_V1_DATA_L1RC"); // (1)
@@ -2829,11 +3282,14 @@ void reprocess(string epoch="") {
       s = Form("%s/Summer19UL17_RunC_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
     }
     else if (isUL16 && !isAPV) {
-      s = Form("%s/Summer19UL16_RunFGH_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
+      s = Form("%s/Summer19UL16_RunFGH_V7_DATA_UncertaintySources_AK4PFchs.txt",cd); // was V5
     }
     else if (isUL16 && isAPV) {
-      s = Form("%s/Summer19UL16APV_RunBCDEF_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
+      s = Form("%s/Summer19UL16APV_RunBCDEF_V7_DATA_UncertaintySources_AK4PFchs.txt",cd); // was V5
     }
+    else if (isRun2) { // use UL18A
+      s = Form("%s/Summer19UL18_RunA_V5_DATA_UncertaintySources_AK4PFchs.txt",cd); 
+   }
     else
       assert(false);
 
@@ -2886,6 +3342,11 @@ void reprocess(string epoch="") {
     cout << s << ":" << s2 << endl << flush;
     JetCorrectorParameters *p_zjt = new JetCorrectorParameters(s,s2);
     JetCorrectionUncertainty *unc_zjt = new JetCorrectionUncertainty(*p_zjt);
+    //
+    s2 = "FlavorPhotonJet";
+    cout << s << ":" << s2 << endl << flush;
+    JetCorrectorParameters *p_gjt = new JetCorrectorParameters(s,s2);
+    JetCorrectionUncertainty *unc_gjt = new JetCorrectionUncertainty(*p_gjt);
     //
     s2 = "FlavorQCD";
     cout << s << ":" << s2 << endl << flush;
@@ -2940,6 +3401,8 @@ void reprocess(string epoch="") {
       TH1D *herr_bot = new TH1D("herr_bot",";p_{T} (GeV);Bottom uncertainty;",
 				npt, &ptbins[0]);
       TH1D *herr_zjt = new TH1D("herr_zjt",";p_{T} (GeV);Z+jet uncertainty;",
+				npt, &ptbins[0]);
+      TH1D *herr_gjt = new TH1D("herr_gjt",";p_{T} (GeV);#gamma+jet uncert.;",
 				npt, &ptbins[0]);
       TH1D *herr_qcd = new TH1D("herr_qcd",";p_{T} (GeV);QCD uncertainty;",
 				npt, &ptbins[0]);
@@ -3084,7 +3547,7 @@ void reprocess(string epoch="") {
 			      npt, &ptbins[0]);
 
       if(rp_debug) cout << "calculate reference R_uncl (hruncl)" << endl<<flush;
-      TH1D *hruncl = new TH1D("hruncl",";mode;Runcl",3,0.5,3.5);
+      TH1D *hruncl = new TH1D("hruncl",";mode;Runcl",4,0.5,4.5);
       if (CorLevel=="L1L2L3Res") { // R_uncl
 	double ptref = 15.;
 	int jref = h2pteta->GetXaxis()->FindBin(ptref);
@@ -3114,7 +3577,9 @@ void reprocess(string epoch="") {
 	hruncl->SetBinContent(2, suml2l3/sumw5);
 	hruncl->GetXaxis()->SetBinLabel(2,"L2L3");
 	hruncl->SetBinContent(3, suml2l3res/sumw5);
-	hruncl->GetXaxis()->SetBinLabel(2,"L2L3Res");
+	hruncl->GetXaxis()->SetBinLabel(3,"L2L3Res");
+	hruncl->SetBinContent(4, (suml2l3/sumw5)*(suml2l3res/sumw5));
+	hruncl->GetXaxis()->SetBinLabel(4,"DATA");
       } // R_uncl
 
       if(rp_debug) cout << "create reference JES bands" << endl << flush;
@@ -3122,12 +3587,15 @@ void reprocess(string epoch="") {
 
 	double pt = herr->GetBinCenter(ipt);
 
-	int jpt = h2eta->GetXaxis()->FindBin(pt);
+	//int jpt = h2eta->GetXaxis()->FindBin(pt);
+	int jpt = h2pteta->GetXaxis()->FindBin(pt);
 	// avoid underflow bin for pT<30 GeV
-	jpt = max(1,min(jpt, h2eta->GetXaxis()->GetNbins()));
+	//jpt = max(1,min(jpt, h2eta->GetXaxis()->GetNbins()));
+	jpt = max(1,min(jpt, h2pteta->GetXaxis()->GetNbins()));
 
 	// Take Z+jet eta,pT distribution for correctly averaging JEC
-	TH1D *heta = h2eta->ProjectionY(Form("heta_%d",ipt), jpt, jpt);
+	//TH1D *heta = h2eta->ProjectionY(Form("heta_%d",ipt), jpt, jpt);
+	TH1D *heta = h2pteta->ProjectionY(Form("heta_%d",ipt), jpt, jpt);
 	const int ieta2 = heta->FindBin(eta2);
 	const int ieta1 = heta->FindBin(eta1);
 	const int intw = heta->Integral(ieta1,ieta2-1);
@@ -3142,7 +3610,7 @@ void reprocess(string epoch="") {
 	double sumvall2c(0), sumvall2s(0);
 	double sumerr2_pt(0), sumerr2_hcal(0), sumerr2_ecal(0), sumerr2_pu(0);
 	double sumerr2_glu(0), sumerr2_uds(0), sumerr2_cha(0), sumerr2_bot(0);
-	double sumerr2_zjt(0), sumerr2_qcd(0);
+	double sumerr2_zjt(0), sumerr2_gjt(0), sumerr2_qcd(0);
 	double sumerr2_noflv(0), sumerr2_ref(0), sumerr2_ref1(0);
 
 	// New additions
@@ -3184,7 +3652,7 @@ void reprocess(string epoch="") {
 	    val = jecwa*vala +jecwb*valb +jecwc*valc +jecwd*vald;
 	  }
 	  else if (epoch=="2017BCDEF") {
-	    assert(jecb);assert(jecc);assert(jecd);assert(jecf);
+	    assert(jecb);assert(jecc);assert(jecd);assert(jece);assert(jecf);
 	    assert(fabs(jecwb+jecwc+jecwd+jecwe+jecwf-1)<1e-4);
 	    
 	    double valb = 1./getJEC(jecb,eta,pt);
@@ -3204,6 +3672,18 @@ void reprocess(string epoch="") {
 
 	    val = jecwb*valb +jecwe*vale;
 	    //val = jecwb*valb; // alternative version
+	  }
+	  else if (isRun2) {
+
+	    // combination now done in minitools/mergeL2L3ResTextFiles.C
+	    double val = 1./getJEC(jec,eta,pt);
+	    //double sum(0), sumw(0);
+	    //for (unsigned int i = 0; i != vjec.size(); ++i) {
+	    //double w = vjec[i].first;
+	    //sum += w/getJEC(vjec[i].second,eta,pt);
+	    //sumw += w;
+	    //} // for i in vjec
+	    //val = (sum / sumw);
 	  }
 
 	  // reference JEC
@@ -3319,6 +3799,11 @@ void reprocess(string epoch="") {
 	  double err_zjt = unc_zjt->getUncertainty(true);
 	  sumerr2_zjt += w*err_zjt*err_zjt;
 
+	  unc_gjt->setJetEta(eta);
+	  unc_gjt->setJetPt(pt);
+	  double err_gjt = unc_gjt->getUncertainty(true);
+	  sumerr2_gjt += w*err_gjt*err_gjt;
+
 	  unc_qcd->setJetEta(eta);
 	  unc_qcd->setJetPt(pt);
 	  double err_qcd = unc_qcd->getUncertainty(true);
@@ -3352,6 +3837,7 @@ void reprocess(string epoch="") {
 	double err_cha = sqrt(sumerr2_cha / sumw);
 	double err_bot = sqrt(sumerr2_bot / sumw);
 	double err_zjt = sqrt(sumerr2_zjt / sumw);
+	double err_gjt = sqrt(sumerr2_gjt / sumw);
 	double err_qcd = sqrt(sumerr2_qcd / sumw);
 	double err_pu = sqrt(sumerr2_pu / sumw);
 	double err_noflv = sqrt(sumerr2_noflv / sumw);
@@ -3376,6 +3862,7 @@ void reprocess(string epoch="") {
 	herr_cha->SetBinError(ipt, val*err_cha);
 	herr_bot->SetBinError(ipt, val*err_bot);
 	herr_zjt->SetBinError(ipt, val*err_zjt);
+	herr_gjt->SetBinError(ipt, val*err_gjt);
 	herr_qcd->SetBinError(ipt, val*err_qcd);
 	herr_pu->SetBinError(ipt, val*err_pu);
 	herr_noflv->SetBinError(ipt, val*err_noflv);
@@ -3517,6 +4004,11 @@ void reprocess(string epoch="") {
       herr_zjt->SetFillStyle(1001);
       herr_zjt->SetFillColorAlpha(kYellow+1,0.5);
       herr_zjt->Write();
+
+      herr_gjt->SetMarkerSize(0);
+      herr_gjt->SetFillStyle(1001);
+      herr_gjt->SetFillColorAlpha(kYellow+1,0.5);
+      herr_gjt->Write();
 
       herr_qcd->SetMarkerSize(0);
       herr_qcd->SetFillStyle(1001);

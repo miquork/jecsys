@@ -108,7 +108,8 @@ TGraphErrors *tools::makeGraph(TH1 *hx, TH1 *hy, double scale ) {
 
   return g;
 }
-TGraphErrors *tools::diffGraphs(TGraphErrors *g1, TGraphErrors *g2) {
+TGraphErrors *tools::diffGraphs(TGraphErrors *g1, TGraphErrors *g2,
+				double c1, double c2) {
 
   assert(g1); assert(g2);
   TGraphErrors *g = new TGraphErrors(0);
@@ -134,8 +135,8 @@ TGraphErrors *tools::diffGraphs(TGraphErrors *g1, TGraphErrors *g2) {
 	fabs(x1-x2)<=fabs(x2-x1m) && fabs(x1-x2)<=fabs(x2-x1p)) {
 
       int n = g->GetN();
-      SetPoint(g, n, 0.5*(x1+x2), y1-y2, 0.5*fabs(x1-x2),
-	       oplus(ey1, ey2));
+      SetPoint(g, n, 0.5*(x1+x2), c1*y1-c2*y2, 0.5*fabs(x1-x2),
+	       oplus(c1*ey1, c2*ey2));
       ++i, ++j;
     }
     else
@@ -240,8 +241,9 @@ TGraphErrors *tools::mergeGraphs(TGraphErrors *g1, TGraphErrors *g2) {
       //double w2 = g1->GetEY()[i] / (g2->GetEY()[j] + g1->GetEY()[i]);
       // Updated logic: 1/err^2 ~ N, since err ~ 1/sqrt(N)
       double w1(0.5), w2(0.5);
-      if      (g2->GetN()==0) { w1==1; w2==0; }
-      else if (g1->GetN()==0) { w1==0; w2==1; }
+      // 2021-06-14: w1==1 and w2==0 change to w1=1 and w2=0 etc.
+      if      (g2->GetN()==0) { w1=1; w2=0; }
+      else if (g1->GetN()==0) { w1=0; w2=1; }
       else {
 	double n1 = 1./pow(g1->GetEY()[i],2);
 	double n2 = 1./pow(g2->GetEY()[j],2);

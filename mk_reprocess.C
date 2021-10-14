@@ -31,13 +31,13 @@
   // Merge inputs from separate groups
   // NB: this does not need to be run, if the merged inputs
   //     are already available in 'rootfiles/jecdata.root'
-  string epoch = "A";
+  string epoch = "Run2Test";
   #ifdef epochname
   std::cout << epoch.c_str()<< std::endl;
   std::cout << inputepoch.c_str()<< std::endl;
   epoch = inputepoch;
   #endif
-
+  /*
   // Read in files from different groups and merge them in jecdata[epoch].root
   reprocess(epoch); // Comment out if using archived jecdata[epoch].root
 
@@ -50,21 +50,25 @@
 
   // Produce central systematic uncertainties for globalFitL3Res
   globalFitSyst(epoch);
-
+  */
   // Run global fit
   /////////////////
 
   // Reference IOVs: don't use inclusive jets
-  if (epoch=="2018ABCD" || epoch=="2017BCDEF" || epoch=="2016BCDEF") {
-      globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll_hadw", "PtBalMPF");
+  if (epoch=="2018ABCD" || epoch=="2017BCDEF" || epoch=="2016BCDEF" ||
+      epoch=="2016GH" || 
+      epoch=="Run2Test") {
+    //globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_zll_hadw", "PtBalMPF");
+    globalFitL3Res(0.0,1.3, epoch, "MJDJ_gam_z_hadw", "PtBalMPF");
   }
   // Other non-reference IOVs: add inclusive jets
-  else if (epoch=="2016BCD" || epoch=="2016EF" || epoch=="2016GH" ||
+  else if (epoch=="2016BCD" || epoch=="2016EF" || //epoch=="2016GH" ||
 	   epoch=="2017B" || epoch=="2017C" || epoch=="2017D" ||
 	   epoch=="2017E" || epoch=="2017F" ||
 	   epoch=="2018A" || epoch=="2018B" || epoch=="2018C" ||
 	   epoch=="2018D")
     globalFitL3Res(0.0,1.3, epoch, "MJDJ_inc_gam_zll_hadw", "PtBalMPF");
+    //globalFitL3Res(0.0,1.3, epoch, "MJDJ_inc_gam_z_hadw", "PtBalMPF");
   // Non-supported options, bail out
   else
     assert(false);

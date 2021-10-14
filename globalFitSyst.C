@@ -8,7 +8,8 @@
 
 const bool doMultijetJER = true;
 // Which binning used for multijets ("leading" or "recoil");
-string multijetModeS = "leading"; // defined in reprocess.C => check consistency
+//string multijetModeS = "leading"; // defined in reprocess.C => check consistency
+string multijetModeS = "ptave"; // defined in reprocess.C => check consistency
 
 const bool doGamMass = true; // photon scale from Zee
 
@@ -64,6 +65,11 @@ void globalFitSyst(string run = "BCDEF") {
 	else if (multijetModeS=="recoil") {
 	  h1->SetBinContent(i, 0.01*frecoil->Eval(pt));
 	  h2->SetBinContent(i, 0.01*frecoil->Eval(pt));
+	}
+	// placeholder for actual updated JER
+	else if (multijetModeS=="ptave") {
+	  h1->SetBinContent(i, 0.01*0.5*(fleading->Eval(pt)+frecoil->Eval(pt)));
+	  h2->SetBinContent(i, 0.01*0.5*(fleading->Eval(pt)+frecoil->Eval(pt)));
 	}
       }
     } // for i

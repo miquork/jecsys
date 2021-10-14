@@ -60,6 +60,11 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
   bool isUL18 = (epoch=="2018ABCD" || epoch=="2018A" || 
 		 epoch=="2018B" || epoch=="2018C" || epoch=="2018D");
+  bool isUL16 = (epoch=="2016BCD" || epoch=="2016EF" || 
+		 epoch=="2016BCDEF" || epoch=="2016GH");
+  bool isAPV = (epoch=="2016BCD" || epoch=="2016EF" || 
+		epoch=="2016BCDEF");
+  bool isRun2 = (epoch=="Run2Test");
 
   setTDRStyle();
   //writeExtraText = false; // for JEC paper CWR
@@ -89,7 +94,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   //const char* samples[5] = {"gamjet","zeejet", "zmmjet", "zjet",
   //			    domultijet ? "multijet" : "dijet"};
   const char* samples[6] = {"gamjet","zeejet", "zmmjet", "zlljet", "zjet",
-			    domultijet ? "multijet" : "dijet"};
+  			    domultijet ? "multijet" : "dijet"};
+  //const char* samples[5] = {"gamjet","zeejet", "zmmjet", "zlljet",
+  //			    domultijet ? "multijet" : "dijet"};
   //const int nsamples = (dodijet ? 4 : 3);
   //const char* samples[4] = {"gamjet","zeejet", "zmmjet", "dijet"};
   //const int nsamples = (dodijet ? 3 : 2);
@@ -222,6 +229,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	for (int  ialpha = 0; ialpha != nalphas; ++ialpha) {
 	  const int a = alphas[ialpha];
 	  if (a==100 && (ss=="gamjet"||ss=="multijet"||ss=="dijet")) continue;
+	  if (a!=100 && (ss=="zjet" && (isUL16 && !isAPV || isRun2))) continue;
 	  // Get graph made vs pT
 	  string s = Form("%s/%s/%s_%s_a%d",dirs[idir],bin,cm,cs,a);
 	  TGraphErrors *g = (TGraphErrors*)finout->Get(s.c_str());
@@ -351,6 +359,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 
 	  const int a = alphas[ialpha];
 	  if (a==100 && (ss=="dijet"||ss=="multijet"||ss=="gamjet")) continue;
+	  if (a!=100 && (ss=="zjet" && (isUL16 && !isAPV || isRun2))) continue;
 	  TGraphErrors *g = gemap[cd][cm][cs][a]; assert(g);
 
 	  // Clean out points with very large uncertainty for plot readability
@@ -438,6 +447,7 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	  const char *cs = samples[isample];
 	  string ss = cs;
 	  if (ss=="dijet") continue;
+	  if (ss=="zjet" && (isUL16 && !isAPV || isRun2)) continue;
 	  TGraphErrors *g = gemap[cd][cm][cs][30];
 	  if (!g) cout << cd <<"_"<< cm <<"_"<< cs <<"_30"<< endl << flush;
 	  assert(g);
@@ -684,8 +694,9 @@ void softrad(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	const char *cs = samples[isample];
 	string ss(cs);
 	TGraphErrors *gk = gkmap[cd][cm][cs];
+	if (ss=="zjet" && (isUL16 && !isAPV || isRun2)) continue;
 	if (!gk) cout << cd << " " << cm << " " << cs
-		      << "eta_"<<etamin<<"_"<<etamax << endl << flush;
+		      << " eta_"<<etamin<<"_"<<etamax << endl << flush;
 	assert(gk);
 	
 	if (!((dropZee && ss=="zeejet") || (dropZmm && ss=="zmmjet")))
