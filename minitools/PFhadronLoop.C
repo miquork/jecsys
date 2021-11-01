@@ -44,17 +44,27 @@ void PFhadronLoop::Loop()
    TDirectory *curdir = gDirectory;
 
    // Jet veto maps
-   //TFile *fjv = new TFile("../JECDatabase/jet_veto_maps/Summer19UL16_V0/hotjets-UL16.root","READ");
-   TFile *fjv = new TFile("../JECDatabase/jet_veto_maps/Summer19UL18_V1/hotjets-UL18.root","READ");
-   assert(fjv && !fjv->IsZombie());
+   TFile *fjv1 = new TFile("../JECDatabase/jet_veto_maps/Summer19UL16_V0/hotjets-UL16.root","READ");
+   assert(fjv1 && !fjv1->IsZombie());
+   TFile *fjv2 = new TFile("../JECDatabase/jet_veto_maps/Summer19UL17_V2/hotjets-UL17_v2.root","READ");
+   assert(fjv2 && !fjv2->IsZombie());
+   TFile *fjv3 = new TFile("../JECDatabase/jet_veto_maps/Summer19UL18_V1/hotjets-UL18.root","READ");
+   assert(fjv3 && !fjv3->IsZombie());
    
-   //TH2D *h2jv = (TH2D*)fjv->Get("h2hot_ul16_plus_hbm2_hbp12_qie11");
-   TH2D *h2jv = (TH2D*)fjv->Get("h2hot_ul18_plus_hem1516_and_hbp2m1");
-   assert(h2jv);
-   //TH2D *h2mc = (TH2D*)fjv->Get("h2hot_mc");
-   //assert(h2mc);
-   //h2jv->Add(h2mc);
-   
+   TH2D *h2jv1 = (TH2D*)fjv1->Get("h2hot_ul16_plus_hbm2_hbp12_qie11");
+   assert(h2jv1);
+   TH2D *h2jv = (TH2D*)h2jv1->Clone("h2jv");
+   TH2D *h2mc = (TH2D*)fjv1->Get("h2hot_mc");
+   assert(h2mc);
+   h2jv->Add(h2mc);
+
+   TH2D *h2jv2 = (TH2D*)fjv2->Get("h2hot_ul17_plus_hep17_plus_hbpw89");
+   assert(h2jv2);   
+   //h2jv->Add(h2jv2);
+   TH2D *h2jv3 = (TH2D*)fjv3->Get("h2hot_ul18_plus_hem1516_and_hbp2m1");
+   assert(h2jv3);
+   //h2jv->Add(h2jv3);
+
 
    // Open output file for profiles
    TFile *fout = new TFile("rootfiles/Hadrons.root","UPDATE");
@@ -62,27 +72,60 @@ void PFhadronLoop::Loop()
    //fout->cd("MC16APV");
    //fout->mkdir("MC18");
    //fout->cd("MC18");
-   fout->mkdir("DT18");
-   fout->cd("DT18");
+   //fout->mkdir("MC1718");
+   //fout->cd("MC1718");
+   //fout->mkdir("MC161718");
+   //fout->cd("MC161718");
+   //fout->mkdir("MC16GH1718");
+   //fout->cd("MC16GH1718");
+   //fout->mkdir("DT18");
+   //fout->cd("DT18");
+   //fout->mkdir("DT1718");
+   //fout->cd("DT1718");
+   //fout->mkdir("DT161718");
+   //fout->cd("DT161718");
+   fout->mkdir("DT16GH1718");
+   fout->cd("DT16GH1718");
    TDirectory *d = gDirectory;
 
    // PtTrk binning
-   const double ax[] = {3,3.5,4,4.5,5,5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10,10.5,11,
+   /*
+   const double ax[] = {3,3.5,4,4.5,5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10,10.5,11,
 			11.5,12,13,14,15,16,18,20,22,25,30,35,40,50};
+   */
+   const double ax[] = {3,3.3,3.6,3.9,4.2,4.6,5,5.5,6,6.6,7.2,7.9,8.6,9.3,10,
+			11,12,13,14,15,16.5,18,20,22,25,30,35,40,45,55,70,130};
    const int nx = sizeof(ax)/sizeof(ax[0])-1;
 
    // Maps of tracks
-   TH2D *h2b = (TH2D*)h2jv->Clone("h2b"); h2b->Reset(); // b=before
-   TH2D *h2a = (TH2D*)h2jv->Clone("h2a"); h2a->Reset(); // a=after
+   TH2D *h2b = (TH2D*)h2jv3->Clone("h2b"); h2b->Reset(); // b=before
+   TH2D *h2a = (TH2D*)h2jv3->Clone("h2a"); h2a->Reset(); // a=after
 
    // Summed calorimeter energies
    // NB: Ef_* seems to be internally rounded to about full 1%
    // => to avoid stripes, use bin width 1% and edges as 0.5% (middle full 1%)
-   TH2D *h2p =new TH2D("h2p",";p_{T} (GeV);"
+   TH2D *h2p =new TH2D("h2p","All hadrons;p_{T} (GeV);"
 		       "(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax,
 		       250,-0.005,2.495);
-   TProfile *p = new TProfile("p",";p_{T} (GeV);"
+   TH2D *h2phh =new TH2D("h2phh","H-hadrons;p_{T} (GeV);"
+			"(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax,
+			250,-0.005,2.495);
+   TH2D *h2phm =new TH2D("h2phm","H-MIP-hadrons;p_{T} (GeV);"
+			"(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax,
+			250,-0.005,2.495);
+   TH2D *h2peh =new TH2D("h2peh","EH-hadrons;p_{T} (GeV);"
+			 "(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax,
+			 250,-0.005,2.495);
+
+   TProfile *p = new TProfile("p","All hadrons;p_{T} (GeV);"
 			      "(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax);
+   TProfile *phh = new TProfile("phh","H-hadrons;p_{T} (GeV);"
+				"(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax);
+   TProfile *phm = new TProfile("phm","H-MIP-hadrons;p_{T} (GeV);"
+				"(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax);
+   TProfile *peh = new TProfile("peh","EH-hadrons;p_{T} (GeV);"
+				"(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax);
+
    TProfile *pr = new TProfile("pr",";p_{T} (GeV);"
 			       "(E_{ECAL,raw} + E_{HCAL,raw}) / E_{track}",
 			       nx,ax);
@@ -129,7 +172,13 @@ void PFhadronLoop::Loop()
       // Jet veto
       int iv = h2jv->GetXaxis()->FindBin(Eta);
       int jv = h2jv->GetYaxis()->FindBin(Phi);
-      bool isveto = (h2jv->GetBinContent(iv,jv)>0);
+      int iv2 = h2jv2->GetXaxis()->FindBin(Eta);
+      int jv2 = h2jv2->GetYaxis()->FindBin(Phi);
+      int iv3 = h2jv3->GetXaxis()->FindBin(Eta);
+      int jv3 = h2jv3->GetYaxis()->FindBin(Phi);
+      bool isveto = (h2jv->GetBinContent(iv,jv)>0 ||
+		     h2jv2->GetBinContent(iv2,jv2)>0 ||
+		     h2jv3->GetBinContent(iv3,jv3)>0);
       
       // Correction for cases where Pt is PtTrk scaled to ECAL+HCAL
       double c = (PtTrk>0 ? Pt/PtTrk : 1);
@@ -154,9 +203,19 @@ void PFhadronLoop::Loop()
 	// Track distribution after cuts
 	h2a->Fill(Eta, Phi);
 
-	// Summed calorimeter energies
+	// Summed calorimeter energies in 2D
 	h2p->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
+	if (Ef_ECAL==0)                    h2phh->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
+	if (Ef_ECAL!=0 && Ef_ECAL*PtTrk<1) h2phm->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
+	if (Ef_ECAL*PtTrk>=1)              h2peh->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
+
+	// Summed calorimeter as profile vs pT
 	p->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
+	if (Ef_ECAL==0)                    phh->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
+	if (Ef_ECAL!=0 && Ef_ECAL*PtTrk<1) phm->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
+	if (Ef_ECAL*PtTrk>=1)              peh->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
+
+	// Raw energies
 	pr->Fill(PtTrk, Ef_ECALRaw+Ef_HCALRaw);
 	px->Fill(PtTrk, Ef_ECALRaw+Ef_HCAL);
 	
