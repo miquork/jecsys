@@ -450,8 +450,10 @@ void drawPFhadronLoop() {
   leg3->AddEntry(gd,"Data Hist Mean","PLE");
   leg3->AddEntry(gm,"MC Hist Mean","PLE");
 
-
+  c0->SaveAs("pdf/drawPFhadronLoop_2D_data.pdf");
+  c1s->SaveAs("pdf/drawPFhadronLoop_histos.pdf");
   //delete c0;
   //delete c1s;
   delete c2;
+  c3->SaveAs("pdf/drawPFhadronLoop_datamc.pdf");
 } // drawPFhadronLoop()
