@@ -44,7 +44,9 @@ public :
    TBranch        *b_Ef_HCALRaw;   //!
    TBranch        *b_Ef_HCAL;   //!
 
-   PFhadronLoop(TTree *tree=0);
+   string mode;
+
+   PFhadronLoop(TTree *tree=0, string mode="");
    virtual ~PFhadronLoop();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -58,8 +60,10 @@ public :
 #endif
 
 #ifdef PFhadronLoop_cxx
-PFhadronLoop::PFhadronLoop(TTree *tree) : fChain(0) 
+PFhadronLoop::PFhadronLoop(TTree *tree, string mode) : fChain(0) 
 {
+  this->mode = mode;
+  
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {

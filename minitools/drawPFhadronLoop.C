@@ -10,6 +10,8 @@
 #include "../tdrstyle_mod15.C"
 #include "../tools.C"
 
+void drawPFhadronFractions(TDirectory *dm, TDirectory *dd);
+
 void drawPFhadronLoop() {
 
   setTDRStyle();
@@ -20,7 +22,8 @@ void drawPFhadronLoop() {
   //TFile *f = new TFile("rootfiles/Hadrons_18DT.root","READ");
   //TFile *f = new TFile("rootfiles/Hadrons_18.root","READ");
   //TFile *f = new TFile("rootfiles/Hadrons_18_v2.root","READ");
-  TFile *f = new TFile("rootfiles/Hadrons_1718.root","READ");
+  //TFile *f = new TFile("rootfiles/Hadrons_1718.root","READ");
+  TFile *f = new TFile("rootfiles/Hadrons_1718_v2.root","READ");
   //TFile *f = new TFile("rootfiles/Hadrons_161718.root","READ");
   //TFile *f = new TFile("rootfiles/Hadrons_16GH1718.root","READ");
   assert(f && !f->IsZombie());
@@ -37,8 +40,20 @@ void drawPFhadronLoop() {
   curdir->cd();
 
   // First figure out background from high pT sideband extrapolated down
-  TH2D *h2pd = (TH2D*)dd->Get("h2p");
-  TH2D *h2pm = (TH2D*)dm->Get("h2p");
+  bool isee = false;
+  //TH2D *h2pd = (TH2D*)dd->Get("h2p"); // All hadrons
+  //TH2D *h2pm = (TH2D*)dm->Get("h2p"); // All hadrons
+  //TH2D *h2pd = (TH2D*)dd->Get("h2phh"); // H-hadrons
+  //TH2D *h2pm = (TH2D*)dm->Get("h2phh"); // H-Hadrons
+  //TH2D *h2pd = (TH2D*)dd->Get("h2phm"); // H-MIP-hadrons
+  //TH2D *h2pm = (TH2D*)dm->Get("h2phm"); // H-MIP hadrons
+  //TH2D *h2pd = (TH2D*)dd->Get("h2peh"); // EH-hadrons
+  //TH2D *h2pm = (TH2D*)dm->Get("h2peh"); // EH-hadrons
+  TH2D *h2pd = (TH2D*)dd->Get("h2pee"); isee = true; // E-hadrons
+  TH2D *h2pm = (TH2D*)dm->Get("h2pee"); isee = true; // E-hadrons
+
+  assert(h2pd);
+  assert(h2pm);
 
   // Functional shapes for some features seen in data and MC
   double pt0 = 4.27;
@@ -229,6 +244,11 @@ void drawPFhadronLoop() {
     c1s->cd(i);
     if (i<=7 || i>= 29) h1->SetMaximum(0.045-1e-5);
     if (i>=8 && i<= 28) h1->SetMaximum(0.025-1e-5);
+    if (isee) {
+      if (i<=7 || i>= 29)  h1->SetMaximum(0.090-1e-5);
+      if (i>=22 && i<= 29) h1->SetMaximum(0.090-1e-5);
+      if (i>=8 && i<= 21)  h1->SetMaximum(0.045-1e-5);
+    }
     h1->Draw();
 
     //h1pm->Draw("SAMEHIST");
@@ -317,6 +337,10 @@ void drawPFhadronLoop() {
 
   TH1D *h3u = tdrHist("h3","Response",0.78,1.22,"p_{T} (GeV)",3,500);
   TH1D *h3d = tdrHist("h3","Data/MC",0.93,1.08,"p_{T} (GeV)",3,500);
+  if (isee) {
+    h3u->GetYaxis()->SetRangeUser(0.25,1.5);
+    h3d->GetYaxis()->SetRangeUser(0.80,1.35);
+  }
   lumi_13TeV = "UL17+UL18 ZeroBias";
   TCanvas *c3 = tdrDiCanvas("c3",h3u,h3d,4,11);
 
@@ -456,4 +480,78 @@ void drawPFhadronLoop() {
   //delete c1s;
   delete c2;
   c3->SaveAs("pdf/drawPFhadronLoop_datamc.pdf");
+
+  drawPFhadronFractions(dm,dd);
 } // drawPFhadronLoop()
+
+
+void drawPFhadronFractions(TDirectory *dm, TDirectory *dd) {
+
+  setTDRStyle();
+  TDirectory *curdir = gDirectory;
+  
+  // Stack in this order
+  vector<string> hads;
+  hads.push_back("hh");
+  hads.push_back("hm");
+  hads.push_back("eh");
+  hads.push_back("ee");
+
+  map<string, int> color;
+  color["hh"] = kRed;
+  color["hm"] = kMagenta+1;
+  color["eh"] = kGreen+1;
+  color["ee"] = kBlue;
+
+  map<string, int> marker;
+  marker["hh"] = kFullCircle;//kOpenCircle;
+  marker["hm"] = kFullDiamond;//kOpenDiamond;
+  marker["eh"] = kFullSquare;//kOpenSquare;
+  marker["ee"] = kNone;
+
+  map<string, const char*> label;
+  label["hh"] = "H-hadrons";
+  label["hm"] = "H-MIP-hadrons";
+  label["eh"] = "EH-hadrons";
+  label["ee"] = "E-hadrons";
+
+  vector<TH1D*> h1m(hads.size());
+  vector<TH1D*> h1d(hads.size());
+  for (int i = 0; i != hads.size(); ++i) {
+    TProfile *pm = (TProfile*)dm->Get(Form("pf%s",hads[i].c_str()));
+    assert(pm);
+    h1m[i] = pm->ProjectionX(Form("hfm%s",hads[i].c_str()));
+    if (i!=0) h1m[i]->Add(h1m[i-1]);
+
+    TProfile *pd = (TProfile*)dd->Get(Form("pf%s",hads[i].c_str()));
+    assert(pd);
+    h1d[i] = pd->ProjectionX(Form("hfd%s",hads[i].c_str()));
+    if (i!=0) h1d[i]->Add(h1d[i-1]);
+  } // for i
+  curdir->cd();
+  
+  TH1D *h = tdrHist("hf","Hadron fractions",0,1,"Track p_{T} (GeV)",3,50);
+  lumi_13TeV = "UL17+UL18 ZeroBias";
+  TCanvas *c1 = tdrCanvas("cf",h,4,11,kSquare);
+  gPad->SetLogx();
+
+  TLegend* leg = tdrLeg(0.56,0.57-0.05*hads.size(),0.86,0.57);
+
+  for (int i = hads.size()-1; i != -1; --i) {
+    string s = hads[i];
+    tdrDraw(h1m[i],"HE",kNone,color[s],kSolid,color[s],1001,color[s]);
+  } // for i
+  for (int i = 0; i != hads.size(); ++i) {
+    string s = hads[i];
+    tdrDraw(h1d[i],"Pz",marker[s],color[s]+2,kSolid,color[s]+2,1001,color[s]);
+    //tdrDraw(h1d[i],"Pz",marker[s],kBlack,kSolid,color[s]+2,1001,color[s]);
+    h1d[i]->SetMarkerSize(marker[s]==kFullDiamond ? 1.0 : 0.5);
+    leg->AddEntry(h1d[i],label[s],"PFLE");
+  } // for i
+
+  leg->Draw();
+
+  gPad->RedrawAxis();
+
+  c1->SaveAs("pdf/drawPFhadronLoop_fractions.pdf");
+} // drawPFhadronFractions
