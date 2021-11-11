@@ -76,7 +76,8 @@ void drawSyncSet(string obs, string year, string lep, string data) {
       hu = tdrHist("hu","MPF",0.95,1.25,"p_{T,Z} (GeV)",15,1500);
       hd = tdrHist("hd","UH/KIT-1 (%)",-1.5,+1.5,"p_{T,Z} (GeV)",15,1500);
   }
-  lumi_13TeV = "2016GH #mu#mu data"; // GENERALIZE
+  //lumi_13TeV = "2016GH #mu#mu data"; // GENERALIZE
+  lumi_13TeV = "2017B #mu#mu data"; // GENERALIZE
   TCanvas *c1 = tdrDiCanvas("c1",hu,hd,4,11);
 
   c1->cd(1);
