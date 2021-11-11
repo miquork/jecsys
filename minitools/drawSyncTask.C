@@ -7,14 +7,18 @@
 #include "TFile.h"
 #include "TLine.h"
 #include "TLatex.h"
+#include "TGraphErrors.h"
 
 #include "../tdrstyle_mod15.C"
 
 void drawSyncSet(string obs, string year, string lep, string data);
 void drawSyncTask() {
 
-  drawSyncSet("counts","UL16nonAPV","mm","data");
-  drawSyncSet("mpf","UL16nonAPV","mm","data");
+  //drawSyncSet("counts","UL16nonAPV","mm","data");
+  //drawSyncSet("mpf","UL16nonAPV","mm","data");
+
+  drawSyncSet("counts","UL17B","mm","data");
+  drawSyncSet("mpf","UL17B","mm","data");
 
 } // drawSyncTask
 
@@ -28,11 +32,17 @@ void drawSyncSet(string obs, string year, string lep, string data) {
   mfk["UL16nonAPV"]["mm"] =
     "../JERCProtoLab/Summer19UL16/L3Residual_Z/nonAPV/JEC_Combination_Zmm/"
     "ZJetCombination_Zmm_DYJets_amc_21Feb2020_Summer19UL16_V7_L1L2L3Res.root";
+  mfk["UL17B"]["mm"] =
+    //"../JERCProtoLab/Summer19UL17/L3Residual_Z/JEC_Combination_Zmm/"
+    //"ZJetCombination_Zmm_DYJets_Madgraph_09Aug2019_Summer19UL17_JECV6_L1L2L3Res.root";
+    "rootfiles/ZJetCombination_Zmm_DYJets_amcatnlo_MiniAODv2_Summer19UL17_JECV6_L1L2L3Res.root";
 
   // Hard-coded list of UH file locations
   map<string, map<string, const char*> > mfh;
   mfh["UL16nonAPV"]["mm"] =
     "rootfiles/jme_bplusZ_merged_v37_2016FH_mu.root";
+  mfh["UL17B"]["mm"] =
+    "rootfiles/jme_bplusZ_merged_vX_2017B.root"; // mu, no MC
 
   // Open files
   TFile *fk = new TFile(mfk[year][lep]);
@@ -41,13 +51,17 @@ void drawSyncSet(string obs, string year, string lep, string data) {
   assert(fh && !fh->IsZombie());
 
   // Load event counts to get binning
-  TH1D *hk = (TH1D*)fk->Get("Run2016postVFPFlateGH/Data_RawNEvents_CHS_a100_eta_00_13_L1L2L3Res");
+  TH1D *hk(0);
+  if (year=="UL16nonAPV") hk = (TH1D*)fk->Get("Run2016postVFPFlateGH/Data_RawNEvents_CHS_a100_eta_00_13_L1L2L3Res");
+  if (year=="UL17B") hk = (TH1D*)fk->Get("Run2017B/Data_RawNEvents_CHS_a100_eta_00_13_L1L2L3Res");
   assert(hk);
   TH1D *hh = (TH1D*)fh->Get("data/eta_00_13/statistics_rmpf_zmmjet_a100");
   assert(hh);
   
   // Load observables
-  TGraphErrors *gk = (TGraphErrors*)fk->Get("Run2016postVFPFlateGH/Data_MPF_CHS_a100_eta_00_13_L1L2L3Res");
+  TGraphErrors *gk(0);
+  if (year=="UL16nonAPV") gk = (TGraphErrors*)fk->Get("Run2016postVFPFlateGH/Data_MPF_CHS_a100_eta_00_13_L1L2L3Res");
+  if (year=="UL17B") gk = (TGraphErrors*)fk->Get("Run2017B/Data_MPF_CHS_a100_eta_00_13_L1L2L3Res");
   assert(gk);
   TGraphErrors *gh = (TGraphErrors*)fh->Get("data/eta_00_13/rmpf_zmmjet_a100");
   assert(gh);
