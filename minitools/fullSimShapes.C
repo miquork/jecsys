@@ -11,8 +11,8 @@
 #include <string>
 
 // Settings
-bool patchECALm3 = true;
-bool plotToyPF = true;
+bool patchECALm3 = false;//true;
+bool plotToyPF = false;//true;
 string CorLevel = "L1L2L3";
 #include "../globalFitL3Res.C" // toyPF parameterizations
 
@@ -71,9 +71,9 @@ void fullSimShape(string mode) {
     vars.push_back("hr3"); // HCAL Red
     vars.push_back("hg3"); // HCAL Green
     vars.push_back("hm3"); // HCAL -3%
-    vars.push_back("em3"); // ECAL Had. -3%
-    vars.push_back("pm3"); // Photons -3%
-    vars.push_back("tm3"); // Tracking -3%
+    //vars.push_back("em3"); // ECAL Had. -3%
+    //vars.push_back("pm3"); // Photons -3%
+    //vars.push_back("tm3"); // Tracking -3%
   }   
   else {
     vars.push_back("Rjet");
