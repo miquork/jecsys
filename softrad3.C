@@ -436,7 +436,10 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	    }
 
 	    double Rn_d(1.000), Rn_m(1.000);
-	    double Ru_d(0.685), Ru_m(0.685); // Ru(DY,CP5,UL17)
+	    // v1: Runcl = 0.685
+	    //double Ru_d(0.685), Ru_m(0.685); // Ru(DY,CP5,UL17)
+	    // v2: Runcl = 0.92
+	    double Ru_d(0.92), Ru_m(0.92); // soft gluon jets in MC
 
 	    // Systematic variations for Rn_m, Ru_m numerically
 	    double dRnd = -0.01; // guesstimate for data-MC
@@ -451,8 +454,11 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      //Ru_d = Ru_m - 0.08;
 	      Rn_m = 1.000;
 	      Rn_d = 1.000;
-	      Ru_m = 0.65; // from minitools/drawMultijetMPB_ISRonly.pdf
-	      Ru_d = 0.65;
+	      // v1: Runcl = 0.65
+	      //Ru_m = 0.65; // from minitools/drawMultijetMPB_ISRonly.pdf
+	      //Ru_d = 0.65;
+	      // v2: Runcl = 0.92
+	      Ru_m = Ru_d = 0.92; // low pT gluon jets in MC
 	      double R2_m = 1.000;
 	      double R2_d = 1.000;
 
