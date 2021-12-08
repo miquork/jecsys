@@ -95,7 +95,7 @@ void jerCterm() {
     legd->SetTextSize(0.035);
     legd->SetHeader("  Data");
 
-    TH1D *hd0(0), *hm0(0), *hsumw(0);
+    TH1D *hd0(0), *hm0(0), *hm0b(0), *hsumw(0), *hsumwm(0);
     for (int i = 0; i != ntrg; ++i) {
       TH1D *hd = jerCterms(vtrg[i], "asymm", "ABCD", "DATA");
       TH1D *hm = jerCterms(vtrg[i], "asymm", "ABCD", "MC");
@@ -104,7 +104,9 @@ void jerCterm() {
       if (!hd0) {
 	hd0 = (TH1D*)hd->Clone("hd0"); hd0->Reset();
 	hm0 = (TH1D*)hm->Clone("hm0"); hm0->Reset();
+	hm0b = (TH1D*)hm->Clone("hm0b"); hm0b->Reset();
 	hsumw = (TH1D*)hd->Clone("hsumw"); hsumw->Reset();
+	hsumwm = (TH1D*)hm->Clone("hsumwm"); hsumwm->Reset();
       }
       
       // Add weighted data
@@ -113,11 +115,15 @@ void jerCterm() {
 	double eta = hd->GetBinLowEdge(ieta);
 	double ejet = ipt * cosh(eta);
 	// Approximate fraction of JER measurement coming from C term
-	double c = 0.01*hd->GetBinContent(ieta);
-	double kw = c / sqrt(1./ipt + c*c);
+	double cd = hd->GetBinContent(ieta);
+	double kw = cd / sqrt(100.*100./ipt + cd*cd);
+	double cm = hm->GetBinContent(ieta);
+	double kwm = cm / sqrt(100.*100./ipt + cm*cm);
 	// Otherwise use statistical uncertainty as basis for weight
-	double err = hd->GetBinError(ieta);
-	double w = (err!=0 ? pow(kw,2)*1./pow(err,2) : 0);
+	double errd = hd->GetBinError(ieta);
+	double w = (errd!=0 ? pow(kw,2)*1./pow(errd,2) : 0);
+	double errm = hm->GetBinError(ieta);
+	double wm = (errm!=0 ? pow(kwm,2)*1./pow(errm,2) : 0);
 	// Add to previous bins
 	double w0 = hsumw->GetBinContent(ieta);
 	double sumw = w0 + w;
@@ -125,16 +131,23 @@ void jerCterm() {
 	if (hd->GetBinError(ieta)==0) continue;
 	if (hm->GetBinError(ieta)==0) continue;
 	hsumw->SetBinContent(ieta, sumw);
-	double cd = hd->GetBinContent(ieta);
-	double errd = hd->GetBinError(ieta);
+	//double cd = hd->GetBinContent(ieta);
+	//double errd = hd->GetBinError(ieta);
 	hd0->SetBinContent(ieta, (hd0->GetBinContent(ieta)*w0 + cd*w) / sumw);
 	hd0->SetBinError(ieta, sqrt(pow(hd0->GetBinError(ieta)*w0,2) + 
 				    pow(errd*w,2)) / sumw);
-	double cm = hm->GetBinContent(ieta);
-	double errm = hm->GetBinError(ieta);
+	//double cm = hm->GetBinContent(ieta);
+	//double errm = hm->GetBinError(ieta);
 	hm0->SetBinContent(ieta, (hm0->GetBinContent(ieta)*w0 + cm*w) / sumw);
 	hm0->SetBinError(ieta, sqrt(pow(hm0->GetBinError(ieta)*w0,2) + 
 				    pow(errm*w,2)) / sumw);
+	//
+	double w0m = hsumwm->GetBinContent(ieta);
+	double sumwm = w0m + wm;
+	hsumwm->SetBinContent(ieta, sumwm);
+	hm0b->SetBinContent(ieta, (hm0b->GetBinContent(ieta)*w0m+cm*wm)/sumwm);
+	hm0b->SetBinError(ieta, sqrt(pow(hm0b->GetBinError(ieta)*w0m,2) + 
+				     pow(errm*wm,2)) / sumwm);
       }
 
       cs->cd();
@@ -147,6 +160,7 @@ void jerCterm() {
 
     tdrDraw(hd0,"Pz",kFullStar,kRed);
     tdrDraw(hm0,"Pz",kOpenStar,kRed);
+    tdrDraw(hm0b,"Pz",kOpenStar,kRed-9); hm0b->SetMarkerSize(0.7);
 
     legd->AddEntry(hd0,"Wgtd avg.","PLE");
     legm->AddEntry(hm0," ","PLE");    
@@ -159,6 +173,8 @@ void jerCterm() {
     hd0->Write("jerc_rms_data");
     hm0->SetFillStyle(kNone); hm0->SetMarkerStyle(kOpenCircle);
     hm0->Write("jerc_rms_mc");
+    hm0b->SetFillStyle(kNone); hm0->SetMarkerStyle(kOpenDiamond);
+    hm0b->Write("jerc_rms_mc_v2");
     fout->Close();
   } // eta scan
 
