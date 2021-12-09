@@ -4,6 +4,9 @@
 #include "TRandom3.h"
 #include "TLatex.h"
 #include "TMath.h"
+#include "TGraphErrors.h"
+
+#include <fstream>
 
 #include "../tdrstyle_mod15.C"
 
@@ -14,6 +17,7 @@ bool plotBinPDF = false;
 bool plotEtaPDF = true;
 
 TH1D* jerCterms(string trg, string mod, string iov, string data);
+void drawJERSF();
 
 void jerCterm() {
   //jerCterms("jt0","asymm","ABCD","DATA");
@@ -61,7 +65,7 @@ void jerCterm() {
   jerCterms("jt450","asymm","ABCD","MC");
   jerCterms("jt500","asymm","ABCD","MC");
   */
-  if (true) {
+  if (false) {
     
     setTDRStyle();
     TDirectory *curdir = gDirectory;
@@ -178,6 +182,8 @@ void jerCterm() {
     fout->Close();
   } // eta scan
 
+  cout << "Calling drawJERSF" << endl;
+  drawJERSF();
 } // jerCterm
 
 TH1D* jerCterms(string trg, string mod, string iov, string data) {
@@ -614,4 +620,128 @@ TH1D* jerCterms(string trg, string mod, string iov, string data) {
   curdir->cd();
   
   return h1rms;
-} // jerCterm
+} // jerCterms
+
+
+void drawJERSF() {
+
+  setTDRStyle();
+  TDirectory *curdir = gDirectory;
+
+  ifstream fd("../JRDatabase/textFiles/Summer19UL18_JRV2_MC/Summer19UL18_JRV2_MC_SF_AK4PFchs.txt");
+  //ifstream fd("../JERCProtoLab/Summer19UL18/JER_SF/Summer19UL18_JRV1_MC_SF_AK4PFchs.txt"); // same as above?
+  assert(fd.is_open());
+
+  ifstream fm("../JRDatabase/textFiles/Summer19UL18_JRV2_MC/Summer19UL18_JRV2_MC_PtResolution_AK4PFchs.txt");
+  assert(fm.is_open());
+
+  TFile *fc = new TFile("rootfiles/jerCterm.root","READ");
+  assert(fc && !fc->IsZombie());
+
+  TFile *fn = new TFile("rootfiles/noiseTerm2018.root","READ");
+  assert(fn && !fn->IsZombie());
+
+
+  curdir->cd();
+
+  // Read in C-term extra RMS
+  TH1D *hcd = (TH1D*)fc->Get("jerc_rms_data"); assert(hcd);
+  TH1D *hcm = (TH1D*)fc->Get("jerc_rms_mc"); assert(hcm);
+
+  // Read in N-term RMS
+  TGraphAsymmErrors *gnd = (TGraphAsymmErrors*)fn->Get("Data/RMS"); assert(gnd);
+  TGraphAsymmErrors *gnm = (TGraphAsymmErrors*)fn->Get("MC/RMS"); assert(gnm);
+
+  // Read in dijet SF
+  char header[512];
+  fd.getline(header,512);
+  cout << "*"<<header<<"*"<< endl;
+  double etamin, etamax, sf, sfdw, sfup;
+  int ncol;
+  TGraphErrors *gd = new TGraphErrors(0);
+  while (fd >> etamin >> etamax >> ncol >> sf >> sfdw >> sfup) {
+    assert(ncol==3);
+    if (etamin>=0) { // symmetric
+      int n = gd->GetN();
+      gd->SetPoint(n, 0.5*(etamin+etamax), sf);
+      gd->SetPointError(n, 0.5*(etamax-etamin), 0.5*(sfup-sfdw));
+    }
+  }
+  // Read in MC truth C-term
+  double rhomin, rhomax, jn, js, jc, jd;
+  int ptmin, ptmax;
+  fm.getline(header,512);
+  cout << "*"<<header<<"*"<< endl;
+  TGraphErrors *gjc = new TGraphErrors(0);
+  TH1D *hjc = (TH1D*)hcd->Clone("hjc"); hjc->Reset();
+  TH1D *hcx = (TH1D*)hcd->Clone("hcx"); hcx->Reset();
+  while (fm >> etamin >> etamax >> rhomin >> rhomax >> ncol >>
+	 ptmin >>  ptmax >> jn >> js >> jc >> jd) {
+    assert(ncol==6);
+    if (etamin>=0 && rhomin>13 && rhomin<14) { // symmetric(?)
+      int n = gjc->GetN();
+      gjc->SetPoint(n, 0.5*(etamin+etamax), 1+jc);
+      gjc->SetPointError(n, 0.5*(etamax-etamin), 0.);
+      int j = hjc->FindBin(0.5*(etamin+etamax));
+      assert(hjc->GetBinContent(j)==0);
+      double jcmin = 0;//0.04;
+      jc = max(jcmin, jc);
+      hjc->SetBinContent(j, jc);
+      hcx->SetBinContent(j, 1+jc);
+    }
+  }
+  // patch empty hc bin
+  if (hjc->GetBinContent(hjc->FindBin(2.5))==0) {
+    hjc->SetBinContent(hjc->FindBin(2.5),hjc->GetBinContent(hjc->FindBin(2.7)));
+    hcx->SetBinContent(hcx->FindBin(2.5),hcx->GetBinContent(hcx->FindBin(2.7)));
+  }
+
+
+  // Re-interpret extra C-term RMS as MC C-term SF
+  TH1D *hc1 = (TH1D*)hcd->Clone("hc1"); hc1->Reset();
+  TH1D *hc2 = (TH1D*)hcd->Clone("hc2"); hc2->Reset();
+  for (int i = 1; i != hc1->GetNbinsX()+1; ++i) {
+    double cd = 0.01*hcd->GetBinContent(i);
+    double ed = 0.01*hcd->GetBinError(i);
+    double cm = 0.01*hcm->GetBinContent(i);
+    double em = 0.01*hcm->GetBinError(i);
+    double c0 = hjc->GetBinContent(i);
+    double sfc1 = sqrt(cd*cd + c0*c0) / sqrt(cm*cm + c0*c0);
+    double sfu1 = sqrt(pow(cd+ed,2) + c0*c0) / sqrt(pow(cm-em,2) + c0*c0);
+    double sfc2 = sqrt(max(0.,cd*cd - cm*cm + c0*c0)) / c0;
+    hc1->SetBinContent(i, sfc1);
+    hc1->SetBinError(i, sfu1-sfc1);
+    hc2->SetBinContent(i, sfc2);
+  }
+  
+  // Turn data and MC into SF for N-term
+  assert(gnd->GetN()==gnm->GetN());
+  TGraphErrors *gn = new TGraphErrors(gnd->GetN());
+  for (int i = 0; i != gn->GetN(); ++i) {
+    gn->SetPoint(i, gnd->GetX()[i], gnd->GetY()[i] / gnm->GetY()[i]);
+  }
+
+
+  TH1D *h = tdrHist("hd","JER SF",0.8,1.5,"#eta_{jet}",0,5.191);
+  lumi_13TeV = "UL2018";
+  TCanvas *c1 = tdrCanvas("cd",h,4,11,kSquare);
+  TLine *l = new TLine();
+  l->SetLineStyle(kDashed);
+  l->DrawLine(0,1,5.191,1);
+
+  tdrDraw(gn,"Pz",kFullSquare,kOrange+2);
+  tdrDraw(gd,"Pz",kFullCircle,kGreen+2);
+  tdrDraw(hc1,"Pz",kFullDiamond,kBlue);
+  tdrDraw(hc2,"Pz",kOpenDiamond,kBlue);
+  tdrDraw(gjc,"Pz",kOpenStar,kRed-9);
+  tdrDraw(hcx,"Pz",kOpenStar,kRed);
+
+  TLegend *leg = tdrLeg(0.62,0.90-4*0.05,0.82,0.90);
+  leg->SetTextSize(0.040);
+  leg->AddEntry(gd,"S-term SF (DJ)","PLE");
+  leg->AddEntry(hc1,"C-term SF (2D)","PLE");
+  leg->AddEntry(hcx,"1+C (MC)","PLE");
+  leg->AddEntry(gn,"N-term SF (RC)","PLE");
+  
+  c1->SaveAs("pdf/jerCterm/jerCterm_drawJERSF.pdf");
+} // drawJERSF
