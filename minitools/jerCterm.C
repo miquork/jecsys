@@ -5,6 +5,7 @@
 #include "TLatex.h"
 #include "TMath.h"
 #include "TGraphErrors.h"
+#include "TGraphAsymmErrors.h"
 
 #include <fstream>
 
@@ -65,7 +66,14 @@ void jerCterm() {
   jerCterms("jt450","asymm","ABCD","MC");
   jerCterms("jt500","asymm","ABCD","MC");
   */
-  if (false) {
+
+  // Do drawing now, because looping crashes at the end
+  cout << "Calling drawJERSF" << endl;
+  drawJERSF();
+
+  // This crashes for some reason when exiting ROOT
+  // Run with 'root -l -b' (no -q'), Ctrl+Z and kill %[X]
+  if (true) {
     
     setTDRStyle();
     TDirectory *curdir = gDirectory;
@@ -182,7 +190,7 @@ void jerCterm() {
     fout->Close();
   } // eta scan
 
-  cout << "Calling drawJERSF" << endl;
+  cout << "Calling drawJERSF again" << endl;
   drawJERSF();
 } // jerCterm
 
@@ -335,8 +343,11 @@ TH1D* jerCterms(string trg, string mod, string iov, string data) {
 
   // JER SFC vs eta. Bins from Summer20UL16_JRV3_MC_SF_AK4PFchs.txt
   //const double vx[] = {0, 1.3, 1.740, 1.930, 2.043,
-  const double vx[] = {0, 0.522, 0.783, 1.131, 1.305, 1.740, 1.930, 2.043,
-		       2.322, 2.500, 2.650, 2.853, 2.964, 3.139, 5.191};
+  //const double vx[] = {0, 0.522, 0.783, 1.131, 1.305, 1.740, 1.930, 2.043,
+  //		       2.322, 2.500, 2.650, 2.853, 2.964, 3.139, 5.191};
+  const double vx[] = // no 1.131
+    {0, 0.261, 0.522, 0.783, 1.044, 1.305, 1.566, 1.740, 1.930, 2.043, 2.172,
+     2.322, 2.500, 2.650, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};
   const int nx = sizeof(vx)/sizeof(vx[0]) - 1;
   TH2D *h2rms = new TH2D(Form("h2rms_%s_%s_%s%s",cm,ct,ci,cd),
 			 ";#eta;Mean of probe vs tag;",
@@ -690,12 +701,19 @@ void drawJERSF() {
       hcx->SetBinContent(j, 1+jc);
     }
   }
-  // patch empty hc bin
-  if (hjc->GetBinContent(hjc->FindBin(2.5))==0) {
-    hjc->SetBinContent(hjc->FindBin(2.5),hjc->GetBinContent(hjc->FindBin(2.7)));
-    hcx->SetBinContent(hcx->FindBin(2.5),hcx->GetBinContent(hcx->FindBin(2.7)));
-  }
-
+  // patch empty hc bins {C-term bin center, MC JER bin center}
+  double pairs[][2] = {
+    {0.4,0.2}, {1.65,1.5}, {2.1,2.2}, {2.6,2.7}, {3.3,3.9}, {3.6,3.9}
+  };
+  const int npairs = sizeof(pairs)/sizeof(pairs[0]);
+  for (int i = 0; i != npairs; ++i) {
+    double y1 = pairs[i][0];
+    double y2 = pairs[i][1];
+    if (hjc->GetBinContent(hjc->FindBin(y1))==0) {
+      hjc->SetBinContent(hjc->FindBin(y1),hjc->GetBinContent(hjc->FindBin(y2)));
+      hcx->SetBinContent(hcx->FindBin(y1),hcx->GetBinContent(hcx->FindBin(y2)));
+    }
+  } // for i in npairs
 
   // Re-interpret extra C-term RMS as MC C-term SF
   TH1D *hc1 = (TH1D*)hcd->Clone("hc1"); hc1->Reset();
