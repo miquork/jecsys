@@ -6,7 +6,7 @@ double Flavor::getResp(double pt, double absetamin, double absetamax,
 
   // eta bins used in L5Flavor / L2Relative_flavor
   // cat <file> | | awk '{print $1", "}'
-  const double const etabins[] =
+  const double etabins[] =
     {-5.191, -3.489, -3.139, -2.853, -2.5, -2.322, -1.93, -1.653, -1.305,-0.783,
      0, 0.783, 1.305, 1.653, 1.93, 2.322, 2.5, 2.853, 3.139, 3.489, 5.191};
   const int neta = sizeof(etabins)/sizeof(etabins[0])-1;
@@ -32,7 +32,7 @@ double Flavor::getResp(double pt, double absetamin, double absetamax,
 		       string smix, double w, string s) {
   // eta bins used in L5Flavor / L2Relative_flavor
   // cat <file> | | awk '{print $1", "}'
-  const double const etabins[] =
+  const double etabins[] =
     {-5.191, -3.489, -3.139, -2.853, -2.5, -2.322, -1.93, -1.653, -1.305,-0.783,
      0, 0.783, 1.305, 1.653, 1.93, 2.322, 2.5, 2.853, 3.139, 3.489, 5.191};
   const int neta = sizeof(etabins)/sizeof(etabins[0])-1;
@@ -130,6 +130,7 @@ double Flavor::getResp(double pt, double eta, double f[5],
 void Flavor::getFracs(double pt, double eta, string smix, double (&f)[5]) {
 
   assert(smix=="MultijetLeading13" || smix=="MultijetRecoil25" ||
+	 smix=="EMJet13" || smix=="PhotonJet13" ||
 	 smix=="ud" || smix=="s" || smix=="c" || smix=="b" || smix=="g");
   assert(fabs(eta)<1.3);
   
@@ -184,6 +185,51 @@ void Flavor::getFracs(double pt, double eta, string smix, double (&f)[5]) {
     for (int i = 0; i != nf; ++i)
       f[i] /= sum;
   } // MultijetLeading13
+
+  // Decent fits to EMJet13, could be better for ud & g
+  if (smix=="EMJet13") {
+    
+    const int nf = 5;
+    // Parameters from gamjet/drawPurityEstimates.C
+    double p[nf][4] = {
+      // [p0]+[p1]*pow(x,[p2])+[p3]/x
+      {-0.033376, 0.012214, 0.53486, 3.7079}, // (ud 74.2/15)
+      {0.076392, -0.0059514, 0.29532, -0.23598}, // (s 18.0/15)
+      {-0.061882, 0.13575, 0.028896, -0.98938}, // (c 24.8/15)
+      {0.049648, -9.007e-06, 0.91925, -1.0576}, // (b 25.1/15)
+      {0.98949, -0.043615, 0.38531, -4.9996}}; // (g 41.4/15)
+
+    double sum(0);
+    for (int i = 0; i != nf; ++i) {
+      f[i] = max(0.,min(1., p[i][0] + p[i][1]*pow(pt,p[i][2]) + p[i][3]/pt ));
+      sum += f[i];
+    }
+    for (int i = 0; i != nf; ++i)
+      f[i] /= sum;
+  } // EMJet13
+
+  // These are rough fits, bad fit and chi2 for c & g
+  if (smix=="PhotonJet13") {
+
+    const int nf = 5;
+    // Parameters from gamjet/drawPurityEstimates.C (gamma+jet)
+    double p[nf][5] = {
+      // [p0]+[p1]*pow(x,[p2])+[p3]*pow(x,[p4])
+      {0.75602, -0.027673, -0.41329, -1.1398, -0.42332}, // (ud 59.5/14)
+      {0.25212, 6.1313e-06, 1.178, -0.087696, 0.1573}, // (s 61.9/14)
+      {2.8802, -0.0083099, 0.002725, -2.5256, 0.013656}, // (c 1622.5/14)
+      {0.77408, 0.0012412, 0.49022, -0.68889, 0.018864}, // (b 66.4/14)
+      {0.77766, -7.343e-05, 0.90022, -0.9518, -0.073982}}; // (g 487.4/14)
+
+    double sum(0);
+    for (int i = 0; i != nf; ++i) {
+      f[i] = max(0.,min(1., p[i][0] + p[i][1]*pow(pt,p[i][2]) +
+			p[i][3]*pow(pt,p[i][4]) ));
+      sum += f[i];
+    }
+    for (int i = 0; i != nf; ++i)
+      f[i] /= sum;
+  } // PhotonJet13
 
   if (smix=="ZJet13") {
 
