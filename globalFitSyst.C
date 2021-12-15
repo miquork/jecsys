@@ -5,6 +5,8 @@
 #include "TF1.h"
 #include "TMatrixD.h"
 #include "TVectorD.h"
+#include "TProfile.h"
+#include "TGraphErrors.h"
 
 const bool doMultijetJER = true;
 // Which binning used for multijets ("leading" or "recoil");
@@ -12,8 +14,10 @@ const bool doMultijetJER = true;
 string multijetModeS = "ptave"; // defined in reprocess.C => check consistency
 
 const bool doGamMass = true; // photon scale from Zee
+const bool doGamGains = true; // photon scale with gain1, gain6 path
 
 const bool doHadWfitProb = true; // hadronic W fitProb
+const bool doHadWfsr = true; // hadronic W FSR uncertainty
 
 void globalFitSyst(string run = "BCDEF") {
 
@@ -30,7 +34,7 @@ void globalFitSyst(string run = "BCDEF") {
   //
   if (!d2->FindObject("sys")) d2->mkdir("sys");
   assert(d2->cd("sys"));
-  TDirectory *d3 = d2->GetDirectory("sys"); d3->cd();
+  TDirectory *dsys = d2->GetDirectory("sys"); dsys->cd();
   
   if (doMultijetJER) {
     // Systematics fit done in minitools/systMultijet.C
@@ -74,7 +78,7 @@ void globalFitSyst(string run = "BCDEF") {
       }
     } // for i
     
-    d3->cd();
+    dsys->cd();
     //h1->Write(h1->GetName(), TObject::kOverwrite);
     //h2->Write(h2->GetName(), TObject::kOverwrite);
     h1->Write("jer_multijet", TObject::kOverwrite);
@@ -153,11 +157,49 @@ void globalFitSyst(string run = "BCDEF") {
 	hke->SetBinContent(i, fkeig->Eval(2*pt));
 	//hke->SetBinError(i, fabs(fkeig->Eval(pt)));
       }
-      d3->cd();
+      dsys->cd();
       hke->Write(hke->GetName(), TObject::kOverwrite);
     } // for ieig
   } // doGamMass
 
+  // Estimate impact on photon+jet from gain1 path
+  if (doGamGains) {
+    TFile *f = new TFile("../gamjet/files/GamHistosFill_data_2018ABCD_v19.root");
+    assert(f && !f->IsZombie());
+
+    TProfile *p1 = (TProfile*)f->Get("control/pgain1vspt"); assert(p1);
+    TH1D *h1 = p1->ProjectionX("gamjet_gain1");
+    h1->Scale(0.01);
+
+    TProfile *p6 = (TProfile*)f->Get("control/pgain6vspt"); assert(p6);
+    TH1D *h6 = p6->ProjectionX("gamjet_gain6");
+    h6->Scale(0.01);
+
+    dsys->cd();
+    h1->Write(h1->GetName(), TObject::kOverwrite);
+    h6->Write(h6->GetName(), TObject::kOverwrite);
+
+    // Create an extra "pure HDM variant" for globalFitRun2.root
+    d2->cd();
+
+    TH1D *hg = (TH1D*)d2->Get("hdm_mpfchs1_gamjet"); assert(hg);
+    hg = (TH1D*)hg->Clone("hdm_gamjet");
+    //hg->Add(h1,-0.5);
+    // Do by hand to avoid empty bins
+    for (int i = 1; i != hg->GetNbinsX()+1; ++i) {
+      if (hg->GetBinContent(i)!=0) {
+	int j = h1->FindBin(hg->GetBinCenter(i));
+	// 0.5 to match zjet, 0 to match Zll+jet
+	hg->SetBinContent(i, hg->GetBinContent(i)
+			  - 0.0*h1->GetBinContent(j)
+			  - 0.0*h6->GetBinContent(j));
+			  //- 0.5*h1->GetBinContent(j)
+			  //- 0.5*h6->GetBinContent(j));
+      }
+    } // for i in hg
+
+    hg->Write(hg->GetName(), TObject::kOverwrite);
+  }
 
   if (doHadWfitProb) {
     // fitProb scanning done in minitools/hadW.C::DrawFP()
@@ -205,13 +247,68 @@ void globalFitSyst(string run = "BCDEF") {
       hkeb2->SetBinContent(i, 0.01*(fhadw2_b->Eval(pt)-fhadw_b->Eval(pt)));
     }
 
-    d3->cd();
+    dsys->cd();
     //hke->Write("hadw_fitprob", TObject::kOverwrite);
     hkea->Write("hadw_ptave_fitprob", TObject::kOverwrite);
     hkeb->Write("hadw_ptboth_fitprob", TObject::kOverwrite);
     hkea2->Write("hadw_ptave_fitprob2", TObject::kOverwrite);
     hkeb2->Write("hadw_ptboth_fitprob2", TObject::kOverwrite);
   } // doHadWfitProb
+
+  if (doHadWfsr) {
+    // FSR uncertainty using PSWeights (only in UL16V7)
+    // Variants: FSRup (mu=0.5) and FSRdw (mu=2.0)
+    TFile *ffsr = new TFile("rootfiles/hadWMC16GHV7_JEC.root","READ");
+    assert(ffsr && !ffsr->IsZombie());
+
+    TProfile *pmc = (TProfile*)ffsr->Get("pmm13bptave"); assert(pmc);
+    TProfile *pup = (TProfile*)ffsr->Get("pmm13bptave_FSRup"); assert(pup);
+    TProfile *pdw = (TProfile*)ffsr->Get("pmm13bptave_FSRdw"); assert(pdw);
+
+    dfsr->cd();
+
+    // Expected about 1-22 sigma shift on FSR => 1 sigma shift
+    // Uncertainty for ptave
+    TH1D *hfsr = pup->ProjectionX("hadw_fsr");
+    hfsr->Add(pdw,-1);
+    //hfsr->Scale(1.0);//2.0);
+    hfsr->Scale(1.5); // good match to both zjet and zlljet
+    hfsr->Add(pmc,+1);
+    hfsr->Divide(pmc);
+
+    // Store for use in globalFitL3Res.C (adapt later in softrad3.C?)
+    hfsr->Write("hadw_fsr", TObject::kOverwrite);
+
+    d2->cd();
+    
+    // Correct this for an "HDM" variant of W>qq' as well
+    TGraphErrors *gw = (TGraphErrors*)d2->Get("mpfchs1_hadw_a30"); assert(gw);
+    gw = (TGraphErrors*)gw->Clone("hdm_mpfchs1_hadw");
+    for (int i = 0; i != gw->GetN(); ++i) {
+      double pt = gw->GetX()[i];
+      double fsr = hfsr->GetBinContent(hfsr->FindBin(pt));
+      gw->SetPoint(i, pt, gw->GetY()[i]/fsr);
+      // Don't add hfsr uncertainty (yet): likely correlated for fsrup & fsrdw
+    }
+
+    // Store for use in globalFitRun2.C
+    gw->Write("hdm_hadw", TObject::kOverwrite);
+
+    dsys->cd();
+
+    // Uncertainty for ptave
+    TH1D *hfsra = pup->ProjectionX("hadw_ptave_fsr");
+    hfsra->Add(pdw,-1);
+    hfsra->Divide(pmc);
+
+    // ptboth is a clone of ptave
+    TH1D *hfsrb = pup->ProjectionX("hadw_ptboth_fsr");
+    hfsrb->Add(pdw,-1);
+    hfsrb->Divide(pmc);
+
+    hfsra->Write("hadw_ptave_fsr", TObject::kOverwrite);
+    hfsrb->Write("hadw_ptboth_fsr", TObject::kOverwrite);
+  } // doHadWfsr
   
   f->Close();
 } // globalFitSyst

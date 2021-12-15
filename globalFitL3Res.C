@@ -47,6 +47,7 @@ double ptmj = 30.; // reference pTmin value for multijet (def:30)
 bool dofsr = true;         // correct for FSR central value (def:true)
 bool dofsrcombo1 = false;  // use input refIOV for FSR in IOVs (def: true)
 bool dofsrcombo2 = false;  // use output refIOV for FSR in IOVs (def:false)
+bool dofsrhadw = true;     // secondary FSR switch for hadW
 bool dofsr3 = true;        // use softrad3.C corrections instead of softrad.C
 bool dofsr3zj = true;      // secondary softrad3.C switch for Z+jet
 bool dofsr3gj = true;      // secondary softrad3.C switch for gamma+jet
@@ -73,14 +74,19 @@ bool useIncJetRefIOVUncert = false;//true; // Include refIOV fit uncertainty? (d
 // PF composition settings
 bool usePF = true;     // Load dijet PF fractions in the fit (def:true for now)
 bool usePFZ = true;    // Load Z+jet PF fraction in the fit (def:true for now)
+bool usePFG = true;    // Load G+jet PF fraction in the fit (def:true for now)
 bool fitPF = true;     // Use dijet PF fractions in the fit (def:true for now)
 bool fitPFZ = true;    // Use Z+jet PF fractions in the fit (def:true for now)
-double fitPF_delta = 0.20;  // "free" shift in % for dijet PF (def:0.25)
-double fitPFZ_delta = 0.10; // "free" shift in % for Z+jet PF (def:0.25)
+bool fitPFG = true;    // Use G+jet PF fractions in the fit (def:true for now)
+double fitPF_delta = 0.25;  // "free" shift in % for dijet PF (def:0.25)
+double fitPFZ_delta = 0.25; // "free" shift in % for Z+jet PF (def:0.25)
+double fitPFG_delta = 0.25; // "free" shift in % for Z+jet PF (def:0.25)
 double minPFpt = 43;   // Minimum pT where dijet PF fractions used (def:114)
 double maxPFpt = 600;  // Maximum pT where PF fractions used (def:1000)
 double minPFZpt = 25;  // Minimum pT where Z+jet PF fractions used (def:25)
 double maxPFZpt = 300; // Maximum pT where Z+jet PF fractios used (def:300)
+double minPFGpt = 40;  // Minimum pT where G+jet PF fractions used (def:40)
+double maxPFGpt = 600; // Maximum pT where G+jet PF fractios used (def:600)
 
 // Correction level
 extern string CorLevel; // defined in reprocess.C ("L1L2Res" or "L1L2L3Res")
@@ -158,7 +164,12 @@ vector< pair<string,TGraphErrors*> > _vpf; // active dijet PF fractions
 vector< pair<string,TGraphErrors*> > _vpf2; // fitted dijet PF fractions
 vector< pair<string,TGraphErrors*> > _vpfz; // active Z+jet PF fractions
 vector< pair<string,TGraphErrors*> > _vpfz2; // fitted Z+jet PF fractions
+vector< pair<string,TGraphErrors*> > _vpfg; // active G+jet PF fractions
+vector< pair<string,TGraphErrors*> > _vpfg2; // fitted G+jet PF fractions
 map<string, map<int, TF1*> > _mpf; // map of PF fraction variations
+// Set PF composition shapes in _mpf, also used by minitools/fullSimShapes.C
+void setToyShapeFuncs();
+void setFullShapeFuncs();
 
 // Reference for L1L2L3Res closure test
 TH1D *_hjesref(0);
@@ -176,7 +187,7 @@ Double_t fitError1d(Double_t *xx, Double_t *p);
 Double_t origJES(Double_t *x, Double_t *);
 Double_t newJES(Double_t *x, Double_t *);
 void multiplyGraph(TGraphErrors *g, TF1 *f);
-
+						
 TF1 *fhb(0), *fl1(0); // Run I functions
 TF1 *ft(0), *fc(0), *fcx(0); // Deprecating shapes
 TF1 *ftd(0), *ftm(0), *fhx(0), *fhh(0), *feh(0), *fp(0), *fhw(0); // Fit shapes
@@ -191,49 +202,60 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
  
   // Regular +3% SPR calorimeter scale variation (ECAL+HCAL)
-  if (!fc) fc = new TF1("fc","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
-  fc->SetParameters(0.335, 0.8171, 406.8, 1.34); // toyPF
+  //if (!fc) fc = new TF1("fc","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
+  //fc->SetParameters(0.335, 0.8171, 406.8, 1.34); // toyPF
+  assert(fc);
 
   // Fits from minitools/varPlots.C
   // SPR -3% to +3% cross variation (ECAL+HCAL)
-  if (!fcx) fcx = new TF1("fcx","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
-  fcx->SetParameters(1.177, 1.42, 1388, 1.231); // toyPF
+  //if (!fcx) fcx = new TF1("fcx","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
+  //fcx->SetParameters(1.177, 1.42, 1388, 1.231); // toyPF
+  assert(fcx || !useP2CalX);
 
   // SPRH -3% to +3% cross variation (HCAL only)
-  if (!fhx) fhx = new TF1("fhx","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
-  fhx->SetParameters(0.8904, 1.082, 1408, 1.204); // toyPF
+  //if (!fhx) fhx = new TF1("fhx","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
+  //fhx->SetParameters(0.8904, 1.082, 1408, 1.204); // toyPF
+  assert(fhx || !useP2HadX); 
 
   // SPRH -3% variation
-  if (!fhh) fhh = new TF1("fhh","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
-  fhh->SetParameters(-0.7938, -0.5798, 396.1, 1.412); // toyPF
+  //if (!fhh) fhh = new TF1("fhh","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
+  //fhh->SetParameters(-0.7938, -0.5798, 396.1, 1.412); // toyPF
+  assert(fhh);
 
   // SPRE -3% variation
-  if (!feh) feh = new TF1("feh","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
-  feh->SetParameters(-0.2603, -0.2196, 409.4, 1.276); // toyPF
+  //if (!feh) feh = new TF1("feh","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
+  //feh->SetParameters(-0.2603, -0.2196, 409.4, 1.276); // toyPF
+  assert(feh);
 
   // Tracking -3% variation
-  if (!ft) ft = new TF1("ft","[p0]+[p1]*pow(x/208.,[p2])",15,4500);
-  ft->SetParameters(0.057, -0.3845, -0.3051); // toyPF
+  //if (!ft) ft = new TF1("ft","[p0]+[p1]*pow(x/208.,[p2])",15,4500);
+  //ft->SetParameters(0.057, -0.3845, -0.3051); // toyPF
+  assert(ft);
 
   // Tracking '-1%' variation in UL2017 data
-  if (!ftd) ftd = new TF1("ftd","[p0]+[p1]*pow(x/208.,[p2])+[p3]/x",15,4500);
-  ftd->SetParameters(-0.116, -0.6417, -0.3051, 23.63); // Data
+  //if (!ftd) ftd = new TF1("ftd","[p0]+[p1]*pow(x/208.,[p2])+[p3]/x",15,4500);
+  //ftd->SetParameters(-0.116, -0.6417, -0.3051, 23.63); // Data
+  assert(ftd || !useP7TrkD);
 
   // Tracking '-1%' variation in UL2017 MC
-  if (!ftm) ftm = new TF1("ftm","[p0]+[p1]*pow(x/208.,[p2])+[p3]/x",15,4500);
-  ftm->SetParameters(0.2683, -0.6994, -0.3051, 18.49); // MC
+  //if (!ftm) ftm = new TF1("ftm","[p0]+[p1]*pow(x/208.,[p2])+[p3]/x",15,4500);
+  //ftm->SetParameters(0.2683, -0.6994, -0.3051, 18.49); // MC
+  assert(ftm || !useP7TrkD);
 
   // Photon -3% variation
-  if (!fp) fp = new TF1("fp","[p0]",15,4500);
-  fp->SetParameter(0,-0.8295); // toyPF
+  //if (!fp) fp = new TF1("fp","[p0]",15,4500);
+  //fp->SetParameter(0,-0.8295); // toyPF
+  assert(fp);
 
   // sigmaMB 69.2 mb to 80 mb variation
-  if (!fm80) fm80 = new TF1("fm80","[p0]+[p1]*pow(x/208.,[p2])+[p3]*exp(-[p4]*x)",15,4500);
-  fm80->SetParameters(0.03904,-0.01612,-0.942, -7.145,0.09907); // toyPF
+  //if (!fm80) fm80 = new TF1("fm80","[p0]+[p1]*pow(x/208.,[p2])+[p3]*exp(-[p4]*x)",15,4500);
+  //fm80->SetParameters(0.03904,-0.01612,-0.942, -7.145,0.09907); // toyPF
+  assert(fm80);
 
   // H++ vs P8CP5
-  if (!fhw) fhw = new TF1("fhw","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]/x+[p5]*log(x)/x",15,4500);
-  fhw->SetParameters(0.9526,-0.3883,1285,2.46,18.1,-2.062); // FullMC
+  //if (!fhw) fhw = new TF1("fhw","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]/x+[p5]*log(x)/x",15,4500);
+  //fhw->SetParameters(0.9526,-0.3883,1285,2.46,18.1,-2.062); // FullMC
+  assert(fhw);
 
   // Initialize L1FastJet_Simple-L1RC difference
   // Values from fitting ratio/eta00-13/hl1bias (JEC set in reprocess.C)
@@ -301,7 +323,8 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 
     // Calculate parameterization with each component switchable on/off
     return (1
-	    + (useP0Trk  ? p[0]*0.01*ftd->Eval(pt) : 0) // Tracker eff. (data)
+	    //+ (useP0Trk  ? p[0]*0.01*ftd->Eval(pt) : 0) // Tracker eff. (data)
+	    + (useP0Trk  ? p[0]*0.01*ft->Eval(pt) : 0) // Tracker eff. (data)
 	    + (useP1Gam  ? p[1]*0.01*fp->Eval(pt) : 0)  // photon scale
 	    + (useP2CalX ? p[2]*0.01*fcx->Eval(pt) : 0) // Hadron cross-over
 	    + (useP2HadX ? p[2]*0.01*fhx->Eval(pt) : 0) // Hadron cross-over
@@ -654,11 +677,12 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   // Load and setup fractions and their variations
   //////////////////////////////////////////////////
 
-  if (usePF || usePFZ) {
+  if (usePF || usePFZ || usePFG) {
     assert(njesFit==9);
 
     TGraphErrors *gchf(0), *gnhf(0), *gnef(0);
     TGraphErrors *gchfz(0), *gnhfz(0), *gnefz(0);
+    TGraphErrors *gchfg(0), *gnhfg(0), *gnefg(0);
     if (usePFZ) {
       if (useZJet100) {
 	gchfz = (TGraphErrors*)d->Get("chf_zlljet_a100");
@@ -747,117 +771,35 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       _vpf2.push_back(make_pair<string,TGraphErrors*>("nhf", move(gnhf2)));
       _vpf2.push_back(make_pair<string,TGraphErrors*>("nef", move(gnef2)));
     }
+    if (usePFG) {
+      gchfg = (TGraphErrors*)d->Get("chf_gamjet_a100");
+      gnhfg = (TGraphErrors*)d->Get("nhf_gamjet_a100");
+      gnefg = (TGraphErrors*)d->Get("nef_gamjet_a100");
+
+      assert(gchfg);
+      assert(gnhfg);
+      assert(gnefg);
+
+      //vector<pair<string, TGraphErrors*> > _vpf;
+      // std::move needed to turn lvalue to rvalue, as std::make_pair
+      // only accepts T2&&, which is rvalue in C++11 standard
+      _vpfg.push_back(make_pair<string,TGraphErrors*>("chf", move(gchfg)));
+      _vpfg.push_back(make_pair<string,TGraphErrors*>("nhf", move(gnhfg)));
+      _vpfg.push_back(make_pair<string,TGraphErrors*>("nef", move(gnefg)));
+      
+      // Graphs for output fractions
+      curdir->cd();
+      TGraphErrors *gchfg2 = (TGraphErrors*)gchfg->Clone("gchfg2");
+      TGraphErrors *gnhfg2 = (TGraphErrors*)gnhfg->Clone("gnhfg2");
+      TGraphErrors *gnefg2 = (TGraphErrors*)gnefg->Clone("gnefg2");
+      _vpfg2.push_back(make_pair<string,TGraphErrors*>("chf", move(gchfg2)));
+      _vpfg2.push_back(make_pair<string,TGraphErrors*>("nhf", move(gnhfg2)));
+      _vpfg2.push_back(make_pair<string,TGraphErrors*>("nef", move(gnefg2)));
+    }
     
-    // Fits from minitools/varPlots.C
-    //////////////////////////////////
-
-    // Neutral hadron fraction (NHF)
-    // Fits from minitools/varPlots.C
-    //TF1 *ft3_nhf = new TF1("ft3_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,-0.3)",15,4500);
-    //ft3_nhf->SetParameters(1.312, -0.2902, 951.2, 1.289, -0.6573); // 50.9/18
-    TF1 *fp_nhf = new TF1("fp_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fp_nhf->SetParameters(0.07395, 0, 1000, 258.2, 1.223e-05, 1.158); // 7.6/18
-    TF1 *fcx_nhf = new TF1("fcx_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fcx_nhf->SetParameters(-1.54, -0.4506, 156.3, 0.5089, 1.234, 0.09256); // 3.6/17
-    TF1 *fhx_nhf = new TF1("fhx_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fhx_nhf->SetParameters(-0.295, 0.09444, 2713, 2.292, 0.06437, 0.2845); // 3.6/17
-    TF1 *fhm_nhf = new TF1("fhm_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fhm_nhf->SetParameters(-0.2746, -0.6358, 9664, 0.6547, 0.05559, 0.1816); // 10.1/17
-    TF1 *fem_nhf = new TF1("fem_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fem_nhf->SetParameters(-0.03458, 0, 1713, 274.8, 0.01665, 0.2426); // 3.4/18
-    TF1 *ftmg_nhf = new TF1("ftmg_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,+0.3)+[p5]/x",15,4500);
-    ftmg_nhf->SetParameters(-0.01022, -0.1962, 4000, 3.071, 0.04211, 0.01005); // 253.1/116
-    TF1 *fm80_chf = new TF1("fm80_chf","[p0]+[p1]*pow(x,[p2])",15,4500);
-    fm80_chf->SetParameters(1.848, -1.685, -0.006643); // 70.3/53
-    TF1 *fhw_nhf = new TF1("fhw_nhf","[p0]+[p1]*pow(x,[p2])+[p3]/x",15,4500);
-    fhw_nhf->SetParameters(-5.151, 4.495, 0.03335, -12.3); // 65.4/42
-
-    //<TCanvas::Print>: pdf file pdf/varPlotsComp_nhf.pdf has been created
-
-    // Photon fraction (NEF)
-    // Fits from minitools/varPlots.C
-    //TF1 *ft3_nef = new TF1("ft3_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,-0.3)",15,4500);
-    //ft3_nef->SetParameters(-0.8857, 1.481, 2223, -0.07145, -1.411); // 35.2/18
-    TF1 *fp_nef = new TF1("fp_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fp_nef->SetParameters(2.283, 0, 1000, 1.302, -2.738, 0.002452); // 21.3/18
-    TF1 *fcx_nef = new TF1("fcx_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fcx_nef->SetParameters(0.01659, -0.005997, 754.8, 121.2, -0.0001236, 0.9665); // 7.9/17
-    TF1 *fhx_nef = new TF1("fhx_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fhx_nef->SetParameters(0.05474, -0.003141, 798.6, 78.84, -0.000957, 0.7676); // 3.7/17
-    TF1 *fhm_nef = new TF1("fhm_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fhm_nef->SetParameters(0.4158, -2.14, 9426, 0.1723, 0.4111, 0.1937); // 9.5/17
-    TF1 *fem_nef = new TF1("fem_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fem_nef->SetParameters(-0.02364, 0, 1481, 246.2, -0.009737, 0.2576); // 5.3/18
-    TF1 *ftmg_nef = new TF1("ftmg_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])+[p6]/x",15,4500);
-    ftmg_nef->SetParameters(0.07453, 0.1457, 1131, -3.68, -0.4155, -0.3, -1.878); // 149.7/115
-    TF1 *fm80_nef = new TF1("fm80_nef","[p0]+[p1]*pow(x,[p2])",15,4500);
-    fm80_nef->SetParameters(3.611, -3.909, -0.007482); // 70.2/53
-    TF1 *fhw_nef = new TF1("fhw_nef","[p0]+[p1]*pow(x,[p2])+[p3]/x",15,4500);
-    fhw_nef->SetParameters(0.8417, -0.2605, 0.2289, 2.426); // 35.9/42
-
-    //<TCanvas::Print>: pdf file pdf/varPlotsComp_nef.pdf has been created
-
-    // Charged hadron fraction (CHF)
-    // Fits from minitools/varPlots.C
-    //TF1 *ft3_chf = new TF1("ft3_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,-0.3)",15,4500);
-    //ft3_chf->SetParameters(-1.792, 0.2976, 1107, 1.559, 1.039); // 64.1/18
-    TF1 *fp_chf = new TF1("fp_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fp_chf->SetParameters(0.3333, 0.7433, 1023, 0.3926, -0.09446, 0.2883); // 10.3/17
-    TF1 *fcx_chf = new TF1("fcx_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fcx_chf->SetParameters(-0.1188, -0.3705, 408.1, -0.2583, 1.39, -0.1831); // 2.7/17
-    TF1 *fhx_chf = new TF1("fhx_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fhx_chf->SetParameters(-0.0637, -0.2811, 4531, -0.3172, 1.071, -0.153); // 1.7/17
-    TF1 *fhm_chf = new TF1("fhm_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fhm_chf->SetParameters(0.1552, -0.04221, 315.4, 2.787, -0.06628, -0.2572); // 6.2/17
-    TF1 *fem_chf = new TF1("fem_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    fem_chf->SetParameters(0.06085, 0, 1000, 1.3, -0.008137, 0.2135); // 2.7/18
-    TF1 *ftmg_chf = new TF1("ftmg_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,+0.3)+[p5]/x",15,4500);
-    ftmg_chf->SetParameters(1.982, -2.678, 47.02, 0.262, 0.1494, -3.097); // 214.9/115
-    TF1 *fm80_nhf = new TF1("fm80_nhf","[p0]+[p1]*pow(x,[p2])",15,4500);
-    fm80_nhf->SetParameters(-0.05047, -0.0008452, 0.6402); // 56.7/53
-    TF1 *fhw_chf = new TF1("fhw_chf","[p0]+[p1]*pow(x,[p2])+[p3]/x",15,4500);
-    fhw_chf->SetParameters(-0.2176, 1.064e-05, 1.373, 0); // 41.8/43
-
-    //<TCanvas::Print>: pdf file pdf/varPlotsComp_chf.pdf has been created
-    //<TCanvas::Print>: pdf file pdf/varPlotsComp_all.pdf has been created
-
-    //map<string, map<int, TF1*> > _mpf;
-    //_mpf["chf"][0] = ft3_chf; // tracking in MC
-    _mpf["chf"][0] = (useP0Trk  ? ftmg_chf : 0);// tracking in data+MC
-    _mpf["chf"][1] = (useP1Gam  ? fp_chf : 0);  // photon
-    _mpf["chf"][2] = (useP2CalX ? fcx_chf : 0); // SPR cross (HCAL+ECAL)
-    _mpf["chf"][2] = (useP2HadX ? fhx_chf : 0); // SPR cross (HCAL)
-    _mpf["chf"][3] = (useP3HadH ? fhm_chf : 0); // SPR-hcal
-    _mpf["chf"][4] = (useP4HadE ? fem_chf : 0); // SPR-ecal
-    _mpf["chf"][5] = (useP5Frag ? fhw_chf : 0); // fragmentation
-    _mpf["chf"][6] = 0;//(useP6L1RC ? 0 : 0);
-    _mpf["chf"][7] = 0;//(useP7TrkD ? 0 : 0);
-    _mpf["chf"][8] = (useP8MB80pf ? fm80_chf : 0); // fragmentation
-    //
-    //_mpf["nhf"][0] = ft3_nhf; // tracking in MC
-    _mpf["nhf"][0] = (useP0Trk  ? ftmg_nhf : 0);// tracking in data+MC
-    _mpf["nhf"][1] = (useP1Gam  ? fp_nhf : 0);  // photon
-    _mpf["nhf"][2] = (useP2CalX ? fcx_nhf : 0); // SPR cross (HCAL+ECAL)
-    _mpf["nhf"][2] = (useP2HadX ? fhx_nhf : 0); // SPR cross (HCAL)
-    _mpf["nhf"][3] = (useP3HadH ? fhm_nhf : 0); // SPR-hcal
-    _mpf["nhf"][4] = (useP4HadE ? fem_nhf : 0); // SPR-ecal
-    _mpf["nhf"][5] = (useP5Frag ? fhw_nhf : 0);
-    _mpf["nhf"][6] = 0;//(useP6L1RC ? 0 : 0);
-    _mpf["nhf"][7] = 0;//(useP7TrkD ? 0 : 0);
-    _mpf["nhf"][8] = (useP8MB80pf ? fm80_nhf : 0);
-    //
-    //_mpf["nef"][0] = ft3_nef; // tracking in MC
-    _mpf["nef"][0] = (useP0Trk ? ftmg_nef : 0); // tracking in data+MC
-    _mpf["nef"][1] = (useP1Gam ? fp_nef : 0);   // photon
-    _mpf["nef"][2] = (useP2CalX ? fcx_nef : 0); // SPR cross (HCAL+ECAL)
-    _mpf["nef"][2] = (useP2HadX ? fhx_nef : 0); // SPR cross (HCAL)
-    _mpf["nef"][3] = (useP3HadH ? fhm_nef : 0); // SPR-hcal
-    _mpf["nef"][4] = (useP4HadE ? fem_nef : 0); // SPR-ecal
-    _mpf["nef"][5] = (useP5Frag ? fhw_nef : 0);
-    _mpf["nef"][6] = 0;//(useP6L1RC ? 0 : 0);
-    _mpf["nef"][7] = 0;//(useP7TrkD ? 0 : 0);
-    _mpf["nef"][8] = (useP8MB80pf ? fm80_nef : 0);
   } // usePF
+  setToyShapeFuncs();
+  //setFullShapeFuncs();
 
 
   ///////////////////////////////////////////////
@@ -1049,10 +991,13 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       }
       // fitProb-based FSR uncertainty for hadronic W, but first zero
       else if (ss=="hadw") {
-	assert(hw);
-	hfsr = (TH1D*)hw->Clone(Form("bm%d_%s",(1<<ibm),hw->GetName()));
-	hfsr->Reset();
-	hks[ibm] = hfsr;
+	//assert(hw);
+	//hfsr = (TH1D*)hw->Clone(Form("bm%d_%s",(1<<ibm),hw->GetName()));
+	//hfsr->Reset();
+	//hks[ibm] = hfsr;
+
+	string s = "fsr/hadw_fsr";
+	hfsr = (TH1D*)d->Get(s.c_str()); assert(hfsr);
       }
       else {
 	// For correcting FSR bias
@@ -1104,6 +1049,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 		       (dofsr3mj && ss=="multijet") ||
 		       (dofsr3gj && ss=="gamjet"))) // override regular dofsr
 	  kfsr = (r + hfsr->GetBinContent(hfsr->FindBin(pt))) / r;
+	if (dofsr && dofsrhadw && ss=="hadw")
+	  kfsr = 1./hfsr->GetBinContent(hfsr->FindBin(pt));
 	double l1(1);
 	if (dol1bias && sm=="mpfchs1" && ss=="gamjet")
 	  l1 = 1./hl1->GetBinContent(hl1->FindBin(pt));
@@ -2765,14 +2712,26 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   }
   TCanvas *c4 = tdrCanvas("c4",h4,4,11,kSquare);
   gPad->SetLogx();
-  TLegend *leg4 = tdrLeg(0.60,0.72,0.90,0.90);
 
-  leg4->SetHeader(fitPF_delta==0? "Dijet" : 
-		  Form("Dijet (#Delta=%1.2f%%)",fitPF_delta));
-  TLegend *leg4z = tdrLeg(0.40,0.72,0.70,0.90);
-  //leg4z->SetHeader("Z+jet");
-  leg4z->SetHeader(fitPFZ_delta==0? "Dijet" : 
-		   Form("Dijet (#Delta=%1.2f%%)",fitPFZ_delta));
+  TLegend *leg4 = tdrLeg(0.56,0.72,0.86,0.90);
+  //leg4->SetHeader(fitPF_delta==0? "Dijet" : 
+  //		  Form("Dijet (#Delta=%1.2f%%)",fitPF_delta));
+  leg4->SetHeader("Dijet");
+
+  TLegend *leg4z = tdrLeg(0.38,0.72,0.68,0.90);
+  leg4z->SetHeader("Z+jet");
+  //leg4z->SetHeader(fitPFZ_delta==0? "Z+jet" : 
+  //		   Form("Z+jet (#Delta=%1.2f%%)",fitPFZ_delta));
+
+  TLegend *leg4g = tdrLeg(0.74,0.72,1.04,0.90);
+  leg4g->SetHeader("#gamma+jet");
+  //leg4z->SetHeader(fitPFG_delta==0? "#gamma+jet" : 
+  //		   Form("#gamma+jet (#Delta=%1.2f%%)",fitPFG_delta));
+  tex->DrawLatex(0.18,0.17,Form("#Delta=%1.2f%%(z), %1.2f%%(d),"
+				" %1.2f%%(#gamma)",
+				fitPFZ_delta, fitPF_delta, fitPFG_delta));
+				
+
   TLine *l4 = new TLine(); l4->SetLineStyle(kDashed);
   l4->DrawLine(ptmin,0,ptmax,0);
 
@@ -2866,6 +2825,19 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     tdrDraw(gc,"Pz",g->GetMarkerStyle(),g->GetMarkerColor());
     gc->SetMarkerSize(0.8);
     leg4->AddEntry(gc,cf,"PLE");
+  }
+  for (unsigned int ic = 0; ic != _vpfg.size(); ++ic) {
+    string sf = _vpfg[ic].first;
+    const char *cf = sf.c_str();
+    TGraphErrors *g = _vpfg[ic].second;
+    TGraphErrors *gc = (TGraphErrors*)g->Clone(Form("gc8_%d",ic));
+    for (int i = 0; i != gc->GetN(); ++i) {
+      gc->SetPoint(i, g->GetX()[i], 100.*g->GetY()[i]);
+      gc->SetPointError(i, g->GetEX()[i], 100.*g->GetEY()[i]);
+    }
+    tdrDraw(gc,"Pz",g->GetMarkerStyle(),g->GetMarkerColor()+2);
+    gc->SetMarkerSize(0.6);
+    leg4g->AddEntry(gc,cf,"PLE");
   }
 
   if (isl3) {
@@ -3074,6 +3046,46 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
       } // for ic
     } // usePFZ
 
+    // Add G+jet PF compositions (chf, nhf, nef) into the chi2 fit
+    if (usePFG) {
+      for (unsigned int ic = 0; ic != _vpfg.size(); ++ic) {
+	string sf = _vpfg[ic].first;
+	TGraphErrors *g = _vpfg[ic].second; // input fraction
+	TGraphErrors *g2 = _vpfg2[ic].second; // output fraction
+	for (int i = 0; i != g->GetN(); ++i) {
+	  
+	  // Retrieve central value and uncertainty for this point
+	  double pt = g->GetX()[i];
+	  double data = g->GetY()[i];
+	  double sigma = g->GetEY()[i];
+	  
+	  if (pt < ptminJesFit) continue;
+	  
+	  // Calculate composition bias at this pT	
+	  double df(0);
+	  for (int ipar = 0; ipar != _jesFit->GetNpar(); ++ipar) {
+	    if (_mpf[sf][ipar]!=0) { // parameter maps to composition change
+	      TF1 *f1 = _mpf[sf][ipar]; // effect shape vs pt
+	      df += 0.01*f1->Eval(pt)*par[ipar];
+	    }
+	  } // for ipar
+	  // Later: enforce that sum df = 0? (then need to add muf+nef)
+	  
+	  // Store fitted composition for plotting
+	  g2->SetPoint(i, pt, df);
+
+	  // Add chi2 from composition (nuisances not yet considered)
+	  if (fitPFG && pt > minPFGpt && pt < maxPFGpt) {
+	    //double chi = (data - df) / sigma;
+	    // Later: add -0.01*fitPF_delta?
+	    double chi = max(fabs(data - df) - 0.01*fitPFG_delta,0.) / sigma;
+	    chi2 += chi * chi;
+	    ++Nk;
+	  } // pt range
+	} // for i
+      } // for ic
+    } // usePFG
+
     // Add chi2 from nuisance parameters //including new multijet
     for (int is = 0; is != ns; ++is) {
       
@@ -3167,3 +3179,331 @@ void multiplyGraph(TGraphErrors *g, TF1 *f) {
     g->SetPointError(i, g->GetEX()[i], g->GetEY()[i]*f->Eval(g->GetX()[i]));
   }
 }
+
+
+void setToyShapeFuncs() {
+
+  // Regular +3% SPR calorimeter scale variation (ECAL+HCAL)
+  if (!fc) fc = new TF1("fc","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
+  fc->SetParameters(0.335, 0.8171, 406.8, 1.34); // toyPF
+
+  // Fits from minitools/varPlots.C
+  // SPR -3% to +3% cross variation (ECAL+HCAL)
+  if (!fcx) fcx = new TF1("fcx","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
+  fcx->SetParameters(1.177, 1.42, 1388, 1.231); // toyPF
+
+  // SPRH -3% to +3% cross variation (HCAL only)
+  //if (!fhx) fhx = new TF1("fhx","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
+  //fhx->SetParameters(0.8904, 1.082, 1408, 1.204); // toyPF
+  if (!fhx) fhx = new TF1("fhc3_Rjet","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+  fhx->SetParameters(-6.575,3.888,-0.4755,-0.06304,0.0063,0.001629,-0.0001509); // 0.0/16
+
+  // SPRH -3% variation
+  if (!fhh) fhh = new TF1("fhh","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
+  fhh->SetParameters(-0.7938, -0.5798, 396.1, 1.412); // toyPF
+
+  // SPRE -3% variation
+  if (!feh) feh = new TF1("feh","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
+  feh->SetParameters(-0.2603, -0.2196, 409.4, 1.276); // toyPF
+
+  // Tracking -3% variation
+  //if (!ft) ft = new TF1("ft","[p0]+[p1]*pow(x/208.,[p2])",15,4500);
+  //ft->SetParameters(0.057, -0.3845, -0.3051); // toyPF
+
+  // Tracking '-1%' variation in UL2017 data
+  if (!ftd) ftd = new TF1("ftd","[p0]+[p1]*pow(x/208.,[p2])+[p3]/x",15,4500);
+  ftd->SetParameters(-0.116, -0.6417, -0.3051, 23.63); // Data
+  ft = ftd;
+
+  // Tracking '-1%' variation in UL2017 MC
+  if (!ftm) ftm = new TF1("ftm","[p0]+[p1]*pow(x/208.,[p2])+[p3]/x",15,4500);
+  ftm->SetParameters(0.2683, -0.6994, -0.3051, 18.49); // MC
+
+  // Photon -3% variation
+  if (!fp) fp = new TF1("fp","[p0]",15,4500);
+  fp->SetParameter(0,-0.8295); // toyPF
+
+  // sigmaMB 69.2 mb to 80 mb variation
+  if (!fm80) fm80 = new TF1("fm80","[p0]+[p1]*pow(x/208.,[p2])+[p3]*exp(-[p4]*x)",15,4500);
+  fm80->SetParameters(0.03904,-0.01612,-0.942, -7.145,0.09907); // toyPF
+
+  // H++ vs P8CP5
+  if (!fhw) fhw = new TF1("fhw","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]/x+[p5]*log(x)/x",15,4500);
+  fhw->SetParameters(0.9526,-0.3883,1285,2.46,18.1,-2.062); // FullMC
+
+    // Fits from minitools/varPlots.C
+    //////////////////////////////////
+
+    // Neutral hadron fraction (NHF)
+    // Fits from minitools/varPlots.C
+    //TF1 *ft3_nhf = new TF1("ft3_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,-0.3)",15,4500);
+    //ft3_nhf->SetParameters(1.312, -0.2902, 951.2, 1.289, -0.6573); // 50.9/18
+    TF1 *fp_nhf = new TF1("fp_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    fp_nhf->SetParameters(0.07395, 0, 1000, 258.2, 1.223e-05, 1.158); // 7.6/18
+    TF1 *fcx_nhf = new TF1("fcx_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    fcx_nhf->SetParameters(-1.54, -0.4506, 156.3, 0.5089, 1.234, 0.09256); // 3.6/17
+    //TF1 *fhx_nhf = new TF1("fhx_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    //fhx_nhf->SetParameters(-0.295, 0.09444, 2713, 2.292, 0.06437, 0.2845); // 3.6/17
+    TF1 *fhx_nhf = new TF1("fhc3_nhf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    fhx_nhf->SetParameters(-2.475,1.441,-0.177,-0.02317,0.002375,0.0006077,-5.567e-05); // 0.0/16
+
+    TF1 *fhm_nhf = new TF1("fhm_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    fhm_nhf->SetParameters(-0.2746, -0.6358, 9664, 0.6547, 0.05559, 0.1816); // 10.1/17
+    TF1 *fem_nhf = new TF1("fem_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    fem_nhf->SetParameters(-0.03458, 0, 1713, 274.8, 0.01665, 0.2426); // 3.4/18
+    TF1 *ftmg_nhf = new TF1("ftmg_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,+0.3)+[p5]/x",15,4500);
+    ftmg_nhf->SetParameters(-0.01022, -0.1962, 4000, 3.071, 0.04211, 0.01005); // 253.1/116
+    TF1 *fm80_chf = new TF1("fm80_chf","[p0]+[p1]*pow(x,[p2])",15,4500);
+    fm80_chf->SetParameters(1.848, -1.685, -0.006643); // 70.3/53
+    TF1 *fhw_nhf = new TF1("fhw_nhf","[p0]+[p1]*pow(x,[p2])+[p3]/x",15,4500);
+    fhw_nhf->SetParameters(-5.151, 4.495, 0.03335, -12.3); // 65.4/42
+
+    //<TCanvas::Print>: pdf file pdf/varPlotsComp_nhf.pdf has been created
+
+    // Photon fraction (NEF)
+    // Fits from minitools/varPlots.C
+    //TF1 *ft3_nef = new TF1("ft3_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,-0.3)",15,4500);
+    //ft3_nef->SetParameters(-0.8857, 1.481, 2223, -0.07145, -1.411); // 35.2/18
+    TF1 *fp_nef = new TF1("fp_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    fp_nef->SetParameters(2.283, 0, 1000, 1.302, -2.738, 0.002452); // 21.3/18
+    TF1 *fcx_nef = new TF1("fcx_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    fcx_nef->SetParameters(0.01659, -0.005997, 754.8, 121.2, -0.0001236, 0.9665); // 7.9/17
+
+    //TF1 *fhx_nef = new TF1("fhx_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    //fhx_nef->SetParameters(0.05474, -0.003141, 798.6, 78.84, -0.000957, 0.7676); // 3.7/17
+    TF1 *fhx_nef = new TF1("fhc3_nef","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    fhx_nef->SetParameters(-1.027,0.6699,-0.09337,-0.01124,0.001406,0.0003225,-3.572e-05); // 0.0/16
+
+    TF1 *fhm_nef = new TF1("fhm_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    fhm_nef->SetParameters(0.4158, -2.14, 9426, 0.1723, 0.4111, 0.1937); // 9.5/17
+    TF1 *fem_nef = new TF1("fem_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    fem_nef->SetParameters(-0.02364, 0, 1481, 246.2, -0.009737, 0.2576); // 5.3/18
+    TF1 *ftmg_nef = new TF1("ftmg_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])+[p6]/x",15,4500);
+    ftmg_nef->SetParameters(0.07453, 0.1457, 1131, -3.68, -0.4155, -0.3, -1.878); // 149.7/115
+    TF1 *fm80_nef = new TF1("fm80_nef","[p0]+[p1]*pow(x,[p2])",15,4500);
+    fm80_nef->SetParameters(3.611, -3.909, -0.007482); // 70.2/53
+    TF1 *fhw_nef = new TF1("fhw_nef","[p0]+[p1]*pow(x,[p2])+[p3]/x",15,4500);
+    fhw_nef->SetParameters(0.8417, -0.2605, 0.2289, 2.426); // 35.9/42
+
+    //<TCanvas::Print>: pdf file pdf/varPlotsComp_nef.pdf has been created
+
+    // Charged hadron fraction (CHF)
+    // Fits from minitools/varPlots.C
+    //TF1 *ft3_chf = new TF1("ft3_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,-0.3)",15,4500);
+    //ft3_chf->SetParameters(-1.792, 0.2976, 1107, 1.559, 1.039); // 64.1/18
+    TF1 *fp_chf = new TF1("fp_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    fp_chf->SetParameters(0.3333, 0.7433, 1023, 0.3926, -0.09446, 0.2883); // 10.3/17
+    TF1 *fcx_chf = new TF1("fcx_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    fcx_chf->SetParameters(-0.1188, -0.3705, 408.1, -0.2583, 1.39, -0.1831); // 2.7/17
+
+    //TF1 *fhx_chf = new TF1("fhx_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    //fhx_chf->SetParameters(-0.0637, -0.2811, 4531, -0.3172, 1.071, -0.153); // 1.7/17
+    TF1 *fhx_chf = new TF1("fhc3_chf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    fhx_chf->SetParameters(3.42,-2.059,0.2634,0.03367,-0.003686,-0.0009108,8.937e-05); // 0.0/16
+
+    TF1 *fhm_chf = new TF1("fhm_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    fhm_chf->SetParameters(0.1552, -0.04221, 315.4, 2.787, -0.06628, -0.2572); // 6.2/17
+    TF1 *fem_chf = new TF1("fem_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
+    fem_chf->SetParameters(0.06085, 0, 1000, 1.3, -0.008137, 0.2135); // 2.7/18
+    TF1 *ftmg_chf = new TF1("ftmg_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,+0.3)+[p5]/x",15,4500);
+    ftmg_chf->SetParameters(1.982, -2.678, 47.02, 0.262, 0.1494, -3.097); // 214.9/115
+    TF1 *fm80_nhf = new TF1("fm80_nhf","[p0]+[p1]*pow(x,[p2])",15,4500);
+    fm80_nhf->SetParameters(-0.05047, -0.0008452, 0.6402); // 56.7/53
+    TF1 *fhw_chf = new TF1("fhw_chf","[p0]+[p1]*pow(x,[p2])+[p3]/x",15,4500);
+    fhw_chf->SetParameters(-0.2176, 1.064e-05, 1.373, 0); // 41.8/43
+
+    //<TCanvas::Print>: pdf file pdf/varPlotsComp_chf.pdf has been created
+    //<TCanvas::Print>: pdf file pdf/varPlotsComp_all.pdf has been created
+
+    //map<string, map<int, TF1*> > _mpf;
+    //_mpf["chf"][0] = ft3_chf; // tracking in MC
+    _mpf["chf"][0] = (useP0Trk  ? ftmg_chf : 0);// tracking in data+MC
+    _mpf["chf"][1] = (useP1Gam  ? fp_chf : 0);  // photon
+    _mpf["chf"][2] = (useP2CalX ? fcx_chf : 0); // SPR cross (HCAL+ECAL)
+    _mpf["chf"][2] = (useP2HadX ? fhx_chf : 0); // SPR cross (HCAL)
+    _mpf["chf"][3] = (useP3HadH ? fhm_chf : 0); // SPR-hcal
+    _mpf["chf"][4] = (useP4HadE ? fem_chf : 0); // SPR-ecal
+    _mpf["chf"][5] = (useP5Frag ? fhw_chf : 0); // fragmentation
+    _mpf["chf"][6] = 0;//(useP6L1RC ? 0 : 0);
+    _mpf["chf"][7] = 0;//(useP7TrkD ? 0 : 0);
+    _mpf["chf"][8] = (useP8MB80pf ? fm80_chf : 0); // fragmentation
+    //
+    //_mpf["nhf"][0] = ft3_nhf; // tracking in MC
+    _mpf["nhf"][0] = (useP0Trk  ? ftmg_nhf : 0);// tracking in data+MC
+    _mpf["nhf"][1] = (useP1Gam  ? fp_nhf : 0);  // photon
+    _mpf["nhf"][2] = (useP2CalX ? fcx_nhf : 0); // SPR cross (HCAL+ECAL)
+    _mpf["nhf"][2] = (useP2HadX ? fhx_nhf : 0); // SPR cross (HCAL)
+    _mpf["nhf"][3] = (useP3HadH ? fhm_nhf : 0); // SPR-hcal
+    _mpf["nhf"][4] = (useP4HadE ? fem_nhf : 0); // SPR-ecal
+    _mpf["nhf"][5] = (useP5Frag ? fhw_nhf : 0);
+    _mpf["nhf"][6] = 0;//(useP6L1RC ? 0 : 0);
+    _mpf["nhf"][7] = 0;//(useP7TrkD ? 0 : 0);
+    _mpf["nhf"][8] = (useP8MB80pf ? fm80_nhf : 0);
+    //
+    //_mpf["nef"][0] = ft3_nef; // tracking in MC
+    _mpf["nef"][0] = (useP0Trk ? ftmg_nef : 0); // tracking in data+MC
+    _mpf["nef"][1] = (useP1Gam ? fp_nef : 0);   // photon
+    _mpf["nef"][2] = (useP2CalX ? fcx_nef : 0); // SPR cross (HCAL+ECAL)
+    _mpf["nef"][2] = (useP2HadX ? fhx_nef : 0); // SPR cross (HCAL)
+    _mpf["nef"][3] = (useP3HadH ? fhm_nef : 0); // SPR-hcal
+    _mpf["nef"][4] = (useP4HadE ? fem_nef : 0); // SPR-ecal
+    _mpf["nef"][5] = (useP5Frag ? fhw_nef : 0);
+    _mpf["nef"][6] = 0;//(useP6L1RC ? 0 : 0);
+    _mpf["nef"][7] = 0;//(useP7TrkD ? 0 : 0);
+    _mpf["nef"][8] = (useP8MB80pf ? fm80_nef : 0);
+
+} // setToyShapeFuncs
+
+void setFullShapeFuncs() {
+  
+      // Fits from minitools/fullSimShapes.C
+    //////////////////////////////////////
+
+    // Jet response (Rjet)
+    // Fits from minitools/fullSimShapes.C
+    TF1 *fhp3_Rjet = new TF1("fhp3_Rjet","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*[p4])))",15,4500);
+    fhp3_Rjet->SetParameters(1.802,-1.629,0.496,-0.05204,0.001873); // 20.5/18
+    TF1 *fhc3_Rjet = new TF1("fhc3_Rjet","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    fhc3_Rjet->SetParameters(-6.575,3.888,-0.4755,-0.06304,0.0063,0.001629,-0.0001509); // 0.0/16
+    TF1 *fhm3_Rjet = new TF1("fhm3_Rjet","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*[p4])))",15,4500);
+    fhm3_Rjet->SetParameters(-6.241,4.701,-1.277,0.1386,-0.005413); // 20.3/18
+    //TF1 *fem3_Rjet = new TF1("fem3_Rjet","min(-(0.6+[p0])+(0.4+[p1])*pow(x,-(0.3+[p2])),-abs(0.06+[p3]))",15,4500);
+    //fem3_Rjet->SetParameters(-0.00729,15.08,0.4843,-0.06); // 19.0/19
+    TF1 *fem3_Rjet = new TF1("fem3_Rjet","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    fem3_Rjet->SetParameters(4.991,-1.863,0.07648,0.02939,-0.0003534,-0.0006707,4.937e-05); // 7.0/16
+    TF1 *fpm3_Rjet = new TF1("fpm3_Rjet","[p0]+log(x)*([p1]+log(x)*[p2])",15,4500);
+    fpm3_Rjet->SetParameters(-0.5754,-0.08557,0.007061); // 0.4/20
+    TF1 *ftm3_Rjet = new TF1("ftm3_Rjet","[p0]-(1.0+[p1])*pow(x,-(0.3+[p2]))",15,4500);
+    ftm3_Rjet->SetParameters(0.4822,3.867,-0.01323); // 34.4/20
+
+    // Fits from minitools/fullSimShapes.C
+    //////////////////////////////////////
+
+    // Charged hadron fraction (CHF)
+    // Fits from minitools/fullSimShapes.C
+    TF1 *fhp3_chf = new TF1("fhp3_chf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*[p4])))",15,4500);
+    fhp3_chf->SetParameters(-4.448,3.116,-0.7725,0.07301,-0.002181); // 130.1/18
+    TF1 *fhc3_chf = new TF1("fhc3_chf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    fhc3_chf->SetParameters(3.42,-2.059,0.2634,0.03367,-0.003686,-0.0009108,8.937e-05); // 0.0/16
+    TF1 *fhm3_chf = new TF1("fhm3_chf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*[p4])))",15,4500);
+    fhm3_chf->SetParameters(2.493,-1.765,0.4322,-0.03585,0.0006989); // 187.8/18
+    TF1 *fem3_chf = new TF1("fem3_chf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*[p4])))",15,4500);
+    fem3_chf->SetParameters(0.04343,-0.1138,0.02241,0.005785,-0.0008414); // 32.9/18
+    TF1 *fpm3_chf = new TF1("fpm3_chf","[p0]+log(x)*([p1]+log(x)*[p2])",15,4500);
+    fpm3_chf->SetParameters(0.05363,0.1341,-0.01254); // 12.6/20
+    TF1 *ftm3_chf = new TF1("ftm3_chf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*[p4])))",15,4500);
+    ftm3_chf->SetParameters(-9.824,6.347,-1.589,0.1567,-0.004988); // 5287.9/16
+
+    // Fits from minitools/fullSimShapes.C
+    //////////////////////////////////////
+
+    // Neutral hadron fraction (NHF)
+    // Fits from minitools/fullSimShapes.C
+    TF1 *fhp3_nhf = new TF1("fhp3_nhf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    fhp3_nhf->SetParameters(11.9,-10.71,3.249,-0.2538,-0.05074,0.01027,-0.0005032); // 361.3/16
+    TF1 *fhc3_nhf = new TF1("fhc3_nhf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    fhc3_nhf->SetParameters(-2.475,1.441,-0.177,-0.02317,0.002375,0.0006077,-5.567e-05); // 0.0/16
+    TF1 *fhm3_nhf = new TF1("fhm3_nhf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    fhm3_nhf->SetParameters(-9.651,9.03,-2.85,0.2346,0.04518,-0.009451,0.0004705); // 486.9/16
+    TF1 *fem3_nhf = new TF1("fem3_nhf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*[p4])))",15,4500);
+    fem3_nhf->SetParameters(-0.3027,0.1342,-0.005781,-0.003766,0.0003855); // 73.3/18
+    TF1 *fpm3_nhf = new TF1("fpm3_nhf","[p0]+log(x)*([p1]+log(x)*[p2])",15,4500);
+    fpm3_nhf->SetParameters(0.2565,-0.07617,0.008004); // 9.9/20
+    TF1 *ftm3_nhf = new TF1("ftm3_nhf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*[p4])))",15,4500);
+    ftm3_nhf->SetParameters(-3.537,4.217,-1.418,0.1935,-0.0092); // 9175.7/18
+
+    // Fits from minitools/fullSimShapes.C
+    //////////////////////////////////////
+
+    // Photon fraction (NEF)
+    // Fits from minitools/fullSimShapes.C
+    TF1 *fhp3_nef = new TF1("fhp3_nef","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    fhp3_nef->SetParameters(-13.07,12.29,-3.883,0.3423,0.05416,-0.01187,0.0005907); // 182.2/16
+    TF1 *fhc3_nef = new TF1("fhc3_nef","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    fhc3_nef->SetParameters(-1.027,0.6699,-0.09337,-0.01124,0.001406,0.0003225,-3.572e-05); // 0.0/16
+    TF1 *fhm3_nef = new TF1("fhm3_nef","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    fhm3_nef->SetParameters(15.37,-14.03,4.332,-0.3683,-0.06156,0.01315,-0.0006485); // 418.9/16
+    TF1 *fem3_nef = new TF1("fem3_nef","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*[p4])))",15,4500);
+    fem3_nef->SetParameters(0.5027,-0.1245,-0.01303,0.0006432,0.0002053); // 117.3/18
+    TF1 *fpm3_nef = new TF1("fpm3_nef","[p0]+log(x)*([p1]+log(x)*[p2])",15,4500);
+    fpm3_nef->SetParameters(-0.2875,-0.06739,0.005384); // 16.9/20
+    TF1 *ftm3_nef = new TF1("ftm3_nef","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*[p4])))",15,4500);
+    ftm3_nef->SetParameters(21.13,-15.9,4.355,-0.4987,0.02021); // 5355.5/18
+
+    ft  = ftm3_Rjet;
+    fhx = fhc3_Rjet;
+    fhh = fhm3_Rjet;
+    feh = fem3_Rjet;
+    fp  = fpm3_Rjet;
+
+  // Copied from setToyShapeFuncs()
+  //////////////////////////////////
+  TF1 *fm80_chf = new TF1("fm80_chf","[p0]+[p1]*pow(x,[p2])",15,4500);
+  fm80_chf->SetParameters(1.848, -1.685, -0.006643); // 70.3/53
+  TF1 *fhw_nhf = new TF1("fhw_nhf","[p0]+[p1]*pow(x,[p2])+[p3]/x",15,4500);
+  fhw_nhf->SetParameters(-5.151, 4.495, 0.03335, -12.3); // 65.4/42
+
+  TF1 *fm80_nef = new TF1("fm80_nef","[p0]+[p1]*pow(x,[p2])",15,4500);
+  fm80_nef->SetParameters(3.611, -3.909, -0.007482); // 70.2/53
+  TF1 *fhw_nef = new TF1("fhw_nef","[p0]+[p1]*pow(x,[p2])+[p3]/x",15,4500);
+  fhw_nef->SetParameters(0.8417, -0.2605, 0.2289, 2.426); // 35.9/42
+  
+  TF1 *fm80_nhf = new TF1("fm80_nhf","[p0]+[p1]*pow(x,[p2])",15,4500);
+  fm80_nhf->SetParameters(-0.05047, -0.0008452, 0.6402); // 56.7/53
+  TF1 *fhw_chf = new TF1("fhw_chf","[p0]+[p1]*pow(x,[p2])+[p3]/x",15,4500);
+  fhw_chf->SetParameters(-0.2176, 1.064e-05, 1.373, 0); // 41.8/43
+
+  // Regular +3% SPR calorimeter scale variation (ECAL+HCAL)
+  if (!fc) fc = new TF1("fc","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
+  fc->SetParameters(0.335, 0.8171, 406.8, 1.34); // toyPF
+
+  // Tracking '-1%' variation in UL2017 data
+  if (!ftd) ftd = new TF1("ftd","[p0]+[p1]*pow(x/208.,[p2])+[p3]/x",15,4500);
+  ftd->SetParameters(-0.116, -0.6417, -0.3051, 23.63); // Data
+
+  // Tracking '-1%' variation in UL2017 MC
+  if (!ftm) ftm = new TF1("ftm","[p0]+[p1]*pow(x/208.,[p2])+[p3]/x",15,4500);
+  ftm->SetParameters(0.2683, -0.6994, -0.3051, 18.49); // MC
+
+  // sigmaMB 69.2 mb to 80 mb variation
+  if (!fm80) fm80 = new TF1("fm80","[p0]+[p1]*pow(x/208.,[p2])+[p3]*exp(-[p4]*x)",15,4500);
+  fm80->SetParameters(0.03904,-0.01612,-0.942, -7.145,0.09907); // toyPF
+
+  // H++ vs P8CP5
+  if (!fhw) fhw = new TF1("fhw","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]/x+[p5]*log(x)/x",15,4500);
+  fhw->SetParameters(0.9526,-0.3883,1285,2.46,18.1,-2.062); // FullMC
+
+  assert(!useP2CalX);
+  //useP6L1RC = false;
+  //useP7TrkD = false;
+  //useP8Flv = false;
+  _mpf["chf"][0] = (useP0Trk  ? ftm3_chf : 0);// tracking in data+MC
+  _mpf["chf"][1] = (useP1Gam  ? fpm3_chf : 0);  // photon
+  _mpf["chf"][2] = (useP2HadX ? fhc3_chf : 0); // SPR cross (custom HCAL #3)
+  _mpf["chf"][3] = (useP3HadH ? fhm3_chf : 0); // SPR-hcal
+  _mpf["chf"][4] = (useP4HadE ? fem3_chf : 0); // SPR-ecal
+  _mpf["chf"][5] = (useP5Frag ? fhw_chf : 0); // fragmentation
+  _mpf["chf"][6] = 0;//(useP6L1RC ? 0 : 0);
+  _mpf["chf"][7] = 0;//(useP7TrkD ? 0 : 0);
+  _mpf["chf"][8] = (useP8MB80pf ? fm80_chf : 0); // fragmentation
+  //
+  _mpf["nhf"][0] = (useP0Trk  ? ftm3_nhf : 0);// tracking in data+MC
+  _mpf["nhf"][1] = (useP1Gam  ? fpm3_nhf : 0);  // photon
+  _mpf["nhf"][2] = (useP2HadX ? fhc3_nhf : 0); // SPR cross (HCAL)
+  _mpf["nhf"][3] = (useP3HadH ? fhm3_nhf : 0); // SPR-hcal
+  _mpf["nhf"][4] = (useP4HadE ? fem3_nhf : 0); // SPR-ecal
+  _mpf["nhf"][5] = (useP5Frag ? fhw_nhf : 0);
+  _mpf["nhf"][6] = 0;//(useP6L1RC ? 0 : 0);
+  _mpf["nhf"][7] = 0;//(useP7TrkD ? 0 : 0);
+  _mpf["nhf"][8] = (useP8MB80pf ? fm80_nhf : 0);
+  //
+  _mpf["nef"][0] = (useP0Trk ? ftm3_nef : 0); // tracking in data+MC
+  _mpf["nef"][1] = (useP1Gam ? fpm3_nef : 0);   // photon
+  _mpf["nef"][2] = (useP2HadX ? fhc3_nef : 0); // SPR cross (HCAL)
+  _mpf["nef"][3] = (useP3HadH ? fhm3_nef : 0); // SPR-hcal
+  _mpf["nef"][4] = (useP4HadE ? fem3_nef : 0); // SPR-ecal
+  _mpf["nef"][5] = (useP5Frag ? fhw_nef : 0);
+  _mpf["nef"][6] = 0;//(useP6L1RC ? 0 : 0);
+  _mpf["nef"][7] = 0;//(useP7TrkD ? 0 : 0);
+  _mpf["nef"][8] = (useP8MB80pf ? fm80_nef : 0);
+} // setFullShapeFuncs

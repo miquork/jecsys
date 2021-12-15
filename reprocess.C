@@ -98,11 +98,11 @@ double fzllptmin(15.);   // Zll+jet (combined) pTmin
 
 // Z+jet (Sami)
 double fzptmin(15.);   // Z+jet (Sami) pTmin
-double fzptmax(700.);  // Z+jet (Sami) pTmax
+double fzptmax(800.);  // Z+jet (Sami) pTmax
 double fzmpfptmin(15); // Z+jet (Sami) MPF pTmin
-double fzmpfptmax(700);// Z+jet (Sami) MPF pTmax
+double fzmpfptmax(800);// Z+jet (Sami) MPF pTmax
 double fzbalptmin(15); // Z+jet (Sami) DB pTmin
-double fzbalptmax(700);// Z+jet (Sami) DB pTmax
+double fzbalptmax(800);// Z+jet (Sami) DB pTmax
 double fzbptmax(300.); // Z+b (Sami) pTmax
 
 // PF composition (for plots, tighter range in global fit)
@@ -112,6 +112,8 @@ double fzllpfzptmin(20);   // Z+jet PF composition pTmin
 double fzllpfzptmax(230);  // Z+jet PF composition pTmax
 double fzpfzptmin(20);   // Z+jet PF composition pTmin
 double fzpfzptmax(230);  // Z+jet PF composition pTmax
+double fppfgptmin(40);   // G+jet PF composition pTmin
+double fppfgptmax(800);  // G+jet PF composition pTmax
 
 // Inclusive jets
 double fincjetptmin(21);    // Inclusive jets pTmin
@@ -192,76 +194,72 @@ void reprocess(string epoch="") {
   const char *cd = sd.c_str();
 
   // Overall switches
-  if (isUL16 || isUL17) { CorLevel = "L1L2L3Res"; } // Closure
+  //if (isUL16 || isUL17) { CorLevel = "L1L2L3Res"; } // Closure
 
   // Multijet switches
   if (isUL16 || isUL17 || isUL18 || isRun2) { 
-    fmultijetptmin = 800;//153;
-    fmultijetptmax = 2116;
+    fmultijetptmin = 114;//800;
+    fmultijetptmax = (isRun2 ? 2500 : 2116);
 
     // Turn MJB "off" to avoid double counting HDM
-    fmultijetmjbptmin = 153;
-    fmultijetmjbptmax = 2116;
+    fmultijetmjbptmin = 114;//153;
+    fmultijetmjbptmax = (isRun2 ? 2500 : 2116);
 
     // Recoil ranges are {0,97},{97,196},{196,220},{220,272},{272,395},{395,468},{468,592},{592,686},{686,790},{790,6500}
   }
-  //if (isUL17) {
-  //fmultijetptmax = 2116;
+  //if (isUL18 && CorLevel=="L1L2Res") {
+  //fmultijetptmin = 330;
   //}
-  if (isUL18 && CorLevel=="L1L2Res") {
-    fmultijetptmin = 330;
-  }
-  if (isRun2) {
-    fmultijetptmin = 114;//153;//196;//114; //300;//800;//153;
-    fmultijetptmax = 2500;//2116;
+  //if (isRun2) {
+  //fmultijetptmin = 114;
+  //fmultijetptmax = 2500;
 
-    // Turn MJB "off" to avoid double counting HDM
-    fmultijetmjbptmin = 114;//153;//196;//114; //300;//153;
-    fmultijetmjbptmax = 2500;//2116;
-  }
+    // Turn MJB "off" to avoid double counting HDM (or not)
+    //fmultijetmjbptmin = 114;
+    //fmultijetmjbptmax = 2500;
+  //}
 
   // Photon+jet switches
-  if (isUL16 || isUL17 || isUL18) { 
+  if (isUL16 || isUL17 || isUL18 || isRun2) { 
     correctGamMass = true;
     correctGamScale = false;
-    if (false && (isUL17 || isUL18)) {
-      correctGamScale = true;
-      valueGamScale = 1.01; // ad-hoc to match Z+jet
-      if (isUL18) valueGamScale = 1;//1.005;
-    }
+    //if (false && (isUL17 || isUL18)) {
+    //correctGamScale = true;
+    //valueGamScale = 1.01; // ad-hoc to match Z+jet
+    //if (isUL18) valueGamScale = 1;//1.005;
+    //}
     // 230-300 GeV still systematically low in UL18 and others?
-    fpmpfptmin = 40;//20;//230;
+    fpmpfptmin = 60;//40;
     fpmpfptmax = 1200;
-    fpbalptmin = 40;//20;//300;
-    fpbalptmax = 1200;//600;
+    fpbalptmin = 60;//40;
+    fpbalptmax = 1200;
   } 
-  if (isRun2) {
-    correctGamMass = true;
-    correctGamScale = false;
-    fpmpfptmin = 40;//130;//40; //100;//175;
-    fpmpfptmax = 1200;
-    fpbalptmin = 40;//130;//40; //230;//175;
-    fpbalptmax = 1200;//500;//600;
-  }
+  //if (isRun2) {
+  //correctGamMass = true;
+  //correctGamScale = false;
+  //fpmpfptmin = 60;//40;
+  //fpmpfptmax = 1200;
+  //fpbalptmin = 60;//40;
+  //fpbalptmax = 1200;
+  //}
 
   // Z+jet switches
   if (isUL16) {
     // Z+jet pT<35 GeV biased?
-    fzllmpfptmin = 30;//25;//30;//35;
+    fzllmpfptmin = 30;
     if (!isAPV) fzllmpfptmin = 35;
-    fzllmpfptmax = 230;//400;
-    //if (!isAPV) fzllmpfptmax = 230;
-    fzllbalptmin = 30;//25;//30;//35;
+    fzllmpfptmax = 230;
+    fzllbalptmin = 30;
     if (!isAPV) fzllbalptmin = 35;
     fzllbalptmax = 175;
 
     // For UH same settings
-    fzmpfptmin = 30;
-    if (!isAPV) fzmpfptmin = 30;
-    fzmpfptmax = 230;
-    fzbalptmin = 30;
-    if (!isAPV) fzbalptmin = 35;
-    fzbalptmax = 175;
+    //fzmpfptmin = 30;
+    //if (!isAPV) fzmpfptmin = 30;
+    //fzmpfptmax = 230;
+    //fzbalptmin = 30;
+    //if (!isAPV) fzbalptmin = 35;
+    //fzbalptmax = 175;
   }
   if (isUL17 || isUL18) {
     fzllmpfptmin = 30;
@@ -272,22 +270,22 @@ void reprocess(string epoch="") {
     if (isUL18) fzllbalptmax = 300;
 
     // For UH same settings
-    fzmpfptmin = 30;
-    fzmpfptmax = 230;
-    if (isUL18) fzmpfptmax = 300;
-    fzbalptmin = 30;
-    fzbalptmax = 230;
-    if (isUL18) fzbalptmax = 300;
+    //fzmpfptmin = 30;
+    //fzmpfptmax = 230;
+    //if (isUL18) fzmpfptmax = 300;
+    //fzbalptmin = 30;
+    //fzbalptmax = 230;
+    //if (isUL18) fzbalptmax = 300;
   }
   if (isUL18 && CorLevel=="L1L2Res") {
     fzllbalptmin = 35;
     fzllbalptmax = 400;
   }
   if (isRun2) {
-    fzllmpfptmin = 20;//15;//30;
-    fzllmpfptmax = 800;//600;//400;
-    fzllbalptmin = 20;//15;//30;
-    fzllbalptmax = 800;//600;
+    fzllmpfptmin = 20;
+    fzllmpfptmax = 800;
+    fzllbalptmin = 20;
+    fzllbalptmax = 800;
   }
 
 
@@ -480,16 +478,16 @@ void reprocess(string epoch="") {
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
 			     fpf_files[epoch]),"READ");
     }
-    else if (isUL16 && !isAPV) { // old UL16V2V1, should update MC
-      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V5V2_%s.root",
+    else if (isUL16 && !isAPV) { // old MC-UL16V2V1, DATA-UL16V5V2
+      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V7V3_%s.root",
 			     fpf_files[epoch]),"READ");
-      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V2V1_%s.root",
+      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V7V3_%s.root",
 			     fpf_files[epoch]),"READ");
     }
-    else if (isUL16 && isAPV) { // old UL16V3V1, should update MC
-      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V5V2_%s.root",
+    else if (isUL16 && isAPV) { // old MC-UL16V3V1, DATA-UL16V5V2
+      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V7V3_%s.root",
 			     fpf_files[epoch]),"READ");
-      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V3V1_%s.root",
+      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V7V3_%s.root",
 			     fpf_files[epoch]),"READ");
     }
     else if (isRun2) {
@@ -611,22 +609,26 @@ void reprocess(string epoch="") {
   if(CorLevel=="L1L2L3Res"){
     if (isUL18) {
       //fp = new TFile(Form("%sgamma/Gjet_combinationfile_L2L3Res_%s_L2L3Res_JEC-v4_Data-v2_MC.root",cd,fp_files[epoch]),"READ");
-      fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8_v18.root");
+      //fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8_v19.root");
+      fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8QCD_v19.root");
     }
     else if (isUL17) {
       //fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V31_L2L3res_%s.root", fp_files[epoch]),"READ");
-      fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8_v18.root");
+      //fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8_v19.root");
+      fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8QCD_v19.root");
     }
     else if (isUL16 && !isAPV) {
       //fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16NonAPVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
       //fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V7Closure/ClosureV7UL16NONAPVFGHjet_combinationfile_L2L3Res_%s_L2L3Res_V2.root",fp_files[epoch]),"READ");
-      fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8_v18.root");
+      //fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8_v19.root");
+      fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8QCD_v19.root");
     }
     else if (isUL16 && isAPV) {
       if (epoch=="2016BCDEF") 
 	//fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
 	//fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V7Closure/ClosureV7UL16APVBCDEFjet_combinationfile_L2L3Res_%s_L2L3Res_V2.root",fp_files[epoch]),"READ");
-	fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8APV_v18.root");
+	//fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8APV_v19.root");
+	fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8QCDAPV_v19.root");
       else if (epoch=="2016EF" || epoch=="2016BCD")  {
 	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVSplitGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ"); // NB: old!
 	assert(false); // don't trip on old files
@@ -1477,7 +1479,8 @@ void reprocess(string epoch="") {
   rename["gamjet"]["mc"] = "_MC"; 
   rename["gamjet"]["mpfchs"] = "resp_MPFchs";
   rename["gamjet"]["mpfchs1"] = "resp_MPFchs"; 
-  rename["gamjet"]["ptchs"] = "resp_PtBalchs"; 
+  //rename["gamjet"]["ptchs"] = "resp_PtBalchs";  // v18
+  rename["gamjet"]["ptchs"] = "resp_DBchs"; // v19
   rename["gamjet"]["counts"] = "RawNEvents_data_vs_pt";
   //
   rename["gamjet"]["mpf1"] = "resp_MPFR1chs";
@@ -1801,7 +1804,16 @@ void reprocess(string epoch="") {
   style["zjet_mc"]["mpfn"] = kOpenTriangleUp;
   style["zjet_mc"]["mpfu"] = kOpenTriangleDown;
   style["zjet_mc"]["rho"] = kOpenTriangleDown;
-
+  style["gamjet"]["chf"] = kFullCircle;
+  style["gamjet"]["nhf"] = kFullDiamond;
+  style["gamjet"]["nef"] = kFullSquare;
+  style["gamjet"]["cef"] = kFullDiamond;
+  style["gamjet"]["muf"] = kFullDiamond;
+  style["gamjet_mc"]["chf"] = kOpenCircle;
+  style["gamjet_mc"]["nhf"] = kOpenDiamond;
+  style["gamjet_mc"]["nef"] = kOpenSquare;
+  style["gamjet_mc"]["cef"] = kOpenDiamond;
+  style["gamjet_mc"]["muf"] = kOpenDiamond;
 
   map<string, int> color;
   color["pfjet"] = kBlack;
@@ -1823,6 +1835,11 @@ void reprocess(string epoch="") {
   color["gamjet_mpfn"] = kGreen+2;
   color["gamjet_mpfu"] = kBlue;
   color["gamjet_rho"] = kBlack;
+  color["gamjet_chf"] = kRed;
+  color["gamjet_nhf"] = kGreen+2;
+  color["gamjet_nef"] = kBlue;
+  color["gamjet_cef"] = kCyan+1;
+  color["gamjet_muf"] = kMagenta+1;
   color["zeejet"] = kGreen+2;
   color["zeejet_mpf1"] = kRed;
   color["zeejet_mpfn"] = kGreen+2;
@@ -1853,6 +1870,7 @@ void reprocess(string epoch="") {
   color["zjet_nhf"] = kGreen+2;
   color["zjet_nef"] = kBlue;
   color["zjet_cef"] = kCyan+1;
+  color["zjet_muf"] = kMagenta+1;
   color["zi"] = kBlack;
   color["zb"] = kRed;
   color["zc"] = kGreen+2;
@@ -2154,7 +2172,7 @@ void reprocess(string epoch="") {
 	  // (now adding fractions to zjet)
 	  bool isfrac = (t=="chf"||t=="nef"||t=="nhf"||
 			 t=="cef"||t=="muf"||t=="puf");
-	  if (isfrac && s!="pfjet" && s!="zjet" && 
+	  if (isfrac && s!="pfjet" && s!="zjet" && s!="gamjet" && // v19
 	      s!="zeejet" && s!="zmmjet" && s!="zlljet") continue;
 	  if (!isfrac && s=="pfjet") continue;
 
@@ -2295,6 +2313,9 @@ void reprocess(string epoch="") {
 		       rename[s][t], rename[s]["data"], // ratio->data
 		       100.*alpha, 10.*eta1, 10.*eta2);
 	    } // gamjet
+	    else if (s=="gamjet" && isfrac) { // new PF composition
+	      c = Form("pf/p%s_%s",tt,dd);
+	    }
 	    else if (s=="gamjet") {
 	      c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f",
 		       rename[s][t], rename[s][d],
@@ -2531,6 +2552,9 @@ void reprocess(string epoch="") {
 		g->RemovePoint(i);
 	      else if ((s=="gamjet"||sp=="gamjet") && t=="ptchs" &&
 		       (g->GetX()[i]<fpbalptmin || g->GetX()[i]>fpbalptmax))
+		g->RemovePoint(i);
+	      else if ((s=="gamjet") && isfrac &&
+		       (g->GetX()[i]<fppfgptmin || g->GetX()[i]>fppfgptmax))
 		g->RemovePoint(i);
 	      else if (s=="dijet" && t=="mpfchs1" &&
 		       (g->GetX()[i]<fdijetmpfptmin || g->GetX()[i]>fdijetptmax))
@@ -2791,7 +2815,8 @@ void reprocess(string epoch="") {
 	    // Note fix (post Legacy2016): pT,gamma=pT,lepton=pT,Z/2
 	    // Limit uncertainty at high pT to 0.5% (about half correction)
 	    if (correctGamMass && s=="gamjet" && (d=="data" || d=="ratio") &&
-		(t=="mpfchs1" || t=="ptchs" || t=="mpf1")
+		(t=="mpfchs1" || t=="ptchs" || t=="mpf1" ||
+		 t=="mpfn" || t=="mpfu")
 		&& !(d=="ratio" && t=="mpf1")) {
 	      // NB: mpf1 ratio calculated on the fly => "data" propagates to it
 

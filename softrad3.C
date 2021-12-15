@@ -19,6 +19,7 @@
 #include "TMath.h"
 #include "TLine.h"
 
+#include "Flavor.h"
 #include "tdrstyle_mod15.C"
 
 #include <string>
@@ -26,6 +27,11 @@
 #include <fstream>
 #include <vector>
 #include <map>
+
+// Scale soft jets and unclustered energy with gJES from Z+flavor (Flavor.C)
+// gJESpt=15 => 0.947, gJESpt=45 => 0.981
+bool useGluonJES = true; // (def:true)
+double gJESpt = 15.; // reference pT for gluonJES (def:45)
 
 // Find entry in graph correspondign to this histogram bin
 double getY(double pt, double ptmin, double ptmax, TGraphErrors *g,
@@ -63,6 +69,7 @@ void getEntry(int i, double &pt, double &p0, double &p1, double &pn, double &pu,
 // root -l -b -q softrad3.C+g\(0\,1\.3\,false\,\"2018ABCD\"\)
 
 // 3-point soft radiation corrections for L3Res
+Flavor *_flv(0);
 void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      string epoch="") {
   
@@ -80,6 +87,14 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 		 epoch=="2016EF" || epoch=="2016GH");
   bool isAPV = (epoch=="2016BCDEF" || epoch=="2016BCD" || epoch=="2016EF");
   bool isRun2 = (epoch=="Run2Test");
+
+  if (!_flv) {
+    cout << "Initializing Flavor" << endl;
+    _flv = new Flavor();
+    _flv->getResp(gJESpt,0.,"MultijetRecoil25",-1,"25"); // Initialization
+    cout << Form("gluonJES(pT=%1.0f,|eta|<2.5) = ",gJESpt)
+	 << _flv->getResp(gJESpt,0.,"MultijetRecoil25",-1,"25") << endl;
+  }
 
   setTDRStyle();
   
@@ -440,27 +455,35 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	    //double Ru_d(0.685), Ru_m(0.685); // Ru(DY,CP5,UL17)
 	    // v2: Runcl = 0.92
 	    double Ru_d(0.92), Ru_m(0.92); // soft gluon jets in MC
-
+	    // v3: Runcl_data * gJES, Rn_data * gJES (optional)
+	    double R2_m(1.000), R2_d(1.000); // multijet recoil?
+	    if (useGluonJES) {
+	      double gJES = _flv->getResp(gJESpt,0.,"MultijetRecoil25",-1,"25");
+	      Ru_d *= gJES;
+	    }
+	    
 	    // Systematic variations for Rn_m, Ru_m numerically
 	    double dRnd = -0.01; // guesstimate for data-MC
 	    double dRnm = -0.02; // quark/gluon response variation
-	    double dRud = +0.08; // QCD data=2.7 / FullSim(UL17)=2.5
-	    double dRum = +0.05; // Ru(DY,HS1)=0.72 / Ru(DY,CP5)=0.65 vs 0.685
+	    //double dRud = +0.08; // QCD data=2.7 / FullSim(UL17)=2.5
+	    //double dRum = +0.05; // Ru(DY,HS1)=0.72 / Ru(DY,CP5)=0.65 vs 0.685
+	    double dRud = -0.02; // -gJES or gJESpt=45->15 extrapolation
+	    double dRum = -0.10; // ca. (R_ue-Ru)/2 or Ru_m-1 towards R_ue
 
 	    if (s=="multijet") {
 
 	      //Rn_m = 0.92; // low pT gluon jets
 	      //Rn_d = 0.90; // low pT gluon jets
 	      //Ru_d = Ru_m - 0.08;
-	      Rn_m = 1.000;
-	      Rn_d = 1.000;
+	      //Rn_m = 1.000;
+	      //Rn_d = 1.000;
 	      // v1: Runcl = 0.65
 	      //Ru_m = 0.65; // from minitools/drawMultijetMPB_ISRonly.pdf
 	      //Ru_d = 0.65;
 	      // v2: Runcl = 0.92
-	      Ru_m = Ru_d = 0.92; // low pT gluon jets in MC
-	      double R2_m = 1.000;
-	      double R2_d = 1.000;
+	      //Ru_m = Ru_d = 0.92; // low pT gluon jets in MC
+	      //double R2_m = 1.000;
+	      //double R2_d = 1.000;
 
 	      // turn <Rlead>/<Rrecoil> ratio back to <A> and <B>
 	      double Ad = (r0-1)/(r0+1);

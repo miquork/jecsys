@@ -20,12 +20,15 @@
 #include "TH1D.h"
 #include "TMinuit.h"
 #include "TFitter.h"
+#include "TLine.h"
+#include "TProfile.h"
 
 #include <string>
 #include <vector>
 #include <map>
 #include <iostream>
 
+#include "tools.C"
 #include "tdrstyle_mod15.C"
 #include "globalFitSettings.h"
 
@@ -49,7 +52,8 @@ TMatrixD *_fitError_emat(0);            // error matrix
 vector<fitData> _vdt;                   // jesFitter input data,
 map<string, vector<fitSyst> > _msrc;    // data->sources,
 map<string, vector<fitShape> > _mshape; // obs->shapes,
-string _obs;                            // and data type switch
+string _obs;                            // data type switch,
+TH1D *_hjesref(0);                      // and reference JES
 int cnt(0), Nk(0);
 TF1 *_jesFit(0);                        // JES fit used in jesFitter
 
@@ -86,9 +90,15 @@ void globalFitEtaBin(double etamin, double etamax) {
   deta->cd(Form("fsr"));
   TDirectory *dfsr = gDirectory;
   
+  // Load reference JES and uncertainty
+  _hjesref = (TH1D*)deta->Get("herr_l2l3res"); assert(_hjesref);
+  TH1D *herr = (TH1D*)deta->Get("herr"); assert(herr);
+
+  // Set whitelist for quickly selecting only subset of datasets
   set<string> whitelist;
   for (unsigned int i = 0; i != _gf_datasets_whitelist.size(); ++i) {
-    whitelist.insert(_gf_datasets_whitelist[i]);
+    if (_gf_datasets_whitelist[i]!="")
+      whitelist.insert(_gf_datasets_whitelist[i]);
   }
 
   // Create listing of all active datasets
@@ -96,18 +106,21 @@ void globalFitEtaBin(double etamin, double etamax) {
   for (unsigned int i = 0; i != _gf_datasets.size(); ++i) {
 
     // Read in information from globalFitSettings.h
-    const char *name = _gf_datasets[i][0].c_str();
-    const char *type = _gf_datasets[i][1].c_str();
+    const char *name  = _gf_datasets[i][0].c_str();
+    const char *type  = _gf_datasets[i][1].c_str();
+    const char *name2 = _gf_datasets[i][2].c_str();
 
-    // Check if input data is whitelisted
+    // Check if input dataset is whitelisted
     if (!whitelist.empty() && whitelist.find(name)==whitelist.end()) continue;
-
+    if (string(name)=="") continue; // missing elements in dataset array
+    
     // Retrieve graph for input data
     TGraphErrors *g = (TGraphErrors*)deta->Get(name);
+    if (!g) cout << "Input " << name << " not found." << endl << flush;
     assert(g);
 
     // Patch HDM input from TH1D to graph [temporary] => fix in softrad3.C
-    if (TString(name).Contains("hdm_")) {
+    if (TString(name).Contains("hdm_") && !TString(name).Contains("hadw")) {
       TH1D *h = (TH1D*)deta->Get(name);
       assert(h);
       g = new TGraphErrors(h);
@@ -119,9 +132,16 @@ void globalFitEtaBin(double etamin, double etamax) {
     data.name = name;
     data.type = type;
     data.input = (TGraphErrors*)g->Clone(Form("%s_in",name));
-    data.input2 = 0;
     data.output = (TGraphErrors*)g->Clone(Form("%s_out",name));
-    data.output2 = 0;
+
+    // Multijet special
+    if (string(name2)!="") {
+      TGraphErrors *g2 = (TGraphErrors*)deta->Get(name2);
+      assert(g2);
+      
+      data.input2 = (TGraphErrors*)g2->Clone(Form("%s_in2",name2));
+      data.output2 = (TGraphErrors*)g2->Clone(Form("%s_out2",name2));
+    }
 
     // Save fitData for list and vector
     datasets.insert(name);
@@ -180,6 +200,8 @@ void globalFitEtaBin(double etamin, double etamax) {
     string appliesTo  = _gf_shapes[i][1];
     string funcstring = _gf_shapes[i][2];
 
+    if (name=="") continue; // ignore exta empty (commented out) elements
+
     // Use running indexing for active shapes
     if (shapes.find(name)==shapes.end())
       mshapeidx[name] = shapes.size();
@@ -199,7 +221,7 @@ void globalFitEtaBin(double etamin, double etamax) {
 
   // Create function to plot for JES (or composition)
   double minpt = 15.;
-  double maxpt = 1500.;
+  double maxpt = 2000;//1500.;
   int njesFit = shapes.size();
   _jesFit = new TF1("jesFit",jesFit,minpt,maxpt,njesFit);
 
@@ -219,7 +241,6 @@ void globalFitEtaBin(double etamin, double etamax) {
     cout << "Fit parameters have Gaussian prior" << endl;
   cout << endl;
 
-  vector<double> a(ntot, 0);
   //for (int i = 0; i != npar; ++i) a[i] = _jesFit->GetParameter(i);
 
   // Setup global chi2 fit (jesFitter is our function)
@@ -227,7 +248,8 @@ void globalFitEtaBin(double etamin, double etamax) {
   fitter->SetFCN(jesFitter);
 
   // Set parameters
-  vector<string> parnames(ntot);
+  vector<double> a(ntot, 0);
+  vector<string> parnames(ntot); // empty for now, to fill with shapes/sources
   for (int i = 0; i != ntot; ++i)
     fitter->SetParameter(i, parnames[i].c_str(), a[i], (i<npar ? 0.01 : 1),
 			 -100, 100);
@@ -244,10 +266,10 @@ void globalFitEtaBin(double etamin, double etamax) {
   Double_t tmp_par[ntot], tmp_err[ntot];
   TVectorD vpar(ntot);
   TVectorD verr(ntot);
-  Double_t chi2_gbl(0), chi2_src(0), chi2_data(0);
+  Double_t chi2_gbl(0), chi2_src(0), chi2_par(0), chi2_data(0);
   //vector<double> vchi2_data(gs2.size(),0);
   //vector<int> vndata(gs2.size(),0);
-  int nsrc_true(0), ndt(0);
+  int npar_true(0), nsrc_true(0), ndt(0);
   Double_t grad[ntot];
   Int_t flag = 1;
   //TH1D *hsrc = new TH1D("hsrc",";Nuisance parameter;",12,-3,3);
@@ -261,16 +283,18 @@ void globalFitEtaBin(double etamin, double etamax) {
   jesFitter(ntot, grad, chi2_gbl, tmp_par, flag);
 
   //cout << "List of fitted sources that count (nonzero):" << endl;
-  for (int i = npar; i != ntot; ++i) {
+  for (int i = 0; i != ntot; ++i) {
     if (fabs(tmp_par[i])!=0 || fabs(tmp_err[i]-1)>1e-2) {
-      ++nsrc_true;
+      if (i < npar) ++npar_true;
+      else          ++nsrc_true;
       //hsrc->Fill(tmp_par[i]);
     }
-    chi2_src += pow(tmp_par[i],2);
+    if (i < npar) chi2_par += pow(tmp_par[i],2);
+    else          chi2_src += pow(tmp_par[i],2);
   }
   for (unsigned int i = 0; i != _vdt.size(); ++i) {
     TGraphErrors *gout = _vdt[i].output;
-    _obs = _vdt[i].type; // for jesfit
+    _obs = _vdt[i].type; // for _jesFit
     for (int j = 0; j != gout->GetN(); ++j) {
       double x = gout->GetX()[j];
       double y = gout->GetY()[j];
@@ -284,40 +308,244 @@ void globalFitEtaBin(double etamin, double etamax) {
   
   cout << endl;
   cout << Form("Used %d data points, %d fit parameters and %d nuisances.\n"
-	       "Data chi2/NDF = %1.1f / %d\n"
+	       "Data chi2/NDF = %1.1f / %d [%1.0f,%1.0f]\n"
 	       "Nuisance chi2/Nsrc = %1.1f / %d\n"
+	       "Parameter chi2/Npar = %1.1f / %d\n"
 	       "Total chi2/NDF = %1.1f / %d\n",
-	       ndt, npar, nsrc_true, chi2_data, ndt - npar, chi2_src, nsrc_true,
+	       ndt, npar, nsrc_true, chi2_data, ndt - npar,
+	       _jesFit->GetXmin(), _jesFit->GetXmax(),
+	       chi2_src, nsrc_true,
+	       chi2_par, npar_true,
 	       chi2_gbl, ndt - npar);
   cout << endl;
-
+  vector<fitShape> &v = _mshape["Rjet"];
+  assert(int(v.size())==njesFit);
+  for (unsigned int i = 0; i != v.size(); ++i) {
+    cout << Form("  %5s : %+5.2f +/- %5.2f", v[i].name.c_str(),
+		 vpar[v[i].idx], verr[v[i].idx]) << endl;
+		 //_jesFit->GetParameter(v[i].idx),
+		 //_jesFit->GetParError(v[i].idx)) << endl;
+  } // for i in _mshape
 
   // 5. Draw results
   //////////////////
   bool drawResults = true;
   if (drawResults) {
 
-    // Graphical settings
-    map<string, int> mcolor;
-    mcolor["hdm_mpfchs1_gamjet"] = kBlue;
-    mcolor["hdm_mpfchs1_zjet"]   = kRed;
-
-
+    // Graphical settings in globalFitStyles.h
+    #include "globalFitStyles.h"
     curdir->cd();
-    TH1D *h = tdrHist("h","JES",0.95,1.05);
-    lumi_13TeV = "Run2Test";
+
+    // Create canvas
+    lumi_13TeV = "globalFitRun2.C(\"Run2Test\")";
+    TH1D *h = tdrHist("h","JES",0.982+1e-5,1.025-1e-5); // ratio (hdm)
     TCanvas *c1 = tdrCanvas("c1",h,4,11,kSquare);
     gPad->SetLogx();
 
-    for (int i = 0; i != _vdt.size(); ++i) {
+    TLine *l = new TLine();
+    TLegend *leg = tdrLeg(0.60,0.90,0.80,0.90);
+    TLegend *leg2 = tdrLeg(0.45,0.15,0.65,0.30);
+
+    // Draw fit on the back
+    _jesFit->SetRange(15.,3500.); // nice range
+    _jesFit->SetNpx(3485.); // dense binning for log scale
+    _obs = "Rjet";
+    TGraph *gr = new TGraph(_jesFit); // use graph to keep '_obs' setting
+    TGraphErrors *gre = new TGraphErrors(gr->GetN());
+    _fitError_func = _jesFit;
+    _fitError_emat = &emat;
+    double k = 1;
+    for (int i = 0; i != gr->GetN(); ++i) {
+      double pt = gr->GetX()[i];
+      gre->SetPoint(i, pt, gr->GetY()[i]);
+      gre->SetPointError(i, 0., fitError(&pt, &k) - gr->GetY()[i]);
+    }
+    tdrDraw(herr,"E3",kFullCircle,kCyan+2,kSolid,-1,1001,kCyan+1);
+    tdrDraw(gre,"E3",kNone,kBlack,kSolid,-1,1001,kYellow+1);
+    tdrDraw(gr,"Lz",kNone,kBlack);
+    l->SetLineStyle(kDashed);
+    l->DrawLine(15,1,3500,1);
+
+    leg2->AddEntry(l,"Run 2 avg.","L");
+    leg2->AddEntry(herr,"Total unc.","F");
+    leg2->AddEntry(gre,"Fit unc.","FL");
+
+    // Separate canvas for CHF, NHF, NEF
+    TH1D *hc = tdrHist("h","PF composition (0.01)",-2e-2+1e-7,2e-2-1e-7);
+    TCanvas *c1c = tdrCanvas("c1c",hc,4,11,kSquare);
+    gPad->SetLogx();
+    l->DrawLine(15,0,3500,0);
+
+    // Separate canvas for CEF, MUF
+    TH1D *hl = tdrHist("hl","PF composition (0.01)",-2e-3+1e-7,2.5e-3-1e-7);
+    TCanvas *c1l = tdrCanvas("c1l",hl,4,11,kSquare);
+    gPad->SetLogx();
+    l->DrawLine(15,0,3500,0);
+
+    // Sanity check PF composition sums
+    TGraphErrors *gpfjet(0);
+    TGraphErrors *gzjet(0);
+    TGraphErrors *gzljet(0);
+    TGraphErrors *gzmjet(0);
+    TGraphErrors *ggjet(0);
+
+    for (unsigned int i = 0; i != _vdt.size(); ++i) {
       
       string name = _vdt[i].name;
-      tdrDraw(_vdt[i].input,"Pz",kOpenSquare,mcolor[name]);
-      tdrDraw(_vdt[i].output,"Pz",kFullCircle,mcolor[name]);
-    }      
+      string type = _vdt[i].type;
+
+      if (type=="Rjet") {
+	c1->cd();
+	//leg->AddEntry(_vdt[i].input,_gf_label[name],"PLE");
+	leg->AddEntry(_vdt[i].output,_gf_label[name],"PLE");
+	leg->SetY1NDC(leg->GetY1NDC()-0.05);
+      }
+      else if (type=="cef" || type=="muf") c1l->cd();
+      else c1c->cd();
+      
+      // Default settings
+      if (_gf_color[name]==0)  _gf_color[name] = kBlack;
+      if (_gf_marker[name]==0) _gf_marker[name] = kFullCircle;
+      if (_gf_label[name]==0)  _gf_label[name] = name.c_str();
+      if (_gf_size[name]==0)   _gf_size[name] = 1.0;
+      
+      //tdrDraw(_vdt[i].input,"Pz",kOpenSquare,mcolor[name]);
+      //tdrDraw(_vdt[i].output,"Pz",kFullCircle,mcolor[name]);
+      tdrDraw(_vdt[i].output,"Pz",_gf_marker[name],_gf_color[name]);
+      if (name=="hdm_mpfchs1_multijet")
+	tdrDraw(_vdt[i].input,"Pz",kOpenTriangleUp,_gf_color[name]);
+
+      _vdt[i].output->SetMarkerSize(_gf_size[name]);
+      _vdt[i].input->SetMarkerSize(_gf_size[name]);
+      
+      /*
+      // Add up all the fractions to check they sum up to unity
+      if (TString(name.c_str()).Contains("pfjet") && type!="Rjet") {
+	if (!gpfjet) gpfjet = (TGraphErrors*)_vdt[i].input->Clone("gpfjet");
+	else gpfjet = tools::diffGraphs(gpfjet,_vdt[i].input,1,-1);
+      }
+      if (TString(name.c_str()).Contains("zjet") && type!="Rjet") {
+	if (!gzjet) gzjet = (TGraphErrors*)_vdt[i].input->Clone("gzjet");
+	else gzjet = tools::diffGraphs(gzjet,_vdt[i].input,1,-1);
+      }
+      if (TString(name.c_str()).Contains("zlljet") && type!="Rjet") {
+	if (!gzljet) gzljet = (TGraphErrors*)_vdt[i].input->Clone("gzljet");
+	else gzljet = tools::diffGraphs(gzljet,_vdt[i].input,1,-1);
+      }
+      if (TString(name.c_str()).Contains("zmmjet") && type!="Rjet") {
+	if (!gzmjet) gzmjet = (TGraphErrors*)_vdt[i].input->Clone("gzmjet");
+	else gzmjet = tools::diffGraphs(gzmjet,_vdt[i].input,1,-1);
+      }
+      if (TString(name.c_str()).Contains("gamjet") && type!="Rjet") {
+	if (!ggjet) ggjet = (TGraphErrors*)_vdt[i].input->Clone("ggjet");
+	else ggjet = tools::diffGraphs(ggjet,_vdt[i].input,1,-1);
+      }
+      */
+    } // for i in _vdt   
+
+    c1l->cd();
+    _obs = "cef";
+    TGraph *gcef = new TGraph(_jesFit);  // use graph to keep '_obs' setting
+    tdrDraw(gcef,"Lz",kNone,kCyan+2,kSolid);
+
+    _obs = "muf";
+    TGraph *gmuf = new TGraph(_jesFit);  // use graph to keep '_obs' setting
+    tdrDraw(gmuf,"Lz",kNone,kMagenta+2,kSolid);
+
+    c1c->cd();
+    /*
+    tdrDraw(gzmjet,"PLz",kFullSquare,kGray); gzmjet->SetMarkerSize(0.8);
+    tdrDraw(gzljet,"PLz",kFullSquare,kGray);
+    tdrDraw(gzjet,"PLz",kFullSquare,kGray+1);
+    tdrDraw(ggjet,"PLz",kFullCircle,kGray+2);
+    tdrDraw(gpfjet,"PLz",kFullDiamond,kBlack);
+    */
+    _obs = "chf";
+    TGraph *gchf = new TGraph(_jesFit);  // use graph to keep '_obs' setting
+    TGraphErrors *gchfe = new TGraphErrors(gchf->GetN());
+    for (int i = 0; i != gchf->GetN(); ++i) {
+      double pt = gr->GetX()[i];
+      gchfe->SetPoint(i, pt, gchf->GetY()[i]);
+      gchfe->SetPointError(i, 0., fitError(&pt, &k) - gchf->GetY()[i]);
+    }
+    tdrDraw(gchfe,"E3",kNone,kRed+1,kSolid,-1,1001,kRed-9);
+    tdrDraw(gchf,"Lz",kNone,kRed,kSolid);
+
+    _obs = "nhf";
+    TGraph *gnhf = new TGraph(_jesFit);  // use graph to keep '_obs' setting
+    TGraphErrors *gnhfe = new TGraphErrors(gnhf->GetN());
+    for (int i = 0; i != gnhf->GetN(); ++i) {
+      double pt = gr->GetX()[i];
+      gnhfe->SetPoint(i, pt, gnhf->GetY()[i]);
+      gnhfe->SetPointError(i, 0., fitError(&pt, &k) - gnhf->GetY()[i]);
+    }
+    tdrDraw(gnhfe,"E3",kNone,kGreen+3,kSolid,-1,1001,kGreen-9);
+    tdrDraw(gnhf,"Lz",kNone,kGreen+2,kSolid);
+
+    _obs = "nef";
+    TGraph *gnef = new TGraph(_jesFit);  // use graph to keep '_obs' setting
+    TGraphErrors *gnefe = new TGraphErrors(gnef->GetN());
+    for (int i = 0; i != gnef->GetN(); ++i) {
+      double pt = gr->GetX()[i];
+      gnefe->SetPoint(i, pt, gnef->GetY()[i]);
+      gnefe->SetPointError(i, 0., fitError(&pt, &k) - gnef->GetY()[i]);
+    }
+    tdrDraw(gnefe,"E3",kNone,kBlue+1,kSolid,-1,1001,kBlue-9);
+    tdrDraw(gnef,"Lz",kNone,kBlue,kSolid);
 
     _obs = "Rjet";
-    _jesFit->Draw("SAME");
+    TGraph *grjt = new TGraph(_jesFit);  // use graph to keep '_obs' setting
+    tdrDraw(grjt,"Lz",kNone,kBlack,kSolid);
+
+
+    // test case: gamma+jet true response in MC
+    if (false) {
+      c1->cd();
+      TFile *fg = new TFile("../gamjet/files/GamHistosFill_mc_2018P8.root",
+			    "READ");
+      assert(fg && !fg->IsZombie());
+      TProfile *p = (TProfile*)fg->Get("control/prgen"); assert(p);
+      //tdrDraw(p,"HIST",kNone,kCyan+2,kSolid,-1,kNone);
+      TProfile *pr = (TProfile*)fg->Get("control/prjet"); assert(pr);
+      TProfile *pg = (TProfile*)fg->Get("control/pgjet"); assert(pg);
+      TH1D *hp = pr->ProjectionX("hp");
+      hp->Divide(pg);
+      tdrDraw(hp,"HIST",kNone,kCyan+2,kSolid,-1,kNone);
+      //tdrDraw(p,"HIST",kNone,kCyan+3,kDashed,-1,kNone);
+    }
+    // test case: Z+jet true response in MC
+    if (false) {
+      //TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_v35_2018_emu_wTTJets.root","READ");
+      TFile *fz = new TFile("rootfiles/jme_bplusZ_merged_v37_2016FH_mu.root","READ");
+      assert(fz && !fz->IsZombie());
+      // rz_zmmjet_a100 : (Zpt,genZpt/Zpt) => Z resp. log-lin slope +1% to -2%
+      // rpt_zmmjet_a100 : (Zpt,RpT) => pTreco/pTZ vs pTZ
+      // rbal_zmmjet_a100 : (Zpt,ljet_pt/Zpt) => pTrgen/pTZ vs pTZ
+      // *rgenjet1_zmmjet_a100 : (Zpt,...) => pTgen*cos(dphi)/pTZ vs pTZ
+      // *rmpfjet1_zmmjet_a100 : (Zpt,RMPFjet1) => pTreco*cos(dphi)/pTZ vs pTZ
+      TGraphErrors *gr2 = (TGraphErrors*)fz->Get("mc/eta_00_13/rmpfjet1_zmmjet_a100"); assert(gr2);
+      TGraphErrors *gg2 = (TGraphErrors*)fz->Get("mc/eta_00_13/rgenjet1_zmmjet_a100"); assert(gg2);
+      TGraphErrors *g2 = tools::ratioGraphs(gr2,gg2);
+      TGraphErrors *gr = (TGraphErrors*)fz->Get("mc/eta_00_13/rpt_zmmjet_a100"); assert(gr);
+      TGraphErrors *gg = (TGraphErrors*)fz->Get("mc/eta_00_13/rbal_zmmjet_a100"); assert(gg);
+      TGraphErrors *g = tools::ratioGraphs(gr,gg);
+      tdrDraw(g,"Lz",kNone,kRed+2,kSolid,-1,kNone);
+      tdrDraw(g2,"Lz",kNone,kRed+2,kDashed,-1,kNone);
+      // rz may be relevant, HDM is above MC truth at high pT
+      TGraphErrors *gz = (TGraphErrors*)fz->Get("mc/eta_00_13/rz_zmmjet_a100");
+      assert(gz);
+      TGraphErrors *gz1 = tools::ratioGraphs(g,gz);
+      tdrDraw(gz1,"Lz",kNone,kRed+2,kDotted,-1,kNone);
+      // Much too large fix at high pT. Different in 2016FH? Something else?
+    }
+
+    c1->cd(); gPad->RedrawAxis();
+    c1c->cd(); gPad->RedrawAxis();
+    c1l->cd(); gPad->RedrawAxis();
+   
+    c1->SaveAs("pdf/globalFitRun2/Run2Test_rjet.pdf");
+    c1c->SaveAs("pdf/globalFitRun2/Run2Test_pf.pdf");
+    c1l->SaveAs("pdf/globalFitRun2/Run2Test_mu.pdf");
   }
 } // globalFitEtaBin
 
@@ -329,6 +557,13 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   double var = (_obs=="Rjet" ? 1. : 0.);
   double pt = x[0];
 
+  // Permit baseline shift for JES with L2L3Res inputs. Needed for PFcomp fit
+  double jesref = 1;
+  if (_gf_useJESref && _obs=="Rjet") {
+    assert(_hjesref);
+    jesref = _hjesref->Interpolate(pt);
+  }
+
   // Load available shapes for this observable
   vector<fitShape> &v = _mshape[_obs];
   for (unsigned int i = 0; i != v.size(); ++i) {
@@ -336,10 +571,10 @@ Double_t jesFit(Double_t *x, Double_t *p) {
     // Calculate variation and add it to total
     int idx = v[i].idx;   assert(idx>=0);
     TF1 *f1 = v[i].func;  assert(f1);
-    var += p[idx] * f1->Eval(pt);
+    var += p[idx] * f1->Eval(pt) * 0.01; // fullSimShapes in %'s
   } // for i in mshape
 
-  return var;
+  return (var / jesref);
 } // jesFit
 
 
