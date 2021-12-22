@@ -100,6 +100,10 @@ void drawFlavor() {
   TH1D *hr = tdrHist("hr","Recoil");
   TH1D *hmjb = tdrHist("hmjb","Multijet balance");
 
+  TH1D *hzl = tdrHist("hzl","Z+jet (pT,lead)");
+  TH1D *hzr = tdrHist("hzr","Z+jet (pT,recoil)");
+  TH1D *hzmjb = tdrHist("hzmjb","Multijet balance wrt Z+jet");
+
   TH1D *hq = tdrHist("hq","Quark");
   TH1D *hs = tdrHist("hs","Strange");
   TH1D *hc = tdrHist("hc","Charm");
@@ -147,13 +151,22 @@ void drawFlavor() {
     hl->SetBinContent(i, rl);
     // Error used in hl,hr ratio and f1mjb fit
     hl->SetBinError(i, 0.0002);
+    //
+    double rzl = f->getResp(ptl, absetamin, absetamax, "ZJet13", w, "13");
+    hzl->SetBinContent(i, rzl);
+    hzl->SetBinError(i, 0.0002);
+
     //cout << "pt="<<pt<<" rl="<<r<<endl;
-    //double rr = f->getResp(pt, eta, "MultijetRecoil25", 0);
-    // Retrieve fractions at pT,recoil, but response at Crecoil*pT,recoil
+    //double rr = f->getResp(pt, eta, "MultijetRecoil25", 0); // NOPE!
+    // => Retrieve fractions at pT,recoil, but response at Crecoil*pT,recoil
     double ff[5]; f->getFracs(pta, eta, "MultijetRecoil25", ff);
     double rr = f->getResp(ptr, absetamin, absetamax, ff, w, "25");
     hr->SetBinContent(i, rr);
     hr->SetBinError(i, 0);
+    //
+    double rzr = f->getResp(ptr, absetamin, absetamax, "ZJet13", w, "13");
+    hzr->SetBinContent(i, rzr);
+    hzr->SetBinError(i, 0.0002);
 
     double rq = f->getResp(pt, absetamin, absetamax, "ud", w);
     hq->SetBinContent(i, rq);
@@ -190,6 +203,13 @@ void drawFlavor() {
   hmjb->Divide(hl,hr);
   tdrDraw(hmjb,"PL",kNone,kBlack,kSolid,-1,kNone);
 
+  tdrDraw(hzl,"PL",kNone,kOrange+2,kSolid,-1,kNone);
+  tdrDraw(hzr,"PL",kNone,kOrange+1,kSolid,-1,kNone);
+  hzmjb->Divide(hl,hr);
+  hzmjb->Divide(hzl);
+  hzmjb->Multiply(hzr);
+  tdrDraw(hzmjb,"PL",kNone,kOrange+3,kSolid,-1,kNone);
+
   //tdrDraw(hjb,"PL",kOpenDiamond,kBlack);
   //tdrDraw(hmj,"PL",kOpenCircle,kBlack);
   tdrDraw(hdm,"PL",kFullCircle,kGray);//kBlack);
@@ -218,6 +238,11 @@ void drawFlavor() {
   leg->AddEntry(hl,"Leading jet","L");
   leg->AddEntry(hr,"Recoil","L");
 
+  TLegend *leg2 = tdrLeg(0.4+dx,0.20,0.6+dx,0.20+3*0.05);
+  leg2->AddEntry(hzmjb,"Leading jet / recoil wrt Z+jet","L");
+  leg2->AddEntry(hzl,"Z+jet (pT,lead)","L");
+  leg2->AddEntry(hzr,"Z+jet (pT,recoil)","L");
+
   TF1 *f1mjb = new TF1("f1mjb","[0]+[1]*pow(x,[2])",114,2500);  
   f1mjb->SetParameters(1,1,-1);
   //hmjb->Fit(f1mjb,"QRNW");
@@ -241,6 +266,30 @@ void drawFlavor() {
   }
   cout << Form(" // chi2/NDF=%1.1f/%d",f1mjb->GetChisquare(),
 	       f1mjb->GetNDF()) << endl;
+
+
+  TF1 *f1zmjb = new TF1("f1zmjb","[0]+[1]*pow(x,[2])",114,2500);  
+  f1zmjb->SetParameters(1,1,-1);
+  hzmjb->Fit(f1zmjb,"QRN");
+  f1zmjb->SetLineWidth(2);
+  f1zmjb->SetLineStyle(kDotted);
+  f1zmjb->SetLineColor(kOrange+3);
+  f1zmjb->DrawClone("SAME");
+  f1zmjb->SetLineWidth(1);
+  f1zmjb->SetRange(15,3500);
+  f1zmjb->DrawClone("SAME");
+
+  cout << "  // MultijetRecoilScale from minitools/drawFlavor.C" << endl;
+  cout << Form("  TF1 *%s = new TF1(\"%s\",\"%s\",114,2500);",
+	       f1zmjb->GetName(),f1zmjb->GetName(),
+	       f1zmjb->GetExpFormula().Data()) << endl;
+  cout << Form("  %s->SetParameters(",f1zmjb->GetName());
+  for (int i = 0; i != f1zmjb->GetNpar(); ++i) {
+    cout << Form("%1.4g%s",f1zmjb->GetParameter(i),
+		 i==f1zmjb->GetNpar()-1 ? ");" : ", ");
+  }
+  cout << Form(" // chi2/NDF=%1.1f/%d",f1zmjb->GetChisquare(),
+	       f1zmjb->GetNDF()) << endl;
 
   gPad->RedrawAxis();
   c1->SaveAs("pdf/drawFlavor.pdf");
