@@ -1,11 +1,14 @@
 // Purpose: Draw results using Flavor.C/h
+// Run with 'root -l -b -q minitools/mk_drawFlavor.C'
 #include "TFile.h"
 #include "TLine.h"
 
 #include "../Flavor.h"
 #include "../tdrstyle_mod15.C"
+#include "tools.C"
 
-bool doDataMC = true;
+// Data/MC false (i.e. MC) is good for checking HDM vs MPF vs MJB
+bool doDataMC = true;//false;
 
 void drawFlavor() {
 
@@ -34,7 +37,8 @@ void drawFlavor() {
     hmu = hmud;
   }
 
-  TFile *fgf = new TFile("rootfiles/jecdata2018ABCD.root","READ");
+  TFile *fgf = new TFile("rootfiles/jecdataRun2Test.root","READ");
+  //TFile *fgf = new TFile("rootfiles/jecdata2018ABCD.root","READ");
   // TFile *fgf = new TFile("rootfiles/jecdata2017BCDEF.root","READ");
   assert(fgf && !fgf->IsZombie());
   TH1D *hdm = (TH1D*)fgf->Get("mc/eta00-13/hdm_mpfchs1_multijet"); assert(hdm);
@@ -45,9 +49,41 @@ void drawFlavor() {
   hdu->Multiply(hmu);
   hdu->Divide(hmj);
 
+  // Retrieve results before/after flavor corrections. Only data+MC, no ratio
+  TGraphErrors *gmjbdb(0), *gmjbda(0), *gmjbm(0);
+  TGraphErrors *gmpfdb(0), *gmpfda(0), *gmpfm(0);
+  fgf->cd("data/eta00-13/orig");
+  TDirectory *db = gDirectory;
+  fgf->cd("data/eta00-13");
+  TDirectory *da = gDirectory;
+  fgf->cd("mc/eta00-13/orig");
+  TDirectory *dm = gDirectory;
+  gmjbdb = (TGraphErrors*)db->Get("ptchs_multijet_a30"); assert(gmjbdb);
+  gmjbda = (TGraphErrors*)da->Get("ptchs_multijet_a30"); assert(gmjbda);
+  gmjbm  = (TGraphErrors*)dm->Get("ptchs_multijet_a30"); assert(gmjbm);
+  gmpfdb = (TGraphErrors*)db->Get("mpfchs1_multijet_a30"); assert(gmpfdb);
+  gmpfda = (TGraphErrors*)da->Get("mpfchs1_multijet_a30"); assert(gmpfda);
+  gmpfm  = (TGraphErrors*)dm->Get("mpfchs1_multijet_a30"); assert(gmpfm);
+  if (doDataMC) {
+    gmjbda = tools::ratioGraphs(gmjbda, gmjbm);
+    gmjbdb = tools::ratioGraphs(gmjbdb, gmjbm);
+    gmpfda = tools::ratioGraphs(gmpfda, gmpfm);
+    gmpfdb = tools::ratioGraphs(gmpfdb, gmpfm);
+  }
+  else { // useMC 
+    gmjbdb = gmjbm;
+    gmjbda = gmjbm;
+    gmpfdb = gmpfm;
+    gmpfda = gmpfm;
+  }
+  TGraphErrors *gaob = tools::ratioGraphs(gmpfda,gmpfdb);
+  TGraphErrors *ghdmda = new TGraphErrors(hdm);
+  TGraphErrors *ghdmdb = tools::ratioGraphs(ghdmda,gaob);
+
   curdir->cd();
 
-  lumi_13TeV = "Flavor.C / Autumn18_V3";
+  //lumi_13TeV = "Flavor.C / Autumn18_V3";
+  lumi_13TeV = "Flavor.C / Run2Test";
   TH1D *h = tdrHist("h","Flavor response (MC)",0.96,1.06);
   if (doDataMC) h->SetYTitle("Flavor response (Data/MC)");
   if (f->doRobin) {
@@ -109,12 +145,15 @@ void drawFlavor() {
     double rl = f->getResp(ptl, absetamin, absetamax, "MultijetLeading13",
 			   w, "13");
     hl->SetBinContent(i, rl);
+    // Error used in hl,hr ratio and f1mjb fit
+    hl->SetBinError(i, 0.0002);
     //cout << "pt="<<pt<<" rl="<<r<<endl;
     //double rr = f->getResp(pt, eta, "MultijetRecoil25", 0);
     // Retrieve fractions at pT,recoil, but response at Crecoil*pT,recoil
     double ff[5]; f->getFracs(pta, eta, "MultijetRecoil25", ff);
     double rr = f->getResp(ptr, absetamin, absetamax, ff, w, "25");
     hr->SetBinContent(i, rr);
+    hr->SetBinError(i, 0);
 
     double rq = f->getResp(pt, absetamin, absetamax, "ud", w);
     hq->SetBinContent(i, rq);
@@ -151,24 +190,38 @@ void drawFlavor() {
   hmjb->Divide(hl,hr);
   tdrDraw(hmjb,"PL",kNone,kBlack,kSolid,-1,kNone);
 
-  tdrDraw(hjb,"PL",kOpenDiamond,kBlack);
-  tdrDraw(hmj,"PL",kOpenCircle,kBlack);
-  tdrDraw(hdm,"PL",kFullCircle,kBlack);
-  tdrDraw(hdu,"PL",kFullCircle,kBlue); hdu->SetMarkerSize(0.7);
+  //tdrDraw(hjb,"PL",kOpenDiamond,kBlack);
+  //tdrDraw(hmj,"PL",kOpenCircle,kBlack);
+  tdrDraw(hdm,"PL",kFullCircle,kGray);//kBlack);
+  //tdrDraw(hdu,"PL",kFullCircle,kBlue); hdu->SetMarkerSize(0.7);
   
+  // New graphs
+  tdrDraw(gmjbdb,"Pz",kOpenDiamond,kBlack);//kGray+2);
+  tdrDraw(gmpfdb,"Pz",kOpenCircle,kBlack);//kGray+2);
+  tdrDraw(ghdmdb,"Pz",kFullCircle,kBlack);//kGray+2);
+
+  // Newly fixed HDM
+  TGraphErrors *glor = new TGraphErrors(hmjb);
+  TGraphErrors *ghdmda2 = tools::ratioGraphs(ghdmdb,glor);
+  tdrDraw(ghdmda2,"PL",kFullSquare,kRed);
+  ghdmda2->SetMarkerSize(0.7);
+
   double dx = (doDataMC ? +0.05 : 0.);
-  TLegend *leg = tdrLeg(0.4+dx,0.90-7*0.05,0.6+dx,0.90);
+  TLegend *leg = tdrLeg(0.4+dx,0.90-6*0.05,0.6+dx,0.90);
   leg->AddEntry(hdm,"Multijet HDM","PLE");
-  leg->AddEntry(hdu,"Multijet HDM (JER down)","PLE");
-  leg->AddEntry(hmj,"Multijet MPF","PLE");
-  leg->AddEntry(hjb,"Multijet MJB","PLE");
+  //leg->AddEntry(hdu,"Multijet HDM (JER down)","PLE");
+  //leg->AddEntry(hmj,"Multijet MPF","PLE");
+  leg->AddEntry(gmpfdb,"Multijet MPF","PLE");
+  //leg->AddEntry(hjb,"Multijet MJB","PLE");
+  leg->AddEntry(gmjbdb,"Multijet MJB","PLE");
   leg->AddEntry(hmjb,"Leading jet / recoil","L");
   leg->AddEntry(hl,"Leading jet","L");
   leg->AddEntry(hr,"Recoil","L");
 
   TF1 *f1mjb = new TF1("f1mjb","[0]+[1]*pow(x,[2])",114,2500);  
   f1mjb->SetParameters(1,1,-1);
-  hmjb->Fit(f1mjb,"QRNW");
+  //hmjb->Fit(f1mjb,"QRNW");
+  hmjb->Fit(f1mjb,"QRN");
   f1mjb->SetLineWidth(2);
   f1mjb->SetLineStyle(kDotted);
   f1mjb->SetLineColor(kOrange+2);
