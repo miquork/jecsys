@@ -135,15 +135,17 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
   //samples.push_back("zmmjet");
   if (etamax==1.3) {
     //if (!isUL16) 
-    samples.push_back("multijet");
-    samples.push_back("zlljet");
-    samples.push_back("zeejet");
-    samples.push_back("zmmjet");
+    if (epoch!="2017H") {
+      samples.push_back("multijet");
+      samples.push_back("zlljet");
+      samples.push_back("zeejet");
+      samples.push_back("zmmjet");
+    }
     if (epoch=="2016EF" || epoch=="2016GH" || epoch=="2016BCD" ||
 	epoch=="2018ABCD" || epoch=="2017BCDEF" || epoch=="2016BCDEF" ||
 	epoch=="Run2Test")
       samples.push_back("gamjet");
-
+    if (isUL18||isUL17||isUL16||isRun2) {
       samples.push_back("gi");
       samples.push_back("gb");
       samples.push_back("gc");
@@ -192,6 +194,7 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
       samples.push_back("gnq");
       samples.push_back("gng");
       samples.push_back("gnn");
+    }
   }
   samples.push_back("zjet");
   if (isUL18||isUL17||isUL16||isRun2) {

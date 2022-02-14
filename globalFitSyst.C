@@ -8,22 +8,30 @@
 #include "TProfile.h"
 #include "TGraphErrors.h"
 
-const bool doMultijetJER = true;
+bool doMultijetJER = true;
 // Which binning used for multijets ("leading" or "recoil");
 //string multijetModeS = "leading"; // defined in reprocess.C => check consistency
 string multijetModeS = "ptave"; // defined in reprocess.C => check consistency
 
-const bool doGamMass = true; // photon scale from Zee
-const bool doGamGains = true; // photon scale with gain1, gain6 path
+bool doGamMass = true; // photon scale from Zee
+bool doGamGains = true; // photon scale with gain1, gain6 path
 
-const bool doHadWfitProb = true; // hadronic W fitProb
-const bool doHadWfsr = true; // hadronic W FSR uncertainty
+bool doHadWfitProb = true; // hadronic W fitProb
+bool doHadWfsr = true; // hadronic W FSR uncertainty
 
-void globalFitSyst(string run = "BCDEF") {
+bool doIncjetHDM = true; // TH1D "hdm_incjet" for globalFitRenormPF.C
+
+void globalFitSyst(string run = "Run2Test") {
+
+  TDirectory *curdir = gDirectory;
 
   TFile *f = new TFile(Form("rootfiles/jecdata%s.root",run.c_str()),
 		       "UPDATE");
   assert(f && !f->IsZombie());
+
+  if (run=="2017H") { 
+    doMultijetJER = doGamMass = doGamGains = doHadWfitProb = doHadWfsr = false;
+  }
   
   assert(f->cd("ratio"));
   TDirectory *d1 = f->GetDirectory("ratio");
@@ -35,7 +43,9 @@ void globalFitSyst(string run = "BCDEF") {
   if (!d2->FindObject("sys")) d2->mkdir("sys");
   assert(d2->cd("sys"));
   TDirectory *dsys = d2->GetDirectory("sys"); dsys->cd();
-  
+
+  curdir->cd();
+
   if (doMultijetJER) {
     // Systematics fit done in minitools/systMultijet.C
     // Very similar sensitivity in all variants of
@@ -52,7 +62,8 @@ void globalFitSyst(string run = "BCDEF") {
     fleading->SetParameters(0.192, -0.384, -3.260);
     
     // histogram to get correct binning
-    TH1D *h = (TH1D*)dfsr->Get("hkfsr_ptchs_multijet"); assert(h);
+    //TH1D *h = (TH1D*)dfsr->Get("hkfsr_ptchs_multijet"); assert(h);
+    TH1D *h = (TH1D*)dfsr->Get("hkfsr3_ptchs_multijet"); assert(h);
 
     TH1D *h1 = (TH1D*)h->Clone("mpfchs1_multijet_src0");
     TH1D *h2 = (TH1D*)h->Clone("ptchs_multijet_src0");
@@ -82,13 +93,15 @@ void globalFitSyst(string run = "BCDEF") {
     //h1->Write(h1->GetName(), TObject::kOverwrite);
     //h2->Write(h2->GetName(), TObject::kOverwrite);
     h1->Write("jer_multijet", TObject::kOverwrite);
+    curdir->cd();
   } // do MultijetJER
 
 
   if (doGamMass) {
 
     // histogram to get correct binning
-    TH1D *hk = (TH1D*)dfsr->Get("hkfsr_mpfchs1_gamjet"); assert(hk);      
+    //TH1D *hk = (TH1D*)dfsr->Get("hkfsr_mpfchs1_gamjet"); assert(hk);      
+    TH1D *hk = (TH1D*)dfsr->Get("hkfsr3_mpfchs1_gamjet"); assert(hk);      
     
     // Copied from reprocess.C
     // Extra functions for gamma+jet, modified from Zee+jet
@@ -159,6 +172,7 @@ void globalFitSyst(string run = "BCDEF") {
       }
       dsys->cd();
       hke->Write(hke->GetName(), TObject::kOverwrite);
+      curdir->cd();
     } // for ieig
   } // doGamMass
 
@@ -178,10 +192,9 @@ void globalFitSyst(string run = "BCDEF") {
     dsys->cd();
     h1->Write(h1->GetName(), TObject::kOverwrite);
     h6->Write(h6->GetName(), TObject::kOverwrite);
+    curdir->cd();
 
     // Create an extra "pure HDM variant" for globalFitRun2.root
-    d2->cd();
-
     TH1D *hg = (TH1D*)d2->Get("hdm_mpfchs1_gamjet"); assert(hg);
     hg = (TH1D*)hg->Clone("hdm_gamjet");
     //hg->Add(h1,-0.5);
@@ -198,7 +211,9 @@ void globalFitSyst(string run = "BCDEF") {
       }
     } // for i in hg
 
+    d2->cd();
     hg->Write(hg->GetName(), TObject::kOverwrite);
+    curdir->cd();
   }
 
   if (doHadWfitProb) {
@@ -253,6 +268,7 @@ void globalFitSyst(string run = "BCDEF") {
     hkeb->Write("hadw_ptboth_fitprob", TObject::kOverwrite);
     hkea2->Write("hadw_ptave_fitprob2", TObject::kOverwrite);
     hkeb2->Write("hadw_ptboth_fitprob2", TObject::kOverwrite);
+    curdir->cd();
   } // doHadWfitProb
 
   if (doHadWfsr) {
@@ -265,36 +281,41 @@ void globalFitSyst(string run = "BCDEF") {
     TProfile *pup = (TProfile*)ffsr->Get("pmm13bptave_FSRup"); assert(pup);
     TProfile *pdw = (TProfile*)ffsr->Get("pmm13bptave_FSRdw"); assert(pdw);
 
-    dfsr->cd();
-
     // Expected about 1-22 sigma shift on FSR => 1 sigma shift
     // Uncertainty for ptave
     TH1D *hfsr = pup->ProjectionX("hadw_fsr");
     hfsr->Add(pdw,-1);
     //hfsr->Scale(1.0);//2.0);
-    hfsr->Scale(1.5); // good match to both zjet and zlljet
+    //hfsr->Scale(1.5); // good match to both zjet and zlljet
+    hfsr->Scale(1.0); // better match to zjet and gamjet
     hfsr->Add(pmc,+1);
     hfsr->Divide(pmc);
 
     // Store for use in globalFitL3Res.C (adapt later in softrad3.C?)
+    dfsr->cd();
     hfsr->Write("hadw_fsr", TObject::kOverwrite);
+    curdir->cd();
 
-    d2->cd();
-    
     // Correct this for an "HDM" variant of W>qq' as well
     TGraphErrors *gw = (TGraphErrors*)d2->Get("mpfchs1_hadw_a30"); assert(gw);
     gw = (TGraphErrors*)gw->Clone("hdm_mpfchs1_hadw");
+    TH1D *hw = (TH1D*)hfsr->Clone("hdm_hadw"); hw->Reset();
     for (int i = 0; i != gw->GetN(); ++i) {
       double pt = gw->GetX()[i];
       double fsr = hfsr->GetBinContent(hfsr->FindBin(pt));
-      gw->SetPoint(i, pt, gw->GetY()[i]/fsr);
+      double newhadw = gw->GetY()[i]/fsr;
+      gw->SetPoint(i, pt, newhadw);
+      int j = hw->FindBin(pt);
+      hw->SetBinContent(j, newhadw);
+      hw->SetBinError(j, gw->GetEY()[i]/fsr);
       // Don't add hfsr uncertainty (yet): likely correlated for fsrup & fsrdw
     }
 
     // Store for use in globalFitRun2.C
-    gw->Write("hdm_hadw", TObject::kOverwrite);
-
-    dsys->cd();
+    d2->cd();
+    gw->Write("ghdm_hadw", TObject::kOverwrite);
+    hw->Write("hdm_hadw", TObject::kOverwrite);
+    curdir->cd();
 
     // Uncertainty for ptave
     TH1D *hfsra = pup->ProjectionX("hadw_ptave_fsr");
@@ -306,9 +327,50 @@ void globalFitSyst(string run = "BCDEF") {
     hfsrb->Add(pdw,-1);
     hfsrb->Divide(pmc);
 
+    dsys->cd();
     hfsra->Write("hadw_ptave_fsr", TObject::kOverwrite);
     hfsrb->Write("hadw_ptboth_fsr", TObject::kOverwrite);
+    curdir->cd();
   } // doHadWfsr
+
+  if (doIncjetHDM) {
+    // Create TH1D out for TGraphErrors for incjet and factor in Run2Test
+    TFile *f2 = new TFile("rootfiles/jecdataRun2Test.root","READ");
+    TH1D *href(0);
+    //if (f2 && !f2->IsZombie()) {
+    assert(f2 && !f2->IsZombie());
+    href = (TH1D*)f2->Get("ratio/eta00-13/hdm_cmb_mj"); assert(href);
+    //}
+
+    TGraphErrors *g = (TGraphErrors*)d2->Get("mpfchs1_incjet_a100");
+    assert(g);
+    g = (TGraphErrors*)g->Clone("ghdm_incjet");
+    vector<double> x;
+    x.push_back(g->GetX()[0]-g->GetEX()[0]);
+    for (int i = 0; i != g->GetN(); ++i) {
+      x.push_back(g->GetX()[i]+g->GetEX()[i]);
+    }
+    TH1D *h = new TH1D("hdm_incjet","",x.size()-1,&x[0]);
+    for (int i = 0; i != g->GetN(); ++i) {
+      int j = h->FindBin(g->GetX()[i]);
+      //h->SetBinContent(j, g->GetY()[i]);
+      //h->SetBinError(j, g->GetEY()[i]);
+      //if (href) {
+      int k = href->FindBin(g->GetX()[i]);
+      double cref = href->GetBinContent(k);
+      h->SetBinContent(j, g->GetY()[i] * cref);
+      h->SetBinError(j, g->GetEY()[i] * cref);
+      g->SetPoint(i, g->GetX()[i], g->GetY()[i] * cref);
+      //}
+    }
+
+    d2->cd();
+    g->Write("ghdm_incjet",TObject::kOverwrite);
+    h->Write("hdm_incjet",TObject::kOverwrite);
+    curdir->cd();
+
+    if (f2) f2->Close();
+  } // doIncJetHDM
   
   f->Close();
 } // globalFitSyst
