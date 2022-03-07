@@ -27,15 +27,20 @@ const bool correctECALprefire17H = false;//true;
 const bool correctECALprefire = false;//true;
 const bool unfold17H = true;
 const bool unfoldData = false;
-const bool getDetData = true;//false; // detector level data
-const bool getFwd = false;//true; // forward unfolded instead of Dagostini unfolded
+const bool getDetData = false;//true;//false; // detector level data
+const bool getFwd = true;//false;//true; // forward unfolded instead of Dagostini unfolded
 //const bool correctFilterEff = false;
 
 bool plotNLO = true; // patch 0.0-1.3
 bool plotMC = true; // 0.0-1.3 missing still
 bool plot2015 = false;
 bool plotVs17UL = false;//true;//false; // set to true for 17UL
-bool plotVs18UL = true; // set to true for 18UL
+bool plotVs18UL = false;//true; // set to true for 18UL
+bool plotVs16UL = false;//true; // set to true for 16UL
+bool plotVs16APV = false;//true; // set to true for 16APV
+bool plotVsUL4X = false;//true; // set to true for 16APV
+bool useCustom4X = false;
+bool useCustom5X = true;
 
 // "Rebin(2)"
 const int nptb = 51+10+6;
@@ -198,53 +203,36 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   
   TDirectory *curdir = gDirectory;
 
-  // Common format ROOT tuple from Engin Eren
-  // https://gitlab.cern.ch/CMS-SMP-J/InclusiveJetsLegacy/blob/master/
-  // => common2016.root (JEC V8?)
-  // => common2016_October2018_V17.root (corrected for lumi?)
   // https://gitlab.cern.ch/lamartik/combinationfiles
-  // => common17_V11.root
-  // => common2018_V7.root
-  // => common2018_V10.root
-  //TFile *fin1 = new TFile("rootfiles/common2018_V7.root","READ");
-  //TFile *fin1 = new TFile("rootfiles/common2018_V10.root","READ");
-  //TFile *fin1 = new TFile("rootfiles/common2018_V13h.root","READ");
-  //TFile *fin1 = new TFile("rootfiles/common2018_V10_hotzone.root","READ");
-  //TFile *fin1 = new TFile("rootfiles/common2018_V10_hotzone-2.root","READ");
-  //TFile *fin1 = new TFile("rootfiles/common2018_V18_unfolding.root","READ");
-  //TFile *fin1 = new TFile("rootfiles/common2018_V18_unfolding.root","READ");
-  //TFile *fin1 = new TFile("rootfiles/common2018_V19.root","READ");
   TFile *fin1 = new TFile("rootfiles/common2018_V19-5.root","READ");
   assert(fin1 && !fin1->IsZombie());
-  
-  //TFile *fin2 = new TFile("rootfiles/common2016_LegacyIOVs_v3.root","READ");
-  //TFile *fin2 = new TFile("rootfiles/common2017_V11.root","READ");
-  //TFile *fin2 = new TFile("rootfiles/common2017_V32.root","READ");
-  //TFile *fin2 = new TFile("rootfiles/common2017_V32_tight.root","READ");
-  //TFile *fin2 = new TFile("rootfiles/common2017_V32_hotzone.root","READ");
-  //TFile *fin2 = new TFile("rootfiles/common2017_V32_hotzone-3.root","READ");
-  //TFile *fin2 = new TFile("rootfiles/common2017_V32_hotzone_unfolding.root","READ");
   TFile *fin2 = new TFile("rootfiles/common2017_V32_hotzone_unfolding-3.root","READ");
   assert(fin2 && !fin2->IsZombie());
 
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V1.root","READ");
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V1-2.root","READ");
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V1-3.root","READ");
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V1-4.root","READ");
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V2.root","READ");
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4.root","READ");
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M4res.root","READ");
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M4res_hotzone.root","READ");
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M4res_hotzone_scaled.root","READ");
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M4res_hotzone_scaled2p.root","READ");
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M5res_hotzone.root","READ");
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M5res_hotzone_jes.root","READ"); // add MC JES in unfolding per IOV (20200610)
-  TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M5res_hotzone-2.root","READ");
-  //TFile *fin2ul = new TFile("rootfiles/commonUL2017_V4_V2M5res_hotzone_jes-2.root","READ"); // add MC JES in unfolding per IOV (20200610)
-  assert(fin2ul && !fin2ul->IsZombie());
+  // produced by minitools/drawIncJet.C to include
+  // 1) BB ECAL prefire, 2) jet veto map, 3) trigger eff.
+  // Has 2016, 2017, 2017H and 2018
+  TFile *finul4x = new TFile("rootfiles/commonULRun2_V7V5V5.root","READ");
 
-  TFile *fin18ul = new TFile("rootfiles/commonUL2018_V3-2.root","READ");
+  //TFile *fin17ul = new TFile("rootfiles/commonUL2017_V4_V2M5res_hotzone-2.root","READ");
+  TFile *fin17ul = new TFile("rootfiles/commonUL2017_V5_ECALfix.root","READ");
+  //TFile *fin17ul = new TFile("rootfiles/commonUL2017_V4_V2M5res_hotzone_jes-2.root","READ"); // add MC JES in unfolding per IOV (20200610)
+  assert(fin17ul && !fin17ul->IsZombie());
+
+  TFile *fin18ul = new TFile("rootfiles/commonUL2018_V5_ECALfix.root","READ");
   assert(fin18ul && !fin18ul->IsZombie());
+
+  //TFile *fin16ul = new TFile("rootfiles/commonUL2016_APV_V3_nAPV_V2_l2res_fixjer.root","READ");
+  //TFile *fin16ul = new TFile("rootfiles/commonUL2016_V5_l2l3res.root","READ");
+  //TFile *fin16ul = new TFile("rootfiles/commonUL2016_V5_l2l3res-2.root","READ");
+  //TFile *fin16ul = new TFile("rootfiles/commonUL2016_V5_l2l3res_jetveto.root","READ"); // V7 JEC inputs
+  TFile *fin16ul = new TFile("rootfiles/commonUL2016_V7_l2l3res-3.root","READ");
+  //TFile *fin16ul = new TFile("rootfiles/commonUL2016_V6_l2l3res.root","READ");
+  //TFile *fin16ul = new TFile("rootfiles/commonUL2016_V7_l2l3res-3.root","READ");
+  assert(fin16ul && !fin16ul->IsZombie());
+
+  TFile *fin17ulh = new TFile("rootfiles/output-DATA-3-Sevgi-May12-Custom1.root","READ");
+  assert(fin17ulh && !fin17ulh->IsZombie());
 
   //TFile *finh = new TFile("rootfiles/outHdata-Hdata-lowpu.root","READ");
   //TFile *finh = new TFile("rootfiles/outHdata-Hdata-lowpu-2.root","READ");
@@ -399,9 +387,39 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   const int neras_2018 = sizeof(eras_2018)/sizeof(eras_2018[0]);
   string eras_2018ul[] = {"18UL","18ULA","18ULB","18ULC","18ULD"};
   const int neras_2018ul = sizeof(eras_2018ul)/sizeof(eras_2018ul[0]);
+  //string eras_2016ul[] = {"16UL","16ULBCD","16ULEF","16ULBCDEF","16ULGH"};
+  //string eras_2016ul[] = {"16UL","16ULBCD","16ULEF","16ULGH"};
+  //string eras_2016ul[] = {"16ULBCD","16ULEF","16ULGH"};
+  // put GH last as gets divided by itself?
+  string eras_2016ul[] = {"16ULBCD","16ULEF","16ULBCDEF","16ULGH",
+			  "16ULBCDandEF","16UL"};
+  const int neras_2016ul = sizeof(eras_2016ul)/sizeof(eras_2016ul[0]);
+  // put BCDEF last as getes divided by itself?
+  string eras_2016apv[] = {"16ULEF","16ULBCD","16ULBCDEF"};
+  const int neras_2016apv = sizeof(eras_2016apv)/sizeof(eras_2016apv[0]);
     
+  //string eras_ul4x[] = {"16ULBCDandEF","16ULGH","17UL","18UL"};
+  //string eras_ul4x[] = {"UL16APV","UL16GH","UL17","UL18"};
+  //string eras_ul4x[] = {"16ULBCDandEF","16ULGH","UL17","UL18"};
+  string eras_ul4x[] = {"UL16APV","UL16GH","UL17","UL18","UL4X"};
+  //string eras_ul4x[] = {"UL16","UL17","UL17H","UL18","UL4X"};
+  const int neras_ul4x = sizeof(eras_ul4x)/sizeof(eras_ul4x[0]);
+
+  string eras_ul5x[] = {"UL16APV","UL16GH","UL17","UL18","UL17H","UL5X"};
+  const int neras_ul5x = sizeof(eras_ul5x)/sizeof(eras_ul5x[0]);
+
   // Map eras to legend labels
   map<string,const char*> label;
+  label["UL16"] = "UL16";
+  label["UL16APV"] = "UL16APV";
+  label["UL16GH"] = "UL16GH";
+  label["UL17H"] = "UL17H";
+  label["UL17"] = "UL17";
+  label["UL18"] = "UL18";
+  label["UL4X"] = "Run2";
+  label["UL17H"] = "UL17H";
+  label["UL5X"] = "Run2";
+  //
   label["16BCD"] = "BCD";
   label["16EF"] = "EF";
   label["16GH"] = "GH";
@@ -426,6 +444,13 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   label["18ULC"] = "C (UL)";
   label["18ULD"] = "D (UL)";
   label["18UL"] = "2018UL";
+  label["16ULBCD"] = "BCD";// (UL)";
+  label["16ULEF"] = "EF";// (UL)";
+  label["16ULBCDEF"] = "BCDEF";// (UL)";
+  label["16ULBCDandEF"] = "BCD&EF";// (UL)";
+  label["16ULGH"] = "GH";// (UL)";
+  label["16UL"] = "2016UL";
+  label["16APV"] = "2016APV";
   label["18A"] = "A";
   label["18B"] = "B";
   label["18C"] = "C";
@@ -448,6 +473,15 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   if (sdir=="17UL") { eras = eras_2017ul; neras = neras_2017ul; plotVs17UL = true; }
   plotVs18UL = false;
   if (sdir=="18UL") { eras = eras_2018ul; neras = neras_2018ul; plotVs18UL = true; }
+  plotVs16UL = false;
+  if (sdir=="16UL") { eras = eras_2016ul; neras = neras_2016ul; plotVs16UL = true; }
+  plotVs16APV = false;
+  if (sdir=="16APV") { eras = eras_2016apv; neras = neras_2016apv; plotVs16APV = true; }
+  //if (sdir=="16UL") { eras = eras_2016ul; neras = neras_2016ul; plotVs18UL = true; }
+
+  //plotVsUL4X = false;
+  if (sdir=="UL4X") { eras = eras_ul4x; neras = neras_ul4x; plotVsUL4X = true; }
+  if (sdir=="UL5X") { eras = eras_ul5x; neras = neras_ul5x; plotVsUL4X = true; }
 
   // Mapping used later
   int irund(-1), irunsc(-1);//, irunbcd(-1);
@@ -463,6 +497,14 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 
   // Updated mappings
   map<string, const char*> meras;
+  meras["UL16"] = "2016_all";
+  meras["UL16APV"] = "2016_BCDandEF";
+  meras["UL16GH"] = "2016_GH";
+  meras["UL17H"] = "2017_H";
+  meras["UL17"] = "2017_all";
+  meras["UL18"] = "2018_all";
+  meras["UL4X"] = "";
+  meras["UL5X"] = "";
   meras["16BCD"] = "2016_BCD";
   meras["16EF"] = "2016_EF";
   meras["16GH"] = "2016_GH";
@@ -486,39 +528,71 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   meras["18ULB"] = "2018_B";
   meras["18ULC"] = "2018_C";
   meras["18ULD"] = "2018_D";
+  meras["16ULBCD"] = "2016_BCD";
+  meras["16ULEF"] = "2016_EF";
+  meras["16ULBCDEF"] = "2016_BCDEF";
+  meras["16ULBCDandEF"] = "2016_BCDandEF";
+  meras["16ULGH"] = "2016_GH";
   meras["16SC"] = "2016";
   meras["16LM"] = "2016_all";
   meras["17LM"] = "2017_all";
   meras["17UL"] = "2017_all";
   meras["18UL"] = "2018_all";
+  meras["16UL"] = "2016_all";
+  meras["16APV"] = "2016_BCDEF";
   meras["18LM"] = "2018_all";
   meras["Run2"] = "Run2";
   map<string, TFile*> mfins;
   mfins["16BCD"] = mfins["16EF"] = mfins["16GH"] = fin3;
   mfins["17B"] = mfins["17C"] = mfins["17DE"] = mfins["17F"] = fin2;
-  mfins["17ULB"] = mfins["17ULC"] = mfins["17ULD"] = mfins["17ULE"] = mfins["17ULF"] = mfins["17UL"] = fin2ul;
+  mfins["17ULB"] = mfins["17ULC"] = mfins["17ULD"] = mfins["17ULE"] = mfins["17ULF"] = mfins["17UL"] = mfins["UL17"] = fin17ul;
   mfins["17H"] = finh;
   mfins["17H2"] = finh2;
   mfins["17H3"] = finh3;
   mfins["18A"] = mfins["18B"] = mfins["18C"] = mfins["18D"] = fin1;
-  mfins["18ULA"] = mfins["18ULB"] = mfins["18ULC"] = mfins["18ULD"] = mfins["18UL"] = fin18ul;
+  mfins["18ULA"] = mfins["18ULB"] = mfins["18ULC"] = mfins["18ULD"] = mfins["18UL"] = mfins["UL18"] = fin18ul;
+  mfins["16ULBCD"] = mfins["16ULEF"] = mfins["16ULBCDEF"] = mfins["16ULBCDandEF"] = mfins["16ULGH"] = mfins["16UL"] = mfins["16APV"] = mfins["UL16APV"] = mfins["UL16GH"] = mfins["UL16"] = fin16ul;
+  mfins["UL17H"] = fin17ulh;
   mfins["16SC"] = finx;
   mfins["16LM"] = fin3;
   mfins["17LM"] = fin2;
   mfins["18LM"] = fin1;
   mfins["Run2"] = 0;
+  if (useCustom4X)
+    mfins["UL16"] = mfins["UL17"] = mfins["UL18"] = mfins["UL17H"] = finul4x;
+  mfins["UL4X"] = 0;
+  if (useCustom5X) {
+    // 2016APV and 2016GH not yet done
+    mfins["UL17"] = mfins["UL18"] = mfins["UL17H"] = finul4x;
+  }
+  mfins["UL5X"] = 0;
+
   map<string, double> mlumi;
   mlumi["16BCD"] = mlumi["16EF"] = mlumi["16GH"] = 1;
   mlumi["17B"] = mlumi["17C"] = mlumi["17DE"] = mlumi["17F"] = 1;
-  mlumi["17ULB"] = mlumi["17ULC"] = mlumi["17ULD"] = mlumi["17ULE"] = mlumi["17ULF"] = mlumi["17UL"] = 1;
+  mlumi["17ULB"] = mlumi["17ULC"] = mlumi["17ULD"] = mlumi["17ULE"] = mlumi["17ULF"] = mlumi["17UL"] = mlumi["UL17"] = 1;
   mlumi["17H"] = 1;//1e3;//1e-6;
   mlumi["17H2"] = 1;//1e3;//1e-6;
   mlumi["17H3"] = 1;//1e3;//1e-6;
   mlumi["18A"] = mlumi["18B"] = mlumi["18C"] = mlumi["18D"] = 1;
-  mlumi["18ULA"] = mlumi["18ULB"] = mlumi["18ULC"] = mlumi["18ULD"] = mlumi["18UL"] = 1;
+  mlumi["18ULA"] = mlumi["18ULB"] = mlumi["18ULC"] = mlumi["18ULD"] = mlumi["18UL"] = mlumi["UL18"] = 1;
+  mlumi["16ULBCD"] = mlumi["16ULEF"] = mlumi["16ULBCDEF"] = mlumi["16ULBCDandEF"] = mlumi["16ULGH"] = mlumi["16UL"] = mlumi["16APV"] = mlumi["UL16APV"] = mlumi["UL16GH"] = mlumi["UL16"] = 1;
+  mlumi["UL17H"] = 1;
   mlumi["16SC"] = 1000;
   mlumi["16LM"] = mlumi["17LM"] = mlumi["18LM"] = mlumi["Run2"] = 1;
+  mlumi["UL4X"] = 1;
+  mlumi["UL5X"] = 1;
+
   map<string, int> mmarker;
+  mmarker["UL16"] = kFullSquare;
+  mmarker["UL16APV"] = kOpenSquare;
+  mmarker["UL16GH"] = kOpenCircle;
+  mmarker["UL17H"] = kOpenCircle;
+  mmarker["UL17"] = kFullCircle;
+  mmarker["UL18"] = kFullDiamond;
+  mmarker["UL4X"] = kFullStar;
+  mmarker["UL5X"] = kFullStar;
+  //
   mmarker["16BCD"] = kOpenSquare;//kFullSquare;
   mmarker["16EF"] = kOpenCircle;//kOpenSquare;
   mmarker["16GH"] = kOpenDiamond;//kFullSquare;
@@ -542,14 +616,31 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   mmarker["18ULB"] = kOpenCircle;
   mmarker["18ULC"] = kOpenCross;
   mmarker["18ULD"] = kOpenDiamond;
+  mmarker["16ULBCD"] = kOpenSquare;
+  mmarker["16ULEF"] = kOpenCircle;
+  mmarker["16ULBCDEF"] = kOpenCross;
+  mmarker["16ULBCDandEF"] = kOpenCrossX;
+  mmarker["16ULGH"] = kOpenDiamond;
   mmarker["16SC"] = kFullStar;
   mmarker["16LM"] = kFullSquare;
   mmarker["17LM"] = kFullCircle;
   mmarker["17UL"] = kOpenCircle;//kFullCross;
   mmarker["18LM"] = kFullDiamond;
   mmarker["18UL"] = kOpenDiamond;
+  mmarker["16UL"] = kFullCross;//kOpenSquare;
+  mmarker["16APV"] = kOpenSquare;
   mmarker["Run2"] = kFullStar;
+
   map<string, int> mcolor;
+  mcolor["UL16"] = kBlue;
+  mcolor["UL16APV"] = kBlue;
+  mcolor["UL16GH"] = (useCustom5X ? kCyan+2 : kGreen+2);
+  mcolor["UL17H"] = kGreen+2;
+  mcolor["UL17"] = kRed;
+  mcolor["UL18"] = kBlack;
+  mcolor["UL4X"] = kOrange+2;
+  mcolor["UL5X"] = kOrange+2;
+  //
   mcolor["16BCD"] = kMagenta+1;
   mcolor["16EF"] = kMagenta+2;//kCyan+2;
   mcolor["16GH"] = kMagenta+3;//kGray+2;
@@ -573,8 +664,15 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   mcolor["18ULB"] = kOrange+2;
   mcolor["18ULC"] = kRed+1;
   mcolor["18ULD"] = kGray+2;//kBlack;
+  mcolor["16ULBCD"] = kMagenta+1;
+  mcolor["16ULEF"] = kMagenta+2;
+  mcolor["16ULBCDEF"] = kMagenta+4;
+  mcolor["16ULBCDandEF"] = kMagenta+4;
+  mcolor["16ULGH"] = kMagenta+3;
   mcolor["16SC"] = kRed+2;//kBlack;
   mcolor["16LM"] = kMagenta+1;
+  mcolor["16UL"] = kMagenta+1;
+  mcolor["16APV"] = kMagenta+1;
   mcolor["17LM"] = kBlue+1;
   mcolor["17UL"] = kBlue+2;
   mcolor["18LM"] = kBlack;
@@ -582,18 +680,34 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   mcolor["Run2"] = kRed;
 
   map<string, double> lumi;
+  lumi["UL16APV"] = 19.7; // was 19.7
+  lumi["UL16GH"] = 16.7; // was 16.8; sum 36.3
+  lumi["UL16"] = 36.3;
+  lumi["UL17"] = 41.5;
+  lumi["UL18"] = 59.8;
+  //
   lumi["17ULBCDEF"] = 41.3;//41.5;
   lumi["17ULB"] = 4.8;
   lumi["17ULC"] = 9.6;
   lumi["17ULD"] = 4.2;
   lumi["17ULE"] = 9.3;
   lumi["17ULF"] = 13.4;
+  lumi["UL17H"] = 0; // ?
   //
   lumi["18ULABCD"] = 59.9;
   lumi["18ULA"] = 14.0;
   lumi["18ULB"] = 7.1;
   lumi["18ULC"] = 6.9;
   lumi["18ULD"] = 31.9;
+  //
+  //
+  lumi["16UL"] = 36.5;
+  lumi["16APV"] = 19.7;
+  lumi["16ULBCD"] = 12.9;
+  lumi["16ULEF"] = 6.8;
+  lumi["16ULBCDEF"] = 19.7;
+  lumi["16ULBCDandEF"] = 19.7;
+  lumi["16ULGH"] = 16.8;
 
   /*
   const int nera = 11;
@@ -696,7 +810,9 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 
       // Corrections for R-dependence, (+NP, EW). Only for |y|<0.5 but flat vs y
       TH1D *h8lo = (TH1D*)f2->Get("Cross_section_ratio_ak8_by_ak4_ybin1_LO");
+      assert(h8lo);
       TH1D *h8nlo = (TH1D*)f2->Get("Cross_section_ratio_ak8_by_ak4_ybin1_NLO");
+      assert(h8nlo);
       TH1D *hr = (TH1D*)h8lo->Clone("hr");
       hr->Divide(h8nlo);
       // Smooth out ratio, NLO has low stats and up to 2% fluctuations
@@ -890,7 +1006,7 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 		      0.85*ptmin,emax/cosh(eta));
   fref->SetParameters(1e12,-5,0.001,10);
   if (true) {
-    //href = (TH1D*)fin2ul->Get(Form("ak4/Eta_%s/hpt_data_2017_all_ptcl_fwd",cy));
+    //href = (TH1D*)fin17ul->Get(Form("ak4/Eta_%s/hpt_data_2017_all_ptcl_fwd",cy));
     //href = (TH1D*)fin2->Get(Form("ak4/Eta_%s/hpt_data_2017_all_ptcl_fwd",cy));
     href = (TH1D*)frun2->Get(Form("hrun2_%s",cy));
     //if (!href && sy=="0.0-1.3") { // PATCH
@@ -902,11 +1018,11 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
       //href->Add(href2);
       //href->Add(href3);
       //href->Scale(1./3);
-      //href = (TH1D*)fin2ul->Get("ak4/Eta_0.0-1.3/hpt_data_2017_all_ptcl_fwd");
-      href = (TH1D*)fin2ul->Get(Form("ak4/Eta_%s/hpt_data_2017_all_%s",cy,
-				     getDetData ?
-				     (unfoldData ? "ptcl_fwd" : "det") :
-				     (getFwd ? "ptcl_fwd" : "ptcl_dag")));
+      //href = (TH1D*)fin17ul->Get("ak4/Eta_0.0-1.3/hpt_data_2017_all_ptcl_fwd");
+      href = (TH1D*)fin17ul->Get(Form("ak4/Eta_%s/hpt_data_2017_all_%s",cy,
+				      getDetData ?
+				      (unfoldData ? "ptcl_fwd" : "det") :
+				      (getFwd ? "ptcl_fwd" : "ptcl_dag")));
       assert(href);
       href = (TH1D*)href->Clone(Form("href_%s",cy));
       // Patch reference for own forward smearing
@@ -923,7 +1039,8 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
       }
     }
 
-    if (plotVs18UL && sdir == "18UL") {
+    //if (plotVs18UL && sdir == "18UL") {
+    if (plotVs18UL) {
       href = (TH1D*)fin18ul->Get(Form("ak4/Eta_%s/hpt_data_2018_all_%s",cy,
 				      getDetData ?
 				      (unfoldData ? "ptcl_fwd" : "det") :
@@ -942,6 +1059,91 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 	}
       }
     } // 18UL
+
+    if (plotVs16UL && sdir == "16UL") {
+      //href = (TH1D*)fin16ul->Get(Form("ak4/Eta_%s/hpt_data_2016_all_%s",cy,
+     //href = (TH1D*)fin18ul->Get(Form("ak4/Eta_%s/hpt_data_2018_all_%s",cy,
+      //href = (TH1D*)fin16ul->Get(Form("ak4/Eta_%s/hpt_data_2016_GH_%s",cy,
+      //href = (TH1D*)fin16ul->Get(Form("ak4/Eta_%s/hpt_data_2016_BCDandEF_%s",cy,
+      href = (TH1D*)fin16ul->Get(Form("ak4/Eta_%s/hpt_data_2016_BCDEF_%s",cy,
+				      getDetData ?
+				      (unfoldData ? "ptcl_fwd" : "det") :
+				      (getFwd ? "ptcl_fwd" : "ptcl_dag")));
+      assert(href);
+      href = (TH1D*)href->Clone(Form("href_%s",cy));
+    } // 16UL
+    if (plotVs16APV && sdir == "16APV") {
+      //href = (TH1D*)fin16ul->Get(Form("ak4/Eta_%s/hpt_data_2016_BCDEF_%s",cy,
+      href = (TH1D*)fin16ul->Get(Form("ak4/Eta_%s/hpt_data_2016_BCDandEF_%s",cy,
+				      getDetData ?
+				      (unfoldData ? "ptcl_fwd" : "det") :
+				      (getFwd ? "ptcl_fwd" : "ptcl_dag")));
+      assert(href);
+      href = (TH1D*)href->Clone(Form("href_%s",cy));
+    } // 16APV
+
+    if (plotVsUL4X && (sdir == "UL4X" || sdir == "UL5X")) {
+      /*
+      href = (TH1D*)fin16ul->Get(Form("ak4/Eta_%s/hpt_data_2016_BCDandEF_%s",cy,
+				      getDetData ?
+				      (unfoldData ? "ptcl_fwd" : "det") :
+				      (getFwd ? "ptcl_fwd" : "ptcl_dag")));
+      assert(href);
+      href = (TH1D*)href->Clone(Form("href_%s",cy));
+      */
+      if (useCustom4X) {
+	const char *c = "ak4/Eta_0.0-1.3/hpt_data_%s_all_ptcl_fwd";
+	TH1D *href16 = (TH1D*)finul4x->Get(Form(c,"2016")); assert(href16);
+	TH1D *href17 = (TH1D*)finul4x->Get(Form(c,"2017")); assert(href17);
+	TH1D *href18 = (TH1D*)finul4x->Get(Form(c,"2018")); assert(href18);
+
+	href = (TH1D*)href16->Clone(Form("href_%s",cy));
+	href->Reset();
+	href->Add(href16, 36.3);
+	href->Add(href17, 41.5);
+	href->Add(href18, 59.8);
+	href->Scale(1./(36.3+41.5+59.8));
+      }
+      else if (useCustom5X) {
+	TH1D *href16apv = (TH1D*)fin16ul->Get(Form("ak4/Eta_%s/hpt_data_2016_BCDandEF_%s", cy, "ptcl_fwd"));
+	assert(href16apv);
+	TH1D *href16gh = (TH1D*)fin16ul->Get(Form("ak4/Eta_%s/hpt_data_2016_GH_%s",cy, "ptcl_fwd"));
+	assert(href16gh);
+
+	const char *c = "ak4/Eta_0.0-1.3/hpt_data_%s_all_ptcl_fwd";
+	TH1D *href17 = (TH1D*)finul4x->Get(Form(c,"2017")); assert(href17);
+	TH1D *href18 = (TH1D*)finul4x->Get(Form(c,"2018")); assert(href18);
+
+	href = (TH1D*)href16apv->Clone(Form("href_%s",cy));
+	href->Reset();
+	href->Add(href16apv, 19.7);
+	href->Add(href16gh, 16.8);
+	href->Add(href17, 41.5);
+	href->Add(href18, 59.9);
+	href->Scale(1./(19.7+16.8+41.5+59.9)); // 137.9
+      }
+      else {
+	TH1D *href1 = (TH1D*)fin16ul->Get(Form("ak4/Eta_%s/hpt_data_2016_BCDandEF_%s", cy, "ptcl_fwd"));
+	assert(href1);
+	TH1D *href2 = (TH1D*)fin16ul->Get(Form("ak4/Eta_%s/hpt_data_2016_GH_%s",cy, "ptcl_fwd"));
+	assert(href2);
+	TH1D *href3 = (TH1D*)fin17ul->Get(Form("ak4/Eta_%s/hpt_data_2017_all_%s",cy, "ptcl_fwd"));
+	assert(href3);
+	TH1D *href4 = (TH1D*)fin18ul->Get(Form("ak4/Eta_%s/hpt_data_2018_all_%s",cy, "ptcl_fwd"));
+	assert(href4);
+
+	href = (TH1D*)href1->Clone(Form("href_%s",cy));
+	href->Reset();
+	href->Add(href1, 19.7);
+	href->Add(href2, 16.8);
+	href->Add(href3, 41.5);
+	href->Add(href4, 59.8);
+	href->Scale(1./(19.7+16.8+41.5+59.8));
+      }
+
+      //assert(href);
+      //href = (TH1D*)href->Clone(Form("href_%s",cy));
+    } // UL4X, UL5X
 
     assert(href);
     href->Fit(fref,"QRN");
@@ -992,6 +1194,69 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 
       continue; // don't process corrections etc. again
     }
+    if (se=="UL4X") {
+      //double lum16apv = 19.7;
+      //double lum16gh = 16.8;
+      double lum16 = 36.5;
+      double lum17 = 41.5;
+      double lum18 = 59.8;
+      //double lumtot = lum16apv + lum16gh + lum17 + lum18;
+      double lumtot = lum16 + lum17 + lum18;
+      //TH1D *h16apv = mh1s["16BCDandEF"]; assert(h16apv);
+      //TH1D *h16gh = mh1s["16GH"]; assert(h16gh);
+      TH1D *h16 = mh1s["UL16"]; assert(h16);
+      TH1D *h17 = mh1s["UL17"]; assert(h17);
+      TH1D *h18 = mh1s["UL18"]; assert(h18);
+      //TH1D *hrun2 = (TH1D*)h16apv->Clone(Form("hrun2_%s",cy));
+      TH1D *hrun2 = (TH1D*)h16->Clone(Form("hrun2_%s",cy));
+      hrun2->Reset();
+      //hrun2->Add(h16apv,lum16apv);
+      //hrun2->Add(h16gh,lum16gh);
+      hrun2->Add(h16,lum16);
+      hrun2->Add(h17,lum17);
+      hrun2->Add(h18,lum18);
+      hrun2->Scale(1./lumtot);
+      h1s[iera] = (TH1D*)hrun2;
+      mh1s[se] = (TH1D*)hrun2;
+
+      // Store results to a file for later reference
+      TDirectory *curdir = gDirectory;
+      TFile *fout = new TFile("pdf/drawDeltaJEC_Run2_UL4X.root","UPDATE");
+      hrun2->Write(hrun2->GetName(), TObject::kOverwrite);
+      fout->Close();
+      curdir->cd();
+
+      continue; // don't process corrections etc. again
+    }
+    if (se=="UL5X") {
+      double lum16apv = 19.7;
+      double lum16gh = 16.8;
+      double lum17 = 41.5;
+      double lum18 = 59.8;
+      double lumtot = lum16apv + lum16gh + lum17 + lum18;
+      TH1D *h16apv = mh1s["UL16APV"]; assert(h16apv);
+      TH1D *h16gh = mh1s["UL16GH"]; assert(h16gh);
+      TH1D *h17 = mh1s["UL17"]; assert(h17);
+      TH1D *h18 = mh1s["UL18"]; assert(h18);
+      TH1D *hrun2 = (TH1D*)h16apv->Clone(Form("hrun2_%s",cy));
+      hrun2->Reset();
+      hrun2->Add(h16apv,lum16apv);
+      hrun2->Add(h16gh,lum16gh);
+      hrun2->Add(h17,lum17);
+      hrun2->Add(h18,lum18);
+      hrun2->Scale(1./lumtot);
+      h1s[iera] = (TH1D*)hrun2;
+      mh1s[se] = (TH1D*)hrun2;
+
+      // Store results to a file for later reference
+      TDirectory *curdir = gDirectory;
+      TFile *fout = new TFile("pdf/drawDeltaJEC_Run2_vsUL5X.root","UPDATE");
+      hrun2->Write(hrun2->GetName(), TObject::kOverwrite);
+      fout->Close();
+      curdir->cd();
+
+      continue; // don't process corrections etc. again
+    }
 
     //string hname = Form("ak4/Eta_%s/hpt_data_%s_det",cy,cera);
     string hname = (getDetData ? Form("ak4/Eta_%s/hpt_data_%s_det",cy,cera) :
@@ -1000,6 +1265,13 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
     //TH1F *hera = (TH1F*)fins[iera]->Get(hname.c_str());
     //TH1F *hera = (TH1F*)mfins[se]->Get(hname.c_str());
     TH1D *hera = (TH1D*)mfins[se]->Get(hname.c_str());
+
+    // UL17H has diffent path
+    if (!hera && (se=="UL17H")) {
+      string hname = Form("Standard/Eta_%s/hcorrpt_fwd",cy);
+      hera = (TH1D*)mfins[se]->Get(hname.c_str());
+      hera->Scale(1./2.6);
+    }
 
     // 2017H only has det and different binning
     if (!hera && (se=="17H" || se=="17H2" || se=="17H3")) {
@@ -1036,7 +1308,7 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 
     // Engin's file has different naming scheme
     // Same with Suman's file
-    if (!hera) {
+    if (!hera && false) {
       int iy = int((eta+0.25)/0.5)+1;
       hname = Form("ak4/y_%s/hptData_%s_detector_%dbin",cy,cera,iy);
       if (iy>4)
@@ -1070,6 +1342,8 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
       jer_iov run(run2018);
       //if (se=="16BCD"||se=="16EF"||se=="16GH")         run = run2016;
       //if (se=="17B"||se=="17C"||se=="17DE"||se=="17F") run = run2017;
+      if (se=="16BCDEF") run = ul16apv;
+      if (se=="16APV") run = ul16apv;
       if (se=="16BCD") run = run2016bcd;
       if (se=="16EF")  run = run2016ef;
       if (se=="16GH")  run = run2016gh;
@@ -1093,6 +1367,8 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
       if (se=="18C")   run = run2018abc;
       if (se=="18D")   run = run2018d;
       if (se=="18LM")  run = run2018;
+      if (se=="UL4X")  run = run2018;
+      if (se=="UL5X")  run = run2018;
 
       for (int i = 1; i != hera->GetNbinsX()+1; ++i) {
 
@@ -1521,6 +1797,9 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 		      int(ptmax-ptmin),ptmin,ptmax);
   if (plotVs17UL) h2->SetYTitle("Ratio to 2017UL");
   if (plotVs18UL) h2->SetYTitle("Ratio to 2018UL");
+  if (plotVs16UL) h2->SetYTitle("Ratio to 2016UL");
+  if (plotVs16APV) h2->SetYTitle("Ratio to 2016APV");
+  //if (plotVs16UL) h2->SetYTitle("Ratio to 2018UL");
   h2->SetMinimum(eta==2.5 ? 0.0 : 0.5);//0.);
   h2->SetMaximum(eta==2.5 ? 2.5 : 1.5);//fabs(eta)>=2.5 ? 5.0 : 2.0);
   //if (fabs(eta)>=3.0) h2->GetYaxis()->SetTitle("Ratio to 2016");
@@ -1531,11 +1810,17 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   //lumi_13TeV = "Run2017BCDEF 41.4 fb^{-1}";
   //lumi_13TeV = "Run2016BCDEFGH 36.5 fb^{-1}";
   //lumi_13TeV = "Run2015 71 pb^{-1}";
-  lumi_13TeV = "Run2 137.8 fb^{-1}";
+  //lumi_13TeV = "Run2 137.8 fb^{-1}";
+  lumi_13TeV = "Run 2, 137.6 fb^{-1}";
   if (sdir=="2016") lumi_13TeV = "Run2016 X fb^{-1}";
   if (sdir=="2017") lumi_13TeV = "Run2017 Y fb^{-1}";
   if (sdir=="2018") lumi_13TeV = "Run2018 Z fb^{-1}";
+  if (sdir=="16UL") lumi_13TeV = "2016UL, 36.5 fb^{-1}";
+  if (sdir=="16APV") lumi_13TeV = "2016UL, 19.7 fb^{-1}";
   TCanvas *c1 = tdrDiCanvas("c1",h,h2,4,11);
+
+  TLatex *tex = new TLatex();
+  tex->SetNDC(); tex->SetTextSize(0.045);
 
   c1->cd(1);
   //tdrDraw(h50ns7,"Pz",kOpenSquare,kGreen+2,kSolid,kGreen+2);
@@ -1570,8 +1855,8 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   //}
   const int nmax = 6;
   const int nx = 4;//3;//2;//(eta<3.0 ? 2 : 1);
-  TLegend *leg1 = tdrLeg(0.50,0.90-0.06*min(nmax-1,nera+nx),0.8,0.9);
-  TLegend *leg2 = tdrLeg(0.70,0.90-0.06*max(2,min(nmax,nera+nx-nmax+1)),1.0,0.9);
+  TLegend *leg1 = tdrLeg(0.40,0.90-0.06*min(nmax-1,nera+nx),0.70,0.9);
+  TLegend *leg2 = tdrLeg(0.65,0.90-0.06*max(2,min(nmax,nera+nx-nmax+1)),0.95,0.9);
   for (int iera = 0; iera != nera; ++iera) {
     //if (iera<nmax)  leg1->AddEntry(h1s[iera],label[iera],"PL");
     //if (iera>=nmax) leg2->AddEntry(h1s[iera],label[iera],"PL");
@@ -1634,8 +1919,8 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
     //f1s[iera]->Draw("SAME");
   }
 
-  TLatex *tex = new TLatex();
-  tex->SetNDC(); tex->SetTextSize(0.045);
+  //TLatex *tex = new TLatex();
+  //tex->SetNDC(); tex->SetTextSize(0.045);
   tex->SetTextColor(kGreen+2);
   //tex->DrawLatex(0.20,0.10,Form("fit(50ns) AK7: #chi^{2}/NDF = %1.1f/%d",
   //			f50ns7->GetChisquare(),f50ns7->GetNDF()));
@@ -1668,6 +1953,9 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 		      int(ptmax-ptmin),ptmin,ptmax);
   if (plotVs17UL) h3->SetYTitle("#DeltaJEC-equivalent vs 17UL (%)");
   if (plotVs18UL) h3->SetYTitle("#DeltaJEC-equivalent vs 18UL (%)");
+  //if (plotVs16UL) h3->SetYTitle("#DeltaJEC-equivalent vs 16ULGH (%)");
+  if (plotVs16UL) h3->SetYTitle("#DeltaJEC-equivalent vs 18UL (%)");
+  if (plotVs16APV) h3->SetYTitle("#DeltaJEC-equivalent vs 16APV (%)");
   h3->SetMinimum(ymin);
   h3->SetMaximum(ymax);
   h3->GetXaxis()->SetMoreLogLabels();
@@ -1780,7 +2068,26 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
       //double x2 = fref2->GetX(y2,0.85*x,1.15*x);
       //double x2 = fref2->GetX(y2,0.5*x,xmax,_prec);//1e-3);
       double x2 = fref2->GetX(y2,xmin,xmax,_prec);//1e-3);
-      hd->SetBinContent(i, 100.*(x/x2-1));
+
+      // Calculate correction for MC JEC using minitools/drawMCJECvsTime.C
+      // Applies to UL16EF vs UL16BCD
+      double k(1);
+      if (false && sdir!="16APV") {
+	if (eras[iera]=="16ULEF") {
+	  TF1 *f1 = new TF1("f1ef","(1+[0])+([1]+[2]*log(0.01*x))/x"
+			    "+[3]*pow(0.01*x,[4])",15,3500);
+	  f1->SetParameters(0.1253,-0.0292,-0.4027,-0.132,-0.00983);//chi2=71.7/54
+	  k = 1./f1->Eval(0.5*(xmin+xmax));
+	}
+	if (eras[iera]=="16ULBCDEF") {
+	  TF1 *f1 = new TF1("f1bcdef","(1+[0])+([1]+[2]*log(0.01*x))/x"
+			    "+[3]*pow(0.01*x,[4])",15,3500);
+	f1->SetParameters(0.04226,0.009081,-0.1531,-0.04527,-0.01314);//11.9/54
+	k = 1./f1->Eval(0.5*(xmin+xmax));
+	}
+      }
+
+      hd->SetBinContent(i, 100.*(k*x/x2-1));
 
       // Luminosity uncertainty from ABCD
       if (iera==0) {
@@ -1844,6 +2151,9 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 		       int(ptmax-ptmin),ptmin,ptmax);
   if (plotVs17UL) h1b->SetYTitle("Ratio to 2017UL");
   if (plotVs18UL) h1b->SetYTitle("Ratio to 2018UL");
+  if (plotVs16UL) h1b->SetYTitle("Ratio to 2016ULGH");
+  if (plotVs16APV) h1b->SetYTitle("Ratio to 2016APV");
+  //if (plotVs16UL) h1b->SetYTitle("Ratio to 2018UL");
   h1b->SetMinimum(eta==2.5 ? 0.0 : 0.5);
   h1b->SetMaximum(eta==2.5 ? 2.5 : 1.5);
   h1b->GetXaxis()->SetNoExponent();
@@ -1924,17 +2234,28 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
 
   TCanvas *c2 = tdrCanvas("c2",h3,4,11,kSquare);
 
+  tex->SetTextSize(0.030);
+  tex->SetTextColor(kRed);
+  if (!useCustom4X) {
+    tex->DrawLatex(0.17,0.25,"NB1: No BB ECAL prefire corr.");
+    tex->DrawLatex(0.17,0.21,"NB2: No jet veto map corr.");
+    tex->DrawLatex(0.17,0.17,"NB3: No trigger eff. corr.");
+  }
+  tex->SetTextColor(kBlack);
+  tex->SetTextSize(0.045);
+
   //tdrDraw(hunc15,"E3", kNone, kBlack,kSolid,-1,1001,kOrange-9); // 2015
   //
-  if (sdir=="" || sdir=="2018")
+  if (sdir=="" || sdir=="2018" || sdir=="UL4X" || sdir=="UL5X")
     tdrDraw(hunc18,"E3", kSolid, kBlack,kSolid,-1,1001,kYellow+1); // 2018
   hunc18->SetFillColorAlpha(kYellow+1,0.70);
-  if (sdir=="" || sdir=="2017" || sdir=="2017UL" || sdir=="17UL")
+  if (sdir=="" || sdir=="2017" || sdir=="2017UL" || sdir=="17UL" ||
+      sdir=="UL4X" || sdir=="UL5X")
     tdrDraw(hunc17,"E3", kSolid, kBlack,kSolid,-1,1001,kCyan-6); // 2017
   hunc17->SetFillColorAlpha(kCyan-6,0.70);
   //tdrDraw(hunc16,"E3", kSolid, kBlack,kSolid,-1,1001,kGreen-6); // 2016
   //hunc16->SetFillColorAlpha(kGreen-6,0.70);
-  if (sdir=="" || sdir=="2016")
+  if (sdir=="" || sdir=="2016" || sdir=="UL4X" || sdir=="UL5X")
     tdrDraw(hunc16,"E3", kSolid, kBlack,kSolid,-1,1001,kViolet-8); // 2016
   hunc16->SetFillColorAlpha(kViolet-8,0.70);
 
@@ -1966,11 +2287,12 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   //tdrDraw(huncs1,"HIST][",kSolid,kBlack,kSolid,-1,kNone,kOrange-9); //RelPtBal
   //tdrDraw(huncs2,"HIST][",kSolid,kBlue,kSolid,-1,kNone,kOrange-9); //ReltPtEC1+2
   
-  if (sdir=="" || sdir=="2018")
+  if (sdir=="" || sdir=="2018" || sdir=="UL4X" || sdir=="UL5X")
     tdrDraw((TH1D*)hunc18->Clone("hunc18b"),"E3",kNone,0,kSolid,kYellow+2,kNone,kYellow+2);
-  if (sdir=="" || sdir=="2017" || sdir=="2017UL" ||  sdir=="17UL")
+  if (sdir=="" || sdir=="2017" || sdir=="2017UL" ||  sdir=="17UL" ||
+      sdir=="UL4X" || sdir=="UL5X")
     tdrDraw((TH1D*)hunc17->Clone("hunc17b"),"E3",kNone,0,kSolid,kCyan+2,kNone,kCyan+2);
-  if (sdir=="" || sdir=="2016")
+  if (sdir=="" || sdir=="2016" || sdir=="UL4X" || sdir=="UL5X")
     tdrDraw((TH1D*)hunc16->Clone("hunc16b"),"E3",kNone,0,kSolid,kViolet+2,kNone,kViolet+2);
 
   for  (int iera = 0; iera != nera; ++iera) {
@@ -1992,36 +2314,40 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   //legd->AddEntry(hrs[iera],label[iera],"PL");
   //}
   const int nmaxd = 6;
-  TLegend *legd1 = tdrLeg(0.40,0.9-0.04*min(nmaxd,nera),0.70,0.9);
+  TLegend *legd1 = tdrLeg(0.37,0.9-0.04*min(nmaxd,nera),0.67,0.9);
   TLegend *legd2 = tdrLeg(0.60,0.9-0.04*max(0,min(nmaxd,nera-nmaxd)),0.90,0.9);
   for  (int iera = 0; iera != nera; ++iera) {
     //if (iera<nmaxd)  legd1->AddEntry(hrs[iera],label[iera],"PL");
     //if (iera>=nmaxd) legd2->AddEntry(hrs[iera],label[iera],"PL");
     string se = eras[iera];
-    if (iera<nmaxd)  legd1->AddEntry(hrs[iera],label[se],"PL");
-    if (iera>=nmaxd) legd2->AddEntry(hrs[iera],label[se],"PL");
+    if (iera<nmaxd)  legd1->AddEntry(hrs[iera],label[se],"PLE");
+    if (iera>=nmaxd) legd2->AddEntry(hrs[iera],label[se],"PLE");
   }
   
   //TLegend *legu = tdrLeg(0.50,0.15,0.80,0.23);
   const int nmaxu1 = 3;
-  const int nmaxu2 = 1;//3;
-  TLegend *legu2 = tdrLeg(0.57,0.15,0.87,0.15+0.04*nmaxu2);
-  TLegend *legu1 = tdrLeg(0.17,0.15,0.47,0.15+0.04*nmaxu1);
+  const int nmaxu2 = 4;//1;//3;
+  TLegend *legu2 = tdrLeg(0.57,0.15,0.87,0.15+0.045*nmaxu2);
+  TLegend *legu1 = tdrLeg(0.17,0.15,0.47,0.15+0.045*nmaxu1);
   //legu1->AddEntry(hunc18,"2018 Aut18_V10+unc","F");
   //legu1->AddEntry(hunc18,"Aut18_V10+V13tmp","F");
   //legu1->AddEntry(hunc18,"Aut18_V10+V14unc","F");
-  if (sdir=="" || sdir=="2018")
+  if (sdir=="" || sdir=="2018" || sdir=="UL4X" || sdir=="UL5X")
     //legu1->AddEntry(hunc18,"2018 Aut18_V18","F");
-    legu1->AddEntry(hunc18,"2018 Aut18_V19","F");
+    //legu1->AddEntry(hunc18,"2018 Aut18_V19","F");
+    legu2->AddEntry(hunc18,"UL18_V5","F");
     //legu1->AddEntry(hunc18,"Aut18_V10+V18unc","F");
   //legu1->AddEntry(hunc18,"Aut18_V13h+V14unc","F");
   //legu1->AddEntry(hunc18,"2018 Aut18_V8","F");
   //legu1->AddEntry(hunc17,"2017 17Nov_V11","F");
-  if (sdir=="" || sdir=="2017" || sdir=="2017UL" || sdir=="17UL")
-    legu1->AddEntry(hunc17,"2017 17Nov_V32","F");
+  if (sdir=="" || sdir=="2017" || sdir=="2017UL" || sdir=="17UL" ||
+      sdir=="UL4X" || sdir=="UL5X")
+    //legu1->AddEntry(hunc17,"2017 17Nov_V32","F");
+    legu2->AddEntry(hunc17,"UL17_V5","F");
   //legu1->AddEntry(hunc16,"2016 07Aug_V17","F");
-  if (sdir=="" || sdir=="2016")
-    legu1->AddEntry(hunc16,"2016 07Aug_V11","F");
+  if (sdir=="" || sdir=="2016" || sdir=="UL4X" || sdir=="UL5X")
+    //legu1->AddEntry(hunc16,"2016 07Aug_V11","F");
+    legu2->AddEntry(hunc16,"UL16_V7","F");
   //legu2->AddEntry(hunc15,"2015 Sum16_50nsV5","F");
   legu2->AddEntry(hunc12,"2012 Win14_V8","F");
   //legd->AddEntry(huncl,"2.6% lum.","F");
@@ -2033,9 +2359,10 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   tex->DrawLatex(0.19,0.67,Form("|y|#in %s",cy));
   */
   tex->SetTextColor(kBlack); tex->SetTextSize(0.045);
-  tex->DrawLatex(0.65,0.88,Form("|y|#in %s",cy));
-  tex->DrawLatex(0.65,0.83,Form("Anti-k_{T} R=0.4"));
-  tex->DrawLatex(0.65,0.78,Form("PF+CHS unf."));
+  if (string(cy)=="0.0-1.3") tex->DrawLatex(0.66,0.87,"|y| < 1.3");
+  else tex->DrawLatex(0.66,0.87,Form("|y|#in %s",cy));
+  tex->DrawLatex(0.66,0.82,Form("Anti-k_{T} R=0.4"));
+  tex->DrawLatex(0.66,0.77,Form("PF+CHS unf."));
   tex->SetTextSize(0.025);
   //tex->DrawLatex(0.19,0.64,Form("vs HEPData-ins1459051-v1"));
   tex->SetTextSize(0.040);
@@ -2070,6 +2397,94 @@ void drawDeltaJEC(string sy = "0.0-0.5", string sdir = "") {
   if (sdir=="18UL" && sy=="0.0-1.3") {
     TFile *fout = new TFile("pdf/drawDeltaJEC_18UL_JECV3.root",
 			    getDetData && !unfoldData ? "RECREATE" : "UPDATE");
+    fout->cd();
+    for (int iera = 0; iera != nera; ++iera) {
+      string se = eras[iera];
+      TH1D *h = (TH1D*)hds[iera]->Clone(Form("jet_Run%s",se.c_str()));
+      for (int i = 1; i != h->GetNbinsX()+1; ++i) {
+	h->SetBinContent(i, 1 + 0.01*h->GetBinContent(i));
+	h->SetBinError(i, 0.01*h->GetBinError(i));
+      }
+      h->Write(Form("jet_Run%s_%s",se.c_str(),
+		    getDetData ? (unfoldData ? "fwd3" : "det") :
+		    (getFwd ? "fwd" : "dag")), TObject::kOverwrite);
+    } // for iera
+    fout->Close();
+    curdir->cd();    
+  } // sdir
+
+  // Save UL16 ratio for global fit input
+  if (sdir=="16UL" && sy=="0.0-1.3") {
+    //TFile *fout = new TFile("pdf/drawDeltaJEC_16ULJECV3V1_vsUL18.root",
+    //TFile *fout = new TFile("pdf/drawDeltaJEC_16ULJECV3V1_vsGH.root",
+    //TFile *fout = new TFile("pdf/drawDeltaJEC_16ULJECV5_vsBCDEF.root",
+    //TFile *fout = new TFile("pdf/drawDeltaJEC_16ULJECV5_vsBCDandEF_jetveto.root",
+    //TFile *fout = new TFile("pdf/drawDeltaJEC_16ULJECV6_vsBCDEF.root",
+    TFile *fout = new TFile("pdf/drawDeltaJEC_16ULJECV7_vsBCDEF.root",
+			    "RECREATE");
+    //getDetData && !unfoldData ? "RECREATE" : "UPDATE");
+    fout->cd();
+    for (int iera = 0; iera != nera; ++iera) {
+      string se = eras[iera];
+      TH1D *h = (TH1D*)hds[iera]->Clone(Form("jet_Run%s",se.c_str()));
+      for (int i = 1; i != h->GetNbinsX()+1; ++i) {
+	h->SetBinContent(i, 1 + 0.01*h->GetBinContent(i));
+	h->SetBinError(i, 0.01*h->GetBinError(i));
+      }
+      h->Write(Form("jet_Run%s_%s",se.c_str(),
+		    getDetData ? (unfoldData ? "fwd3" : "det") :
+		    (getFwd ? "fwd" : "dag")), TObject::kOverwrite);
+    } // for iera
+    fout->Close();
+    curdir->cd();    
+  } // sdir
+
+  // Save APV16 ratio for global fit input
+  if (sdir=="16APV" && sy=="0.0-1.3") {
+    //TFile *fout = new TFile("pdf/drawDeltaJEC_16APVJECV3V1_vsBCDEF.root",
+    //TFile *fout = new TFile("pdf/drawDeltaJEC_16APVJECV5_vsBCDEF.root",
+    //TFile *fout = new TFile("pdf/drawDeltaJEC_16APVJECV6_vsBCDEF.root",
+    TFile *fout = new TFile("pdf/drawDeltaJEC_16APVJECV7_vsBCDEF.root",
+			    "RECREATE");
+    fout->cd();
+    for (int iera = 0; iera != nera; ++iera) {
+      string se = eras[iera];
+      TH1D *h = (TH1D*)hds[iera]->Clone(Form("jet_Run%s",se.c_str()));
+      for (int i = 1; i != h->GetNbinsX()+1; ++i) {
+	h->SetBinContent(i, 1 + 0.01*h->GetBinContent(i));
+	h->SetBinError(i, 0.01*h->GetBinError(i));
+      }
+      h->Write(Form("jet_Run%s_%s",se.c_str(),
+		    getDetData ? (unfoldData ? "fwd3" : "det") :
+		    (getFwd ? "fwd" : "dag")), TObject::kOverwrite);
+    } // for iera
+    fout->Close();
+    curdir->cd();    
+  } // sdir
+
+  // Save UL4X Run 2 ratio for global fit
+  if (sdir=="UL4X" && sy=="0.0-1.3") {
+    TFile *fout = new TFile("pdf/drawDeltaJEC_Run2_vsUL4X.root",
+			    "RECREATE");
+    fout->cd();
+    for (int iera = 0; iera != nera; ++iera) {
+      string se = eras[iera];
+      TH1D *h = (TH1D*)hds[iera]->Clone(Form("jet_Run%s",se.c_str()));
+      for (int i = 1; i != h->GetNbinsX()+1; ++i) {
+	h->SetBinContent(i, 1 + 0.01*h->GetBinContent(i));
+	h->SetBinError(i, 0.01*h->GetBinError(i));
+      }
+      h->Write(Form("jet_Run%s_%s",se.c_str(),
+		    getDetData ? (unfoldData ? "fwd3" : "det") :
+		    (getFwd ? "fwd" : "dag")), TObject::kOverwrite);
+    } // for iera
+    fout->Close();
+    curdir->cd();    
+  } // sdir
+  // Save UL5X Run 2 ratio for global fit
+  if (sdir=="UL5X" && sy=="0.0-1.3") {
+    TFile *fout = new TFile("pdf/drawDeltaJEC_Run2_vsUL5X.root",
+			    "UPDATE");
     fout->cd();
     for (int iera = 0; iera != nera; ++iera) {
       string se = eras[iera];
@@ -2243,9 +2658,12 @@ void unfold(string sy = "0.0-1.3", int ieta = 0) {
 
   fout->cd();
 
-  const int niov = 12;//6;//5;
-  jer_iov iovs[niov] = {run1, run2016, run2017, run2018, run2018abc, run2018d,
-			ul17, ul17b, ul17c, ul17d, ul17e, ul17f};
+  const int niov = 16;//12;//6;//5;
+  //jer_iov iovs[niov] = {run1, run2016, run2017, run2018, run2018abc, run2018d,
+  //			ul17, ul17b, ul17c, ul17d, ul17e, ul17f};
+  jer_iov iovs[niov] = {run1, ul16apv, ul16bcd, ul16ef, ul16gh,
+			ul18, ul18a, ul18b, ul18c, ul18d,
+  			ul17, ul17b, ul17c, ul17d, ul17e, ul17f};
   for (int iov = 0; iov != niov; ++iov) {
 
     _jer_iov = iovs[iov]; // use by ptresolution in fs and fus
