@@ -72,6 +72,7 @@ bool dol1bias = false;     // correct MPF to L1L2L3-L1 from L1L2L3-RC (def:false
 bool useIncJetRefIOVUncert = false;//true; // Include refIOV fit uncertainty? (def:no)
 
 // PF composition settings
+bool useSpecialLowPU = true; // Special 2017H settings
 bool usePF = false;     // Load dijet PF fractions in the fit (def:true for now)
 bool usePFZ = false;    // Load Z+jet PF fraction in the fit (def:true for now)
 bool usePFG = false;    // Load G+jet PF fraction in the fit (def:true for now)
@@ -95,7 +96,7 @@ double maxPFCpt = 600; // Maximum pT where Combo-PF fractios used (def:600)
 
 // Correction level
 extern string CorLevel; // defined in reprocess.C ("L1L2Res" or "L1L2L3Res")
-bool useL2L3ResForClosure = (fitPF||fitPFZ); // scale out L2L3Res for closure
+bool useL2L3ResForClosure = true;//(fitPF||fitPFZ); // scale out L2L3Res for closure
 
 // Fit parameterization settings
 int penalizeFitPars = 9; // Add penalty for 9-par fit parameters (def:9)
@@ -381,15 +382,26 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   string srefIOV = (isUL18 ? "2018ABCD" :
 		    (isUL17 ? "2017BCDEF" :
 		     (isUL16 ? "2016BCDEF" :
-		      (isRun2 ? "Run2Test" :
-		       "2018ABCD"))));
+		      (isLowPU ? "Run2Test" :
+		       (isRun2 ? "Run2Test" :
+			"2018ABCD")))));
   const char *refIOV = srefIOV.c_str();
   bool isRefIOV = (epoch=="2018ABCD" ||
 		   epoch=="2017BCDEF" ||
 		   epoch=="2016BCDEF" ||
 		   epoch=="Run2Test");
   
-  if (isLowPU) { plotIncJet = usePF = usePFG = usePFC = false; }
+  //if (isLowPU) { plotIncJet = usePF = usePFG = usePFC = false; }
+  if (isLowPU && useSpecialLowPU) {
+    usePFC = false; usePF = true; usePFZ = true; usePFG = false;
+    fitPFC = false; fitPF = true; fitPFZ = true; fitPFG = false;
+    // Only PF 393.9 / 390
+    // Also PFZ 415.3 / 432
+    maxPFpt = 2000;
+    minPFpt = minPFZpt = 15.;
+    fitPF_delta = fitPFZ_delta = 0.25;
+    useIncJetRefIOVUncert = true;
+  }
 
   // Input data
   TFile *f = new TFile(Form("rootfiles/jecdata%s.root",cep),"READ");
@@ -1480,7 +1492,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   // Uncertainty sources for inclusive jets
   if (sampleset.find("incjet")!=sampleset.end() && useIncJetRefIOVUncert) {
     
-    const int iij(1);
+    const int iij(isLowPU ? 0 : 1);
     const int n0 = 0; // multijet scheme, imj = 0
     const int n1 = nsamples; // multijet scheme, imj = 0
     assert(string(samples[iij])=="incjet");
@@ -1495,6 +1507,41 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
       ++neig;
     }
   } // incjet syst.
+
+  // Additional pileup uncertainty for inclusive jets
+  // NB: low-PU may fit a difference similar to PileUpMuZero in
+  // JECUncert_PileUp_AK4PFchs_Eta00.pdf
+  if (useSpecialLowPU && sampleset.find("incjet")!=sampleset.end()) {
+    
+    const int iij(isLowPU ? 0 : 1);
+    const int n0 = 0;
+    const int n1 = nsamples;
+    assert(string(samples[iij])=="incjet");
+    TH1D *hpu = (TH1D*)dsys->Get("herr_pu"); assert(hpu);
+    TH1D *h = (TH1D*)hpu->Clone(Form("bm%d_incjet_pu_%d",
+				     ((1<<(n0+iij)) | (1<<(n1+iij))),
+				     int(hs.size()+1)));
+    for (int i = 1; i != hpu->GetNbinsX()+1; ++i) {
+      double pt = h->GetBinCenter(i);
+      //if (pt < 100) h->SetBinContent(i, hpu->GetBinError(i));
+      //if (pt >= 100 && pt<600) h->SetBinContent(i, -hpu->GetBinError(i));
+      //if (pt >= 600) h->SetBinContent(i, hpu->GetBinError(i));
+      //h->SetBinContent(i, hpu->GetBinError(i));
+      //if (pt < 100) h->SetBinContent(i, hpu->GetBinError(i));
+      if (pt < 80) h->SetBinContent(i, hpu->GetBinError(i));
+      else          h->SetBinContent(i, h->GetBinContent(i-1)*0.5);
+      //else          h->SetBinContent(i, 0.);
+      //assert(false); // check where PU should change sign
+    }
+    hs.push_back(h);
+    // without this source 415.3 / 432
+    // with signed 415.3 / 432, fits 0.03+/-0.19
+    // with unsigned 399.5 / 432, fits 0.86+/-0.22
+    // with pt<100+ 413.5 / 432, fits 0.37+/-0.27
+    // with pt<100x0 410.4 / 432, fits 0.54+/-0.24
+    // with pt<80x0 402.4 / 432, fits 0.81+/-0.23
+    // with pt<80+ 410.0 / 432, fits 0.60+/-0.26
+  } // incjet PU
 
   // Uncertainty sources for hadronic W
   if (sampleset.find("hadw")!=sampleset.end()) {

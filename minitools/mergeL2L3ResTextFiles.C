@@ -1,7 +1,7 @@
 // Purpose: Create new input L2L3Res text file with weighted inputs
 //          Uses simple effective parameterization for the output file
 //          same way as done in minitools/createL2L3ResTextFile.C
-//          Prototype is only setup to merge all Run2 IOVs
+//          Prototype is only setup to merge either years or all Run2 IOVs
 #include "TH2D.h"
 #include "TCanvas.h"
 #include "TStyle.h"
@@ -19,26 +19,34 @@
 
 using namespace std;
 
-const bool debug = false;
+const bool debug = true;//false;
 
-void mergeL2L3ResTextFiles() {
+void mergeL2L3ResTextFiles(string run = "Run2", double dz = 0.002) {
 
   // List IOVs to be merged and their luminosities
   vector<pair<string,double> > iovs;
-  iovs.push_back(make_pair<string,double>("2016BCD",12.9));
-  iovs.push_back(make_pair<string,double>("2016EF",6.8));
-  iovs.push_back(make_pair<string,double>("2016GH",16.8));
+  if (run=="2016APV" || run=="Run2") {
+    iovs.push_back(make_pair<string,double>("2016BCD",12.9));
+    iovs.push_back(make_pair<string,double>("2016EF",6.8));
+  }
+  if (run=="2016GH" || run=="Run2") {
+    iovs.push_back(make_pair<string,double>("2016GH",16.8));
+  }
 
-  iovs.push_back(make_pair<string,double>("2017B",4.8));
-  iovs.push_back(make_pair<string,double>("2017C",9.6));
-  iovs.push_back(make_pair<string,double>("2017D",4.2));
-  iovs.push_back(make_pair<string,double>("2017E",9.3));
-  iovs.push_back(make_pair<string,double>("2017F",13.4));
+  if (run=="2017" || run=="Run2") {
+    iovs.push_back(make_pair<string,double>("2017B",4.8));
+    iovs.push_back(make_pair<string,double>("2017C",9.6));
+    iovs.push_back(make_pair<string,double>("2017D",4.2));
+    iovs.push_back(make_pair<string,double>("2017E",9.3));
+    iovs.push_back(make_pair<string,double>("2017F",13.4));
+  }
 
-  iovs.push_back(make_pair<string,double>("2018A",14.0));
-  iovs.push_back(make_pair<string,double>("2018B",7.1));
-  iovs.push_back(make_pair<string,double>("2018C",6.9));
-  iovs.push_back(make_pair<string,double>("2018D",31.9));
+  if (run=="2018" || run=="Run2") {
+    iovs.push_back(make_pair<string,double>("2018A",14.0));
+    iovs.push_back(make_pair<string,double>("2018B",7.1));
+    iovs.push_back(make_pair<string,double>("2018C",6.9));
+    iovs.push_back(make_pair<string,double>("2018D",31.9));
+  }
 
   double totlumi(0);
   for (int iov = 0; iov != iovs.size(); ++iov) totlumi += iovs[iov].second;
@@ -221,13 +229,22 @@ void mergeL2L3ResTextFiles() {
   } // for iov
     
 
-  string sout = "textFiles/mergeL2L3ResTextFiles_Run2Test.txt";
-  ofstream fout(sout.c_str());
+  string sout2 = Form("textFiles/mergeL2ResTextFiles_%s.txt",run.c_str());
+  ofstream fout2(sout2.c_str());
+
+  //string header2 = "{ 1 JetEta 1 JetPt [2]+[3]*TMath::Log(max([0],min([1],x))) Correction L2Relative}";
+  string header2 = "{ 1 JetEta 1 JetPt [2]*([3]*([4]+[5]*TMath::Log(max([0],min([1],x))))*1./([6]+[7]*100./3.*(TMath::Max(0.,1.03091-0.051154*pow(x,-0.154227))-TMath::Max(0.,1.03091-0.051154*TMath::Power(208.,-0.154227)))+[8]*0.021*(-1.+1./(1.+exp(-(TMath::Log(x)-5.030)/0.395))))) Correction L2Relative}";
+  if (debug) cout << "New L2Residual header:" << endl;
+  if (debug) cout << header2 << endl;
+  fout2 << header2 << endl;
+
+  string sout23 = Form("textFiles/mergeL2L3ResTextFiles_%s.txt",run.c_str());
+  ofstream fout23(sout23.c_str());
   
-  string header = "{ 1 JetEta 1 JetPt ([2]+[3]*log(max([0],min([1],x))))*1./([4]+[5]/x+[6]*log(x)/x+[7]*(pow(x/[8],[9])-1)/(pow(x/[8],[9])+1)+[10]*pow(x,-0.3051)) Correction L2Relative}";
+  string header23 = "{ 1 JetEta 1 JetPt ([2]+[3]*log(max([0],min([1],x))))*1./([4]+[5]/x+[6]*log(x)/x+[7]*(pow(x/[8],[9])-1)/(pow(x/[8],[9])+1)+[10]*pow(x,-0.3051)) Correction L2Relative}";
   if (debug) cout << "New L2L3Residual header:" << endl;
-  if (debug) cout << header << endl;
-  fout << header << endl;
+  if (debug) cout << header23 << endl;
+  fout23 << header23 << endl;
 
   // Fit results
   for (int ieta = 1; ieta != h2->GetNbinsX()+1; ++ieta) {
@@ -242,17 +259,43 @@ void mergeL2L3ResTextFiles() {
     f2->FixParameter(0,minpt2);
     f2->FixParameter(1,maxpt2);
     f2->SetRange(minpt2,maxpt2);
+    f2->SetParameter(2,1.);
+    f2->SetParameter(3,0.);
     TH1D *h2t = h2->ProjectionY("h2t",ieta,ieta);
     h2t->Fit(f2,"QRNM");
     delete h2t;
     f2->SetRange(10,7000);
 
+    // Print L2Residuals
+    double q[4]; assert(f2->GetNpar()==4);
+    for (int i = 0; i != f2->GetNpar(); ++i) {
+      q[i] = f2->GetParameter(i);
+    }
+    
+    int nparnew2 = f2->GetNpar()+2;
+    int xmin3 = int(minpt3+0.5);
+    int xmax3 = int(maxpt3+0.5);
+    int ptmin2 = int(minpt2+0.5);
+    int ptmax2 = int(maxpt2+0.5);
+    assert(fabs(q[0]-ptmin2)<1);
+    assert(fabs(q[1]-ptmax2)<1);
+
+    //fout2 << Form("  %9.6f %9.6f   %d   %d %d   %d   %d   %8.6f %8.6f ",
+    fout2 << Form("  %9.3f %9.3f  %d  %d %d  %d %d   %1.0f %1.0f  "
+		   "%8.6f %8.6f  %1.0f %1.0f %1.0f",
+		  etamin, etamax, nparnew2, xmin3, xmax3, ptmin2, ptmax2,
+		  //q[2], q[3]) 
+		  1., 1., q[2], q[3], 1., 0., 0.)
+	   << endl;
+
+
     f3->SetRange(minpt3,maxpt3);
     TH1D *h3t = h3->ProjectionY("h3t",ieta,ieta);
     h3t->Fit(f3,"QRNM");
     delete h3t;
-    f2->SetRange(10,7000);
-    
+    f3->SetRange(10,7000);
+
+    // Print L3Residuals
     f23->SetParameters(f2->GetParameter(0),f2->GetParameter(1),
 		       f2->GetParameter(2),f2->GetParameter(3),
 		       f3->GetParameter(0),f3->GetParameter(1),
@@ -264,18 +307,19 @@ void mergeL2L3ResTextFiles() {
       p[i] = f23->GetParameter(i);
     }
     
-    int nparnew = f23->GetNpar()+2;
-    int xmin = int(minpt3+0.5);
-    int xmax = int(maxpt3+0.5);
-    int ptmin0 = int(minpt2+0.5);
-    int ptmax1 = int(maxpt2+0.5);
-    assert(fabs(p[0]-ptmin0)<1);
-    assert(fabs(p[1]-ptmax1)<1);
+    int nparnew23 = f23->GetNpar()+2;
+    //int xmin3 = int(minpt3+0.5);
+    //int xmax3 = int(maxpt3+0.5);
+    //int ptmin2 = int(minpt2+0.5);
+    //int ptmax2 = int(maxpt2+0.5);
+    assert(fabs(p[0]-ptmin2)<1);
+    assert(fabs(p[1]-ptmax2)<1);
 
-    fout << Form("  %9.6f %9.6f   %d   %d %d   %d   %d   %8.6f %8.6f "
-                 "%5.4f %5.4f %5.5f %5.5f %5.1f %5.4f %5.5f",
-                 etamin, etamax, nparnew, xmin, xmax, ptmin0, ptmax1,
-		 p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10]) << endl;
+    fout23 << Form("  %9.6f %9.6f   %d   %d %d   %d   %d   %8.6f %8.6f "
+		   "%5.4f %5.4f %5.5f %5.5f %5.1f %5.4f %5.5f",
+		   etamin, etamax, nparnew23, xmin3, xmax3, ptmin2, ptmax2,
+		   p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10])
+	   << endl;
 
     for (int ipt = 1; ipt != h2->GetNbinsY()+1; ++ipt) {
       double pt  = h2->GetYaxis()->GetBinCenter(ipt);
@@ -298,7 +342,7 @@ void mergeL2L3ResTextFiles() {
 
   gStyle->SetOptStat(0);
 
-  double dz = 0.002;
+  //double dz = 0.005;//0.002;
 
   TCanvas *c23 = new TCanvas("c23","c23",600,600);
   gPad->SetLogy();
@@ -329,6 +373,6 @@ void mergeL2L3ResTextFiles() {
   //h3->GetZaxis()->SetRangeUser(0.93,1.23);
   h3->GetZaxis()->SetRangeUser(0.95,1.05);
   h3f->GetZaxis()->SetRangeUser(0.95,1.05);
-  h3d->GetZaxis()->SetRangeUser(-0.001,0.001);
+  h3d->GetZaxis()->SetRangeUser(-dz,+dz);//-0.001,0.001);
 
 } // mergeL2L3ResTextFiles

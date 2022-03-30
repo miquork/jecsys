@@ -319,9 +319,13 @@ void reprocess(string epoch="") {
   }
 
   // Inclusive jet switches
-  if (isUL16) {
-    fincjetptmin = 21;
+  //if (isUL16) {
+  //fincjetptmin = 21;
     //if (epoch=="2016EF") fincjetptmin = 64;
+  //}
+  if (isLowPU) {
+    fincjetptmin = 21;
+    fincjetptmax = 790;
   }
 
 
@@ -475,7 +479,7 @@ void reprocess(string epoch="") {
     else
       assert(false);
   }
-  assert((fij && !fij->IsZombie()) || isLowPU);
+  assert((fij && !fij->IsZombie()));// || isLowPU);
 
 
   ////////////////////////////
@@ -544,13 +548,17 @@ void reprocess(string epoch="") {
       fpfmc = new TFile("rootfiles/jecdataRun2TestData.root","READ");
     }
     else if (isLowPU) {
-      // skip for now
+      //fpfdt = new TFile("rootfiles/output-DATA-2b-SevgiMar1.root","READ");
+      //fpfmc = new TFile("rootfiles/output-MC-2b-SevgiMar1.root","READ");
+      // With new pThat bins 5-10 and 10-15 added
+      fpfdt = new TFile("rootfiles/output-DATA-2b-Sevgi-pfcomp_lowpu.root","READ");
+      fpfmc = new TFile("rootfiles/output-MC-2b-Sevgi-pfcomp_lowpu.root","READ");
     }
     else
       assert(false);
   }
-  assert((fpfdt && !fpfdt->IsZombie()) || pfMode=="none" || isLowPU);
-  assert((fpfmc && !fpfmc->IsZombie()) || pfMode=="none" || isLowPU);
+  assert((fpfdt && !fpfdt->IsZombie()) || pfMode=="none");// || isLowPU);
+  assert((fpfmc && !fpfmc->IsZombie()) || pfMode=="none");// || isLowPU);
 
 
   ////////////////////////////
@@ -2179,6 +2187,7 @@ void reprocess(string epoch="") {
     sets.clear();
     sets.push_back("incjet");
     sets.push_back("zjet");
+    sets.push_back("pfjet"); //Mar1
 
     sets.push_back("zi");
     sets.push_back("zb");
@@ -2279,7 +2288,8 @@ void reprocess(string epoch="") {
 
   if (isLowPU) {
     alphas.clear();
-    alphas.push_back(1.00);
+    alphas.push_back(0.30); // for pfjet
+    alphas.push_back(1.00); // for zjet
   }
 
   ///////////////////////////////////////////
@@ -2382,6 +2392,7 @@ void reprocess(string epoch="") {
 	  if (t=="rho" && sp=="gamjet") continue;
 	  if (t=="rho" && s=="multijet"  // and for multijet
 	      && !(CorLevel=="L1L2L3Res" && isUL16)) continue;
+	  if (t=="rho" && s=="pfjet" && isLowPU) continue;
 
 	  // fractions are only for pfjet, and only fractions are for pfjet
 	  // (now adding fractions to zjet)
@@ -2448,6 +2459,8 @@ void reprocess(string epoch="") {
 	    if (alpha!=1.00 && isUL18 && isNewName && (s=="zjet"||sp=="zjet"))
 	      continue;
 	    if (alpha!=1.00 && isUL16 && !isAPV && (s=="zjet" || sp=="zjet"))
+	      continue;
+	    if (alpha!=1.00 && isLowPU && (s=="zjet" || sp=="zjet"))
 	      continue;
 
 	    if (alpha!=1.00 && sp=="gamjet") continue;
@@ -3581,7 +3594,7 @@ void reprocess(string epoch="") {
       s = Form("%s/Summer19UL18_RunA_V5_DATA_UncertaintySources_AK4PFchs.txt",cd); 
    }
     else if (isLowPU) {
-     s = Form("%s/Summer19UL17_RunC_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
+     s = Form("%s/Summer19UL17_RunF_V5_DATA_UncertaintySources_AK4PFchs.txt",cd);
     }
     else
       assert(false);
