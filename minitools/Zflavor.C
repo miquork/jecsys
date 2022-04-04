@@ -36,10 +36,22 @@ double effScaleZ = 1; // turn off (no extra scaling)
 bool useDataFracs = true;
 bool useDataEff = false;//true; // does not work yet
 bool useMCEff = false;//true;
+
+// Correct for gluon efficiency
+bool fixGluon = true; // default:true
+// Override gluon SF with ad-hoc scale
+double fixGluonAdhocSF = 0.95;  // default:0 (none), 0.95 for Run2Test 1.3
+//double fixGluonAdhocSF = 0.90;  // default:0 (none), 0.90 for Run2Test 2.5?
+
+// Correct for quark efficiency
+bool fixQuark = false;//true;
+// Override quark SF with ad-hoc scale
+double fixQuarkAdhocSF = 0.; // default:0 (none)
+
 //bool useSmoothMCEff = true;
-// Allow to test rough scale changes
+// Allow to test rough scale changes for response
+double gluonScale = 0.95;//0.990;//0.995;//0.970; // default:1
 double quarkScale = 1;//1.0025;//0.998;//1.001;//1.005;
-double gluonScale = 1;//0.990;//0.995;//0.970;
 // Could check stability of quark scale with Qtag from W>qq'
 double quarkScaleQtag = 1;//1.001;//1.005;
 double quarkScaleGtag = 1;//0.997;
@@ -52,6 +64,7 @@ double _etamax(0);
 double gluonEffSF(double ptmin, double ptmax, double &ineffsf, double mceff=0);
 double quarkEffSF(double ptmin, double ptmax, double &ineffsf);
 double heavyEffSF(double pt, double &mistag);
+TGraphErrors *toGraph(TH1D *h);
 
 // 2D model of tagged flavor response over inclusive
 double *_ptbins; int _npt;
@@ -125,13 +138,44 @@ Double_t fW(const Double_t *x, const Double_t *p) {
   return w;
 }
 
+// Map flavor histogram back to pT
+TGraphErrors *toGraph(TH1D* h) {
+
+  TGraphErrors *g = new TGraphErrors(0);
+  for (int i = 1; i != h->GetNbinsX()+1; ++i) {
+    if (h->GetBinContent(i)!=0 && h->GetBinError(i)!=0) {
+
+      double x = h->GetBinCenter(i);
+      double ex = 0.5*h->GetBinWidth(i);
+      double pt0 = _ptbins[0];
+      int itag = int(x / log10(_ptbins[_npt]/pt0));
+      double pt = pt0*pow(10., x-itag*log10(_ptbins[_npt]/pt0));
+      double ptu = pt0*pow(10., (x+ex)-itag*log10(_ptbins[_npt]/pt0));
+      double ept = ptu-pt;
+      if (!(pt>_ptbins[0] && pt<_ptbins[_npt])) continue; // excludes nan also
+      assert(pt>_ptbins[0] && pt<_ptbins[_npt]);
+      
+      int n = g->GetN();
+      g->SetPoint(n, pt, h->GetBinContent(i));
+      g->SetPointError(n, ept, h->GetBinError(i));
+    }
+  } // for i
+
+  g->SetMarkerStyle(h->GetMarkerStyle());
+  g->SetMarkerColor(h->GetMarkerColor());
+  g->SetLineColor(h->GetLineColor());
+
+  return g;
+} // toGraph
 
 
-//void Zflavor(double EtaMax = 2.5) {
-void Zflavor(double EtaMax = 1.3) {
+void Zflavor(double EtaMax = 2.5, string iov = "Run2Test") {
+  //void Zflavor(double EtaMax = 1.3, string iov="Run2Test") {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
+
+  const char *ci = iov.c_str();
   
   // pT range can be adjusted here to avoid empty bins
   double ptbins[] =
@@ -216,7 +260,9 @@ void Zflavor(double EtaMax = 1.3) {
   TLine *l = new TLine();
   l->SetLineStyle(kDashed);
 
-  TFile *f = new TFile("rootfiles/jecdata2018ABCD.root","READ");
+  //TFile *f = new TFile("rootfiles/jecdata2018ABCD.root","READ");
+  //TFile *f = new TFile("rootfiles/jecdata2017BCDEF.root","READ");
+  TFile *f = new TFile(Form("rootfiles/jecdata%s.root",ci),"READ");
   assert(f && !f->IsZombie());
   f->cd(Form("mc/eta00-%d",int(10*etamax)));
   TDirectory *dm = gDirectory;
@@ -508,7 +554,10 @@ void Zflavor(double EtaMax = 1.3) {
   hreff->GetXaxis()->SetTitle("Global bin(flavor, log(p_{T}))");
 
 
-  lumi_13TeV = "[Z+jet] UL17+18, 101.4 fb^{-1}";
+  cmsText = "HIP CMS";
+  extraText = "Private";
+  //lumi_13TeV = "[Z+jet] UL17+18, 101.4 fb^{-1}";
+  lumi_13TeV = "[Z+jet] Run 2 Legacy, 138 fb^{-1}";
   TH1D *h0 = (TH1D*)href->Clone("h0");
   h0->SetYTitle("Data / MC");
   
@@ -563,7 +612,7 @@ void Zflavor(double EtaMax = 1.3) {
 				etamax,ptmin,ptmax));
 
   gPad->Update();
-  c0->SaveAs(Form("pdf/Zflavor_counts_v1_Eta%1.0f.pdf",10*etamax));
+  c0->SaveAs(Form("pdf/Zflavor/Zflavor_counts_v1_Eta%1.0f_%s.pdf",10*etamax,ci));
   
   //lumi_13TeV = "UL17+18, 101.4 fb^{-1}";
   TH1D *h1 = (TH1D*)href->Clone("h1");
@@ -756,7 +805,7 @@ void Zflavor(double EtaMax = 1.3) {
   tex->SetTextSize(0.040);
 
   gPad->Update();
-  c1->SaveAs(Form("pdf/Zflavor_mcfrac_v1_Eta%1.0f.pdf",10*etamax));
+  c1->SaveAs(Form("pdf/Zflavor/Zflavor_mcfrac_v1_Eta%1.0f_%s.pdf",10*etamax,ci));
 
 
   //TH1D *h2 = h2ri->ProjectionX("h2",1,1); h2->Reset();
@@ -949,7 +998,7 @@ void Zflavor(double EtaMax = 1.3) {
 				etamax,ptmin,ptmax));
 
   gPad->Update();
-  c2->SaveAs(Form("pdf/Zflavor_mcresp_v1_Eta%1.0f.pdf",10*etamax));
+  c2->SaveAs(Form("pdf/Zflavor/Zflavor_mcresp_v1_Eta%1.0f_%s.pdf",10*etamax,ci));
 
 
   // Apply scaling to event fractions, then update responses
@@ -973,8 +1022,6 @@ void Zflavor(double EtaMax = 1.3) {
     int jb = 4+1;
     int jn = 5+1;
 
-    // Correct for gluon efficiency
-    bool fixGluon = true;
     if (fixGluon) {
       double ngi = h2wiss->GetBinContent(ii,jg);
       double ngq = h2wiss->GetBinContent(iq,jg);
@@ -985,6 +1032,8 @@ void Zflavor(double EtaMax = 1.3) {
       //double effgnew = effg*0.55; // 0.55 is a good guesstimate (or not)
       double effgsf = gluonEffSF(ptbins[ipt],ptbins[ipt+1],ineffgsf,
 				 useMCEff ? effg : 0);
+      if (fixGluonAdhocSF!=0) effgsf = fixGluonAdhocSF;
+
       double effgnew = effg*effgsf;
       double nggnew = ngi * effgnew; // = ngg*0.8
       double ngqnew = ngq + (ngg-nggnew);
@@ -1002,8 +1051,6 @@ void Zflavor(double EtaMax = 1.3) {
       h2wiss->SetBinContent(ig,ji, nignew);
     } // fixGluon
 
-    // Correct for quark efficiency
-    bool fixQuark = true;
     if (fixQuark) {
       double nqi = h2wiss->GetBinContent(ii,jq);
       double nqq = h2wiss->GetBinContent(iq,jq);
@@ -1012,6 +1059,8 @@ void Zflavor(double EtaMax = 1.3) {
       // Update this based on better calculation of gluon efficiency
       double ineffqsf;
       double effqsf = quarkEffSF(ptbins[ipt],ptbins[ipt+1],ineffqsf);
+      if (fixQuarkAdhocSF!=0) effqsf = fixQuarkAdhocSF;
+
       double effqnew = effq*effqsf;
       double nqqnew = nqi * effqnew;
       double nqgnew = nqg + (nqq-nqqnew);
@@ -1119,7 +1168,7 @@ void Zflavor(double EtaMax = 1.3) {
     cout << Form("%1.4g, ",fbv2->GetParameter(i));
   cout << "};" << endl;
 
-  c0->SaveAs(Form("pdf/Zflavor_counts_v2_Eta%1.0f.pdf",10*etamax));
+  c0->SaveAs(Form("pdf/Zflavor/Zflavor_counts_v2_Eta%1.0f_%s.pdf",10*etamax,ci));
 
   // Draw updated fractions
   c1->cd();
@@ -1143,7 +1192,7 @@ void Zflavor(double EtaMax = 1.3) {
       leg1f2->AddEntry(hwf," ","L");
     }
   }
-  c1->SaveAs(Form("pdf/Zflavor_mcfrac_v2_Eta%1.0f.pdf",10*etamax));
+  c1->SaveAs(Form("pdf/Zflavor/Zflavor_mcfrac_v2_Eta%1.0f_%s.pdf",10*etamax,ci));
 
 
   // Solve inclusive flavor fractions based on tagged counts
@@ -1363,7 +1412,7 @@ void Zflavor(double EtaMax = 1.3) {
   hwdv3->Fit(fbv3,"QRN");
   fbv3->Draw("SAME");
 
-  c0->SaveAs(Form("pdf/Zflavor_counts_v3_Eta%1.0f.pdf",10*etamax));
+  c0->SaveAs(Form("pdf/Zflavor/Zflavor_counts_v3_Eta%1.0f_%s.pdf",10*etamax,ci));
 
 
   // Final v3 update for mcfrac with MC normalized to data in two days
@@ -1437,7 +1486,7 @@ void Zflavor(double EtaMax = 1.3) {
   tex->SetTextSize(0.040);
 
   gPad->Update();
-  c3->SaveAs(Form("pdf/Zflavor_mcfrac_v3_Eta%1.0f.pdf",10*etamax));
+  c3->SaveAs(Form("pdf/Zflavor/Zflavor_mcfrac_v3_Eta%1.0f_%s.pdf",10*etamax,ci));
 
 
   // Combine smoothed response and fraction matrices into single matrix
@@ -1562,7 +1611,7 @@ void Zflavor(double EtaMax = 1.3) {
     tdrDraw(hxd,"HIST",kNone,color[iq],kDashed,-1,kNone);
   }
 
-  c2->SaveAs(Form("pdf/Zflavor_mcresp_v2_%1.0f.pdf",etamax));
+  c2->SaveAs(Form("pdf/Zflavor/Zflavor_mcresp_v2_Eta%1.0f_%s.pdf",10*etamax,ci));
 
 
 
@@ -1629,7 +1678,7 @@ void Zflavor(double EtaMax = 1.3) {
 				etamax,ptmin,ptmax));
 
   gPad->Update();
-  c4->SaveAs(Form("pdf/Zflavor_resp_Eta%1.0f.pdf",10*etamax));
+  c4->SaveAs(Form("pdf/Zflavor/Zflavor_resp_Eta%1.0f_%s.pdf",10*etamax,ci));
 
 
   // Plot efficiency matrix
@@ -1768,7 +1817,7 @@ void Zflavor(double EtaMax = 1.3) {
 				etamax,ptmin,ptmax));
 
   gPad->Update();
-  c5->SaveAs(Form("pdf/Zflavor_fjes_Eta%1.0f.pdf",10*etamax));
+  c5->SaveAs(Form("pdf/Zflavor/Zflavor_fjes_Eta%1.0f_%s.pdf",10*etamax,ci));
 
   
   // Final data / MC ratio and plot results
@@ -1988,8 +2037,41 @@ void Zflavor(double EtaMax = 1.3) {
 
   gPad->RedrawAxis();
   gPad->Update();
-  c6->SaveAs(Form("pdf/Zflavor_datamc_Eta%1.0f.pdf",10*etamax));
+  c6->SaveAs(Form("pdf/Zflavor/Zflavor_datamc_Eta%1.0f_%s.pdf",10*etamax,ci));
 
+  // Save results for replotting in drawERC2021.C
+  //TFile *ferc = new TFile("rootfiles/ZflavorPostERC.root","RECREATE");
+  //TFile *ferc = new TFile("rootfiles/ZflavorAoF2021.root","RECREATE");
+  TFile *ferc = new TFile("pdf/Zflavor/ZflavorAoF2021.root","RECREATE");
+
+  hflv->Write("hflv");
+  hflz->Write("hflz");
+
+  hdm->Write("hdm");
+  hrqe->Write("hrqe");
+  hrge->Write("hrge");
+  hrce->Write("hrce");
+  hrbe->Write("hrbe");
+
+  f1q->Write("f1q");
+  f1g->Write("f1g");
+  f1c->Write("f1c");
+  f1b->Write("f1b");
+
+  hrfdm->Write("hrfdm");
+  hrq->Write("hrq");
+  hrg->Write("hrg");
+  hrc->Write("hrc");
+  hrb->Write("hrb");
+
+  // Map results back to pT
+  toGraph(hrq)->Write("grq");
+  toGraph(hrg)->Write("grg");
+  toGraph(hrc)->Write("grc");
+  toGraph(hrb)->Write("grb");
+
+  ferc->Write();
+  ferc->Close();
 
 } // Zflavor
 
