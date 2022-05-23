@@ -84,8 +84,10 @@ void PFhadronLoop::Loop()
    //fout->cd("DT1718");
    //fout->mkdir("DT161718");
    //fout->cd("DT161718");
-   fout->mkdir("DT16GH1718");
-   fout->cd("DT16GH1718");
+   //fout->mkdir("DT16GH1718");
+   //fout->cd("DT16GH1718");
+   fout->mkdir(mode.c_str());
+   fout->cd(mode.c_str());
    TDirectory *d = gDirectory;
 
    // PtTrk binning
@@ -107,6 +109,12 @@ void PFhadronLoop::Loop()
    TH2D *h2p =new TH2D("h2p","All hadrons;p_{T} (GeV);"
 		       "(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax,
 		       250,-0.005,2.495);
+   TH2D *h2p_e =new TH2D("h2p_e","All hadrons;p_{T} (GeV);"
+			 "E_{ECAL} / E_{track}",nx,ax,
+			 250,-0.005,2.495);
+   TH2D *h2p_h =new TH2D("h2p_h","All hadrons;p_{T} (GeV);"
+			 "E_{HCAL} / E_{track}",nx,ax,
+			 250,-0.005,2.495);
    TH2D *h2phh =new TH2D("h2phh","H-hadrons;p_{T} (GeV);"
 			"(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax,
 			250,-0.005,2.495);
@@ -116,15 +124,46 @@ void PFhadronLoop::Loop()
    TH2D *h2peh =new TH2D("h2peh","EH-hadrons;p_{T} (GeV);"
 			 "(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax,
 			 250,-0.005,2.495);
+   TH2D *h2pee =new TH2D("h2pee","E-hadrons;p_{T} (GeV);"
+			 "(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax,
+			 250,-0.005,2.495);
 
    TProfile *p = new TProfile("p","All hadrons;p_{T} (GeV);"
 			      "(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax);
+   TProfile *p_e = new TProfile("p_e","All hadrons;p_{T} (GeV);"
+				"E_{ECAL} / E_{track}",nx,ax);
+   TProfile *p_h = new TProfile("p_h","All hadrons;p_{T} (GeV);"
+				"E_{HCAL} / E_{track}",nx,ax);
    TProfile *phh = new TProfile("phh","H-hadrons;p_{T} (GeV);"
 				"(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax);
    TProfile *phm = new TProfile("phm","H-MIP-hadrons;p_{T} (GeV);"
 				"(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax);
    TProfile *peh = new TProfile("peh","EH-hadrons;p_{T} (GeV);"
 				"(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax);
+   TProfile *pee = new TProfile("pee","E-hadrons;p_{T} (GeV);"
+				"(E_{ECAL} + E_{HCAL}) / E_{track}",nx,ax);
+
+   TProfile *pf = new TProfile("pf","All hadrons;p_{T} (GeV);"
+			       "Non-zero fraction",nx,ax);
+   TProfile *pfhh = new TProfile("pfhh","H-hadrons;p_{T} (GeV);"
+				 "H-hadron fraction",nx,ax);
+   TProfile *pfhm = new TProfile("pfhm","H-MIP-hadrons;p_{T} (GeV);"
+				 "E_{ECAL} / (E_{ECAL} + E_{HCAL})",nx,ax);
+   TProfile *pfeh = new TProfile("pfeh","EH-hadrons;p_{T} (GeV);"
+				 "E_{ECAL} / (E_{ECAL} + E_{HCAL})",nx,ax);
+   TProfile *pfee = new TProfile("pfee","E-hadrons;p_{T} (GeV);"
+				 "E_{ECAL} / (E_{ECAL} + E_{HCAL})",nx,ax);
+
+   TProfile *pef = new TProfile("pef","All hadrons;p_{T} (GeV);"
+				"E_{ECAL} / (E_{ECAL} + E_{HCAL})",nx,ax);
+   TProfile *pefhh = new TProfile("pefhh","H-hadrons;p_{T} (GeV);"
+				  "E_{ECAL} / (E_{ECAL} + E_{HCAL})",nx,ax);
+   TProfile *pefhm = new TProfile("pefhm","H-MIP-hadrons;p_{T} (GeV);"
+				  "E_{ECAL} / (E_{ECAL} + E_{HCAL})",nx,ax);
+   TProfile *pefeh = new TProfile("pefeh","EH-hadrons;p_{T} (GeV);"
+				  "E_{ECAL} / (E_{ECAL} + E_{HCAL})",nx,ax);
+   TProfile *pefee = new TProfile("pefee","E-hadrons;p_{T} (GeV);"
+				  "E_{ECAL} / (E_{ECAL} + E_{HCAL})",nx,ax);
 
    TProfile *pr = new TProfile("pr",";p_{T} (GeV);"
 			       "(E_{ECAL,raw} + E_{HCAL,raw}) / E_{track}",
@@ -134,9 +173,9 @@ void PFhadronLoop::Loop()
 			       nx,ax);
    
    // Individual calorimeter energies
-   TProfile *pe = new TProfile("pe",";p_{T} (GeV);E_{ECAL,raw} / E_{track}",
+   TProfile *pce = new TProfile("pce",";p_{T} (GeV);E_{ECAL,raw} / E_{track}",
 			       nx,ax);
-   TProfile *ph = new TProfile("ph",";p_{T} (GeV);E_{HCAL,raw} / E_{track}",
+   TProfile *pch = new TProfile("pch",";p_{T} (GeV);E_{HCAL,raw} / E_{track}",
 			       nx,ax);
    TProfile *pre = new TProfile("pre",";p_{T} (GeV);E_{ECAL,raw} / E_{track}",
 				nx,ax);
@@ -205,23 +244,49 @@ void PFhadronLoop::Loop()
 
 	// Summed calorimeter energies in 2D
 	h2p->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
-	if (Ef_ECAL==0)                    h2phh->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
-	if (Ef_ECAL!=0 && Ef_ECAL*PtTrk<1) h2phm->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
-	if (Ef_ECAL*PtTrk>=1)              h2peh->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
+	h2p_e->Fill(PtTrk,  Ef_ECAL);
+	h2p_h->Fill(PtTrk,  Ef_HCAL);
+	if (Ef_ECAL==0 && Ef_HCAL!=0)       h2phh->Fill(PtTrk, Ef_ECAL+Ef_HCAL);
+	if (Ef_ECAL!=0 && Ef_ECAL*PtTrk<1 && Ef_HCAL!=0)
+	                                    h2phm->Fill(PtTrk, Ef_ECAL+Ef_HCAL);
+	if (Ef_ECAL*PtTrk>=1 && Ef_HCAL!=0) h2peh->Fill(PtTrk, Ef_ECAL+Ef_HCAL);
+	if (Ef_ECAL!=0 && Ef_HCAL==0)       h2pee->Fill(PtTrk, Ef_ECAL+Ef_HCAL);
 
 	// Summed calorimeter as profile vs pT
 	p->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
-	if (Ef_ECAL==0)                    phh->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
-	if (Ef_ECAL!=0 && Ef_ECAL*PtTrk<1) phm->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
-	if (Ef_ECAL*PtTrk>=1)              peh->Fill(PtTrk,  Ef_ECAL+Ef_HCAL);
+	p_e->Fill(PtTrk,  Ef_ECAL);
+	p_h->Fill(PtTrk,  Ef_HCAL);
+	if (Ef_ECAL==0 && Ef_HCAL!=0)       phh->Fill(PtTrk, Ef_ECAL+Ef_HCAL);
+	if (Ef_ECAL!=0 && Ef_ECAL*PtTrk<1 && Ef_HCAL!=0)
+	                                    phm->Fill(PtTrk, Ef_ECAL+Ef_HCAL);
+	if (Ef_ECAL*PtTrk>=1 && Ef_HCAL!=0) peh->Fill(PtTrk, Ef_ECAL+Ef_HCAL);
+	if (Ef_ECAL!=0 && Ef_HCAL==0)       pee->Fill(PtTrk, Ef_ECAL+Ef_HCAL);
+
+	// Hadron-type fractions vs pT
+	pf->Fill(PtTrk,  !(Ef_ECAL==0 && Ef_HCAL==0) ? 1 : 0);
+	pfhh->Fill(PtTrk, Ef_ECAL==0 && Ef_HCAL!=0 ? 1 : 0);
+	pfhm->Fill(PtTrk, Ef_ECAL!=0 && Ef_ECAL*PtTrk<1 && Ef_HCAL!=0 ? 1 : 0);
+	pfeh->Fill(PtTrk, Ef_ECAL*PtTrk>=1 && Ef_HCAL!=0 ? 1 : 0);
+	pfee->Fill(PtTrk, Ef_ECAL!=0 && Ef_HCAL==0 ? 1 : 0);
+
+	// ECAL fraction vs pT
+	double ef = ((Ef_ECAL+Ef_HCAL)!=0 ? Ef_ECAL / (Ef_ECAL+Ef_HCAL) : -1);
+	if (ef>=0) {
+	  pef->Fill(PtTrk,  ef);
+	  if (Ef_ECAL==0 && Ef_HCAL!=0)       pefhh->Fill(PtTrk, ef);
+	  if (Ef_ECAL!=0 && Ef_ECAL*PtTrk<1 && Ef_HCAL!=0)
+	                                      pefhm->Fill(PtTrk, ef);
+	  if (Ef_ECAL*PtTrk>=1 && Ef_HCAL!=0) pefeh->Fill(PtTrk, ef);
+	  if (Ef_ECAL!=0 && Ef_HCAL==0)       pefee->Fill(PtTrk, ef);
+	}
 
 	// Raw energies
 	pr->Fill(PtTrk, Ef_ECALRaw+Ef_HCALRaw);
 	px->Fill(PtTrk, Ef_ECALRaw+Ef_HCAL);
 	
 	// Individual calorimeter energies
-	pe->Fill(PtTrk, Ef_ECAL);
-	ph->Fill(PtTrk, Ef_HCAL);
+	pce->Fill(PtTrk, Ef_ECAL);
+	pch->Fill(PtTrk, Ef_HCAL);
 	pre->Fill(PtTrk, Ef_ECALRaw);
 	prh->Fill(PtTrk, Ef_HCALRaw);
 
