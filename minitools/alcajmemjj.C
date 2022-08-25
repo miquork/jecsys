@@ -7,7 +7,8 @@ void alcajmemjj() {
   TDirectory *curdir = gDirectory;
 
   //TFile *f = new TFile("rootfiles/alcajme_out_50M_v6_mjj.root","READ");
-  TFile *f = new TFile("rootfiles/alcajme_out_50M_v8_doak4.root","READ");
+  //TFile *f = new TFile("rootfiles/alcajme_out_50M_v8_doak4.root","READ");
+  TFile *f = new TFile("rootfiles/alcajme_out_50M_v10_4p86fb.root","READ");
   assert(f && !f->IsZombie());
 
   curdir->cd();
@@ -42,8 +43,9 @@ void alcajmemjj() {
   }
 
   TH1D *h1 = tdrHist("h1","N_{pairs}",3e2,1e9,
-		    "Dijet mass m_{jj} (GeV)",30,300);
-  lumi_136TeV = "AlCaRaw DCSOnly, X fb^{-1}";
+		     "Dijet mass m_{jj} (GeV)",30,300);
+  //lumi_136TeV = "AlCaRaw DCSOnly, X fb^{-1}";
+  lumi_136TeV = "AlCaRaw 1.79, Golden 4.86 fb^{-1}";
   TCanvas *c1 = tdrCanvas("c1",h1,8,11,kSquare);
 
   TLatex *t = new TLatex();
@@ -86,9 +88,10 @@ void alcajmemjj() {
   }
 
 
-  TH1D *h2 = tdrHist("h2","(Data - fit) / fit",-0.05,0.05,
+  TH1D *h2 = tdrHist("h2","(Data - fit) / fit",-0.07,0.07,
 		    "Dijet mass m_{jj} (GeV)",30,300);
-  lumi_136TeV = "AlCaRaw DCSOnly, X fb^{-1}";
+  //lumi_136TeV = "AlCaRaw DCSOnly, X fb^{-1}";
+  lumi_136TeV = "AlCaRaw 1.79, Golden 4.86 fb^{-1}";
   TCanvas *c2 = tdrCanvas("c2",h2,8,11,kSquare);
 
   TLine *l = new TLine();
@@ -119,8 +122,8 @@ void alcajmemjj() {
   t->DrawLatex(0.20,0.15,Form("Fit #chi^{2} / NDF = %1.1f / %d",
 			      f1->GetChisquare(), f1->GetNDF()));
 
-  c1->SaveAs("pdf/alcajme/alcajmemjj_mjj.pdf");
-  c2->SaveAs("pdf/alcajme/alcajmemjj_fit.pdf");
+  c1->SaveAs("pdf/alcajme/alcajmemjj_mjj_v10.pdf");
+  c2->SaveAs("pdf/alcajme/alcajmemjj_fit_v10.pdf");
 
   // Mass resolution estimated as sqrt(m/2.)
   TF1 *fg1 = new TF1("fg1","[0]*TMath::Gaus(x,[1]*80.4,[2]*6.34,0)",60,120);
@@ -168,25 +171,46 @@ void alcajmemjj() {
 			     "#times#sigma_{1}#times%1.03f#pm%1.03f",
 			     fwz->GetParameter(5),fwz->GetParError(5)));
 
-  c2->SaveAs("pdf/alcajme/alcajme_fit2.pdf");
+  c2->SaveAs("pdf/alcajme/alcajme_fit2_v10.pdf");
 
 
   TH1D *h3 = tdrHist("h3","Data - fit",-2e3,2e4,
 		     "Dijet mass m_{jj} (GeV)",30,300);
-  lumi_136TeV = "AlCaRaw DCSOnly, X fb^{-1}";
+  //lumi_136TeV = "AlCaRaw DCSOnly, X fb^{-1}";
+  lumi_136TeV = "AlCaRaw 1.79, Golden 4.86 fb^{-1}";
   TCanvas *c3 = tdrCanvas("c3",h3,8,11,kSquare);
   h3->GetYaxis()->SetNoExponent(kFALSE);
   
   hdfa->Draw("SAME");
   gPad->SetLogx();
 
+  // Cross sections
+  double xw = 20508.9; // pb, BR(W>lnu) included, l=mu
+  double xz = 1928.0; // pb, Z->ll, l=mu
+  double totxw = xw * 9.;
+  double hadxw = totxw * 2./3.;
+  double totxz = xz / 0.034;
+  double hadxz = totxz * 0.692;
+  double hadx = hadxw+hadxz;
+  double lumi = 1.79e3 / 9277; // max estimate, could be half this
+  double nw = hadxw * lumi;
+  double rz = hadxz/hadxw;
+  double nz = nw * rz;
+  cout << "Total W xsec = " << totxw << " pb" << endl;
+  cout << "Total Z xsec = " << totxz << " pb" << endl;
+  cout << "Total hadronic W+Z xsec = " << hadx << " pb" << endl;
+  cout << "Expected Z/W ratio = " << rz << endl;
+  cout << "Expected Nw = " << nw << endl;
+  cout << "Expected Nz = " << nz << endl;
+
   // Mass resolution estimated as sqrt(m/2.)
-  TF1 *fga1 = new TF1("fga1","[0]*TMath::Gaus(x,[1]*80.4,[2]*6.34,1)",60,120);
-  TF1 *fga2 = new TF1("fga2","[0]*TMath::Gaus(x,[1]*91.2,[2]*6.75,1)",60,120);
-  TF1 *fwza = new TF1("fwza","[0]*TMath::Gaus(x,[1]*80.4,[2]*6.34,1)"
-		     "+[3]*[0]*TMath::Gaus(x,[4]*[1]*91.2,[5]*[2]*6.75,1)",
+  TF1 *fga1 = new TF1("fga1",Form("[0]*%1.3g*TMath::Gaus(x,[1]*80.4,[2]*6.34,1)",nw),60,120);
+  TF1 *fga2 = new TF1("fga2",Form("[0]*%1.3g*TMath::Gaus(x,[1]*91.2,[2]*6.75,1)",nz),60,120);
+  TF1 *fwza = new TF1("fwza",Form("[0]*%1.3g*TMath::Gaus(x,[1]*80.4,[2]*6.34,1)"
+				  "+[3]*[0]*%1.3g*TMath::Gaus(x,[4]*[1]*91.2,[5]*[2]*6.75,1)",nw,nz),
 		      60,120);
-  fwza->SetParameters(5e5*0.025,1,1,1,1.,1);
+  //fwza->SetParameters(5e5*0.025,1,1,1,1.,1);
+  fwza->SetParameters(1,1,1,1,1.,1);
 
   hdfa->Fit(fwza,"RN");
   fwza->Draw("SAME");
@@ -212,21 +236,21 @@ void alcajmemjj() {
   t->DrawLatex(0.6,0.55,Form("#chi^{2} / NDF = %1.1f / %d",
 			     fwza->GetChisquare(), fwza->GetNDF()));
   t->SetTextColor(kGreen+2);
-  t->DrawLatex(0.6,0.50,Form("N_{1} = %1.3g#pm%1.3g",
+  t->DrawLatex(0.6,0.50,Form("N_{1} = N_{W,13 TeV}#times%1.3g#pm%1.3g",
 			     fwza->GetParameter(0),fwza->GetParError(0)));
   t->DrawLatex(0.6,0.47,Form("#mu_{1} = m_{W}#times%1.03f#pm%1.03f",
 			      fwza->GetParameter(1),fwza->GetParError(1)));
   t->DrawLatex(0.6,0.43,Form("#sigma_{1} = #sqrt{m_{W}/2}#times%1.03f#pm%1.03f",
 			      fwza->GetParameter(2),fwza->GetParError(2)));
   t->SetTextColor(kMagenta+2);
-  t->DrawLatex(0.6,0.39,Form("N_{2} = N_{1}#times%1.3g#pm%1.3g",
+  t->DrawLatex(0.6,0.39,Form("N_{2} = R_{Z/W}#timesn_{1}#times%1.3g#pm%1.3g",
 			     fwza->GetParameter(3),fwza->GetParError(3)));
-  t->DrawLatex(0.6,0.36,Form("#mu_{2} = #m_{Z}#timesm_{1}"
+  t->DrawLatex(0.6,0.36,Form("#mu_{2} = m_{Z}#timesm_{1}"
 			     "#times%1.03f#pm%1.03f",
 			     fwza->GetParameter(4),fwza->GetParError(4)));
   t->DrawLatex(0.6,0.32,Form("#sigma_{2} = #sqrt{m_{Z}/2}"
-			     "#times#sigma_{1}#times%1.03f#pm%1.03f",
+			     "#timess_{1}#times%1.03f#pm%1.03f",
 			     fwza->GetParameter(5),fwza->GetParError(5)));
 
-  c3->SaveAs("pdf/alcajme/alcajme_fita.pdf");
+  c3->SaveAs("pdf/alcajme/alcajme_fita_v10.pdf");
 }

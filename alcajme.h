@@ -16,6 +16,7 @@
 #include "vector"
 #include "vector"
 #include "vector"
+#include <map>
 
 class alcajme {
 public :
@@ -23,6 +24,7 @@ public :
    Int_t           fCurrent; //!current Tree number in a TChain
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
+   map<int, map<int, int> > _json;
 
    // Declaration of leaf types
    UInt_t          run;
@@ -141,6 +143,8 @@ public :
    virtual void     Loop();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
+
+   bool LoadJSON();
 };
 
 #endif
