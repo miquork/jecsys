@@ -1,5 +1,10 @@
 // Purpose: draw L2Res from JMENANO at various pTs, merging triggers
-#include "drawAlCaJME.C" // get fixB
+//#include "drawAlCaJME.C" // get fixB
+#include "TProfile.h"
+#include "TF1.h"
+#include "TFile.h"
+#include "TH1D.h"
+#include "TH2D.h"
 
 #include "tdrstyle_mod22.C"
 
@@ -20,29 +25,170 @@ public:
   }
 };
 
-void drawJMENANO(bool isMC = true) {
+// fixB and _F originally implented in drawAlCaJME.C
+TF1 *F(0), *f1(0);
+Double_t _F(Double_t *x, Double_t *p) {
+  double pt = x[0];
+  double eta = p[0];
+  double sqrts = 13600.;
+  double alpha = -5;
+  //double beta = 10.-2.*fabs(eta); // lhcewwg_jets_2018_06_13.pdf
+  double beta = 10.-1.*fabs(eta); //
+  return (1e11*pow(pt,alpha)*pow(1.-2.*pt*cosh(eta)/sqrts,beta));
+} // _F
+
+TH1D *fixB(TProfile* p) {
+  TH1D *h = p->ProjectionX(Form("h_%s",p->GetName()));
+  if (!f1) f1 = new TF1("f1","[0]",-1.3,+1.3);
+  if (!F) F = new TF1("F",_F,5,0.5*13600,1);
+  h->Fit(f1,"QRN");
+  double p0 = f1->GetParameter(0); // MPF
+  //if (p0>0.35) cout << p->GetName() << ": " << p0 << endl;
+  for (int i = 1; i != h->GetNbinsX()+1; ++i) {
+    if (p0>0.35) {
+
+      // Analytical approximation for JER bias on pT spectrum from
+      // voutilainen_thesis.pdf p.259 Eq.(C.8):
+      // <pT,ptcl> = pT - alpha*sigma^2 for spectrum N0*exp(-alpha*pT),
+      // where alpha = dF/dpT * 1/F
+      //
+      // #1 MPF = 1+(pT,probe-pT,tag)/pT,tag = pT,ptcl/(pT,ptcl+a*s^2)
+      // => MPF*pT+MPF*as2 = pT => as2 = (1-MPF)/MPF * pT
+      //
+      // #2 MPF = 1+(pT,probe-pT,tag)/pT,probe = 2-pT,ptcl/(pT,ptcl+a*s^2)
+      // => (2-MPF)*pT+(2-MPF)*as2 = pT => as2 = (MPF-1)/(2-MPF) * pT
+      //
+      // #3 MPF = 1+(pT,probe-pT,tag)/pTave = 1+pTdiff/pTave = 1+dpT/(pT+as^2/2)
+      // => (MPF-1)*pT+(MPF-1)*as2/2 = dpT => as2 = (d-(MPF-1))/(MPF-1)*2 * pT
+      // (just that MPF=1 for barrel so unsolvable => use as2 from tag, probe)
+
+      double pt = 40.;
+      double eta = h->GetBinCenter(i);
+      F->SetParameter(0,0.);
+      double df0 = F->Derivative(pt) / F->Eval(pt);
+      F->SetParameter(0,eta);
+      double df = F->Derivative(pt) / F->Eval(pt);
+
+      if (p0<0.97) { // pttag
+	double as2ref = (1-p0)/p0*pt;
+	double as2new = as2ref * df / df0;
+	double p0new = pt/(pt+as2new);
+	h->SetBinContent(i, h->GetBinContent(i)/p0new);
+
+	// Post-processing for central value
+	// MPF = 1 + (pTp-pTt)/pTt
+	// pTp=c*pTt => MPF = 1 + (c-1)/1 = c
+	// => MPF=c and no post-processing needed
+      }
+      else if (p0>1.03) { // ptprobe
+	double as2ref = (p0-1)/(2-p0)*pt;
+	double as2new = as2ref * df / df0;
+	double p0new = 2-pt/(pt+as2new);
+	double mpf = h->GetBinContent(i)/p0new;
+	h->SetBinContent(i, mpf);
+
+	// Post-processing for central value
+	// MPF = 1 + (pTp-pTt)/pTp
+	// pTp=c*pTt => MPF = 1 + (c-1)/c
+	// => (MPF-1)*c = (c-1) => (MPF-2)*c = -1 => c = 1/(2-MPF)
+	double c = 1./(2.-mpf);
+	h->SetBinContent(i, c);
+      }
+      else { // ptave
+	double as2ref = 0.5*( (1.07-1.)/(2.-1.07)*pt + (1.-0.93)/0.93*pt);
+	double as2new =  as2ref * df / df0;
+	double d = (h->GetBinContent(i)-1)*(pt+as2new/2.)/pt;
+	double mpf = 1+d;
+	h->SetBinContent(i, mpf);
+	
+	// Post-processing for central value
+	// MPF = 1 + (pTp-pTt)/((pTp+pTt)/2)
+	// pTp=c*pTt => MPF = 1 + 2*(c-1)/(c+1)
+	// => MPF = (3*c-1)/(c+1) => MPF*c+MPF=3*c-1
+	// => (MPF-3)*c = -(1+MPF) => c = (1+MPF)/(3-MPF)
+	double c = (1.+mpf)/(3.-mpf);
+	h->SetBinContent(i, c);
+      }
+    } // if p0>0.35
+    else {
+      h->SetBinContent(i, h->GetBinContent(i)-p0);
+    }
+  } // for i
+
+  return h;
+} // fixB
+
+// Symmetrize TH2D vs |eta|
+bool doSymmetrize = true;
+TH2D *symmetrize(TH2D *h2) {
+
+  TH2D *h2s = (TH2D*)h2->Clone(Form("%s_symm",h2->GetName()));
+  for (int i1 = 1; i1 != h2s->GetNbinsX()+1; ++i1) {
+    double eta = h2s->GetXaxis()->GetBinCenter(i1);
+    int i2 = h2s->GetXaxis()->FindBin(-eta);
+    for (int j = 1; j != h2s->GetNbinsY()+1; ++j) {
+      
+      double y1 = h2s->GetBinContent(i1, j);
+      double ey1 = h2s->GetBinError(i1, j);
+      double y2 = h2s->GetBinContent(i2, j);
+      double ey2 = h2s->GetBinError(i2, j);
+      double y(0), ey(0);
+      if (eta<0) { // calculate average of plus and minus
+	y = (ey1*ey2!=0 ? 0.5*(y1+y2) : (ey1>0 ? y1 : (ey2>0 ? y2 : 0.)));
+	ey = (ey1*ey2!=0 ? 0.5*(ey1+ey2) : (ey1>0 ? ey1 : (ey2>0 ? ey2 : 0.)));
+      }
+      else { // replace plus with previously calculated average
+	y = y2;
+	ey = ey2;
+      }
+      int i = i1;
+      h2s->SetBinContent(i, j, y);
+      h2s->SetBinError(i, j, ey);
+    } // for k
+  } // for i
+
+  return h2s;
+} // void symmetrize
+
+
+void drawJMENANOs(int iFile, TFile *fout); // forward declaration
+
+void drawJMENANO() {
+
+  cout << "drawJMENANO.C" << endl << flush;
+  TFile *fout = new TFile("rootfiles/drawJMENANO.root","RECREATE");
+  drawJMENANOs(0, fout);
+  drawJMENANOs(1, fout);
+  drawJMENANOs(2, fout);
+  fout->Close();
+}
+
+void drawJMENANOs(int iFile, TFile *fout) {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
+  bool isMC = (iFile==0);
+  bool isDT = (iFile==1);
+  bool isRatio = (iFile==2);
+  assert(isMC || isDT || isRatio);
 
-  TFile *fd(0);
+  const char *cs = (isMC ? "MC" : (isDT ? "DT" : "DM"));
+
+  TFile *f(0);
   if (isMC)
-    fd = new TFile("../dijet/rootfiles/jmenano_mc_out_v5.root","READ");
+    f = new TFile("../dijet/rootfiles/jmenano_mc_out_v6b.root","READ");
+  //fd = new TFile("../dijet/rootfiles/jmenano_mc_out_v6.root","READ");
+  //fd = new TFile("../dijet/rootfiles/jmenano_mc_out_v5.root","READ");
   else
-    fd = new TFile("../dijet/rootfiles/jmenano_data_out_v6.root","READ");
+    f = new TFile("../dijet/rootfiles/jmenano_data_out_v6.root","READ");
   //fd = new TFile("../dijet/rootfiles/jmenano_data_out_v5_4p86fb.root","READ");
-  assert(fd && !fs->IsZombie());
-
-  const char *cs = (isMC ? "MC" : "DT");
+  assert(f && !f->IsZombie());
 
   TLine *l = new TLine();
   l->SetLineStyle(kDashed);
 
-  //TH1D *h = tdrHist("h","MPF",0.5,1.2,"#eta_{jet}",-5.2,5.2);
   TH1D *h = tdrHist("h","p_{T,ave}",15,3400,"#eta_{jet}",-5.2,5.2);
-  //lumi_136TeV = "JMENANO 0.450 out of 4.86 fb^{-1}";
-  //lumi_136TeV = "RunC, 0.450 of 4.86 fb^{-1}";
-  lumi_136TeV = (isMC ? "Flat2018QCD" : "RunC, 2.90 of 4.86 fb^{-1}");
+  lumi_136TeV = (isMC ? "FlatQCD" : "RunC, 2.90 of 4.86 fb^{-1}");
   extraText = "WIP";
   TCanvas *c1 = tdrCanvas("c1",h,8,0,kSquare);
 
@@ -61,15 +207,18 @@ void drawJMENANO(bool isMC = true) {
 
   // Listing of available triggers
    vector<trg> vtrg;
-   vtrg.push_back(trg("HLT_DiPFJetAve40",40,70,0,5.2));//40,60
-   vtrg.push_back(trg("HLT_DiPFJetAve60",70,100,0,5.2)); //60,85
-   vtrg.push_back(trg("HLT_DiPFJetAve80",100,155,0,5.2)); //85,155
-   vtrg.push_back(trg("HLT_DiPFJetAve140",155,250,0,5.2)); //180,210
-   vtrg.push_back(trg("HLT_DiPFJetAve200",250,300,0,5.2)); // 250,300
-   vtrg.push_back(trg("HLT_DiPFJetAve260",300,350,0,5.2));
-   vtrg.push_back(trg("HLT_DiPFJetAve320",350,400,0,5.2));
-   vtrg.push_back(trg("HLT_DiPFJetAve400",400,500,0,5.2));
-   vtrg.push_back(trg("HLT_DiPFJetAve500",500,3000,0,5.2));
+   //vtrg.push_back(trg("HLT_DiPFJetAve40",40,70,0,5.2));//40,60
+   //vtrg.push_back(trg("HLT_DiPFJetAve40",60,70,0,2.853));//40,60
+   //vtrg.push_back(trg("HLT_DiPFJetAve60",70,100,0,2.853)); //60,85
+   vtrg.push_back(trg("HLT_DiPFJetAve40",40,60,0,5.2)); // v6f
+   vtrg.push_back(trg("HLT_DiPFJetAve60",60,100,0,2.853)); // v6f
+   vtrg.push_back(trg("HLT_DiPFJetAve80",100,155,0,2.853)); //85,155
+   vtrg.push_back(trg("HLT_DiPFJetAve140",155,250,0,2.853)); //180,210
+   vtrg.push_back(trg("HLT_DiPFJetAve200",250,300,0,2.853)); // 250,300
+   vtrg.push_back(trg("HLT_DiPFJetAve260",300,350,0,2.853));
+   vtrg.push_back(trg("HLT_DiPFJetAve320",350,400,0,2.853));
+   vtrg.push_back(trg("HLT_DiPFJetAve400",400,500,0,2.853));
+   vtrg.push_back(trg("HLT_DiPFJetAve500",500,3000,0,2.853));
    /*
    vtrg.push_back("HLT_PFJet40");
    vtrg.push_back("HLT_PFJet60");
@@ -82,14 +231,14 @@ void drawJMENANO(bool isMC = true) {
    vtrg.push_back("HLT_PFJet450");
    vtrg.push_back("HLT_PFJet500");
    vtrg.push_back("HLT_PFJet550");
-
-   vtrg.push_back("HLT_DiPFJetAve60_HFJEC");
-   vtrg.push_back("HLT_DiPFJetAve80_HFJEC");
-   vtrg.push_back("HLT_DiPFJetAve100_HFJEC");
-   vtrg.push_back("HLT_DiPFJetAve160_HFJEC");
-   vtrg.push_back("HLT_DiPFJetAve220_HFJEC");
-   vtrg.push_back("HLT_DiPFJetAve300_HFJEC");
-
+   */
+   vtrg.push_back(trg("HLT_DiPFJetAve60_HFJEC",60,100,2.853,5.2)); // v6f
+   vtrg.push_back(trg("HLT_DiPFJetAve80_HFJEC",100,125,2.853,5.2));
+   vtrg.push_back(trg("HLT_DiPFJetAve100_HFJEC",125,180,2.853,5.2));
+   vtrg.push_back(trg("HLT_DiPFJetAve160_HFJEC",180,250,2.853,5.2));
+   vtrg.push_back(trg("HLT_DiPFJetAve220_HFJEC",250,350,2.853,5.2));
+   vtrg.push_back(trg("HLT_DiPFJetAve300_HFJEC",350,3000,2.853,5.2));
+   /*
    vtrg.push_back("HLT_PFJetFwd15");
    vtrg.push_back("HLT_PFJetFwd25");
    vtrg.push_back("HLT_PFJetFwd40");
@@ -119,14 +268,17 @@ void drawJMENANO(bool isMC = true) {
       4.363, 4.538, 4.716, 4.889, 5.191};
    const int nx = sizeof(vx)/sizeof(vx[0])-1;
 
-   TH2D *h2m = new TH2D("h2m",";#eta_{jet};p_{T,ave};MPF",nx,vx,npt,vpt);
-   //TH2D *h2ms = new TH2D("h2ms",";#eta_{jet};p_{T,ave};MPF",nx,vx,npt,vpt);
-   TH2D *h2d = new TH2D("h2d",";#eta_{jet};p_{T,ave};DB",nx,vx,npt,vpt);
+   TH2D *h2 = new TH2D(Form("h2_%s",cs),
+		       ";#eta_{jet};p_{T,ave};JES",nx,vx,npt,vpt);
+   //TH2D *h2s = new TH2D("h2s",";#eta_{jet};p_{T,ave};MPF",nx,vx,npt,vpt);
+   //TH2D *h2d = new TH2D("h2d",";#eta_{jet};p_{T,ave};DB",nx,vx,npt,vpt);
+   TH2D *h2m = (isRatio ? (TH2D*)fout->Get("h2s_MC") : 0);
+   assert(h2m || !isRatio);
 
    for (int itrg = 0; itrg != ntrg; ++itrg) {
 
      trg &t = vtrg[itrg];
-     fd->cd(t.name.c_str());
+     f->cd(t.name.c_str());
      TDirectory *d = gDirectory;
 
      for (int ipt = 0; ipt != npt; ++ipt) {
@@ -139,8 +291,12 @@ void drawJMENANO(bool isMC = true) {
 	 d->cd(Form("Pt_%d_%d",int(ptmin+0.5),int(ptmax+0.5)));
 	 TDirectory *dd = gDirectory;
 	 TProfile *pm = (TProfile*)dd->Get("pm0ab"); assert(pm);
-	 TProfile *pd = (TProfile*)dd->Get("pm2ab"); assert(pd);
+	 //TProfile *pm = (TProfile*)dd->Get("pm2ab"); assert(pm);
+	 //TProfile *pd = (TProfile*)dd->Get("pm2ab"); assert(pd);
 	 
+	 TH1D *hm = fixB(pm); hm->SetName(Form("hm_%d",ipt));
+	 //TH1D *hd = fixB(pd); hd->SetName(Form("hd_%d",ipt));
+
 	 for (int ieta = 0; ieta != nx; ++ieta) {
 
 	   double etamin = vx[ieta];
@@ -149,46 +305,65 @@ void drawJMENANO(bool isMC = true) {
 	   if ((etamin>=0 && (etamin >= t.etamin && etamax <= t.etamax)) ||
 	       (etamin<0 && (etamin >= -t.etamax && etamax <= -t.etamin))) {
 
-	     h2m->SetBinContent(ieta+1,ipt+1, pm->GetBinContent(ieta+1));
-	     h2m->SetBinError(ieta+1,ipt+1, pm->GetBinError(ieta+1));
+	     /*
+	     h2->SetBinContent(ieta+1,ipt+1, pm->GetBinContent(ieta+1));
+	     h2->SetBinError(ieta+1,ipt+1, pm->GetBinError(ieta+1));
+	     h2->SetBinContent(ieta+1,ipt+1, pd->GetBinContent(ieta+1));
+	     h2->SetBinError(ieta+1,ipt+1, pd->GetBinError(ieta+1));
+	     */
+	     double ref = (h2m ? h2m->GetBinContent(ieta+1,ipt+1) : 1);
+	     if (ref!=0) {
+	       h2->SetBinContent(ieta+1,ipt+1, hm->GetBinContent(ieta+1)/ref);
+	       h2->SetBinError(ieta+1,ipt+1, hm->GetBinError(ieta+1)/ref);
+	     }
+	     else {
+	       h2->SetBinContent(ieta+1,ipt+1, 0.);
+	       h2->SetBinError(ieta+1,ipt+1, 0.);
+	     }
 	   } // eta
 	 } // ieta
        } // pt
      } // ipt
    } // itrg 
 
-   h2m->Draw("SAME COLZ");
-   h2m->GetZaxis()->SetRangeUser(0.5+1e-4,1.5-1e-4);
-   h2m->GetZaxis()->SetTitleOffset(1.2);
+   //if (doSymmetrize) 
+   h2 = symmetrize(h2);
+
+   h2->Draw("SAME COLZ");
+   h2->GetZaxis()->SetRangeUser(0.5+1e-4,1.5-1e-4);
+   h2->GetZaxis()->SetTitleOffset(1.2);
    gPad->RedrawAxis();
    gPad->Update();
 
    c1->SaveAs(Form("pdf/alcajme/drawJMENANO_2D_%s.pdf",cs));
-   h2m->GetZaxis()->SetRangeUser(0.8+1e-4,1.2-1e-4);
+   h2->GetZaxis()->SetRangeUser(0.8+1e-4,1.2-1e-4);
    c1->SaveAs(Form("pdf/alcajme/drawJMENANO_2D_zoom_%s.pdf",cs));
-   h2m->GetZaxis()->SetRangeUser(0.9+1e-4,1.1-1e-4);
+   h2->GetZaxis()->SetRangeUser(0.9+1e-4,1.1-1e-4);
    c1->SaveAs(Form("pdf/alcajme/drawJMENANO_2D_zoom2_%s.pdf",cs));
 
    // Run smoothing vs pT, keep track of chi2/NDF
-   TH2D *h2ms = (TH2D*)h2m->Clone("h2ms");
-   h2ms->Reset();
-   TH1D *hchi20 = h2ms->ProjectionX("hchi20");
-   TH1D *hchi21 = h2ms->ProjectionX("hchi21");
-   TH1D *hjes40 = h2ms->ProjectionX("hjes40");
-   TH1D *hjes15b = h2ms->ProjectionX("hjes15b");
-   TH1D *hjesmaxb = h2ms->ProjectionX("hjesmaxb");
-   TH1D *hjes40orig = h2m->ProjectionX("hjes40orig",1,1);
-   double i100 = h2m->GetYaxis()->FindBin(100.);
-   TH1D *hjes100orig = h2m->ProjectionX("hjes100orig",i100,i100);
-   TH1D *hdpt = h2ms->ProjectionX("hdpt");
-   TH1D *hdpt0 = h2ms->ProjectionX("hdpt0");
-   for (int i = 1; i != h2m->GetNbinsX()+1; ++i) {
+   TH2D *h2s = (TH2D*)h2->Clone(Form("h2s%s",cs));
+   h2s->Reset();
+   TH1D *hchi20 = h2s->ProjectionX(Form("hchi20_%s",cs));
+   TH1D *hchi21 = h2s->ProjectionX(Form("hchi21_%s",cs));
+   TH1D *hchi22 = h2s->ProjectionX(Form("hchi22_%s",cs));
+   TH1D *hjes40 = h2s->ProjectionX(Form("hjes40_%s",cs));
+   TH1D *hjes15b = h2s->ProjectionX(Form("hjes15b_%s",cs));
+   TH1D *hjesmaxb = h2s->ProjectionX(Form("hjesmaxb_%s",cs));
+   TH1D *hjes40orig = h2->ProjectionX(Form("hjes40orig_%s",cs),1,1);
+   double i60 = h2->GetYaxis()->FindBin(60.);
+   TH1D *hjes60orig = h2->ProjectionX(Form("hjes100orig_%s",cs),i60,i60);
+   double i100 = h2->GetYaxis()->FindBin(100.);
+   TH1D *hjes100orig = h2->ProjectionX(Form("hjes100orig_%s",cs),i100,i100);
+   TH1D *hdpt = h2s->ProjectionX(Form("hdpt_%s",cs));
+   TH1D *hdpt0 = h2s->ProjectionX(Form("hdpt0_%s",cs));
+   for (int i = 1; i != h2->GetNbinsX()+1; ++i) {
 
-     double eta = h2m->GetXaxis()->GetBinCenter(i);
+     double eta = h2->GetXaxis()->GetBinCenter(i);
      double emax1 = 6800.*0.5;
      double emax2 = 4500.;
      double ptmax = (fabs(eta)>2.5 ? emax2 : emax1) / cosh(eta);
-     TH1D *h = h2m->ProjectionY("htmp",i,i);
+     TH1D *h = h2->ProjectionY("htmp",i,i);
      
      // Quick cleaning
      for (int i = 1; i != h->GetNbinsX()+1; ++i) {
@@ -203,6 +378,9 @@ void drawJMENANO(bool isMC = true) {
      TF1 *f1 = new TF1(Form("f1_%d",i),"[0]+[1]*log(x)",40,ptmax);
      f1->SetParameters(f0->GetParameter(0), 0.);
      h->Fit(f1,"QRN");
+     TF1 *f2 = new TF1(Form("f2_%d",i),"[0]+[1]*log(x)+[2]/x",40,ptmax);
+     f2->SetParameters(f0->GetParameter(0), f1->GetParameter(1), 0.);
+     h->Fit(f2,"QRN");
 
      hchi20->SetBinContent(i, f0->GetNDF()>0 ? f0->GetChisquare()/f0->GetNDF() : 0);
      hchi20->SetBinError(i, f0->GetNDF()>0 ? f0->GetChisquare()/f0->GetNDF()*1./sqrt(f0->GetNDF()) : 0);
@@ -210,10 +388,18 @@ void drawJMENANO(bool isMC = true) {
      hchi21->SetBinContent(i, f1->GetNDF()>0 ? f1->GetChisquare()/f1->GetNDF() : 0);
      hchi21->SetBinError(i, f1->GetNDF()>0 ? f1->GetChisquare()/f1->GetNDF()*1./sqrt(f1->GetNDF()) : 0);
 
+     hchi22->SetBinContent(i, f2->GetNDF()>0 ? f2->GetChisquare()/f2->GetNDF() : 0);
+     hchi22->SetBinError(i, f2->GetNDF()>0 ? f2->GetChisquare()/f2->GetNDF()*1./sqrt(f2->GetNDF()) : 0);
+
+
      double nsig = 2.5;//1.5;
-     TF1 *fjes = (fabs(f1->GetParameter(1))>nsig*f1->GetParError(1) ? f1 : f0);
+     //TF1 *fjes = (fabs(f1->GetParameter(1))>nsig*f1->GetParError(1) ? f1 : f0);
+     TF1 *fjes = f0; // default choice
+     if (fabs(f1->GetParameter(1))>nsig*f1->GetParError(1)) fjes = f1;
+     //if (fabs(f2->GetParameter(2))>nsig*f2->GetParError(2)) fjes = f2;
      if (isMC && (fabs(eta)>2.5 || fabs(eta)<1.0)) fjes = f0;
-     if (!isMC && (fabs(eta)<1.0)) fjes = f0;
+     //if (isRatio && (fabs(eta)>4.191 || fabs(eta)<1.0)) fjes = f0;
+     //if (!isMC && (fabs(eta)<1.0)) fjes = f0;
   
      hjes40->SetBinContent(i, fjes->GetNDF()>=0 ? fjes->Eval(40.) : 1);
 
@@ -235,14 +421,14 @@ void drawJMENANO(bool isMC = true) {
      hdpt0->SetBinContent(i, fjes==f1 ? 100.*f1->GetParameter(1) : 0);
      hdpt0->SetBinError(i, fjes==f1 ? 100.*f1->GetParError(1) : 0);
 
-     for (int j = 1; j != h2m->GetNbinsY()+1; ++j) {
-       if (//h2m->GetBinContent(i,j)!=0 &&
-	   h2m->GetYaxis()->GetBinLowEdge(j)<ptmax) {
-	 double pt = h2m->GetYaxis()->GetBinCenter(j);
-	 h2ms->SetBinContent(i, j, f1->Eval(pt));
+     for (int j = 1; j != h2->GetNbinsY()+1; ++j) {
+       if (//h2->GetBinContent(i,j)!=0 &&
+	   h2->GetYaxis()->GetBinLowEdge(j)<ptmax) {
+	 double pt = h2->GetYaxis()->GetBinCenter(j);
+	 h2s->SetBinContent(i, j, fjes->Eval(pt));
        }
        else {
-	 h2ms->SetBinContent(i, j, 0.);
+	 h2s->SetBinContent(i, j, 0.);
        }
      }
 
@@ -260,28 +446,31 @@ void drawJMENANO(bool isMC = true) {
    hs->GetYaxis()->SetMoreLogLabels();
    hs->GetYaxis()->SetNoExponent();
 
-   h2ms->Draw("SAME COLZ");
-   h2ms->GetZaxis()->SetRangeUser(0.5+1e-4,1.5-1e-4);
+   h2s->Draw("SAME COLZ");
+   h2s->GetZaxis()->SetRangeUser(0.5+1e-4,1.5-1e-4);
    gPad->RedrawAxis();
    gPad->Update();
 
    c1s->SaveAs(Form("pdf/alcajme/drawJMENANO_2DS_%s.pdf",cs));
-   h2ms->GetZaxis()->SetRangeUser(0.8+1e-4,1.2-1e-4);
+   h2s->GetZaxis()->SetRangeUser(0.8+1e-4,1.2-1e-4);
    c1s->SaveAs(Form("pdf/alcajme/drawJMENANO_2DS_zoom_%s.pdf",cs));
-   h2ms->GetZaxis()->SetRangeUser(0.9+1e-4,1.1-1e-4);
+   h2s->GetZaxis()->SetRangeUser(0.9+1e-4,1.1-1e-4);
    c1s->SaveAs(Form("pdf/alcajme/drawJMENANO_2DS_zoom2_%s.pdf",cs));
 
 
-   TH1D *h2 = tdrHist("h2","#chi^{2} / NDF",0,10,"#eta_{jet}",-5.2,5.2);
-   TCanvas *c2 = tdrCanvas("c2",h2,8,0,kSquare);
+   TH1D *h2c = tdrHist("h2c","#chi^{2} / NDF",0,10,"#eta_{jet}",-5.2,5.2);
+   TCanvas *c2 = tdrCanvas("c2",h2c,8,0,kSquare);
    tdrDraw(hchi20,"HISTE",kNone,kOrange+2,kSolid,-1,1001,kOrange+1);
    tdrDraw(hchi21,"HISTE",kNone,kYellow+2,kSolid,-1,1001,kYellow+1);
+   //tdrDraw(hchi22,"HISTE",kNone,kGreen+2,kSolid,-1,1001,kGreen-9);
    hchi21->SetFillColorAlpha(kYellow+1,0.7);
+   hchi22->SetFillColorAlpha(kGreen-9,0.7);
    gPad->RedrawAxis();
    l->DrawLine(-5.2,1,+5.2,1);
    c2->SaveAs(Form("pdf/alcajme/drawJMENANO_chi2_%s.pdf",cs));
 
-   TH1D *h3 = tdrHist("h3","JES at p_{T}=40 GeV (p_{T,min} to E_{max})",
+   //TH1D *h3 = tdrHist("h3","JES at p_{T}=40 GeV (p_{T,min} to E_{max})",
+   TH1D *h3 = tdrHist("h3","JES from p_{T,min} to E_{max}",
 		      0.38+1e-4,1.28-1e-4,"#eta_{jet}",-5.2,5.2);
    TCanvas *c3 = tdrCanvas("c3",h3,8,0,kSquare);
    h3->GetXaxis()->SetTitleOffset(0.8);
@@ -292,6 +481,7 @@ void drawJMENANO(bool isMC = true) {
    tdrDraw(hjesmaxb,"E2",kNone,kOrange+2,kSolid,-1,1001,kOrange+1);
    hjesmaxb->SetFillColorAlpha(kOrange+1,0.7);
    if (!isMC) tdrDraw(hjes40orig,"P",kFullCircle,kBlack,kSolid,-1,kNone,0);
+   //if (!isMC) tdrDraw(hjes60orig,"P",kFullCircle,kBlack,kSolid,-1,kNone,0);
    if (isMC)  tdrDraw(hjes100orig,"P",kFullCircle,kBlack,kSolid,-1,kNone,0);
    hjes40orig->SetMarkerSize(0.5);
    hjes100orig->SetMarkerSize(0.5);
@@ -300,6 +490,8 @@ void drawJMENANO(bool isMC = true) {
    TLegend *leg = tdrLeg(0.35,0.90-4*0.035,0.55,0.90);
    leg->SetTextSize(0.035);
    leg->AddEntry(hjes40orig,isMC ? "JES @ 100 GeV" : "JES @ 40 GeV","PLE");
+   //leg->AddEntry(hjes40orig,"JES @ 40 GeV","PLE");
+   //leg->AddEntry(hjes40orig,isMC ? "MPF @ 100 GeV" : "MPF @ 60 GeV","PLE");
    leg->AddEntry(hjes40,"Fit @ 40 GeV","F");
    leg->AddEntry(hjes15b,"Fit @ 15 GeV","F");
    leg->AddEntry(hjesmaxb,"Fit @ E_{max}","F");
@@ -318,4 +510,10 @@ void drawJMENANO(bool isMC = true) {
    l->DrawLine(-5.2,0,+5.2,0);
 
    c4->SaveAs(Form("pdf/alcajme/drawJMENANO_dpt_%s.pdf",cs));
+
+   // Save combined and smoothed results
+   fout->cd();
+   h2->Write(Form("h2_%s",cs),TObject::kOverwrite);
+   h2s->Write(Form("h2s_%s",cs),TObject::kOverwrite);
+   curdir->cd();
 } // drawJMENANO
