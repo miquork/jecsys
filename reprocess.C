@@ -61,6 +61,9 @@ string sPSWgtZ = ""; // use 'PSWeight[X]/' variant of Z+jet MC (def:"") [PSWeigh
 string sPSWgtG = ""; // PS weights '_ps[X]' for gamma+jet (def:"")
 string sPSWgtW = ""; // PS weights '_ps[X]' for hadW (def:"")
 
+// Which binning to use for Z+jet ("zpt" (default),"jetpt","ptave")
+string zjetMode = "zpt";
+
 // Which binning to use for multijets ("leading", "recoil" or "ptave" (default))
 string multijetMode = "ptave"; // check also multijetModeS in globalFitSyst.C
 bool correctMultijetLeading = false;//true; // correct for difference to JER-hybrid (UL17 true, UL18 false)
@@ -72,8 +75,8 @@ bool snipeMultijetBins = true; // remove individual outliers from multijets
 bool snipeIncjetBins = true; // remove individual outliers from inclusive jets
 bool snipeZlljetBins = false; // remove individual outliers from Zll+jet
 
-// Which binning to use for PF composition ("tp","pt", "both" or "none" (off))
-string pfMode = "tp"; // "both" not supported at the moment
+// Which binning to use for PF jets ("tp" (default),"pt", "both", "none" (off))
+string pfMode = "tp"; // "both" not supported at the moment (default: "tp")
 
 bool confirmWarnings=false;//true; //if active, deficiencies in input files are patched after confirmation via pushing "any key to continue"
 bool confirmedGamJet=false; // to avoid too many confirmations
@@ -506,10 +509,18 @@ void reprocess(string epoch="") {
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL18V2V3-%s.root",
 			     fpf_files[epoch]),"READ");
       */
+      /*
       fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL18V5V2_%s.root",
 			     fpf_files[epoch]),"READ");
       fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL18V5V2_%s.root",
 			     fpf_files[epoch]),"READ");
+      */
+      /*
+      fpfdt = new TFile("rootfiles/output-DATA-2b-UL2018-PFtest.root","READ");
+      fpfmc = new TFile("rootfiles/output-MC-2b-UL2018-PFtest.root","READ");
+      */
+      fpfdt = new TFile("rootfiles/output-DATA-2b-UL18V5V2_ABCD-pThat.root","READ");
+      fpfmc = new TFile("rootfiles/output-MC-2b-UL18V5V2_ABCD-pThat.root","READ");
     }
     else if (isUL17) {
       /*
@@ -878,7 +889,9 @@ void reprocess(string epoch="") {
     if (isUL18) {
       //fz = new TFile("rootfiles/jme_bplusZ_merged_v35.root","READ"); // test (17+18 e+mu)
       //fz = new TFile("rootfiles/jme_bplusZ_merged_v35_2018_emu_wTTJets.root","READ"); // botched PSWeights
-      fz = new TFile("rootfiles/jme_bplusZ_merged_v38_muon2018.root","READ"); // only a100
+      //fz = new TFile("rootfiles/jme_bplusZ_merged_v38_muon2018.root","READ"); // only a100
+      //fz = new TFile("rootfiles/jme_bplusZ_merged_v43_muon2018.root","READ"); // only a100,30
+      fz = new TFile("rootfiles/jme_bplusZ_merged_v44_muon2018.root","READ"); // only a100,30
     }
     else if (isUL17) {
       //fz = new TFile("rootfiles/jme_bplusZ_merged_v28_2017emu_wTTJets.root","READ");
@@ -934,6 +947,7 @@ void reprocess(string epoch="") {
 
   TH2D *hmz_dt2 = (TH2D*)fmz->Get(Form("data/%s/h_Zpt_mZ_alpha30",cr));
   if (!hmz_dt2) hmz_dt2 = (TH2D*)fmz->Get(Form("data/%s/h_Zpt_mZ_alpha100",cr));
+  if (!hmz_dt2) hmz_dt2 = (TH2D*)fmz->Get(Form("data/%s/h_Zpt_mZ_alpha100_eta_00_13",cr));
   assert(hmz_dt2 || isRun2);
   TH1D *hmz_dt = (hmz_dt2 ? hmz_dt2->ProfileX()->ProjectionX("hmz_dt") : 0);
   TH1D *hmzee_dt = (TH1D*)fmzee->Get(Form("Data_ZMass_CHS_a30_%s_%s",cr,cl));
@@ -949,6 +963,7 @@ void reprocess(string epoch="") {
 
   TH2D *hmz_mc2 = (TH2D*)fmz->Get(Form("mc/%s/h_Zpt_mZ_alpha30",cr));
   if (!hmz_mc2) hmz_mc2 = (TH2D*)fmz->Get(Form("mc/%s/h_Zpt_mZ_alpha100",cr));
+  if (!hmz_mc2) hmz_mc2 = (TH2D*)fmz->Get(Form("mc/%s/h_Zpt_mZ_alpha100_eta_00_13",cr));
   assert(hmz_mc2 || isRun2);
   TH1D *hmz_mc = (hmz_mc2 ? hmz_mc2->ProfileX()->ProjectionX("hmz_mc") : 0);
   TH1D *hmzee_mc = (TH1D*)fmzee->Get(Form("MC_ZMass_CHS_a30_%s_%s",cr,cl));
@@ -975,6 +990,7 @@ void reprocess(string epoch="") {
   assert(hmz1 || !isRun2);
 
   TH2D *hmz1_dt2 = (TH2D*)fmz->Get(Form("data/%s/h_Zpt_mZ_alpha100",cr));
+  if (!hmz1_dt2) hmz1_dt2 = (TH2D*)fmz->Get(Form("data/%s/h_Zpt_mZ_alpha100_eta_00_13",cr));
   assert(hmz1_dt2 || isRun2);
   TH1D *hmz1_dt = (hmz1_dt2 ? hmz1_dt2->ProfileX()->ProjectionX("hmz1_dt") : 0);
   TH1D *hmzee1_dt =(TH1D*)fmzee->Get(Form("Data_ZMass_CHS_a100_%s_%s",cr,cl));
@@ -989,6 +1005,7 @@ void reprocess(string epoch="") {
   assert(hmz1_dt);
 
   TH2D *hmz1_mc2 = (TH2D*)fmz->Get(Form("mc/%s/h_Zpt_mZ_alpha100",cr));
+  if (!hmz1_mc2) hmz1_mc2 = (TH2D*)fmz->Get(Form("mc/%s/h_Zpt_mZ_alpha100_eta_00_13",cr));
   assert(hmz1_mc2 || isRun2);
   TH1D *hmz1_mc = (hmz1_mc2 ? hmz1_mc2->ProfileX()->ProjectionX("hmz1_mc") : 0);
   TH1D *hmzee1_mc = (TH1D*)fmzee->Get(Form("MC_ZMass_CHS_a100_%s_%s",cr,cl));
@@ -2588,13 +2605,41 @@ void reprocess(string epoch="") {
 		assert(false);
 	    } // Zll+jet
 	    if (s=="zjet") {
-	      c = Form("%s/eta_%02.0f_%02.0f/%s%s_zmmjet_a%1.0f",
-	    	       rename[s][d],10*eta1,10*eta2,
-		       ((d=="data"||d=="ratio"||t=="counts") ? "" : 
-			sPSWgtZ.c_str()),
-		       rename[s][t],100.*alpha);
+	      if (zjetMode=="zpt")
+		c = Form("%s/eta_%02.0f_%02.0f/%s%s_zmmjet_a%1.0f",
+			 rename[s][d],10*eta1,10*eta2,
+			 ((d=="data"||d=="ratio"||t=="counts") ? "" : 
+			  sPSWgtZ.c_str()),
+			 rename[s][t],100.*alpha);
+	      else if (zjetMode=="jetpt")
+		c = Form("%s/eta_%02.0f_%02.0f/%s%s_jetpt_a%1.0f",
+			 rename[s][d],10*eta1,10*eta2,
+			 ((d=="data"||d=="ratio"||t=="counts") ? "" : 
+			  sPSWgtZ.c_str()),
+			 rename[s][t],100.*alpha);
+	      else if (zjetMode=="ptave")
+		c = Form("%s/eta_%02.0f_%02.0f/%s%s_ptave_a%1.0f",
+			 rename[s][d],10*eta1,10*eta2,
+			 ((d=="data"||d=="ratio"||t=="counts") ? "" : 
+			  sPSWgtZ.c_str()),
+			 rename[s][t],100.*alpha);
+	      else
+		assert(false);
+	      //
 	      if (isfrac || t=="rho") {
-		c = Form("%s/eta_%02.0f_%02.0f/h_Zpt_%s_alpha%1.0f",rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha);
+		if (t=="rho")
+		  c = Form("%s/eta_%02.0f_%02.0f/h_Zpt_%s_alpha%1.0f",rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha); // v44
+		else if (zjetMode=="zpt")
+		  c = Form("%s/eta_%02.0f_%02.0f/h_Zpt_%s_alpha%1.0f",rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha);
+		//c = Form("%s/eta_%02.0f_%02.0f/h_Zpt_%s_alpha%1.0f_eta_%02.0f_%02.0f",rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha,10*eta1,10*eta2); // v43
+		else if (zjetMode=="jetpt")
+		  c = Form("%s/eta_%02.0f_%02.0f/h_JetPt_%s_alpha%1.0f",rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha);
+		//c = Form("%s/eta_%02.0f_%02.0f/h_JetPt_%s_alpha%1.0f_eta_%02.0f_%02.0f",rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha,10*eta1,10*eta2); // v43
+		else if (zjetMode=="ptave")
+		  c = Form("%s/eta_%02.0f_%02.0f/h_PtAve_%s_alpha%1.0f",rename[s][d],10*eta1,10*eta2,rename[s][t],100.*alpha);
+		//assert(false);
+		else
+		  assert(false);
 	      }
 	    } // zjet
 	    if (sp=="zjet") {
