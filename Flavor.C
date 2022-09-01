@@ -130,7 +130,7 @@ double Flavor::getResp(double pt, double eta, double f[5],
 void Flavor::getFracs(double pt, double eta, string smix, double (&f)[5]) {
 
   assert(smix=="MultijetLeading13" || smix=="MultijetRecoil25" ||
-	 smix=="EMJet13" || smix=="PhotonJet13" ||
+	 smix=="EMJet13" || smix=="PhotonJet13" || smix=="ZJet13" ||
 	 smix=="ud" || smix=="s" || smix=="c" || smix=="b" || smix=="g");
   assert(fabs(eta)<1.3);
   
@@ -231,9 +231,29 @@ void Flavor::getFracs(double pt, double eta, string smix, double (&f)[5]) {
       f[i] /= sum;
   } // PhotonJet13
 
+  // ud, g could be a bit better, but otherwise decent fits with sum = 1 +/- 1%
   if (smix=="ZJet13") {
 
-  }
+    // Parameters from minitools/drawZJetFlavor.C
+    const int nf = 5;
+    double p[nf][6] = {
+      // [p0]+[p1]*x/(x+[p2])+[p3]*x/(x+[p4])+[p5]/x
+      { -1.8475, 0.19962, 6.7418,  2.2337,  9.046,  9.6497}, // (ud 74.4/14)
+      {-0.63151,  2.0528, 26.039, -1.3965, 54.643,   4.557}, // (s 14.8/14)
+      {-0.12862, 0.99525, 32.874, -0.8012, 50.882,  1.0251}, // (c 18.7/13)
+      {-0.11083, 0.52386, 41.228, -0.4095, 105.48, 0.75193}, // (b 24.7/13)
+      {  3.9934, -7.9394, 21.159,  4.2641, 43.495, -20.404}}; // (g 39.2/13)
+    
+    double sum(0);
+    double x = max(20.,min(350.,pt));
+    for (int i = 0; i != nf; ++i) {
+      f[i] = max(0.,min(1., p[i][0]+p[i][1]*x/(x+p[i][2])
+			+ p[i][3]*x/(x+p[i][4]) + p[i][5]/x));
+      sum += f[i];
+    }
+    for (int i = 0; i != nf; ++i)
+      f[i] /= sum;
+  } // ZJet13
 } // getFracs
 
 void Flavor::loadJEC(string smc) {
