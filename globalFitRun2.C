@@ -34,6 +34,7 @@
 
 //using namespace globalFitRun2;
 using namespace std;
+const bool debug = true;
 
 // Helper functions to draw fit uncertainty band for arbitrary TF1 
 Double_t fitError(Double_t *x, Double_t *p);
@@ -41,7 +42,8 @@ Double_t jesFit(Double_t *x, Double_t *p);
 void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 	       Int_t flag);
 void cleanGraph(TGraphErrors *g);
-void globalFitEtaBin(double etamin, double etamax);
+void globalFitEtaBin(double etamin, double etamax, string run);
+void globalFitRun2Draw(string run);
 
 // Define global variables used in fitError
 TF1 *_fitError_func(0);                 // fitError uncertainty function and
@@ -57,14 +59,59 @@ TH1D *_hjesref(0);                      // and reference JES
 int cnt(0), Nk(0);
 TF1 *_jesFit(0);                        // JES fit used in jesFitter
 
+// More small helper functions for plotting
+void scaleGraph(TGraph *g, double k) {
+  for (int i = 0; i != g->GetN(); ++i) {
+    g->SetPoint(i, g->GetX()[i], k * g->GetY()[i]);
+    if (g->InheritsFrom("TGraphErrors"))
+      ((TGraphErrors*)g)->SetPointError(i, g->GetEX()[i], k * g->GetEY()[i]);
+  }
+} // scaleGraph
+void scaleGraph(TGraph *g, TH1D *h) {
+  for (int i = 0; i != g->GetN(); ++i) {
+    double k = h->Interpolate(g->GetX()[i]);
+    g->SetPoint(i, g->GetX()[i], k * g->GetY()[i]);
+    if (g->InheritsFrom("TGraphErrors"))
+      ((TGraphErrors*)g)->SetPointError(i, g->GetEX()[i], k * g->GetEY()[i]);
+    //double x = g->GetX()[i];
+    //int j = h->FindBin(x);
+    //g->SetPoint(i, x, g->GetY()[i]*h->GetBinContent(j));
+  }
+} // scaleGraph
+void shiftGraph(TGraph* g, double dy) {
+  for (int i = 0; i != g->GetN(); ++i) {
+    g->SetPoint(i, g->GetX()[i], g->GetY()[i]+dy);
+  }
+} // shiftGraph
+void scaleHist(TH1D *h, TH1D *hs) {
+  assert(h); assert(hs);
+  for (int i = 1; i != h->GetNbinsX()+1; ++i) {
+    int j = hs->FindBin(h->GetBinCenter(i));
+    h->SetBinContent(i, h->GetBinContent(i) * hs->GetBinContent(j));
+    //hs->Interpolate(h->GetBinCenter(i)));
+  }
+} // scaleHist
+void shiftHist(TH1D* h, double dy) {
+  for (int i = 1; i != h->GetNbinsX()+1; ++i) {
+    h->SetBinContent(i, h->GetBinContent(i) + dy);
+  }
+} // shiftHist
 
 // Call global fit for each eta bin separately
-void globalFitRun2() {
+void globalFitRun2(string run = "All") {
 
-  globalFitEtaBin(0.0, 1.3);
+  if (run=="All") {
+    globalFitEtaBin(0.0, 1.3, "Run2Test");
+    globalFitEtaBin(0.0, 1.3, "2016BCDEF");
+    globalFitEtaBin(0.0, 1.3, "2016GH");
+    globalFitEtaBin(0.0, 1.3, "2017BCDEF");
+    globalFitEtaBin(0.0, 1.3, "2018ABCD");
+  }
+  else 
+    globalFitEtaBin(0.0, 1.3, run.c_str());
 } // globalFitRun2
 
-void globalFitEtaBin(double etamin, double etamax) {
+void globalFitEtaBin(double etamin, double etamax, string run) {
 
   // Set fancy plotting style (CMS TDR style)
   setTDRStyle();
@@ -77,7 +124,8 @@ void globalFitEtaBin(double etamin, double etamax) {
   ///////////////////////////
 
   // Open file created by minitools/runAllIOVs.py and recombine.C
-  TFile *f = new TFile("rootfiles/jecdataRun2Test.root","READ");
+  const char *crun = run.c_str();
+  TFile *f = new TFile(Form("rootfiles/jecdata%s.root",crun),"UPDATE");
   assert(f && !f->IsZombie());
 
   // Prepare links to all relevant subdirectories
@@ -89,9 +137,11 @@ void globalFitEtaBin(double etamin, double etamax) {
   TDirectory *dsys = gDirectory;
   deta->cd(Form("fsr"));
   TDirectory *dfsr = gDirectory;
-  
+  curdir->cd();
+
   // Load reference JES and uncertainty
   _hjesref = (TH1D*)deta->Get("herr_l2l3res"); assert(_hjesref);
+  _hjesref = (TH1D*)_hjesref->Clone("hjesref");
   TH1D *herr = (TH1D*)deta->Get("herr"); assert(herr);
 
   // Set whitelist for quickly selecting only subset of datasets
@@ -119,8 +169,10 @@ void globalFitEtaBin(double etamin, double etamax) {
     if (!g) cout << "Input " << name << " not found." << endl << flush;
     assert(g);
 
-    // Patch HDM input from TH1D to graph [temporary] => fix in softrad3.C
-    if (TString(name).Contains("hdm_") && !TString(name).Contains("hadw")) {
+    // Patch HDM input from TH1D to graph [temporary]
+    // => fix in softrad3.C and globalFitSyst.C (for hadw)
+    if (TString(name).Contains("hdm_")) {
+      //&& !TString(name).Contains("hadw")) {
       TH1D *h = (TH1D*)deta->Get(name);
       assert(h);
       g = new TGraphErrors(h);
@@ -191,6 +243,12 @@ void globalFitEtaBin(double etamin, double etamax) {
   // 3. Load input fit shapes
   ///////////////////////////
 
+  // Set list of positive-definite sources
+  set<string> posdeflist;
+  for (unsigned int i = 0; i != _gf_posdef.size(); ++i) {
+      posdeflist.insert(_gf_posdef[i]);
+  }
+
   // Create listing and mapping of active response/composition shapes
   set<string> shapes;
   map<string, int> mshapeidx;
@@ -211,6 +269,7 @@ void globalFitEtaBin(double etamin, double etamax) {
     shape.idx = mshapeidx[name];
     shape.name = name;
     shape.appliesTo = appliesTo;
+    shape.ispos = (posdeflist.find(name)!=posdeflist.end());
     shape.func = new TF1(Form("f1_%s_%s",name.c_str(),appliesTo.c_str()),
 			 funcstring.c_str(),15.,6500.);
 
@@ -326,6 +385,78 @@ void globalFitEtaBin(double etamin, double etamax) {
 		 //_jesFit->GetParameter(v[i].idx),
 		 //_jesFit->GetParError(v[i].idx)) << endl;
   } // for i in _mshape
+  
+
+  // 5. Save results
+  //////////////////
+  deta->mkdir("run2");
+  deta->cd("run2");
+  
+  // Fit function(s) and error matrix
+  _jesFit->SetRange(10.,6500.); // nice range
+  _jesFit->SetNpx(6490.); // dense binning for log scale
+  const int nobs = 4;
+  const char *obs[nobs] = {"Rjet", "chf",    "nhf", "nef"};
+  const int color[nobs] = {kBlack,  kRed, kGreen+2, kBlue};
+  for (int i = 0; i != nobs; ++i) {
+    
+    _obs = obs[i]; _jesFit->SetLineColor(color[i]);
+    _jesFit->Write(Form("jesFit_%s",_obs.c_str()),TObject::kOverwrite);
+  }
+  //_obs = "chf"; _jesFit->SetLineColor(kRed);
+  //_jesFit->Write("jesFit_chf",TObject::kOverwrite);
+  //_obs = "nhf"; _jesFit->SetLineColor(kGreen+2);
+  //_jesFit->Write("jesFit_nhf",TObject::kOverwrite);
+  //_obs = "nef"; _jesFit->SetLineColor(kBlue);
+  //_jesFit->Write("jesFit_nef",TObject::kOverwrite);
+  emat.Write("emat",TObject::kOverwrite);
+
+  // Fit functions as graphs with error band
+  for (int i = 0; i != nobs; ++i) {
+    
+    _obs = obs[i];
+    TGraph *gr = new TGraph(_jesFit); // use graph to keep '_obs' setting
+    TGraphErrors *gre = new TGraphErrors(gr->GetN());
+    _fitError_func = _jesFit;
+    _fitError_emat = &emat;
+    double k = 1;
+    for (int i = 0; i != gr->GetN(); ++i) {
+      double pt = gr->GetX()[i];
+      gre->SetPoint(i, pt, gr->GetY()[i]);
+      gre->SetPointError(i, 0., fitError(&pt, &k) - gr->GetY()[i]);
+    }
+    delete gr;
+    gre->SetLineColor(color[i]);
+    gre->SetMarkerStyle(kNone);
+    gre->Write(Form("gFit_%s",_obs.c_str()),TObject::kOverwrite);
+  }
+
+  f->Close();
+  curdir->cd();
+
+  globalFitRun2Draw(run);
+  if (debug) cout << "Finishing code" << endl << flush;
+} // globalFitRun2
+
+// Separate drawing to factorize code and enable direct redrawing from file
+void globalFitRun2Draw(string run) {
+  
+  setTDRStyle();
+  TDirectory *curdir = gDirectory;
+
+  // Load globalFitRun2 fit results
+  const char *crun = run.c_str();
+  TFile *f = new TFile(Form("rootfiles/jecdata%s.root",run.c_str()),"READ");
+  assert(f && !f->IsZombie());
+
+  curdir->cd();
+  
+  const char *p = "ratio/eta00-13/run2";
+  TH1D *herr = (TH1D*)f->Get("ratio/eta00-13/herr"); assert(herr);
+  //_hjesref = (TH1D*)f->Get("ratio/eta00-13/herr_l2l3res"); assert(_hjesref);
+  TMatrixD *pemat = (TMatrixD*)f->Get(Form("%s/emat",p)); assert(pemat);
+  //TMatrixD &emat = *pemat;
+
 
   // 5. Draw results
   //////////////////
@@ -337,7 +468,8 @@ void globalFitEtaBin(double etamin, double etamax) {
     curdir->cd();
 
     // Create canvas
-    lumi_13TeV = "globalFitRun2.C(\"Run2Test\")";
+    //lumi_13TeV = "globalFitRun2.C(\"Run2Test\")";
+    lumi_13TeV = Form("globalFitRun2.C(\"%s\")",run.c_str());
     TH1D *h = tdrHist("h","JES",0.982+1e-5,1.025-1e-5); // ratio (hdm)
     TCanvas *c1 = tdrCanvas("c1",h,4,11,kSquare);
     gPad->SetLogx();
@@ -347,19 +479,21 @@ void globalFitEtaBin(double etamin, double etamax) {
     TLegend *leg2 = tdrLeg(0.45,0.15,0.65,0.30);
 
     // Draw fit on the back
+    assert(_jesFit);
     _jesFit->SetRange(15.,3500.); // nice range
     _jesFit->SetNpx(3485.); // dense binning for log scale
     _obs = "Rjet";
     TGraph *gr = new TGraph(_jesFit); // use graph to keep '_obs' setting
     TGraphErrors *gre = new TGraphErrors(gr->GetN());
     _fitError_func = _jesFit;
-    _fitError_emat = &emat;
+    _fitError_emat = pemat;//&emat;
     double k = 1;
     for (int i = 0; i != gr->GetN(); ++i) {
       double pt = gr->GetX()[i];
       gre->SetPoint(i, pt, gr->GetY()[i]);
       gre->SetPointError(i, 0., fitError(&pt, &k) - gr->GetY()[i]);
     }
+    if (debug) cout << "Draw JES" << endl << flush;
     tdrDraw(herr,"E3",kFullCircle,kCyan+2,kSolid,-1,1001,kCyan+1);
     tdrDraw(gre,"E3",kNone,kBlack,kSolid,-1,1001,kYellow+1);
     tdrDraw(gr,"Lz",kNone,kBlack);
@@ -371,10 +505,14 @@ void globalFitEtaBin(double etamin, double etamax) {
     leg2->AddEntry(gre,"Fit unc.","FL");
 
     // Separate canvas for CHF, NHF, NEF
-    TH1D *hc = tdrHist("h","PF composition (0.01)",-2e-2+1e-7,2e-2-1e-7);
+    //TH1D *hc = tdrHist("hc","PF composition (0.01)",-2e-2+1e-7,2e-2-1e-7);
+    TH1D *hc = tdrHist("hc","PF composition (0.01)",-2+1e-5,2-1e-5);
+    //if (run!="Run2Test") hc->GetYaxis()->SetRangeUser(-3+1e-5,2-1e-5);
+    if (run!="Run2Test") hc->GetYaxis()->SetRangeUser(-4.5+1e-5,4.5-1e-5);
     TCanvas *c1c = tdrCanvas("c1c",hc,4,11,kSquare);
     gPad->SetLogx();
     l->DrawLine(15,0,3500,0);
+    TLegend *legc = tdrLeg(0.45,0.90,0.65,0.90);
 
     // Separate canvas for CEF, MUF
     TH1D *hl = tdrHist("hl","PF composition (0.01)",-2e-3+1e-7,2.5e-3-1e-7);
@@ -389,19 +527,30 @@ void globalFitEtaBin(double etamin, double etamax) {
     TGraphErrors *gzmjet(0);
     TGraphErrors *ggjet(0);
 
+    if (debug) cout << "Draw data" << endl << flush;
     for (unsigned int i = 0; i != _vdt.size(); ++i) {
       
+      TGraphErrors *gi = (TGraphErrors*)_vdt[i].input->Clone(Form("gi%d",i));
+      TGraphErrors *go = (TGraphErrors*)_vdt[i].output->Clone(Form("go%d",i));
       string name = _vdt[i].name;
       string type = _vdt[i].type;
+      if (debug) cout << "..." << name << ": " << type << endl << flush;
 
       if (type=="Rjet") {
-	c1->cd();
-	//leg->AddEntry(_vdt[i].input,_gf_label[name],"PLE");
-	leg->AddEntry(_vdt[i].output,_gf_label[name],"PLE");
+        c1->cd();
+  	//leg->AddEntry(gi,_gf_label[name],"PLE");
+	leg->AddEntry(go,_gf_label[name],"PLE");
 	leg->SetY1NDC(leg->GetY1NDC()-0.05);
       }
       else if (type=="cef" || type=="muf") c1l->cd();
-      else c1c->cd();
+      else {
+	c1c->cd();
+	legc->AddEntry(go,_gf_label[name],"PLE");
+	legc->SetY1NDC(legc->GetY1NDC()-0.05);
+	// Turn into percentages
+	scaleGraph(gi,100);
+	scaleGraph(go,100);
+      }
       
       // Default settings
       if (_gf_color[name]==0)  _gf_color[name] = kBlack;
@@ -409,14 +558,26 @@ void globalFitEtaBin(double etamin, double etamax) {
       if (_gf_label[name]==0)  _gf_label[name] = name.c_str();
       if (_gf_size[name]==0)   _gf_size[name] = 1.0;
       
-      //tdrDraw(_vdt[i].input,"Pz",kOpenSquare,mcolor[name]);
-      //tdrDraw(_vdt[i].output,"Pz",kFullCircle,mcolor[name]);
-      tdrDraw(_vdt[i].output,"Pz",_gf_marker[name],_gf_color[name]);
+      //tdrDraw(gi,"Pz",kOpenSquare,mcolor[name]);
+      //tdrDraw(go,"Pz",kFullCircle,mcolor[name]);
+      tdrDraw(go,"Pz",_gf_marker[name],_gf_color[name]);
       if (name=="hdm_mpfchs1_multijet")
-	tdrDraw(_vdt[i].input,"Pz",kOpenTriangleUp,_gf_color[name]);
+	tdrDraw(gi,"Pz",kOpenTriangleUp,_gf_color[name]);
+      if (name=="hdm_cmb_mj" || (run=="2017H" && name=="hdm_cmb")) {
+	c1c->cd();
+	TGraphErrors *gr = (TGraphErrors*)go->Clone("gr");
+	assert(_hjesref);
+	assert(gr);
+	scaleGraph(gr,_hjesref);
+	shiftGraph(gr,-1);
+	scaleGraph(gr,100);
+	tdrDraw(gr,"Pz",kFullCircle,kBlack);
+	legc->AddEntry(gr,_gf_label[name+"2"],"PLE");
+	legc->SetY1NDC(legc->GetY1NDC()-0.05);
+      }
 
-      _vdt[i].output->SetMarkerSize(_gf_size[name]);
-      _vdt[i].input->SetMarkerSize(_gf_size[name]);
+      go->SetMarkerSize(_gf_size[name]);
+      gi->SetMarkerSize(_gf_size[name]);
       
       /*
       // Add up all the fractions to check they sum up to unity
@@ -443,6 +604,8 @@ void globalFitEtaBin(double etamin, double etamax) {
       */
     } // for i in _vdt   
 
+    if (debug) cout << "Draw EFL, MUF compositions" << endl << flush;
+
     c1l->cd();
     _obs = "cef";
     TGraph *gcef = new TGraph(_jesFit);  // use graph to keep '_obs' setting
@@ -451,6 +614,8 @@ void globalFitEtaBin(double etamin, double etamax) {
     _obs = "muf";
     TGraph *gmuf = new TGraph(_jesFit);  // use graph to keep '_obs' setting
     tdrDraw(gmuf,"Lz",kNone,kMagenta+2,kSolid);
+
+    if (debug) cout << "Draw CHF, NHF, NEF compositions" << endl << flush;
 
     c1c->cd();
     /*
@@ -468,7 +633,8 @@ void globalFitEtaBin(double etamin, double etamax) {
       gchfe->SetPoint(i, pt, gchf->GetY()[i]);
       gchfe->SetPointError(i, 0., fitError(&pt, &k) - gchf->GetY()[i]);
     }
-    tdrDraw(gchfe,"E3",kNone,kRed+1,kSolid,-1,1001,kRed-9);
+    //tdrDraw(gchfe,"E3",kNone,kRed+1,kSolid,-1,1001,kRed-9);
+    scaleGraph(gchf,100);
     tdrDraw(gchf,"Lz",kNone,kRed,kSolid);
 
     _obs = "nhf";
@@ -479,7 +645,8 @@ void globalFitEtaBin(double etamin, double etamax) {
       gnhfe->SetPoint(i, pt, gnhf->GetY()[i]);
       gnhfe->SetPointError(i, 0., fitError(&pt, &k) - gnhf->GetY()[i]);
     }
-    tdrDraw(gnhfe,"E3",kNone,kGreen+3,kSolid,-1,1001,kGreen-9);
+    //tdrDraw(gnhfe,"E3",kNone,kGreen+3,kSolid,-1,1001,kGreen-9);
+    scaleGraph(gnhf,100);
     tdrDraw(gnhf,"Lz",kNone,kGreen+2,kSolid);
 
     _obs = "nef";
@@ -490,11 +657,15 @@ void globalFitEtaBin(double etamin, double etamax) {
       gnefe->SetPoint(i, pt, gnef->GetY()[i]);
       gnefe->SetPointError(i, 0., fitError(&pt, &k) - gnef->GetY()[i]);
     }
-    tdrDraw(gnefe,"E3",kNone,kBlue+1,kSolid,-1,1001,kBlue-9);
+    //tdrDraw(gnefe,"E3",kNone,kBlue+1,kSolid,-1,1001,kBlue-9);
+    scaleGraph(gnef,100);
     tdrDraw(gnef,"Lz",kNone,kBlue,kSolid);
 
     _obs = "Rjet";
     TGraph *grjt = new TGraph(_jesFit);  // use graph to keep '_obs' setting
+    if (_gf_useJESref) scaleGraph(grjt,_hjesref);
+    shiftGraph(grjt,-1);
+    scaleGraph(grjt,100);
     tdrDraw(grjt,"Lz",kNone,kBlack,kSolid);
 
 
@@ -542,11 +713,13 @@ void globalFitEtaBin(double etamin, double etamax) {
     c1->cd(); gPad->RedrawAxis();
     c1c->cd(); gPad->RedrawAxis();
     c1l->cd(); gPad->RedrawAxis();
+
+    if (debug) cout << "Draw plots" << endl << flush;
    
-    c1->SaveAs("pdf/globalFitRun2/Run2Test_rjet.pdf");
-    c1c->SaveAs("pdf/globalFitRun2/Run2Test_pf.pdf");
-    c1l->SaveAs("pdf/globalFitRun2/Run2Test_mu.pdf");
-  }
+    c1->SaveAs(Form("pdf/globalFitRun2/globalfitRun2_%s_rjet.pdf",crun));
+    c1c->SaveAs(Form("pdf/globalFitRun2/globalFitRun2_%s_pf.pdf",crun));
+    c1l->SaveAs(Form("pdf/globalFitRun2/globalFitRun2_%s_mu.pdf",crun));
+  } // drawResults
 } // globalFitEtaBin
 
 
@@ -571,7 +744,11 @@ Double_t jesFit(Double_t *x, Double_t *p) {
     // Calculate variation and add it to total
     int idx = v[i].idx;   assert(idx>=0);
     TF1 *f1 = v[i].func;  assert(f1);
-    var += p[idx] * f1->Eval(pt) * 0.01; // fullSimShapes in %'s
+    double par = p[idx];
+    if (v[i].ispos) par = max(par,0.);
+    //if (v[i].ispos) par = min(1.,max(par,0.));
+
+    var += par * f1->Eval(pt) * 0.01; // fullSimShapes in %'s
   } // for i in mshape
 
   return (var / jesref);
@@ -646,7 +823,8 @@ void jesFitter(Int_t& npar, Double_t* grad, Double_t& chi2, Double_t* par,
 	}
 	
 	// Add chi2 from residual
-	double chi = (data + shifts - fit) / sigma;
+	//double chi = (data + shifts - fit) / sigma;
+	double chi = (data + shifts - fit) / oplus(sigma,globalErrMin);
 	chi2 += chi * chi;
 	++Nk;
 
