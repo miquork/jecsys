@@ -29,7 +29,10 @@ void globalFitRenormPF(string s = "Run2Test") {
 
   // List all datasets providing PF composition inputs
   vector<string> sets;
-  if (s=="2017H") sets.push_back("zjet");
+  if (s=="2017H") {
+    sets.push_back("zjet");
+    sets.push_back("pfjet");
+  }
   else {
     sets.push_back("gamjet");
     sets.push_back("zeejet");
@@ -136,8 +139,13 @@ void globalFitRenormPF(string s = "Run2Test") {
 
   globalFitPrecombinePF(s);
   globalFitPrecombineHDM(s,false,false);
-  globalFitPrecombineHDM(s,true,false); // addMJ
-  globalFitPrecombineHDM(s,true,true); // addMJ+scaleRes
+  if (s!="2017H") {
+    globalFitPrecombineHDM(s,true,false); // addMJ
+    globalFitPrecombineHDM(s,true,true); // addMJ+scaleRes
+  }
+  else {
+    globalFitPrecombineHDM(s,false,true); // scaleRes
+  }
 } // globalFitRenormPF.C
 
 
@@ -154,11 +162,16 @@ void globalFitPrecombinePF(string s) {
 
   // List all datasets providing PF composition inputs
   vector<string> sets;
-  if (s=="2017H") return;
-  sets.push_back("gamjet");
-  sets.push_back("zlljet");
-  sets.push_back("zjet");
-  sets.push_back("pfjet");
+  if (s=="2017H") {
+    sets.push_back("zjet");
+    sets.push_back("pfjet");
+  }
+  else {
+    sets.push_back("gamjet");
+    sets.push_back("zlljet");
+    sets.push_back("zjet");
+    sets.push_back("pfjet");
+  }
 
   // List inputs to be pre-combined
   vector<string> vars;
@@ -322,11 +335,16 @@ void globalFitPrecombineHDM(string s, bool addMJ, bool scaleRes) {
 
   // List all datasets providing PF composition inputs
   vector<string> sets;
-  if (s=="2017H") return;
-  sets.push_back("gamjet");
-  sets.push_back("zlljet");
-  sets.push_back("zjet");
-  sets.push_back("hadw");
+  //if (s=="2017H") return;
+  if (s=="2017H") {
+    sets.push_back("zjet");
+  }
+  else {
+    sets.push_back("gamjet");
+    sets.push_back("zlljet");
+    sets.push_back("zjet");
+    sets.push_back("hadw");
+  }
   if (s!="Run2Test") sets.push_back("incjet");
   // keep multijet last, as referenced to all those preceding it
   if (addMJ) sets.push_back("multijet");
@@ -367,6 +385,7 @@ void globalFitPrecombineHDM(string s, bool addMJ, bool scaleRes) {
       // Read in data
       h = (TH1D*)f->Get(Form("%s/eta00-13/hdm_mpfchs1_%s",cd,cs));
       if (!h) h = (TH1D*)f->Get(Form("%s/eta00-13/hdm_%s",cd,cs));
+      if (!h) cout << "Missing "<<cd<<"/hdm[X]_"<<cs<<endl<<flush;
       assert(h);
       m[cs][cd] = h;
 
