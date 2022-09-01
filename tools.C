@@ -1,4 +1,6 @@
 // Some helpful tools
+#ifndef __TOOLSC__
+#define __TOOLSC__
 #include "tools.h"
 
 #include "TChain.h"
@@ -370,9 +372,10 @@ void tools::drawErrBand(TF1 *f1, TFitResultPtr &fp, double xmin, double xmax) {
 
   TMatrixDSym emat = fp->GetCovarianceMatrix();
 
-  TGraph *ge = new TGraphErrors(int(xmax-xmin)+1);
-  TGraph *ge_up = new TGraphErrors(int(xmax-xmin)+1);
-  TGraph *ge_dw = new TGraphErrors(int(xmax-xmin)+1);
+  //TH1D *he = new TH1D(Form("he_%d",(int)fp),"",1,xmin,xmax);
+  TGraphErrors *ge = new TGraphErrors(int(xmax-xmin)+1);
+  TGraph *ge_up = new TGraph(int(xmax-xmin)+1);
+  TGraph *ge_dw = new TGraph(int(xmax-xmin)+1);
   vector<double> dfdp(f1->GetNpar());
   //vector<double> dp(f1->GetNpar());
   for (int i = 0; i != ge->GetN(); ++i) {
@@ -401,14 +404,19 @@ void tools::drawErrBand(TF1 *f1, TFitResultPtr &fp, double xmin, double xmax) {
     } //  for j
     
     double err = sqrt(e2);
-    ge->SetPoint(i, x, err);
+    ge->SetPoint(i, x, y);
+    ge->SetPointError(i, 0, err);
     ge_up->SetPoint(i, x, y+err);
     ge_dw->SetPoint(i, x, y-err);
   } // for i
 
+  ge->SetFillColorAlpha(kBlue-9,0.5);
+  ge->SetFillStyle(1001);
+  ge->Draw("SAMEE3");
   ge_up->SetLineStyle(kDotted);
   ge_up->Draw("SAMEL");
   ge_dw->SetLineStyle(kDotted);
   ge_dw->Draw("SAMEL");
 
 } // drawErr
+#endif
