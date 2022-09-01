@@ -366,6 +366,10 @@ CMS_lumi( TPad* pad, int iPeriod, int iPosX )
       lumiText += " (7 TeV)";
       if( outOfFrame) lumiText += "}";
     }
+  else if ( iPeriod==8) {
+      lumiText += lumi_136TeV; 
+      lumiText += " (13.6 TeV)";
+  }
   else if ( iPeriod==12 )
     {
       lumiText += "8 TeV";
