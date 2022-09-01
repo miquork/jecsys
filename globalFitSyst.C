@@ -339,7 +339,10 @@ void globalFitSyst(string run = "Run2Test") {
     TH1D *href(0);
     //if (f2 && !f2->IsZombie()) {
     assert(f2 && !f2->IsZombie());
-    href = (TH1D*)f2->Get("ratio/eta00-13/hdm_cmb_mj"); assert(href);
+    href = (TH1D*)f2->Get("ratio/eta00-13/hdm_cmb_mj");
+    //bool skip = (run=="Run2Test" && !href);
+    //if (!skip) {
+    assert(href || run=="Run2Test");
     //}
 
     TGraphErrors *g = (TGraphErrors*)d2->Get("mpfchs1_incjet_a100");
@@ -356,8 +359,8 @@ void globalFitSyst(string run = "Run2Test") {
       //h->SetBinContent(j, g->GetY()[i]);
       //h->SetBinError(j, g->GetEY()[i]);
       //if (href) {
-      int k = href->FindBin(g->GetX()[i]);
-      double cref = href->GetBinContent(k);
+      int k = (href ? href->FindBin(g->GetX()[i]) : 0);
+      double cref = (href ? href->GetBinContent(k) : 1);
       h->SetBinContent(j, g->GetY()[i] * cref);
       h->SetBinError(j, g->GetEY()[i] * cref);
       g->SetPoint(i, g->GetX()[i], g->GetY()[i] * cref);
@@ -368,6 +371,7 @@ void globalFitSyst(string run = "Run2Test") {
     g->Write("ghdm_incjet",TObject::kOverwrite);
     h->Write("hdm_incjet",TObject::kOverwrite);
     curdir->cd();
+    //} // !skip
 
     if (f2) f2->Close();
   } // doIncJetHDM
