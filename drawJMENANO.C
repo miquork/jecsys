@@ -8,6 +8,8 @@
 
 #include "tdrstyle_mod22.C"
 
+#include <fstream>
+
 class trg {
 public:
   string name;
@@ -152,15 +154,50 @@ TH2D *symmetrize(TH2D *h2) {
 
 
 void drawJMENANOs(int iFile, TFile *fout); // forward declaration
+void drawPF(string trg, int ptmin, int ptmax);
 
 void drawJMENANO() {
 
   cout << "drawJMENANO.C" << endl << flush;
+  /*
   TFile *fout = new TFile("rootfiles/drawJMENANO.root","RECREATE");
   drawJMENANOs(0, fout);
   drawJMENANOs(1, fout);
   drawJMENANOs(2, fout);
   fout->Close();
+  */
+
+  drawPF("HLT_DiPFJetAve40",40,50); // bad mc
+  drawPF("HLT_DiPFJetAve40",50,60);
+  drawPF("HLT_DiPFJetAve40",60,70);
+  //drawPF("HLT_DiPFJetAve60",60,70); // bad mc
+  drawPF("HLT_DiPFJetAve40",70,85); // mc ok, data same as 60?
+  //drawPF("HLT_DiPFJetAve60",70,85); // less mc, data same as 40?
+  //drawPF("HLT_DiPFJetAve40",85,100); // too little data for 80-85
+  drawPF("HLT_DiPFJetAve60",85,100); // goldilocks
+  //drawPF("HLT_DiPFJetAve80",85,100); // too little mc for 80-85
+  //drawPF("HLT_DiPFJetAve60",100,125); // mc ok, data same as 80?
+  drawPF("HLT_DiPFJetAve80",100,125); // mc ok, data same as 60?
+  drawPF("HLT_DiPFJetAve80",125,155);
+  //drawPF("HLT_DiPFJetAve80",155,180); // data bad
+  drawPF("HLT_DiPFJetAve140",155,180); // data,mc ok
+  drawPF("HLT_DiPFJetAve140",180,210);
+  //drawPF("HLT_DiPFJetAve140",210,250); // less data
+  drawPF("HLT_DiPFJetAve200",210,250); // data fair, mc ok
+  //drawPF("HLT_DiPFJetAve140",250,300); // bad data
+  drawPF("HLT_DiPFJetAve200",250,300);
+  drawPF("HLT_DiPFJetAve260",300,350);
+  drawPF("HLT_DiPFJetAve260",350,400); // data chf lower?
+  //drawPF("HLT_DiPFJetAve320",350,400); // data chf higher?
+  drawPF("HLT_DiPFJetAve320",400,500);
+  //drawPF("HLT_DiPFJetAve400",400,500);
+  drawPF("HLT_DiPFJetAve400",500,600);
+  drawPF("HLT_DiPFJetAve500",500,600);
+  drawPF("HLT_DiPFJetAve500",600,800);
+  drawPF("HLT_DiPFJetAve500",800,1000);
+  drawPF("HLT_DiPFJetAve500",1200,1500);
+  drawPF("HLT_DiPFJetAve500",1500,1800);
+  drawPF("HLT_DiPFJetAve500",1800,2100);
 }
 
 void drawJMENANOs(int iFile, TFile *fout) {
@@ -183,6 +220,15 @@ void drawJMENANOs(int iFile, TFile *fout) {
     f = new TFile("../dijet/rootfiles/jmenano_data_out_v6.root","READ");
   //fd = new TFile("../dijet/rootfiles/jmenano_data_out_v5_4p86fb.root","READ");
   assert(f && !f->IsZombie());
+
+  TFile *fa = new TFile("rootfiles/alcajme_out_50M_v10_4p86fb.root","READ");
+  assert(fa && !fa->IsZombie());
+  TProfile *pam = (TProfile*)fa->Get("Pt_40_50/pm0ab"); assert(pam);
+  TProfile *pad = (TProfile*)fa->Get("Pt_40_50/pm2ab"); assert(pad);
+  TProfile *pjd = (TProfile*)f->Get("HLT_DiPFJetAve40/Pt_40_50/pm2ab"); assert(pjd);
+  TH1D *ham = fixB(pam);
+  TH1D *had = fixB(pad);
+  TH1D *hjd = fixB(pjd);
 
   TLine *l = new TLine();
   l->SetLineStyle(kDashed);
@@ -500,6 +546,21 @@ void drawJMENANOs(int iFile, TFile *fout) {
 
    c3->SaveAs(Form("pdf/alcajme/drawJMENANO_jes40_%s.pdf",cs));
 
+   tdrDraw(hjd,"Pz",kOpenDiamond,kGreen+2,kSolid,-1,kNone,0);
+   tdrDraw(had,"Pz",kOpenSquare,kBlue,kSolid,-1,kNone,0);
+   tdrDraw(ham,"Pz",kOpenCircle,kBlack,kSolid,-1,kNone,0);
+
+   hjd->SetMarkerSize(0.7);
+   had->SetMarkerSize(0.7);
+   ham->SetMarkerSize(0.7);
+
+   TLegend *leg3 = tdrLeg(0.35,0.20,0.65,0.20+3*0.045);
+   leg3->AddEntry(hjd,"DB @ 40 GeV","PLE");
+   leg3->AddEntry(had,"HLT-DB @ 40 GeV","PLE");
+   leg3->AddEntry(ham,"HLT-MHPF @ 40 GeV","PLE");
+
+   c3->SaveAs(Form("pdf/alcajme/drawJMENANO_jes40_v2_%s.pdf",cs));
+
    TH1D *h4 = tdrHist("h4","dJES/dlog(p_{T}) (%)",-30,30,"#eta_{jet}",-5.2,5.2);
    TCanvas *c4 = tdrCanvas("c4",h4,8,0,kSquare);
    tdrDraw(hdpt,"HISTE",kNone,kYellow+2,kSolid,-1,1001,kYellow+1);
@@ -516,4 +577,91 @@ void drawJMENANOs(int iFile, TFile *fout) {
    h2->Write(Form("h2_%s",cs),TObject::kOverwrite);
    h2s->Write(Form("h2s_%s",cs),TObject::kOverwrite);
    curdir->cd();
+
+   // Map <PtAve> to <PtRaw> = JES(eta, PtAve)*<PtAve>
+   // and JES to correction=1./JES for L2Residuals
+   for (int i = 1; i != h2->GetNbinsX()+1; ++i) {
+
+   }
+
+   // Write out text file
+   bool writeTextFile = false;
+   if (writeTextFile && iFile==2) {
+     ofstream fout("textFiles/drawJMENANO_Run2022C-PromptReco_DATA_L2Res.txt",
+		   ios::out);
+     fout << "{1 JetEta 1 JetPt [0]+[1]*log(x) Correction L2Relative}" << endl;
+   }
 } // drawJMENANO
+
+
+void drawPF(string trg, int ptmin, int ptmax) {
+
+  TDirectory *curdir = gDirectory;
+  setTDRStyle();
+
+  TFile *fm = new TFile("../dijet/rootfiles/jmenano_mc_out_v7.root","READ");
+  TFile *fd = new TFile("../dijet/rootfiles/jmenano_data_out_v7.root","READ");
+  assert(fm && !fm->IsZombie());
+  assert(fd && !fd->IsZombie());
+
+  fd->cd(trg.c_str());
+  gDirectory->cd(Form("Pt_%d_%d",ptmin,ptmax));
+  TDirectory *dd = gDirectory;
+  fm->cd(trg.c_str());
+  gDirectory->cd(Form("Pt_%d_%d",ptmin,ptmax));
+  TDirectory *dm = gDirectory;
+  
+  string vpf[] = {"muf","cef","chf","nhf","nef","hfhf","hfef"};
+  const int npf = sizeof(vpf)/sizeof(vpf[0]);
+  map<string,int> color;
+  color["muf"] = kMagenta+1;
+  color["cef"] = kCyan+1;
+  color["chf"] = kRed;
+  color["nhf"] = kGreen+2;
+  color["nef"] = kBlue;
+  color["hfhf"] = kMagenta+1;
+  color["hfef"] = kCyan+1;
+  map<string,const char*> name;
+  name["muf"] = "Muons";
+  name["cef"] = "Electrons";
+  name["chf"] = "Charged hadrons";
+  name["nhf"] = "Neutral hadrons";
+  name["nef"] = "Photons";
+  name["hfhf"] = "HF hadrons";
+  name["hfef"] = "HF EM";
+  
+  TH1D *h = tdrHist("h","PF energy fraction",0,1.2,"#eta_{jet}",-5.2,5.2);
+  TH1D *h2 = tdrHist("h","Data-MC (%)",-10,10,"#eta_{jet}",-5.2,5.2);
+  lumi_136TeV = "RunC, 2.90 of 4.86 fb^{-1}";
+  TCanvas *c1 = tdrDiCanvas("c1",h,h2,8,11);
+
+  TLegend *leg = tdrLeg(0.43,0.92-npf*0.030,0.68,0.92);
+  leg->SetTextSize(0.035);
+  TLatex *tex = new TLatex(); tex->SetNDC(); tex->SetTextSize(0.035);
+  tex->DrawLatex(0.37,0.55,"Markers data, histos MC");
+  tex->DrawLatex(0.65,0.90,Form("%4d<p_{T}<%d GeV",ptmin,ptmax));
+  
+  for (int i = 0; i != npf; ++i) {
+    const char *cpf = vpf[i].c_str();
+    TProfile *pd = (TProfile*)dd->Get(Form("p%s",cpf)); assert(pd);
+    TProfile *pm = (TProfile*)dm->Get(Form("p%s",cpf)); assert(pm);
+
+    c1->cd(1);
+    tdrDraw(pm,"HISTE",kNone,color[cpf],kSolid,-1,kNone,kNone);
+    tdrDraw(pd,"Pz",kFullCircle,color[cpf],kSolid,-1,kNone,kNone);
+    pd->SetMarkerSize(0.5);
+    gPad->RedrawAxis();
+
+    leg->AddEntry(pd,name[cpf],"PLE");
+    
+    c1->cd(2);
+    TH1D *hd = pd->ProjectionX();
+    hd->Add(pm,-1);
+    hd->Scale(100.);
+    tdrDraw(hd,"Pz",kFullCircle,color[cpf],kSolid,-1,kNone,kNone);
+    hd->SetMarkerSize(0.5);
+    gPad->RedrawAxis();
+  } // for i
+
+  c1->SaveAs(Form("pdf/alcajme/PF/%s_%d_%d.pdf",trg.c_str(),ptmin,ptmax));
+} // drawPF
