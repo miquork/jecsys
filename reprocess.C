@@ -50,7 +50,7 @@ bool useFixedFit = true; // with minitools/drawZmass.C (def:true)
 double fitUncMin = 0.00000; // Some bug if unc<0?
 bool correctZmmMass = true; // pT with mumu mass (def:true)
 bool correctZeeMass = true; // pT with ee mass (def:true)
-bool correctZMass = true; // pT with Run 2 Z+jet mass (def:true)
+bool correctZMass = false; // DP_2021 // pT with Run 2 Z+jet mass (def:true)
 bool correctGamMass = true; //!!UL17_V3 false, pT with ee mass at 2*pT
 bool correctGamScale = false; // additional to GamMass, with value below
 double valueGamScale = 1;//1.01; //1.;
@@ -613,23 +613,23 @@ void reprocess(string epoch="") {
     if (isUL18) {
       //fw = new TFile("rootfiles/hadW18V5_MPDGcorrNoW.root","READ"); // fp02
       //fw = new TFile("rootfiles/hadW1718V5_MPDGcorrNoW.root","READ"); // fp02
-      //fw = new TFile("rootfiles/hadW18V5_JEC.root","READ"); // fp001, |eta|<1.3
-      fw = new TFile(Form("rootfiles/hadW18V5_JECv2%s.root",sPSWgtW.c_str()),
-		     "READ"); // fp001, |eta|<1.3
+      fw = new TFile("rootfiles/hadW18V5_JEC.root","READ"); // fp001, |eta|<1.3 // DP_2021
+      //fw = new TFile(Form("rootfiles/hadW18V5_JECv2%s.root",sPSWgtW.c_str()),
+      //	     "READ"); // fp001, |eta|<1.3, // latest
     }
     else if (isUL17) {
       //fw = new TFile("rootfiles/hadWUL17V5_MPDGcorrNoW.root","READ"); // fitprob001
       //fw = new TFile("rootfiles/hadW17V5_MPDGcorrNoW.root","READ"); // fp02
       //fw = new TFile("rootfiles/hadW17V5_Glu.root","READ"); // fp001
-      //fw = new TFile("rootfiles/hadW17V5_JEC.root","READ"); // fp001, |eta|<1.3
-      fw = new TFile(Form("rootfiles/hadW17V5_JECv2%s.root",sPSWgtW.c_str()),
-		     "READ"); // fp001, |eta|<1.3
+      fw = new TFile("rootfiles/hadW17V5_JEC.root","READ"); // fp001, |eta|<1.3 // DP_2021
+      //fw = new TFile(Form("rootfiles/hadW17V5_JECv2%s.root",sPSWgtW.c_str()),
+      //	     "READ"); // fp001, |eta|<1.3 // latest
     }
     else if (isUL16) {
       //fw = new TFile(Form("rootfiles/hadW16%sV5_Glu.root",fw_files[epoch]),
-      //fw = new TFile(Form("rootfiles/hadW16%sV7_JEC.root",fw_files[epoch]),
-      fw = new TFile(Form("rootfiles/hadW16%sV7_JECv2%s.root",fw_files[epoch],
-			  sPSWgtW.c_str()),"READ");
+      fw = new TFile(Form("rootfiles/hadW16%sV7_JEC.root",fw_files[epoch]), "READ"); // DP_2021
+      //fw = new TFile(Form("rootfiles/hadW16%sV7_JECv2%s.root",fw_files[epoch],
+      //  sPSWgtW.c_str()),"READ");
     }
     else if (isRun2) {
       fw = new TFile("rootfiles/jecdataRun2TestData.root");
@@ -690,30 +690,34 @@ void reprocess(string epoch="") {
   if(CorLevel=="L1L2L3Res"){
     if (isUL18) {
       //fp = new TFile(Form("%sgamma/Gjet_combinationfile_L2L3Res_%s_L2L3Res_JEC-v4_Data-v2_MC.root",cd,fp_files[epoch]),"READ");
+      fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8_v18.root"); // DP_2021
       //fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8_v19.root");
       //fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8QCD_v19.root");
-      fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8QCD_v20.root");
+      //fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8QCD_v20.root"); // latest
     }
     else if (isUL17) {
       //fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V31_L2L3res_%s.root", fp_files[epoch]),"READ");
+      fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8_v18.root"); // DP_2021
       //fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8_v19.root");
       //fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8QCD_v19.root");
-      fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8QCD_v20.root");
+      //fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8QCD_v20.root"); // latest
     }
     else if (isUL16 && !isAPV) {
       //fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16NonAPVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
       //fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V7Closure/ClosureV7UL16NONAPVFGHjet_combinationfile_L2L3Res_%s_L2L3Res_V2.root",fp_files[epoch]),"READ");
+      fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8_v18.root");
       //fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8_v19.root");
       //fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8QCD_v19.root");
-      fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8QCD_v20.root");
+      //fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8QCD_v20.root"); // latest
     }
     else if (isUL16 && isAPV) {
       if (epoch=="2016BCDEF") 
 	//fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
 	//fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V7Closure/ClosureV7UL16APVBCDEFjet_combinationfile_L2L3Res_%s_L2L3Res_V2.root",fp_files[epoch]),"READ");
+	fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8APV_v18.root");
 	//fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8APV_v19.root");
 	//fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8QCDAPV_v19.root");
-	fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8QCDAPV_v20.root");
+	//fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8QCDAPV_v20.root"); // latest
       else if (epoch=="2016EF" || epoch=="2016BCD")  {
 	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVSplitGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ"); // NB: old!
 	assert(false); // don't trip on old files
@@ -888,10 +892,10 @@ void reprocess(string epoch="") {
   if(CorLevel=="L1L2L3Res"){
     if (isUL18) {
       //fz = new TFile("rootfiles/jme_bplusZ_merged_v35.root","READ"); // test (17+18 e+mu)
-      //fz = new TFile("rootfiles/jme_bplusZ_merged_v35_2018_emu_wTTJets.root","READ"); // botched PSWeights
+      fz = new TFile("rootfiles/jme_bplusZ_merged_v35_2018_emu_wTTJets.root","READ"); // botched PSWeights // DP_2021
       //fz = new TFile("rootfiles/jme_bplusZ_merged_v38_muon2018.root","READ"); // only a100
       //fz = new TFile("rootfiles/jme_bplusZ_merged_v43_muon2018.root","READ"); // only a100,30
-      fz = new TFile("rootfiles/jme_bplusZ_merged_v44_muon2018.root","READ"); // only a100,30
+      //fz = new TFile("rootfiles/jme_bplusZ_merged_v44_muon2018.root","READ"); // only a100,30 // latest
     }
     else if (isUL17) {
       //fz = new TFile("rootfiles/jme_bplusZ_merged_v28_2017emu_wTTJets.root","READ");
@@ -1638,8 +1642,8 @@ void reprocess(string epoch="") {
   rename["gamjet"]["mc"] = "_MC"; 
   rename["gamjet"]["mpfchs"] = "resp_MPFchs";
   rename["gamjet"]["mpfchs1"] = "resp_MPFchs"; 
-  //rename["gamjet"]["ptchs"] = "resp_PtBalchs";  // v18
-  rename["gamjet"]["ptchs"] = "resp_DBchs"; // v19
+  rename["gamjet"]["ptchs"] = "resp_PtBalchs";  // v18 DP_2021
+  //rename["gamjet"]["ptchs"] = "resp_DBchs"; // v19
   rename["gamjet"]["counts"] = "RawNEvents_data_vs_pt";
   //
   rename["gamjet"]["mpf1"] = "resp_MPFR1chs";
@@ -1690,7 +1694,7 @@ void reprocess(string epoch="") {
   rename["zjet"]["ratio"] = "data"; // missing => PATCH
   rename["zjet"]["data"] = "data";
   rename["zjet"]["mc"] = "mc";
-  bool isNewName = ((isUL16 && !isAPV) || isLowPU || isUL18);
+  bool isNewName = (isUL16 && !isAPV);// DP_2021 ((isUL16 && !isAPV) || isLowPU || isUL18);
   rename["zjet"]["mpfchs"] = (isNewName ? "rmpf" : "mpfchs");
   rename["zjet"]["mpfchs1"] = (isNewName ? "rmpf" : "mpfchs"); 
   rename["zjet"]["ptchs"] = (isNewName ? "rmpfjet1" : "mpfjet1");//"ptchs"; 
@@ -2406,6 +2410,7 @@ void reprocess(string epoch="") {
 	    continue;
 	  //if (t=="rho" && s=="zjet") continue; // still missing for zjet
 	  if (t=="rho" && sp=="zjet") continue;
+	  if (t=="rho" && s=="gamjet") continue; // DP_2021
 	  if (t=="rho" && sp=="gamjet") continue;
 	  if (t=="rho" && s=="multijet"  // and for multijet
 	      && !(CorLevel=="L1L2L3Res" && isUL16)) continue;
@@ -2415,7 +2420,8 @@ void reprocess(string epoch="") {
 	  // (now adding fractions to zjet)
 	  bool isfrac = (t=="chf"||t=="nef"||t=="nhf"||
 			 t=="cef"||t=="muf"||t=="puf");
-	  if (isfrac && s!="pfjet" && s!="zjet" && s!="gamjet" && // v19
+	  //if (isfrac && s!="pfjet" && s!="zjet" && s!="gamjet" && // v19
+	  if (isfrac && s!="pfjet" && s!="zjet" && // DP_2021
 	      s!="zeejet" && s!="zmmjet" && s!="zlljet") continue;
 	  if (!(isfrac || t=="rho") && s=="pfjet") continue;
 	  if (t=="puf" && s!="pfjet") continue;

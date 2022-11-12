@@ -34,7 +34,7 @@ void globalFitRenormPF(string s = "Run2Test") {
     sets.push_back("pfjet");
   }
   else {
-    sets.push_back("gamjet");
+    //sets.push_back("gamjet"); // DP_2021
     sets.push_back("zeejet");
     sets.push_back("zmmjet");
     sets.push_back("zlljet");
@@ -167,7 +167,7 @@ void globalFitPrecombinePF(string s) {
     sets.push_back("pfjet");
   }
   else {
-    sets.push_back("gamjet");
+    //sets.push_back("gamjet"); // DP_2021
     sets.push_back("zlljet");
     sets.push_back("zjet");
     sets.push_back("pfjet");

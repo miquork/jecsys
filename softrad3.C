@@ -453,6 +453,7 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      //assert(fabs(q1+qn+qu-q0)<1e-3);
 	    }
 
+	    /*
 	    double Rn_d(1.000), Rn_m(1.000);
 	    // v1: Runcl = 0.685
 	    //double Ru_d(0.685), Ru_m(0.685); // Ru(DY,CP5,UL17)
@@ -472,6 +473,19 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	    //double dRum = +0.05; // Ru(DY,HS1)=0.72 / Ru(DY,CP5)=0.65 vs 0.685
 	    double dRud = -0.02; // -gJES or gJESpt=45->15 extrapolation
 	    double dRum = -0.10; // ca. (R_ue-Ru)/2 or Ru_m-1 towards R_ue
+	    */
+
+	    // start DP_2021 ==>
+	    double R2_m(1.000), R2_d(1.000); // multijet recoil?
+	    double Rn_d(1.000), Rn_m(1.000);
+            double Ru_d(0.685), Ru_m(0.685); // Ru(DY,CP5,UL17)
+
+            // Systematic variations for Rn_m, Ru_m numerically
+            double dRnd = -0.01; // guesstimate for data-MC
+            double dRnm = -0.02; // quark/gluon response variation
+            double dRud = +0.08; // QCD data=2.7 / FullSim(UL17)=2.5
+            double dRum = +0.05; // Ru(DY,HS1)=0.72 / Ru(DY,CP5)=0.65 vs 0.685
+	    // ==> end DP2021
 
 	    if (s=="multijet") {
 

@@ -47,7 +47,7 @@ double ptmj = 30.; // reference pTmin value for multijet (def:30)
 bool dofsr = true;         // correct for FSR central value (def:true)
 bool dofsrcombo1 = false;  // use input refIOV for FSR in IOVs (def: true)
 bool dofsrcombo2 = false;  // use output refIOV for FSR in IOVs (def:false)
-bool dofsrhadw = true;     // secondary FSR switch for hadW
+bool dofsrhadw = false; // DP_2021;     // secondary FSR switch for hadW
 bool dofsr3 = true;        // use softrad3.C corrections instead of softrad.C
 bool dofsr3zj = true;      // secondary softrad3.C switch for Z+jet
 bool dofsr3gj = true;      // secondary softrad3.C switch for gamma+jet
@@ -72,17 +72,17 @@ bool dol1bias = false;     // correct MPF to L1L2L3-L1 from L1L2L3-RC (def:false
 bool useIncJetRefIOVUncert = false;//true; // Include refIOV fit uncertainty? (def:no)
 
 // PF composition settings
-bool useSpecialLowPU = true; // Special 2017H settings
-bool usePF = false;     // Load dijet PF fractions in the fit (def:true for now)
-bool usePFZ = false;    // Load Z+jet PF fraction in the fit (def:true for now)
-bool usePFG = false;    // Load G+jet PF fraction in the fit (def:true for now)
-bool usePFC = true;    // Load Combo-PF fraction in the fit (def:true for now)
-bool fitPF = false;     // Use dijet PF fractions in the fit (def:true for now)
-bool fitPFZ = false;    // Use Z+jet PF fractions in the fit (def:true for now)
-bool fitPFG = false;    // Use G+jet PF fractions in the fit (def:true for now)
-bool fitPFC = true;    // Use Combo-PF fractions in the fit (def:true for now)
-double fitPF_delta = 0.25;  // "free" shift in % for dijet PF (def:0.25)
-double fitPFZ_delta = 0.25; // "free" shift in % for Z+jet PF (def:0.25)
+bool useSpecialLowPU = false; // DP_2021 // Special 2017H settings if useLowPU
+bool usePF = true;     // Load dijet PF fractions in the fit (def:true for now)
+bool usePFZ = true;    // Load Z+jet PF fraction in the fit (def:true for now)
+bool usePFG = false; // DP_2021    // Load G+jet PF fraction in the fit (def:true for now)
+bool usePFC = false;//true;    // Load Combo-PF fraction in the fit (def:true for now)
+bool fitPF = true;     // Use dijet PF fractions in the fit (def:true for now)
+bool fitPFZ = true;    // Use Z+jet PF fractions in the fit (def:true for now)
+bool fitPFG = false; // DP_2021    // Use G+jet PF fractions in the fit (def:true for now)
+bool fitPFC = false;//true;    // Use Combo-PF fractions in the fit (def:true for now)
+double fitPF_delta = 0.20; // DP_2021 //0.25;  // "free" shift in % for dijet PF (def:0.25)
+double fitPFZ_delta = 0.10; // DP_2021 //0.25; // "free" shift in % for Z+jet PF (def:0.25)
 double fitPFG_delta = 0.25; // "free" shift in % for Z+jet PF (def:0.25)
 double fitPFC_delta = 0.10; // "free" shift in % for Combo-PF (def:0.25)
 double minPFpt = 43;   // Minimum pT where dijet PF fractions used (def:114)
@@ -331,8 +331,8 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 
     // Calculate parameterization with each component switchable on/off
     return (1
-	    //+ (useP0Trk  ? p[0]*0.01*ftd->Eval(pt) : 0) // Tracker eff. (data)
-	    + (useP0Trk  ? p[0]*0.01*ft->Eval(pt) : 0) // Tracker eff. (data)
+	    //+ (useP0Trk  ? p[0]*0.01*ftd->Eval(pt) : 0) // Tracker eff. (data) // DP_2021
+	    + (useP0Trk  ? p[0]*0.01*ft->Eval(pt) : 0) // Tracker eff. (data) // latest
 	    + (useP1Gam  ? p[1]*0.01*fp->Eval(pt) : 0)  // photon scale
 	    + (useP2CalX ? p[2]*0.01*fcx->Eval(pt) : 0) // Hadron cross-over
 	    + (useP2HadX ? p[2]*0.01*fhx->Eval(pt) : 0) // Hadron cross-over
@@ -861,8 +861,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     }
     
   } // usePF
-  setToyShapeFuncs();
-  //setFullShapeFuncs();
+  setToyShapeFuncs(); // DP_2021
+  //setFullShapeFuncs(); // DP_2021 => off
 
 
   ///////////////////////////////////////////////
@@ -1120,6 +1120,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
 	  kfsr = (r + hfsr->GetBinContent(hfsr->FindBin(pt))) / r;
 	if (dofsr && dofsrhadw && ss=="hadw")
 	  kfsr = 1./hfsr->GetBinContent(hfsr->FindBin(pt));
+	if (ss=="hadw" && !dofsrhadw) kfsr = 1; // DP_2021
 	double l1(1);
 	if (dol1bias && sm=="mpfchs1" && ss=="gamjet")
 	  l1 = 1./hl1->GetBinContent(hl1->FindBin(pt));
@@ -2015,7 +2016,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   jesFitter(Npar, grad, chi2_gbl, tmp_par, flag);
   cout << "List of fitted sources that count (nonzero):" << endl;
   for (int i = np; i != Npar; ++i) {
-    if (fabs(tmp_par[i])!=0 || fabs(tmp_err[i]-1)>1e-2) {
+    //if (fabs(tmp_par[i])!=0 || fabs(tmp_err[i]-1)>1e-2) {
+    if (!(fabs(tmp_par[i])<1.5e-2 && fabs(tmp_err[i]-1)<1.5e-2)) {
       ++nsrc_true;
       hsrc->Fill(tmp_par[i]);
     }
@@ -2143,7 +2145,8 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
   cout << "Uncertainty sources:" << endl;
   for (int i = np; i != Npar; ++i) {
     //if (tmp_par[i]==0&&fabs(tmp_err[i]-1)<1e-2)
-    if (tmp_par[i]==0&&fabs(tmp_err[i]-1)<2e-2)
+    //if (tmp_par[i]==0&&fabs(tmp_err[i]-1)<2e-2)
+    if (fabs(tmp_par[i])<1e-5&&fabs(tmp_err[i]-1)<1.5e-2)
       cout << Form("%2d - %35s:  ----------\n",
 		   (i-np+1), (*_vsrc)[i-np]->GetName());
     else
@@ -3365,10 +3368,10 @@ void setToyShapeFuncs() {
   fcx->SetParameters(1.177, 1.42, 1388, 1.231); // toyPF
 
   // SPRH -3% to +3% cross variation (HCAL only)
-  //if (!fhx) fhx = new TF1("fhx","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
-  //fhx->SetParameters(0.8904, 1.082, 1408, 1.204); // toyPF
-  if (!fhx) fhx = new TF1("fhc3_Rjet","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
-  fhx->SetParameters(-6.575,3.888,-0.4755,-0.06304,0.0063,0.001629,-0.0001509); // 0.0/16
+  if (!fhx) fhx = new TF1("fhx","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500); // DP_2021
+  fhx->SetParameters(0.8904, 1.082, 1408, 1.204); // toyPF // DP_2021
+  //if (!fhx) fhx = new TF1("fhc3_Rjet","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500); // latest
+  //fhx->SetParameters(-6.575,3.888,-0.4755,-0.06304,0.0063,0.001629,-0.0001509); // 0.0/16 // latest
 
   // SPRH -3% variation
   if (!fhh) fhh = new TF1("fhh","[p0]+[p1]*pow(x/[p2],[p3])/(1+pow(x/[p2],[p3]))*(1-pow(x/[p2],-[p3]))",15,4500);
