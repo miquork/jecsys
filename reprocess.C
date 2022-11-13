@@ -503,12 +503,10 @@ void reprocess(string epoch="") {
   TFile *fpfdt(0), *fpfmc(0);
   if (CorLevel=="L1L2Res" || CorLevel=="L1L2L3Res") {
     if (isUL18) {
-      /*
       fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL18V2V3-%s.root",
-			     fpf_files[epoch]),"READ");
+			     fpf_files[epoch]),"READ"); // DP_2021
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL18V2V3-%s.root",
-			     fpf_files[epoch]),"READ");
-      */
+			     fpf_files[epoch]),"READ"); // DP_2021
       /*
       fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL18V5V2_%s.root",
 			     fpf_files[epoch]),"READ");
@@ -519,40 +517,46 @@ void reprocess(string epoch="") {
       fpfdt = new TFile("rootfiles/output-DATA-2b-UL2018-PFtest.root","READ");
       fpfmc = new TFile("rootfiles/output-MC-2b-UL2018-PFtest.root","READ");
       */
-      fpfdt = new TFile("rootfiles/output-DATA-2b-UL18V5V2_ABCD-pThat.root","READ");
-      fpfmc = new TFile("rootfiles/output-MC-2b-UL18V5V2_ABCD-pThat.root","READ");
+      //fpfdt = new TFile("rootfiles/output-DATA-2b-UL18V5V2_ABCD-pThat.root","READ"); // latest
+      //fpfmc = new TFile("rootfiles/output-MC-2b-UL18V5V2_ABCD-pThat.root","READ"); // latest
     }
     else if (isUL17) {
-      /*
       fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL17V4_%s.root",
-			     fpf_files[epoch]),"READ");
+			     fpf_files[epoch]),"READ"); // DP_2021
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
-			     fpf_files[epoch]),"READ");
-      */
-      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL17V5V3_%s.root",
-			     fpf_files[epoch]),"READ");
-      fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL17V5V3_%s.root",
-			     fpf_files[epoch]),"READ");
+			     fpf_files[epoch]),"READ"); // DP_2021
+      //fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL17V5V3_%s.root",
+      //		     fpf_files[epoch]),"READ"); // latest
+      //fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL17V5V3_%s.root",
+      //		     fpf_files[epoch]),"READ"); // latest
     }
     else if (isUL16 && !isAPV) { // old MC-UL16V2V1, DATA-UL16V5V2
-      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V7V3_%s.root",
-			     fpf_files[epoch]),"READ");
+      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V5V2_%s.root",
+                             fpf_files[epoch]),"READ"); // DP_2021
+      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V2V1_%s.root",
+                             fpf_files[epoch]),"READ"); // DP_2021
+      //fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V7V3_%s.root",
+      //		     fpf_files[epoch]),"READ"); // latest
       /*
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V7V3_%s.root",
 			     fpf_files[epoch]),"READ");
       */
-      fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL16V7V3_%s.root",
-			     fpf_files[epoch]),"READ");
+      //fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL16V7V3_%s.root",
+      //		     fpf_files[epoch]),"READ"); // latest
     }
     else if (isUL16 && isAPV) { // old MC-UL16V3V1, DATA-UL16V5V2
-      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V7V3_%s.root",
-			     fpf_files[epoch]),"READ");
+      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V5V2_%s.root",
+                             fpf_files[epoch]),"READ"); // DP_2021
+      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V3V1_%s.root",
+                             fpf_files[epoch]),"READ"); // DP_2021
+      //fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V7V3_%s.root",
+      //		     fpf_files[epoch]),"READ"); // latest
       /*
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V7V3_%s.root",
 			     fpf_files[epoch]),"READ");
       */
-      fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL16V7V3_%s.root",
-			     fpf_files[epoch]),"READ");
+      //fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL16V7V3_%s.root",
+      //		     fpf_files[epoch]),"READ"); // latest
     }
     else if (isRun2) {
       fpfdt = new TFile("rootfiles/jecdataRun2TestData.root","READ");
