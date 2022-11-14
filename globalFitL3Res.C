@@ -331,8 +331,8 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 
     // Calculate parameterization with each component switchable on/off
     return (1
-	    //+ (useP0Trk  ? p[0]*0.01*ftd->Eval(pt) : 0) // Tracker eff. (data) // DP_2021
-	    + (useP0Trk  ? p[0]*0.01*ft->Eval(pt) : 0) // Tracker eff. (data) // latest
+	    + (useP0Trk  ? p[0]*0.01*ftd->Eval(pt) : 0) // Tracker eff. (data) // DP_2021
+	    //+ (useP0Trk  ? p[0]*0.01*ft->Eval(pt) : 0) // Tracker eff. (data) // latest
 	    + (useP1Gam  ? p[1]*0.01*fp->Eval(pt) : 0)  // photon scale
 	    + (useP2CalX ? p[2]*0.01*fcx->Eval(pt) : 0) // Hadron cross-over
 	    + (useP2HadX ? p[2]*0.01*fhx->Eval(pt) : 0) // Hadron cross-over
@@ -3417,10 +3417,10 @@ void setToyShapeFuncs() {
     fp_nhf->SetParameters(0.07395, 0, 1000, 258.2, 1.223e-05, 1.158); // 7.6/18
     TF1 *fcx_nhf = new TF1("fcx_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
     fcx_nhf->SetParameters(-1.54, -0.4506, 156.3, 0.5089, 1.234, 0.09256); // 3.6/17
-    //TF1 *fhx_nhf = new TF1("fhx_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    //fhx_nhf->SetParameters(-0.295, 0.09444, 2713, 2.292, 0.06437, 0.2845); // 3.6/17
-    TF1 *fhx_nhf = new TF1("fhc3_nhf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
-    fhx_nhf->SetParameters(-2.475,1.441,-0.177,-0.02317,0.002375,0.0006077,-5.567e-05); // 0.0/16
+    TF1 *fhx_nhf = new TF1("fhx_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500); // DP_2021
+    fhx_nhf->SetParameters(-0.295, 0.09444, 2713, 2.292, 0.06437, 0.2845); // 3.6/17 // DP_2021
+    //TF1 *fhx_nhf = new TF1("fhc3_nhf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    //fhx_nhf->SetParameters(-2.475,1.441,-0.177,-0.02317,0.002375,0.0006077,-5.567e-05); // 0.0/16
 
     TF1 *fhm_nhf = new TF1("fhm_nhf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
     fhm_nhf->SetParameters(-0.2746, -0.6358, 9664, 0.6547, 0.05559, 0.1816); // 10.1/17
@@ -3444,10 +3444,10 @@ void setToyShapeFuncs() {
     TF1 *fcx_nef = new TF1("fcx_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
     fcx_nef->SetParameters(0.01659, -0.005997, 754.8, 121.2, -0.0001236, 0.9665); // 7.9/17
 
-    //TF1 *fhx_nef = new TF1("fhx_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    //fhx_nef->SetParameters(0.05474, -0.003141, 798.6, 78.84, -0.000957, 0.7676); // 3.7/17
-    TF1 *fhx_nef = new TF1("fhc3_nef","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
-    fhx_nef->SetParameters(-1.027,0.6699,-0.09337,-0.01124,0.001406,0.0003225,-3.572e-05); // 0.0/16
+    TF1 *fhx_nef = new TF1("fhx_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500); // DP_2021
+    fhx_nef->SetParameters(0.05474, -0.003141, 798.6, 78.84, -0.000957, 0.7676); // 3.7/17 // DP_2021
+    //TF1 *fhx_nef = new TF1("fhc3_nef","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    //fhx_nef->SetParameters(-1.027,0.6699,-0.09337,-0.01124,0.001406,0.0003225,-3.572e-05); // 0.0/16
 
     TF1 *fhm_nef = new TF1("fhm_nef","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
     fhm_nef->SetParameters(0.4158, -2.14, 9426, 0.1723, 0.4111, 0.1937); // 9.5/17
@@ -3471,10 +3471,10 @@ void setToyShapeFuncs() {
     TF1 *fcx_chf = new TF1("fcx_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
     fcx_chf->SetParameters(-0.1188, -0.3705, 408.1, -0.2583, 1.39, -0.1831); // 2.7/17
 
-    //TF1 *fhx_chf = new TF1("fhx_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
-    //fhx_chf->SetParameters(-0.0637, -0.2811, 4531, -0.3172, 1.071, -0.153); // 1.7/17
-    TF1 *fhx_chf = new TF1("fhc3_chf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
-    fhx_chf->SetParameters(3.42,-2.059,0.2634,0.03367,-0.003686,-0.0009108,8.937e-05); // 0.0/16
+    TF1 *fhx_chf = new TF1("fhx_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500); // DP_2021
+    fhx_chf->SetParameters(-0.0637, -0.2811, 4531, -0.3172, 1.071, -0.153); // 1.7/17 // DP_2021
+    //TF1 *fhx_chf = new TF1("fhc3_chf","[p0]+log(x)*([p1]+log(x)*([p2]+log(x)*([p3]+log(x)*([p4]+log(x)*([p5]+log(x)*[p6])))))",15,4500);
+    //fhx_chf->SetParameters(3.42,-2.059,0.2634,0.03367,-0.003686,-0.0009108,8.937e-05); // 0.0/16
 
     TF1 *fhm_chf = new TF1("fhm_chf","[p0]+[p1]*(1+(pow(x/[p2],[p3])-1)/(pow(x/[p2],[p3])+1))+[p4]*pow(x,[p5])",15,4500);
     fhm_chf->SetParameters(0.1552, -0.04221, 315.4, 2.787, -0.06628, -0.2572); // 6.2/17
