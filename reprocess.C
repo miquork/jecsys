@@ -219,14 +219,14 @@ void reprocess(string epoch="") {
   //if (isUL18 && CorLevel=="L1L2Res") {
   //fmultijetptmin = 330;
   //}
-  //if (isRun2) {
-  //fmultijetptmin = 114;
-  //fmultijetptmax = 2500;
+  if (isRun2) { // DP_2021
+    fmultijetptmin = 114;
+    fmultijetptmax = 2500;
 
     // Turn MJB "off" to avoid double counting HDM (or not)
-    //fmultijetmjbptmin = 114;
-    //fmultijetmjbptmax = 2500;
-  //}
+    fmultijetmjbptmin = 114;
+    fmultijetmjbptmax = 2500;
+  }
 
   // Photon+jet switches
   if (isUL16 || isUL17 || isUL18 || isRun2) { 
@@ -241,9 +241,9 @@ void reprocess(string epoch="") {
     //if (isUL18) valueGamScale = 1;//1.005;
     //}
     // 230-300 GeV still systematically low in UL18 and others?
-    fpmpfptmin = 60;//40;
+    fpmpfptmin = 40; // DP_2021 //60;//40;
     fpmpfptmax = 1200;
-    fpbalptmin = 60;//40;
+    fpbalptmin = 40; // DP_2021 //60;//40;
     fpbalptmax = 1200;
   } 
   //if (isRun2) {
@@ -1236,9 +1236,9 @@ void reprocess(string epoch="") {
   TF1 *f1mjb = new TF1("f1mjb","[p0]+[p1]*pow(x,[p2])",114,2500);
   //f1mjb->SetParameters(1.001, 8.262, -1.315); // chi2/NDF=0.0/2383
   // New Run2Test update for Flavor.C
-  //f1mjb->SetParameters(1.002, 99.07, -1.97); // chi2/NDF=2718.9/2383
+  f1mjb->SetParameters(1.002, 99.07, -1.97); // chi2/NDF=2718.9/2383 // DP_2021
   // f1zmjb update to account for gJES bias in parameterized Z+jet
-  f1mjb->SetParameters(1.002, 21.69, -1.705); // chi2/NDF=1187.1/2383
+  //f1mjb->SetParameters(1.002, 21.69, -1.705); // chi2/NDF=1187.1/2383 // latest
 
 
   // Link to Z+jet 2D distribution for JEC calculations
