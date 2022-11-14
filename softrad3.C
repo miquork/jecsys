@@ -30,7 +30,7 @@
 
 // Scale soft jets and unclustered energy with gJES from Z+flavor (Flavor.C)
 // gJESpt=15 => 0.947, gJESpt=45 => 0.981
-bool useGluonJES = true; // (def:true)
+bool useGluonJES = false;// DP_2021 //true; // (def:true)
 double gJESpt = 15.; // reference pT for gluonJES (def:45)
 
 // Find entry in graph correspondign to this histogram bin
@@ -492,15 +492,15 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      //Rn_m = 0.92; // low pT gluon jets
 	      //Rn_d = 0.90; // low pT gluon jets
 	      //Ru_d = Ru_m - 0.08;
-	      //Rn_m = 1.000;
-	      //Rn_d = 1.000;
+	      Rn_m = 1.000; // DP_2021
+	      Rn_d = 1.000; // DP_2021
 	      // v1: Runcl = 0.65
-	      //Ru_m = 0.65; // from minitools/drawMultijetMPB_ISRonly.pdf
-	      //Ru_d = 0.65;
+	      Ru_m = 0.65; // DP_2021 // from minitools/drawMultijetMPB_ISRonly.pdf
+	      Ru_d = 0.65; // DP_2021
 	      // v2: Runcl = 0.92
 	      //Ru_m = Ru_d = 0.92; // low pT gluon jets in MC
-	      //double R2_m = 1.000;
-	      //double R2_d = 1.000;
+	      double R2_m = 1.000; // DP_2021
+	      double R2_d = 1.000; // DP_2021
 
 	      // turn <Rlead>/<Rrecoil> ratio back to <A> and <B>
 	      double Ad = (r0-1)/(r0+1);

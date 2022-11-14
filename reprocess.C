@@ -3131,8 +3131,9 @@ void reprocess(string epoch="") {
 	    // Note fix (post Legacy2016): pT,gamma=pT,lepton=pT,Z/2
 	    // Limit uncertainty at high pT to 0.5% (about half correction)
 	    if (correctGamMass && s=="gamjet" && (d=="data" || d=="ratio") &&
-		(t=="mpfchs1" || t=="ptchs" || t=="mpf1" ||
-		 t=="mpfn" || t=="mpfu")
+		//(t=="mpfchs1" || t=="ptchs" || t=="mpf1" ||
+		// t=="mpfn" || t=="mpfu") // latest
+                (t=="mpfchs1" || t=="ptchs" || t=="mpf1") // DP_2021 (bug!)
 		&& !(d=="ratio" && t=="mpf1")) {
 	      // NB: mpf1 ratio calculated on the fly => "data" propagates to it
 
