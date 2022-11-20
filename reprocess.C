@@ -241,9 +241,11 @@ void reprocess(string epoch="") {
     //if (isUL18) valueGamScale = 1;//1.005;
     //}
     // 230-300 GeV still systematically low in UL18 and others?
-    fpmpfptmin = 40; // DP_2021 //60;//40;
+    fpmpfptmin = 40; // DP_2021
+    //fpmpfptmin = 60; // latest; 40;
     fpmpfptmax = 1200;
-    fpbalptmin = 40; // DP_2021 //60;//40;
+    fpbalptmin = 40; // DP_2021
+    //fpbalptmin = 60;//latest 40;
     fpbalptmax = 1200;
   } 
   //if (isRun2) {
@@ -503,10 +505,10 @@ void reprocess(string epoch="") {
   TFile *fpfdt(0), *fpfmc(0);
   if (CorLevel=="L1L2Res" || CorLevel=="L1L2L3Res") {
     if (isUL18) {
-      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL18V2V3-%s.root",
-			     fpf_files[epoch]),"READ"); // DP_2021
-      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL18V2V3-%s.root",
-			     fpf_files[epoch]),"READ"); // DP_2021
+      //fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL18V2V3-%s.root",
+      //		     fpf_files[epoch]),"READ"); // DP_2021
+      //fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL18V2V3-%s.root",
+      //		     fpf_files[epoch]),"READ"); // DP_2021
       /*
       fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL18V5V2_%s.root",
 			     fpf_files[epoch]),"READ");
@@ -517,46 +519,46 @@ void reprocess(string epoch="") {
       fpfdt = new TFile("rootfiles/output-DATA-2b-UL2018-PFtest.root","READ");
       fpfmc = new TFile("rootfiles/output-MC-2b-UL2018-PFtest.root","READ");
       */
-      //fpfdt = new TFile("rootfiles/output-DATA-2b-UL18V5V2_ABCD-pThat.root","READ"); // latest
-      //fpfmc = new TFile("rootfiles/output-MC-2b-UL18V5V2_ABCD-pThat.root","READ"); // latest
+      fpfdt = new TFile("rootfiles/output-DATA-2b-UL18V5V2_ABCD-pThat.root","READ"); // latest
+      fpfmc = new TFile("rootfiles/output-MC-2b-UL18V5V2_ABCD-pThat.root","READ"); // latest
     }
     else if (isUL17) {
-      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL17V4_%s.root",
-			     fpf_files[epoch]),"READ"); // DP_2021
-      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
-			     fpf_files[epoch]),"READ"); // DP_2021
-      //fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL17V5V3_%s.root",
-      //		     fpf_files[epoch]),"READ"); // latest
-      //fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL17V5V3_%s.root",
-      //		     fpf_files[epoch]),"READ"); // latest
+      //fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL17V4_%s.root",
+      //		     fpf_files[epoch]),"READ"); // DP_2021
+      //fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL17V4_%s.root",
+      //		     fpf_files[epoch]),"READ"); // DP_2021
+      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL17V5V3_%s.root",
+			     fpf_files[epoch]),"READ"); // latest
+      fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL17V5V3_%s.root",
+			     fpf_files[epoch]),"READ"); // latest
     }
     else if (isUL16 && !isAPV) { // old MC-UL16V2V1, DATA-UL16V5V2
-      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V5V2_%s.root",
-                             fpf_files[epoch]),"READ"); // DP_2021
-      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V2V1_%s.root",
-                             fpf_files[epoch]),"READ"); // DP_2021
-      //fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V7V3_%s.root",
-      //		     fpf_files[epoch]),"READ"); // latest
+      //fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V5V2_%s.root",
+      //                     fpf_files[epoch]),"READ"); // DP_2021
+      //fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V2V1_%s.root",
+      //                     fpf_files[epoch]),"READ"); // DP_2021
+      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V7V3_%s.root",
+			     fpf_files[epoch]),"READ"); // latest
       /*
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V7V3_%s.root",
 			     fpf_files[epoch]),"READ");
       */
-      //fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL16V7V3_%s.root",
-      //		     fpf_files[epoch]),"READ"); // latest
+      fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL16V7V3_%s.root",
+			     fpf_files[epoch]),"READ"); // latest
     }
     else if (isUL16 && isAPV) { // old MC-UL16V3V1, DATA-UL16V5V2
-      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V5V2_%s.root",
-                             fpf_files[epoch]),"READ"); // DP_2021
-      fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V3V1_%s.root",
-                             fpf_files[epoch]),"READ"); // DP_2021
-      //fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V7V3_%s.root",
-      //		     fpf_files[epoch]),"READ"); // latest
+      //fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V5V2_%s.root",
+      //                     fpf_files[epoch]),"READ"); // DP_2021
+      //fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V3V1_%s.root",
+      //                     fpf_files[epoch]),"READ"); // DP_2021
+      fpfdt = new TFile(Form("rootfiles/output-DATA-2b-UL16V7V3_%s.root",
+			     fpf_files[epoch]),"READ"); // latest
       /*
       fpfmc = new TFile(Form("rootfiles/output-MCNU-2b-UL16V7V3_%s.root",
 			     fpf_files[epoch]),"READ");
       */
-      //fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL16V7V3_%s.root",
-      //		     fpf_files[epoch]),"READ"); // latest
+      fpfmc = new TFile(Form("rootfiles/output-MC-2b-UL16V7V3_%s.root",
+			     fpf_files[epoch]),"READ"); // latest
     }
     else if (isRun2) {
       fpfdt = new TFile("rootfiles/jecdataRun2TestData.root","READ");
@@ -694,34 +696,34 @@ void reprocess(string epoch="") {
   if(CorLevel=="L1L2L3Res"){
     if (isUL18) {
       //fp = new TFile(Form("%sgamma/Gjet_combinationfile_L2L3Res_%s_L2L3Res_JEC-v4_Data-v2_MC.root",cd,fp_files[epoch]),"READ");
-      fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8_v18.root"); // DP_2021
+      //fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8_v18.root"); // DP_2021
       //fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8_v19.root");
       //fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8QCD_v19.root");
-      //fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8QCD_v20.root"); // latest
+      fp = new TFile("../gamjet/files/GamHistosRatio_2018ABCD_P8QCD_v20.root"); // latest
     }
     else if (isUL17) {
       //fp = new TFile(Form("rootfiles/Gjet_combinationfile_17_Nov_V31_L2L3res_%s.root", fp_files[epoch]),"READ");
-      fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8_v18.root"); // DP_2021
+      //fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8_v18.root"); // DP_2021
       //fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8_v19.root");
       //fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8QCD_v19.root");
-      //fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8QCD_v20.root"); // latest
+      fp = new TFile("../gamjet/files/GamHistosRatio_2017BCDEF_P8QCD_v20.root"); // latest
     }
     else if (isUL16 && !isAPV) {
       //fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16NonAPVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
       //fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V7Closure/ClosureV7UL16NONAPVFGHjet_combinationfile_L2L3Res_%s_L2L3Res_V2.root",fp_files[epoch]),"READ");
-      fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8_v18.root");
+      //fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8_v18.root"); // DP_2021
       //fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8_v19.root");
       //fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8QCD_v19.root");
-      //fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8QCD_v20.root"); // latest
+      fp = new TFile("../gamjet/files/GamHistosRatio_2016FGH_P8QCD_v20.root"); // latest
     }
     else if (isUL16 && isAPV) {
       if (epoch=="2016BCDEF") 
 	//fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ");
 	//fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V7Closure/ClosureV7UL16APVBCDEFjet_combinationfile_L2L3Res_%s_L2L3Res_V2.root",fp_files[epoch]),"READ");
-	fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8APV_v18.root");
+	//fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8APV_v18.root"); // DP_2021
 	//fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8APV_v19.root");
 	//fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8QCDAPV_v19.root");
-	//fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8QCDAPV_v20.root"); // latest
+	fp = new TFile("../gamjet/files/GamHistosRatio_2016BCDEF_P8QCDAPV_v20.root"); // latest
       else if (epoch=="2016EF" || epoch=="2016BCD")  {
 	fp = new TFile(Form("../JERCProtoLab/Summer19UL16/L3Residual_gamma/V1Closure/UL16APVSplitGjet_combinationfile_L2L3Res_%s_L2L3Res_V1Closure.root",fp_files[epoch]),"READ"); // NB: old!
 	assert(false); // don't trip on old files
@@ -1646,8 +1648,8 @@ void reprocess(string epoch="") {
   rename["gamjet"]["mc"] = "_MC"; 
   rename["gamjet"]["mpfchs"] = "resp_MPFchs";
   rename["gamjet"]["mpfchs1"] = "resp_MPFchs"; 
-  rename["gamjet"]["ptchs"] = "resp_PtBalchs";  // v18 DP_2021
-  //rename["gamjet"]["ptchs"] = "resp_DBchs"; // v19
+  //rename["gamjet"]["ptchs"] = "resp_PtBalchs";  // v18 DP_2021
+  rename["gamjet"]["ptchs"] = "resp_DBchs"; // v19 latest
   rename["gamjet"]["counts"] = "RawNEvents_data_vs_pt";
   //
   rename["gamjet"]["mpf1"] = "resp_MPFR1chs";
@@ -2414,7 +2416,7 @@ void reprocess(string epoch="") {
 	    continue;
 	  //if (t=="rho" && s=="zjet") continue; // still missing for zjet
 	  if (t=="rho" && sp=="zjet") continue;
-	  if (t=="rho" && s=="gamjet") continue; // DP_2021
+	  //if (t=="rho" && s=="gamjet") continue; // DP_2021
 	  if (t=="rho" && sp=="gamjet") continue;
 	  if (t=="rho" && s=="multijet"  // and for multijet
 	      && !(CorLevel=="L1L2L3Res" && isUL16)) continue;
@@ -2424,8 +2426,8 @@ void reprocess(string epoch="") {
 	  // (now adding fractions to zjet)
 	  bool isfrac = (t=="chf"||t=="nef"||t=="nhf"||
 			 t=="cef"||t=="muf"||t=="puf");
-	  //if (isfrac && s!="pfjet" && s!="zjet" && s!="gamjet" && // v19
-	  if (isfrac && s!="pfjet" && s!="zjet" && // DP_2021
+	  if (isfrac && s!="pfjet" && s!="zjet" && s!="gamjet" && // v19 latest
+	      //if (isfrac && s!="pfjet" && s!="zjet" && // DP_2021
 	      s!="zeejet" && s!="zmmjet" && s!="zlljet") continue;
 	  if (!(isfrac || t=="rho") && s=="pfjet") continue;
 	  if (t=="puf" && s!="pfjet") continue;
@@ -2728,13 +2730,14 @@ void reprocess(string epoch="") {
 	      obj = (TObject*)g;
 	    }
 	    // Calculate data/MC ratio or difference
-	    if (s=="gamjet" && d=="ratio" && ismpfc) {
+	    if (s=="gamjet" && d=="ratio" &&
+		(ismpfc || t=="mpfchs1" | t=="ptchs")) {
 	      TGraphErrors *gd = grs["data"][t][s][ieta][ialpha];
 	      TGraphErrors *gm = grs["mc"][t][s][ieta][ialpha];
 	      assert(gd);
 	      assert(gm);
 
-	      if (t=="mpf1" || t=="mpfchs1") {
+	      if (t=="mpf1" || t=="mpfchs1" || t=="ptchs") {
 		TGraphErrors *g = tools::ratioGraphs(gd, gm);
 		obj = (TObject*)g;
 	      }
@@ -3130,12 +3133,17 @@ void reprocess(string epoch="") {
 	    // Zee mass corrections for photon+jet
 	    // Note fix (post Legacy2016): pT,gamma=pT,lepton=pT,Z/2
 	    // Limit uncertainty at high pT to 0.5% (about half correction)
+	      /*
 	    if (correctGamMass && s=="gamjet" && (d=="data" || d=="ratio") &&
-		//(t=="mpfchs1" || t=="ptchs" || t=="mpf1" ||
-		// t=="mpfn" || t=="mpfu") // latest
-                (t=="mpfchs1" || t=="ptchs" || t=="mpf1") // DP_2021 (bug!)
+		(t=="mpfchs1" || t=="ptchs" || t=="mpf1" ||
+		 t=="mpfn" || t=="mpfu") // latest
+	      //(t=="mpfchs1" || t=="ptchs" || t=="mpf1") // DP_2021 (bug!)
 		&& !(d=="ratio" && t=="mpf1")) {
 	      // NB: mpf1 ratio calculated on the fly => "data" propagates to it
+	      */
+	    if (correctGamMass && s=="gamjet" && d=="data" &&
+		(t=="mpfchs1"||t=="ptchs"||t=="mpf1"||t=="mpfn"||t=="mpfu")) {
+	      // NB: ratios calculated on the fly => "data" propagates to it
 
 	      for (int i = 0; i != g->GetN(); ++i) {
 		//assert(!correctGamScale); // UL17

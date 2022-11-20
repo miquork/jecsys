@@ -30,7 +30,8 @@
 
 // Scale soft jets and unclustered energy with gJES from Z+flavor (Flavor.C)
 // gJESpt=15 => 0.947, gJESpt=45 => 0.981
-bool useGluonJES = false;// DP_2021 //true; // (def:true)
+//bool useGluonJES = false;// DP_2021 // (def:true)
+bool useGluonJES = true; // (def:true)
 double gJESpt = 15.; // reference pT for gluonJES (def:45)
 
 // Find entry in graph correspondign to this histogram bin
@@ -453,7 +454,7 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	      //assert(fabs(q1+qn+qu-q0)<1e-3);
 	    }
 
-	    /*
+	    // start latest ==>
 	    double Rn_d(1.000), Rn_m(1.000);
 	    // v1: Runcl = 0.685
 	    //double Ru_d(0.685), Ru_m(0.685); // Ru(DY,CP5,UL17)
@@ -469,12 +470,15 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	    // Systematic variations for Rn_m, Ru_m numerically
 	    double dRnd = -0.01; // guesstimate for data-MC
 	    double dRnm = -0.02; // quark/gluon response variation
-	    //double dRud = +0.08; // QCD data=2.7 / FullSim(UL17)=2.5
+	    // rewind two:
+	    double dRud = +0.08; // QCD data=2.7 / FullSim(UL17)=2.5 //
 	    //double dRum = +0.05; // Ru(DY,HS1)=0.72 / Ru(DY,CP5)=0.65 vs 0.685
-	    double dRud = -0.02; // -gJES or gJESpt=45->15 extrapolation
+	    // latest two:
+	    //double dRud = -0.02; // -gJES or gJESpt=45->15 extrapolation
 	    double dRum = -0.10; // ca. (R_ue-Ru)/2 or Ru_m-1 towards R_ue
-	    */
+	    // ==> end latest
 
+	    /*
 	    // start DP_2021 ==>
 	    double R2_m(1.000), R2_d(1.000); // multijet recoil?
 	    double Rn_d(1.000), Rn_m(1.000);
@@ -486,21 +490,22 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
             double dRud = +0.08; // QCD data=2.7 / FullSim(UL17)=2.5
             double dRum = +0.05; // Ru(DY,HS1)=0.72 / Ru(DY,CP5)=0.65 vs 0.685
 	    // ==> end DP2021
+	    */
 
 	    if (s=="multijet") {
 
 	      //Rn_m = 0.92; // low pT gluon jets
 	      //Rn_d = 0.90; // low pT gluon jets
 	      //Ru_d = Ru_m - 0.08;
-	      Rn_m = 1.000; // DP_2021
-	      Rn_d = 1.000; // DP_2021
+	      //Rn_m = 1.000; // DP_2021
+	      //Rn_d = 1.000; // DP_2021
 	      // v1: Runcl = 0.65
-	      Ru_m = 0.65; // DP_2021 // from minitools/drawMultijetMPB_ISRonly.pdf
-	      Ru_d = 0.65; // DP_2021
+	      //Ru_m = 0.65; // DP_2021 // from minitools/drawMultijetMPB_ISRonly.pdf
+	      //Ru_d = 0.65; // DP_2021
 	      // v2: Runcl = 0.92
 	      //Ru_m = Ru_d = 0.92; // low pT gluon jets in MC
-	      double R2_m = 1.000; // DP_2021
-	      double R2_d = 1.000; // DP_2021
+	      //double R2_m = 1.000; // DP_2021
+	      //double R2_d = 1.000; // DP_2021
 
 	      // turn <Rlead>/<Rrecoil> ratio back to <A> and <B>
 	      double Ad = (r0-1)/(r0+1);
