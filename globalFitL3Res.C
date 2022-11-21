@@ -1308,7 +1308,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     }
     if (ss=="gamjet" && sm=="ptchs") {
       escale = 0.005; // UL17-v2 (after 1.0% rescale)
-      if (isUL16) escale = 0.0020; // to better match scale from Zee
+      //if (isUL16) escale = 0.0020; // to better match scale from Zee // latest
       h2->SetName(Form("bm%d_scale_%03.0f_gamjet",
 		       (1<<(n0+igj) | (1<<(n1+igj))), escale*10000.));
       is = hs.size();
@@ -1316,7 +1316,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     }
     if (ss=="zeejet" && sm=="ptchs") {
       escale = 0.002; // Consistent with Zmm to 0.2% after mass fit and fix
-      if (isUL16) escale = 0.0010;
+      //if (isUL16) escale = 0.0010; // latest
       h2->SetName(Form("bm%d_scale_%03.0f_zeejet",
 		       (1<<(n0+izee) | (1<<(n1+izee))), escale*10000));
       is_zee = hs.size();

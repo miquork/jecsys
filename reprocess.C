@@ -71,8 +71,8 @@ bool correctMultijetRecoilScale = true; // recoil JES relative to leading JES (d
 double multijetRecoilScale = 1.000; // Extra data/MC difference in recoil JES
 bool useMultijetRecoilScaleFunction = true; // Implement function
 bool halveMultijetRecoilScaleFunction = false; // Halve effect for UL16
-bool snipeMultijetBins = true; // remove individual outliers from multijets
-bool snipeIncjetBins = true; // remove individual outliers from inclusive jets
+bool snipeMultijetBins = false; // remove individual outliers from multijets
+bool snipeIncjetBins = false; // remove individual outliers from inclusive jets
 bool snipeZlljetBins = false; // remove individual outliers from Zll+jet
 
 // Which binning to use for PF jets ("tp" (default),"pt", "both", "none" (off))
@@ -233,8 +233,8 @@ void reprocess(string epoch="") {
     correctGamMass = true;
     correctGamScale = false;
     // Correct photon+jet scale variation within UL16. Average is still ~1.000
-    if (isUL16 &&  isAPV) { correctGamScale = true; valueGamScale = 0.995; }
-    if (isUL16 && !isAPV) { correctGamScale = true; valueGamScale = 1.005; }
+    //if (isUL16 &&  isAPV) { correctGamScale = true; valueGamScale = 0.995; } // latest,DP_2021?
+    //if (isUL16 && !isAPV) { correctGamScale = true; valueGamScale = 1.005; } // latest,DP_2021?
     //if (false && (isUL17 || isUL18)) {
     //correctGamScale = true;
     //valueGamScale = 1.01; // ad-hoc to match Z+jet
@@ -2584,7 +2584,8 @@ void reprocess(string epoch="") {
 	    //else if (s=="gamjet" && t=="rho") {
 	    //c = Form("%s_%s",rename[s][t],dd);
 	    //}
-	    else if (s=="gamjet" && ismpfc && d=="ratio") { // patch missing
+	    else if (s=="gamjet" && (ismpfc||t=="mpfchs1"||t=="ptchs") &&
+		     d=="ratio") { // patch missing
 	      c = Form("%s%s_a%1.0f_eta%02.0f_%02.0f",
 		       rename[s][t], rename[s]["data"], // ratio->data
 		       100.*alpha, 10.*eta1, 10.*eta2);
@@ -3163,10 +3164,10 @@ void reprocess(string epoch="") {
 
 	    // Photon scale correction (from drawGamVsZmm)
 	    // No separate unceratinty added, is already in global fit
-	    if (correctGamScale && s=="gamjet" && (d=="data" || d=="ratio") &&
-		(t=="mpfchs1" || t=="ptchs" || t=="mpf1" ||
-		 t=="mpfn" || t=="mpfu")
-		&& !(d=="ratio" && t=="mpf1")) {
+	    //if (correctGamScale && s=="gamjet" && (d=="data" || d=="ratio") &&
+	    if (correctGamScale && s=="gamjet" && d=="data" &&
+		(t=="mpfchs1"||t=="ptchs"||t=="mpf1"||t=="mpfn"||t=="mpfu")) {
+	      //&& !(d=="ratio" && t=="mpf1")) {
 	      // NB: mpf1 ratio calculated on the fly => "data" propagates to it
 
 	      //assert(!correctGamMass); // UL17
