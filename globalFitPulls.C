@@ -15,12 +15,13 @@
 void globalFitPull(string set);
 
 void globalFitPulls() {
-  /*
-  globalFitPull("2016BCD");
-  globalFitPull("2016EF");
-  globalFitPull("2016BCDEF");
-  globalFitPull("2016GH");
-  */
+  //globalFitPull("2016BCD");
+  //globalFitPull("2016EF");
+  //
+  //globalFitPull("2016BCDEF");
+  //globalFitPull("2016GH");
+  //globalFitPull("2017BCDEF");
+  //globalFitPull("2018ABCD");
   globalFitPull("Run2Test");
 }
 
@@ -71,6 +72,8 @@ void globalFitPull(string set) { // singular
   mpar["bm8_hadw_ptave_fitprob2"] = "s_{1}";//W>qq' fitProb (pTave) s_{1}";
   mpar["bm128_hadw_ptboth_fitprob"] = "W>qq' fitProb (pTboth) s_{0}";
   mpar["bm128_hadw_ptboth_fitprob2"] = "s_{1}";//W>qq' fitProb (pTboth) s_{1}";
+  mpar["bm128_hadw_ptave_fitprob"] = "W>qq' fitProb (pTboth) s_{0}";
+  mpar["bm128_hadw_ptave_fitprob2"] = "s_{1}";//W>qq' fitProb (pTboth) s_{1}";
   //
   //mpar["bm4_zlljet_fsru1"] = "Z(ll)+jet FSR uncl. (DB)";
   //mpar["bm4_zlljet_fsrn1"] = "Z(ll)+jet FSR jets (DB)";
@@ -86,7 +89,7 @@ void globalFitPull(string set) { // singular
   //mpar["bm32_gamjet_hkfsr_mpfchs1_gamjet_eig0"] = "#gamma+jet FSR (MPF) s_{0}";
   //mpar["bm32_gamjet_hkfsr_mpfchs1_gamjet_eig1"] = "s_{1}";
   mpar["bm32_gamjet_fsru1"] = "#gamma+jet FSR uncl. (MPF)";
-  mpar["bm32_gamjet_fsrn1"] = "#gamma+jet HDM jets (MPF)";
+  mpar["bm32_gamjet_fsrn1"] = "#gamma+jet FSR jets (MPF)";
   mpar["bm16_multijet_fsru1"] = "Multijet FSR uncl. (MPF)";
   mpar["bm16_multijet_fsrn1"] = "Multijet FSR jets (MPF)";
   //mpar["bm64_zlljet_fsru1"] = "Z(ll)+jet FSR uncl. (MPF)";
@@ -97,6 +100,13 @@ void globalFitPull(string set) { // singular
 
   TH2D *h2 = new TH2D("h2",";(#hat{#theta}-#theta_{0})/#Delta#theta;",
 		      100,-3,+3,hp->GetNbinsX(),-0.5,hp->GetNbinsX()-0.5);
+  // Plot covariance matrix after taking out empty entries and reordering
+  TH2D *h3 = new TH2D("h3",";Parameter index;",
+		      hp->GetNbinsX(),-0.5,hp->GetNbinsX()-0.5,
+		      hp->GetNbinsX(),-0.5,hp->GetNbinsX()-0.5);
+  //TH2D *h2cov2 = new TH2D("h2cov2",";Parameter index;",
+  //			  hp->GetNbinsX(),-0.5,hp->GetNbinsX()-0.5,
+  //			  hp->GetNbinsX(),-0.5,hp->GetNbinsX()-0.5);
 
   lumi_13TeV = set.c_str();
   if (set=="2016BCDEF") lumi_13TeV = "2016BCDEF";
@@ -109,6 +119,7 @@ void globalFitPull(string set) { // singular
 
   TGraphErrors *g = new TGraphErrors(0);
   vector<string> vpar;
+  map<string,int> mstoi;
   for (int i = 1; i != hp->GetNbinsX()+1; ++i) {
     const char *cpar = hp->GetXaxis()->GetBinLabel(i);
     TString par = cpar;
@@ -124,11 +135,14 @@ void globalFitPull(string set) { // singular
       //h->GetYaxis()->SetBinLabel(j, par);
       h2->GetYaxis()->SetBinLabel(j+1, mpar[cpar]);
       vpar.push_back(cpar);
+      mstoi[cpar] = i;
       cout << Form("  mpar[\"%s\"] = \"%s\";",cpar,mpar[cpar]) << endl;
     }
   }
   const int np = g->GetN();
   h2->GetYaxis()->SetRangeUser(-0.5,np-0.5);
+  h3->GetXaxis()->SetRangeUser(-0.5,np-0.5);
+  h3->GetYaxis()->SetRangeUser(-0.5,np-0.5);
   //g->Draw("SAMEP");
 
 
@@ -152,21 +166,24 @@ void globalFitPull(string set) { // singular
   //midx["bm68_scale_010_zlljet"] = nf+1;
   midx["bm68_scale_020_zjet"] = nf+1;
   //midx["bm34_scale_020_gamjet"] = nf+2;
-  midx["bm34_scale_050_gamjet"] = nf+2;
-  midx["bm34_eesfromzee_gamjet_eig0"] = nf+3;
-  midx["bm34_eesfromzee_gamjet_eig1"] = nf+4;
-  midx["bm34_eesfromzee_gamjet_eig2"] = nf+5;
-  midx["bm34_hdmscale_020_mpfchs1_gamjet"] = nf+7;
+  midx["bm34_scale_050_gamjet"] = nf+5;
+  midx["bm34_eesfromzee_gamjet_eig0"] = nf+7;
+  midx["bm34_eesfromzee_gamjet_eig1"] = nf+8;
+  midx["bm34_eesfromzee_gamjet_eig2"] = nf+9;
+  midx["bm34_hdmscale_020_mpfchs1_gamjet"] = nf+6;
   //midx["bm68_hdmscale_020_mpfchs1_zlljet"] = nf+6;
-  midx["bm68_hdmscale_020_mpfchs1_zjet"] = nf+6;
+  midx["bm68_hdmscale_020_mpfchs1_zjet"] = nf+2;
   //
-  midx["bm8_hadw_ptave_fitprob"] = nf+8;
-  midx["bm8_hadw_ptave_fitprob2"] = nf+9;
-  midx["bm128_hadw_ptboth_fitprob"] = nf+10;
-  midx["bm128_hadw_ptboth_fitprob2"] = nf+11;
+  midx["bm128_hadw_ptave_fitprob"] = nf+3;
+  midx["bm128_hadw_ptave_fitprob2"] = nf+4;
+  //midx["bm8_hadw_ptave_fitprob"] = nf+8; // DP_2021
+  //midx["bm8_hadw_ptave_fitprob2"] = nf+9; // DP_2021
+  //midx["bm128_hadw_ptboth_fitprob"] = nf+10; // DP_2021
+  //midx["bm128_hadw_ptboth_fitprob2"] = nf+11; // DP_2021
   //
   //midx["bm4_zlljet_fsru1"] = n+1;
   //midx["bm4_zlljet_fsrn1"] = n+2;
+  /*
   midx["bm4_zjet_fsru1"] = n+1;
   midx["bm4_zjet_fsrn1"] = n+2;
   midx["bm1_multijet_fsru1"] = n+3;
@@ -186,6 +203,21 @@ void globalFitPull(string set) { // singular
   midx["bm32_gamjet_fsrn1"] = n+12;
   //midx["bm32_gamjet_hkfsr_mpfchs1_gamjet_eig0"] = n+11;
   //midx["bm32_gamjet_hkfsr_mpfchs1_gamjet_eig1"] = n+12;
+  */
+  // reorder to better show correlations
+  midx["bm4_zjet_fsru1"] = n+1;
+  midx["bm64_zjet_fsru1"] = n+2;
+  midx["bm1_multijet_fsru1"] = n+3;
+  midx["bm16_multijet_fsru1"] = n+4;
+  midx["bm2_gamjet_fsru1"] = n+5;
+  midx["bm32_gamjet_fsru1"] = n+6;
+  //
+  midx["bm4_zjet_fsrn1"] = n+7;
+  midx["bm64_zjet_fsrn1"] = n+8;
+  midx["bm1_multijet_fsrn1"] = n+9;
+  midx["bm16_multijet_fsrn1"] = n+10;
+  midx["bm2_gamjet_fsrn1"] = n+11;
+  midx["bm32_gamjet_fsrn1"] = n+12;
 
   bool reorder = true;
   if (reorder) {
@@ -213,6 +245,7 @@ void globalFitPull(string set) { // singular
       g2->SetPoint(j, g->GetX()[i], j);
       g2->SetPointError(j, g->GetEX()[i], 0);
       h2->GetYaxis()->SetBinLabel(j+1, mpar[spar]);
+      h3->GetYaxis()->SetBinLabel(j+1, mpar[spar]);
       if (mpar[spar]==0) {
 	cout << "Label missing for " << spar << endl << flush;
       }
@@ -227,6 +260,15 @@ void globalFitPull(string set) { // singular
 	tex->SetTextSize(0.035); tex->SetTextColor(kRed);
 	tex->DrawLatex(x<0 ? -1.8: 0.1, j-0.25,
 		       Form("%+1.1f#pm%1.1f",x,g->GetEX()[i]));
+      }
+      
+      // Copy entries over from h2cov in the new order
+      for (int k = 0; k != np; ++k) {
+	string spar2 = vpar[k].c_str();
+	int m = midx[spar2];
+	//h2cov2->SetBinContent(j+1, m+1, h2cov->GetBinContent(i+1, k+1));
+	h3->SetBinContent(np-1-j+1, np-1-m+1,
+			  h2cov->GetBinContent(mstoi[spar2], mstoi[spar]));
       }
     }
     g2->Draw("SAMEP");
@@ -246,6 +288,21 @@ void globalFitPull(string set) { // singular
 
   c2->Update();
   //c2->SaveAs("pdf/globalFitPulls_pulls.pdf");
-  c2->SaveAs(Form("pdf/globalFitPulls_pulls_%s.pdf",cs));
+  c2->SaveAs(Form("pdf/globalFitPulls/globalFitPulls_pulls_%s.pdf",cs));
 
+  h3->GetZaxis()->SetRangeUser(-1,1);
+  //h2cov2->GetZaxis()->SetRangeUser(-1,1);
+  TCanvas *c3 = tdrCanvas("c3",(TH1D*)h3,4,0,kSquare);
+  c3->SetWindowSize(1000,500);
+  c3->SetLeftMargin(0.30);
+  c3->SetRightMargin(0.15);
+
+  //h2cov->Draw("SAME COLZ");
+  h3->Draw("SAME COLZ");
+  //h2cov2->Draw("SAME COLZ");
+  gPad->RedrawAxis();
+  gPad->Update();
+
+  c3->SaveAs(Form("pdf/globalFitPulls/globalFitPulls_h2cov_%s.pdf",cs));
+  
 }

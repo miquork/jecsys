@@ -319,7 +319,8 @@ void reprocess(string epoch="") {
   if (isRun2) {
     fhadwptamin = 40;
     fhadwptamax = 150;//200;
-    fhadwptbmin = 70;
+    //fhadwptbmin = 70; // DP_2021
+    fhadwptbmin = 80; // DP_2021
     fhadwptbmax = 80;
   }
 

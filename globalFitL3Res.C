@@ -1559,20 +1559,23 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     if (!ha) cout << "Histo "<<sa<<" not found!" << endl << flush;
     assert(ha);
 
-    string sb = "sys/hadw_ptboth_fitprob";
-    TH1D *hb = (TH1D*)dsys->Get(sb.c_str());
-    if (!hb) cout << "Histo "<<sb<<" not found!" << endl << flush;
-    assert(hb);
+
+    // DP_2021
+    //string sb = "sys/hadw_ptboth_fitprob";
+    //TH1D *hb = (TH1D*)dsys->Get(sb.c_str());
+    //if (!hb) cout << "Histo "<<sb<<" not found!" << endl << flush;
+    //assert(hb);
 
     string sa2 = "sys/hadw_ptave_fitprob2";
     TH1D *ha2 = (TH1D*)dsys->Get(sa2.c_str());
     if (!ha2) cout << "Histo "<<sa2<<" not found!" << endl << flush;
     assert(ha2);
 
-    string sb2 = "sys/hadw_ptboth_fitprob2";
-    TH1D *hb2 = (TH1D*)dsys->Get(sb2.c_str());
-    if (!hb2) cout << "Histo "<<sb2<<" not found!" << endl << flush;
-    assert(hb2);
+    // DP_2021
+    //string sb2 = "sys/hadw_ptboth_fitprob2";
+    //TH1D *hb2 = (TH1D*)dsys->Get(sb2.c_str());
+    //if (!hb2) cout << "Histo "<<sb2<<" not found!" << endl << flush;
+    //assert(hb2);
 
     // JER uncertainty applies for both MPF and MJB
     //h->SetName(Form("bm%d_hadw_fitprob",
@@ -1580,16 +1583,21 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     //   	    ((1<<0+iwmh) | (1<<nsamples+iwmh)))); // fixed
 
     // Separate systematics for pTave and pTboth
-    ha->SetName(Form("bm%d_hadw_ptave_fitprob",1<<(n0+iwmh)));
+    //ha->SetName(Form("bm%d_hadw_ptave_fitprob",1<<(n0+iwmh)));
+    ha->SetName(Form("bm%d_hadw_ptave_fitprob",1<<(n1+iwmh)));
     hs.push_back(ha);
-    hb->SetName(Form("bm%d_hadw_ptboth_fitprob",1<<(n1+iwmh)));
-    hs.push_back(hb);
+    // DP_2021
+    // 316.6/215 before dropping these
+    //hb->SetName(Form("bm%d_hadw_ptboth_fitprob",1<<(n1+iwmh)));
+    //hs.push_back(hb);
 
     // Separate systematics for pTave and pTboth
-    ha2->SetName(Form("bm%d_hadw_ptave_fitprob2",1<<(n0+iwmh)));
+    //ha2->SetName(Form("bm%d_hadw_ptave_fitprob2",1<<(n0+iwmh)));
+    ha2->SetName(Form("bm%d_hadw_ptave_fitprob2",1<<(n1+iwmh)));
     hs.push_back(ha2);
-    hb2->SetName(Form("bm%d_hadw_ptboth_fitprob2",1<<(n1+iwmh)));
-    hs.push_back(hb2);
+    // DP_2021
+    //hb2->SetName(Form("bm%d_hadw_ptboth_fitprob2",1<<(n1+iwmh)));
+    //hs.push_back(hb2);
   } // hadw syst.
 
   // Uncertainty sources for gamma+jet EM energy scale from Zee fit
@@ -2284,7 +2292,7 @@ void globalFitL3Res(double etamin = 0, double etamax = 1.3,
     
     // Clean out large uncertainties
     if (_cleanUncert) {
-      for (int i = g2->GetN()-1; i != 0; --i) {
+      for (int i = g2->GetN()-1; i != -1; --i) {
 	if (g2->GetEY()[i]>_cleanUncert) g2->RemovePoint(i);
       }
     }
