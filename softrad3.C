@@ -32,6 +32,8 @@
 // gJESpt=15 => 0.947, gJESpt=45 => 0.981
 //bool useGluonJES = false;// DP_2021 // (def:true)
 bool useGluonJES = true; // (def:true)
+// Use shift from global fit to adjust unclustered response (362.3->360.9)
+bool useGlobalFitRu = true; // (def:true)
 double gJESpt = 15.; // reference pT for gluonJES (def:45)
 
 // Find entry in graph correspondign to this histogram bin
@@ -465,6 +467,9 @@ void softrad3(double etamin=0.0, double etamax=1.3, bool dodijet=false,
 	    if (useGluonJES) {
 	      double gJES = _flv->getResp(gJESpt,0.,"MultijetRecoil25",-1,"25");
 	      Ru_d *= gJES;
+	    }
+	    if (useGlobalFitRu) {
+	      Ru_d *= (1-0.08);
 	    }
 	    
 	    // Systematic variations for Rn_m, Ru_m numerically
