@@ -13,10 +13,10 @@
   gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+");
 
   //if you have a symbolic link in jecsys to jec-fit-prototype, you can just do
-  string currentWorkingDir = gSystem->pwd();
-  cout <<currentWorkingDir.c_str() <<endl;
-  gSystem->AddIncludePath(Form("-I%s/jec-fit-prototype/include",currentWorkingDir.c_str()));
-  gSystem->Load(Form("%s/jec-fit-prototype/lib/libjecfit",currentWorkingDir.c_str()));
+  //string currentWorkingDir = gSystem->pwd();
+  //cout <<currentWorkingDir.c_str() <<endl;
+  //gSystem->AddIncludePath(Form("-I%s/jec-fit-prototype/include",currentWorkingDir.c_str()));
+  //gSystem->Load(Form("%s/jec-fit-prototype/lib/libjecfit",currentWorkingDir.c_str()));
 
   
   // Compile with +g to make sure asserts are run
