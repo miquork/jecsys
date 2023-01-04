@@ -30,7 +30,8 @@ namespace tools {
   void SetPoint(TGraphErrors *g, int n, double x, double y,
 		double ex, double ey);
   TGraphErrors *makeGraph(TH1 *hx, TH1 *hy, double scale = 1.);
-  TGraphErrors *diffGraphs(TGraphErrors *g1, TGraphErrors *g2);
+  TGraphErrors *diffGraphs(TGraphErrors *g1, TGraphErrors *g2,
+			   double c1=1, double c2=1);
   TGraphErrors *ratioGraphs(TGraphErrors *g1, TGraphErrors *g2, double erry=1.);
   TGraphErrors *ratioGraphs(TGraphErrors *g1, TF1 *f2);
   int findPoint(TGraph *g, double x);
