@@ -220,9 +220,10 @@ void globalFitPull(string set) { // singular
   midx["bm32_gamjet_fsrn1"] = n+12;
 
   bool reorder = true;
+  TGraphErrors *g2(0);
   if (reorder) {
 
-    TGraphErrors *g2 = new TGraphErrors(np);
+    g2 = new TGraphErrors(np);
     for (int i = 0; i != np; ++i) {
       string spar = vpar[i].c_str();
       int j = np-1 - midx[spar];
@@ -289,6 +290,7 @@ void globalFitPull(string set) { // singular
   c2->Update();
   //c2->SaveAs("pdf/globalFitPulls_pulls.pdf");
   c2->SaveAs(Form("pdf/globalFitPulls/globalFitPulls_pulls_%s.pdf",cs));
+  c2->SaveAs(Form("pdf/globalFitPulls/root/globalFitPulls_pulls_%s.root",cs));
 
   h3->GetZaxis()->SetRangeUser(-1,1);
   //h2cov2->GetZaxis()->SetRangeUser(-1,1);
@@ -304,5 +306,11 @@ void globalFitPull(string set) { // singular
   gPad->Update();
 
   c3->SaveAs(Form("pdf/globalFitPulls/globalFitPulls_h2cov_%s.pdf",cs));
+  c3->SaveAs(Form("pdf/globalFitPulls/root/globalFitPulls_h2cov_%s.root",cs));
   
+  TFile *f2 = new TFile(Form("pdf/globalFitPulls/root/globalFitL3Res_emat_%s.root",cs),"RECREATE");
+  if (g2) g2->Write();
+  h2->Write();
+  h3->Write();
+  f2->Close();
 }
