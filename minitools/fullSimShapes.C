@@ -6,6 +6,7 @@
 #include "TF1.h"
 #include "TSystem.h"
 #include "TGraphErrors.h"
+#include "TProfile.h"
 
 #include "../tdrstyle_mod15.C"
 #include "../tools.C"
@@ -19,6 +20,7 @@ bool patchECALm3 = false;//true;
 bool plotToyPF = true;
 bool doProduction = true; // produce lines for globalFitSettings.h
 string CorLevel = "L1L2L3";
+bool is1M = false;
 #include "../globalFitL3Res.C" // toyPF parameterizations
 
 
@@ -33,11 +35,24 @@ void fullSimFlavor(string obs, string var);
 void fullSimShapes() {
 
   /*
+  // Basic variations (for minimal viable set)
   fullSimShape("Rjet");
   fullSimShape("chf");
   fullSimShape("nhf");
   fullSimShape("nef");
   */
+
+  // Minimal viable set
+  //fullSimShape("em3"); // ECAL -3% [not in v15, JME?]
+  //fullSimShape("tv402"); // Tracking -3% at ntrk>=2 //ok
+  //fullSimShape("tv3n1"); // Tracking -3% at ntrk==1 //ok
+  //fullSimShape("tv300pn"); // Tracking 0.999^{n-1} (3c) //ok
+  //fullSimShape("hhm3"); // HCAL -3% [not in JME?]
+  //fullSimShape("hhp3"); // HCAL +3% //ok
+  //fullSimShape("hhblue103"); // HCAL blue fit +3% (green) [not in JME?] //ok
+
+  fullSimShape("hw"); // Herwig++ HS1 vs Pythia8 CP5
+
   /*
   Fullsimshape("hp3");
   fullSimShape("hc3");
@@ -69,7 +84,7 @@ void fullSimShapes() {
   //fullSimShape("hb1");
 
   //fullSimShape("tv4");
-  fullSimShape("tv402");
+  //fullSimShape("tv402");
   //fullSimShape("tv404");
   //fullSimShape("tv410");
   //fullSimShape("tv430");
@@ -115,7 +130,9 @@ void fullSimShape(string mode) {
   //TFile *f = new TFile("rootfiles/FullSim_100k_variations_v10.root","READ");
   //TFile *f = new TFile("rootfiles/FullSim_100k_variations_v11.root","READ");
   //TFile *f = new TFile("rootfiles/FullSim_100k_variations_v12.root","READ");
-  TFile *f = new TFile("rootfiles/FullSim_100k_variations_v15.root","READ");
+  //TFile *f = new TFile("rootfiles/FullSim_JME-RunIISummer19UL16_100k_variations_v1.root","READ");
+  //TFile *f = new TFile("rootfiles/FullSim_100k_variations_v15.root","READ");
+  TFile *f = new TFile("rootfiles/JME-RunIISummer19UL16_1M_variations.root","READ"); is1M = true;
   assert(f && !f->IsZombie());
 
   // Open input file for toyPF placeholders
@@ -193,6 +210,7 @@ void fullSimShape(string mode) {
     vars.push_back("tv420"); // Tracking -3% at ntrk>=20 
     vars.push_back("tv430"); // Tracking -3% at ntrk>=30 
     */
+    /*
     // Second tracking family
     vars.push_back("tv4"); // Tracking -3%
     vars.push_back("tv3n1"); // Tracking -3% at ntrk==1 
@@ -200,7 +218,7 @@ void fullSimShape(string mode) {
     vars.push_back("tv300pn"); // Tracking 0.999^{n-1} = 1.000*0.999^{n-1} (3c)
     vars.push_back("tv301pn"); // Tracking 0.999^n = 0.999*0.999^{n-1} (3d)
     vars.push_back("tv310pn"); // Tracking 0.990*0.999^{n-1} (3b)
-
+    */
     /*
     // HCAL families
     vars.push_back("hhm3"); // HCAL -3%
@@ -212,6 +230,15 @@ void fullSimShape(string mode) {
     vars.push_back("hhblue100"); // HCAL blue fit 0%
     vars.push_back("hhblue097"); // HCAL blue fit -3%
     */
+
+    // Minimal viable set
+    vars.push_back("em3"); // ECAL -3% [not in v15, JME?]
+    vars.push_back("tv402"); // Tracking -3% at ntrk>=2
+    vars.push_back("tv3n1"); // Tracking -3% at ntrk==1
+    vars.push_back("tv300pn"); // Tracking 0.999^{n-1} = 1.000*0.999^{n-1} (3c)
+    //vars.push_back("hhm3"); // HCAL -3% [not in JME?]
+    vars.push_back("hhp3"); // HCAL -3% [not in JME?]
+    vars.push_back("hhblue103"); // HCAL blue fit +3% (green) [not in JME?]
   }   
   else { // obsMode
     vars.push_back("Rjet");
@@ -283,7 +310,7 @@ void fullSimShape(string mode) {
   //"+pow(0.15+[3],2))";
   func["hm3"] = clogpol6_30;
   //func["em3"] = "min(-(0.6+[0])+(0.4+[1])*pow(x,-(0.3+[2])),-abs(0.06+[3]))"
-  func["em3"] = clogpol6_60;
+  func["em3"] = clogpol6;//_60;
   //func["em3"] = "-sqrt(pow(max((+0.6+[0])-(0.4+[1])*pow(x,-(0.3+[2])),0.),2)"
   //"+pow(0.06+[3],2))";
   //func["pm3"] = "-0.75+[0]";
@@ -301,7 +328,7 @@ void fullSimShape(string mode) {
   //func["tv2c"] = "[0]-(1.0+[1])*pow(x,-(0.3+[2]))+[3]/log(x)";
   //
   func["tv4"] = clogpol6_20;
-  func["tv402"] = clogpol6_20;
+  func["tv402"] = clogpol6;//_20;
   func["tv404"] = clogpol6_40;//30;
   func["tv405"] = clogpol6_55;
   func["tv410"] = clogpol6_80;//130;
@@ -310,8 +337,8 @@ void fullSimShape(string mode) {
   func["tv430"] = clogpol6_400;
   //
   func["tv3"] = clogpol6_20;
-  func["tv3n1"] = clogpol6_20;
-  func["tv300pn"] = clogpol6_60;
+  func["tv3n1"] = clogpol6;//_20;
+  func["tv300pn"] = clogpol6_30;
   func["tv301pn"] = clogpol6_40;
   func["tv310pn"] = clogpol6_20;
   //
@@ -320,9 +347,11 @@ void fullSimShape(string mode) {
   func["hhred103"] = clogpol6;
   func["hhred100"] = clogpol6;
   func["hhred097"] = clogpol6;
-  func["hhblue103"] = clogpol6;
+  func["hhblue103"] = clogpol6_55;
   func["hhblue100"] = clogpol6;
   func["hhblue097"] = clogpol6;
+  //
+  func["hw"] = clogpol6;
   //
   func["cmb"] = clogpol6;
   // observables
@@ -340,7 +369,7 @@ void fullSimShape(string mode) {
   funcs["chf"]["hb3"] = clogpol6_60;
   funcs["chf"]["hb1"] = clogpol6_60;
   funcs["chf"]["hm3"] = clogpol6_45;
-  funcs["chf"]["em3"] = clogpol6_60;
+  funcs["chf"]["em3"] = clogpol6;//_60;
   funcs["chf"]["pm3"] = clogpol2;
   //funcs["chf"]["tm3"] = clogpol4;
   funcs["chf"]["tv2"] = clogpol6;
@@ -350,7 +379,7 @@ void fullSimShape(string mode) {
   //funcs["chf"]["tv2c"] = clogpol6;
   //
   funcs["chf"]["tv4"] = clogpol6_20;
-  funcs["chf"]["tv402"] = clogpol6_20;
+  funcs["chf"]["tv402"] = clogpol6;//_20;
   funcs["chf"]["tv404"] = clogpol6_40;//30;
   funcs["chf"]["tv405"] = clogpol6_55;
   funcs["chf"]["tv410"] = clogpol6_130;
@@ -359,8 +388,8 @@ void fullSimShape(string mode) {
   funcs["chf"]["tv430"] = clogpol6_400;
   //
   funcs["chf"]["tv3"] = clogpol6_20;
-  funcs["chf"]["tv3n1"] = clogpol6_20;
-  funcs["chf"]["tv300pn"] = clogpol6_60;
+  funcs["chf"]["tv3n1"] = clogpol6;//_20;
+  funcs["chf"]["tv300pn"] = clogpol6_30;
   funcs["chf"]["tv301pn"] = clogpol6_40;
   funcs["chf"]["tv310pn"] = clogpol6_20;
   //
@@ -369,9 +398,11 @@ void fullSimShape(string mode) {
   funcs["chf"]["hhred103"] = clogpol6;
   funcs["chf"]["hhred100"] = clogpol6;
   funcs["chf"]["hhred097"] = clogpol6;
-  funcs["chf"]["hhblue103"] = clogpol6;
+  funcs["chf"]["hhblue103"] = clogpol6_55;
   funcs["chf"]["hhblue100"] = clogpol6;
   funcs["chf"]["hhblue097"] = clogpol6;
+  //
+  funcs["chf"]["hw"] = clogpol6;//2;//4;//6;
   //
   funcs["cmb"]["chf"] = clogpol6;
   //
@@ -381,7 +412,7 @@ void fullSimShape(string mode) {
   funcs["nhf"]["hb3"] = clogpol6_60;
   funcs["nhf"]["hb1"] = clogpol6_60;
   funcs["nhf"]["hm3"] = clogpol6_45;
-  funcs["nhf"]["em3"] = clogpol6_60;
+  funcs["nhf"]["em3"] = clogpol6;//_60;
   funcs["nhf"]["pm3"] = clogpol2;
   //funcs["nhf"]["tm3"] = clogpol4;
   funcs["nhf"]["tv2"] = clogpol6;
@@ -391,7 +422,7 @@ void fullSimShape(string mode) {
   //funcs["nhf"]["tv2c"] = clogpol6;
   //
   funcs["nhf"]["tv4"] = clogpol6_20;
-  funcs["nhf"]["tv402"] = clogpol6_20;
+  funcs["nhf"]["tv402"] = clogpol6;//_20;
   funcs["nhf"]["tv404"] = clogpol6_40;//30;
   funcs["nhf"]["tv405"] = clogpol6_55;
   funcs["nhf"]["tv410"] = clogpol6_130;
@@ -400,8 +431,8 @@ void fullSimShape(string mode) {
   funcs["nhf"]["tv430"] = clogpol6_400;
   //
   funcs["nhf"]["tv3"] = clogpol6_20;
-  funcs["nhf"]["tv3n1"] = clogpol6_20;
-  funcs["nhf"]["tv300pn"] = clogpol6_60;
+  funcs["nhf"]["tv3n1"] = clogpol6;//_20;
+  funcs["nhf"]["tv300pn"] = clogpol6_30;
   funcs["nhf"]["tv301pn"] = clogpol6_40;
   funcs["nhf"]["tv310pn"] = clogpol6_20;
   //
@@ -410,9 +441,11 @@ void fullSimShape(string mode) {
   funcs["nhf"]["hhred103"] = clogpol6;
   funcs["nhf"]["hhred100"] = clogpol6;
   funcs["nhf"]["hhred097"] = clogpol6;
-  funcs["nhf"]["hhblue103"] = clogpol6;
+  funcs["nhf"]["hhblue103"] = clogpol6_55;
   funcs["nhf"]["hhblue100"] = clogpol6;
   funcs["nhf"]["hhblue097"] = clogpol6;
+  //
+  funcs["nhf"]["hw"] = clogpol6;//4;//6;
   //
   funcs["cmb"]["nhf"] = clogpol6;
   //
@@ -422,7 +455,7 @@ void fullSimShape(string mode) {
   funcs["nef"]["hb3"] = clogpol6_60;
   funcs["nef"]["hb1"] = clogpol6_60;
   funcs["nef"]["hm3"] = clogpol6_45;
-  funcs["nef"]["em3"] = clogpol6_60;
+  funcs["nef"]["em3"] = clogpol6;//_60;
   funcs["nef"]["pm3"] = clogpol2;
   //funcs["nef"]["tm3"] = clogpol4;
   funcs["nef"]["tv2"] = clogpol6;
@@ -432,7 +465,7 @@ void fullSimShape(string mode) {
   //funcs["nef"]["tv2c"] = clogpol6;
   //
   funcs["nef"]["tv4"] = clogpol6_20;
-  funcs["nef"]["tv402"] = clogpol6_20;
+  funcs["nef"]["tv402"] = clogpol6;//_20;
   funcs["nef"]["tv404"] = clogpol6_40;//30;
   funcs["nef"]["tv405"] = clogpol6_55;
   funcs["nef"]["tv410"] = clogpol6_130;
@@ -441,8 +474,8 @@ void fullSimShape(string mode) {
   funcs["nef"]["tv430"] = clogpol6_400;
   //
   funcs["nef"]["tv3"] = clogpol6_20;
-  funcs["nef"]["tv3n1"] = clogpol6_20;
-  funcs["nef"]["tv300pn"] = clogpol6_60;
+  funcs["nef"]["tv3n1"] = clogpol6;//_20;
+  funcs["nef"]["tv300pn"] = clogpol6_30;
   funcs["nef"]["tv301pn"] = clogpol6_40;
   funcs["nef"]["tv310pn"] = clogpol6_20;
   //
@@ -451,9 +484,11 @@ void fullSimShape(string mode) {
   funcs["nef"]["hhred103"] = clogpol6;
   funcs["nef"]["hhred100"] = clogpol6;
   funcs["nef"]["hhred097"] = clogpol6;
-  funcs["nef"]["hhblue103"] = clogpol6;
+  funcs["nef"]["hhblue103"] = clogpol6_55;
   funcs["nef"]["hhblue100"] = clogpol6;
   funcs["nef"]["hhblue097"] = clogpol6;
+  //
+  funcs["nef"]["hw"] = clogpol6;//4;//6;
   //
   funcs["cmb"]["nef"] = clogpol6;
 
@@ -497,6 +532,7 @@ void fullSimShape(string mode) {
   toyf["Rjet"]["tv3b"] = ftd; assert(ftd);
   toyf["Rjet"]["tv2b"] = ftd; assert(ftd);
   toyf["Rjet"]["tv2c"] = ftd; assert(ftd);
+  toyf["Rjet"]["hw"] = fhw; assert(fhw);
   toyf["Rjet"]["cmb"] = 0;
 
   toyf["chf"]["hp3"] = 0;
@@ -515,6 +551,7 @@ void fullSimShape(string mode) {
   toyf["chf"]["tv3b"] = _mpf["chf"][0]; 
   toyf["chf"]["tv2b"] = _mpf["chf"][0]; 
   toyf["chf"]["tv2c"] = _mpf["chf"][0]; 
+  toyf["chf"]["hw"] = _mpf["chf"][5]; 
   toyf["chf"]["cmb"] = 0;
   //
   toyf["nhf"]["hp3"] = 0;
@@ -533,6 +570,7 @@ void fullSimShape(string mode) {
   toyf["nhf"]["tv3b"] = _mpf["nhf"][0]; 
   toyf["nhf"]["tv2b"] = _mpf["nhf"][0]; 
   toyf["nhf"]["tv2c"] = _mpf["nhf"][0]; 
+  toyf["nhf"]["hw"] = _mpf["nhf"][5]; 
   toyf["nhf"]["cmb"] = 0;
   //
   toyf["nef"]["hp3"] = 0;
@@ -551,6 +589,7 @@ void fullSimShape(string mode) {
   toyf["nef"]["tv3b"] = _mpf["nef"][0]; 
   toyf["nef"]["tv2b"] = _mpf["nef"][0]; 
   toyf["nef"]["tv2c"] = _mpf["nef"][0]; 
+  toyf["nef"]["hw"] = _mpf["nef"][5]; 
   toyf["nef"]["cmb"] = 0;
 
   // Map new fullSimShapes
@@ -568,7 +607,8 @@ void fullSimShape(string mode) {
   name["hb1"] = "customHCALblue1";
   name["hm3"] = "HadHCALm3";
   //name["em3"] = "HadECALm3"; // toyPF placeholder
-  name["em3"] = "ECALm3"; // toyPF placeholder
+  //name["em3"] = "ECALm3"; // toyPF placeholder // old
+  name["em3"] = "ecalm3"; // toyPF placeholder // new
   name["pm3"] = "Photonm3";  // toyPF placeholder
   name["tm3"] = "Trkm3";
   name["tv2"] = "Trkv2";
@@ -597,9 +637,12 @@ void fullSimShape(string mode) {
   name["hhred103"] = "customHCALredNptcl";
   name["hhred100"] = "customHCALred1";
   name["hhred097"] = "customHCALred097";
-  name["hhblue103"] = "customHCALgreenNptcl";
+  //name["hhblue103"] = "customHCALgreenNptcl"; // "green" in old 100k samples
+  name["hhblue103"] = "hadHcalblue103"; // "green" in new 1M samples
   name["hhblue100"] = "customHCALblue1";
   name["hhblue097"] = "customHCALblue097";
+  //
+  name["hw"] = "Herwig";
   //
   name["cmb"] = "Combined";
   // observables
@@ -653,6 +696,8 @@ void fullSimShape(string mode) {
   label["hhblue100"] = "HCAL Blue 0%";
   label["hhblue097"] = "HCAL Blue -3%";
   //
+  label["hw"] = "Herwig++ HS1";
+  //
   label["cmb"] = "Combined";
   // observables
   label["Rjet"] = "Jet response (R_{jet})";
@@ -703,6 +748,8 @@ void fullSimShape(string mode) {
   marker["hhblue103"] = kFullDiamond;
   marker["hhblue100"] = kOpenDiamond;
   marker["hhblue097"] = kFullDiamond;
+  //
+  marker["hw"] = kFullDiamond;
   //
   marker["cmb"] = kFullCircle;
   // observables
@@ -755,6 +802,8 @@ void fullSimShape(string mode) {
   color["hhblue100"] = kBlue;
   color["hhblue097"] = kBlue-8;
   //
+  color["hw"] = kMagenta+1;
+  //
   color["cmb"] = kBlack;
   // observables
   color["Rjet"] = kBlack;
@@ -803,7 +852,104 @@ void fullSimShape(string mode) {
       //hv->Scale(100.); scaleError(hv,0.1);
       //}
     }
+    else if (mode=="hw") {
+      cout << "Missing " << Form("%s_%s",cobs,csys) << endl << flush;
+      cout << "Load Herwig+Pythia from separate files" << endl << flush;
+      TDirectory *curdir = gDirectory;
+      string obs2 = (obs=="gammaf" ? "nef" : obs);
+      const char *cobs2 = obs2.c_str();
+      
+      if (obs=="Rjet") {
+	TFile *fp1 = new TFile("rootfiles/output-P8CP5-1-EOY17_DE.root","READ");
+	assert(fp1 && !fp1->IsZombie());
+	TFile *fh1 = new TFile("rootfiles/output-HW-1-EOY17_DE.root","READ");
+	assert(fh1 && !fh1->IsZombie());
+	curdir->cd();
+
+	// options: p2r_guw and p2r_g (guw is smoother)
+	TProfile *pp1 = (TProfile*)fp1->Get("Standard/Eta_0.0-1.3/mc/p2r_guw");
+	assert(pp1);
+	TProfile *ph1 = (TProfile*)fh1->Get("Standard/Eta_0.0-1.3/mc/p2r_guw");
+	assert(ph1);
+
+	hv = ph1->ProjectionX(Form("hw_%s",cobs));
+	hv->Divide(pp1);
+	//hv->Add(pp1,-1);//pp1->ProjectionX("pp1"),-1);
+	//hv->Scale(100.);
+      }
+      else {
+	TFile *fp2 =new TFile("rootfiles/output-P8CP5-2b-EOY17_DE.root","READ");
+	assert(fp2 && !fp2->IsZombie());
+	TFile *fh2 =new TFile("rootfiles/output-HW-2b-EOY17_DE.root","READ");
+	assert(fh2 && !fh2->IsZombie());
+	curdir->cd();
+	
+	const char *ctp2 = "tp";
+	TProfile *pp2 = (TProfile*)fp2->Get(Form("Standard/Eta_0.0-1.3/p%s%s",
+						 cobs2,ctp2));
+	assert(pp2);
+	TProfile *ph2 = (TProfile*)fh2->Get(Form("Standard/Eta_0.0-1.3/p%s%s",
+						 cobs2,ctp2));
+	assert(ph2);
+
+	hv = ph2->ProjectionX(Form("hw_%s",cobs));
+	hv->Add(pp2,-1);//pp2->ProjectionX("pp2"),-1);
+	//hv->Scale(100.);
+      }
+      assert(hv);
+
+      // Clean out pT<25 GeV which behaves odd for response (edge effects?)
+      // Also scale error by 10, if not response, or high pT NHF (undone later)
+      for (int i = 1; i != hv->GetNbinsX()+1; ++i) {
+	double pt = hv->GetBinCenter(i);
+	if (obs=="Rjet" && pt < 25.) {
+	  hv->SetBinContent(i, 0);
+	  hv->SetBinError(i, 0);
+	}
+	if (obs!="Rjet") {
+	  hv->SetBinError(i, hv->GetBinError(i)*10);
+	}
+	if (obs=="nhf" && pt>1500) { // reduce error again
+	  hv->SetBinError(i, hv->GetBinError(i)*0.5);
+	}
+      }
+      // Set guide points for low pT shapes
+      bool setGuidePoints = true;
+      if (setGuidePoints) {
+	int i17 = hv->FindBin(17.);
+	int i20 = hv->FindBin(20.);
+	int i3400 = hv->FindBin(3400.);
+	if (obs=="Rjet") {
+	  hv->SetBinContent(i3400, 1.0010);
+	  hv->SetBinError(i3400, 0.0005);
+	}
+	if (obs=="chf") {
+	  hv->SetBinContent(i17, 0.0025);
+	  hv->SetBinError(i17, 0.0025);
+	  hv->SetBinContent(i20, 0.0022);
+	  hv->SetBinError(i20, 0.0025);
+	  hv->SetBinContent(i3400, 0.012);
+	  hv->SetBinError(i3400, 0.005);
+	}
+	if (obs=="nhf") {
+	  hv->SetBinContent(i17, -0.0050);
+	  hv->SetBinError(i17, 0.0025);
+	  hv->SetBinContent(i20, -0.0047);
+	  hv->SetBinError(i20, 0.0025);
+	  hv->SetBinContent(i3400, -0.012);
+	  hv->SetBinError(i3400, 0.005);
+	}
+	//if (obs=="gammaf") {
+	//hv->SetBinContent(i20, 0.0025);
+	//hv->SetBinError(i20, 0.001);
+	//hv->SetBinContent(i22, 0.0025);
+	//hv->SetBinError(i22, 0.001);
+	//}
+      }
+
+    }
     else { // toyPF placeholders
+      cout << "Missing " << Form("%s_%s",cobs,csys) << endl << flush;
       assert(false);
       //hv = (TH1D*)ftoy->Get(Form("h_%s_%s",cobs,csys));
       //if (!hv) hv = (TH1D*)ftoy->Get(Form("h%s_%s",cobs,csys));
@@ -824,8 +970,8 @@ void fullSimShape(string mode) {
 
     // Set 15-20 GeV to zero
     string sv2 = (sysMode ? sv : mode);    
-    if (TString(sv2.c_str()).Contains("tv4") ||
-	TString(sv2.c_str()).Contains("tv3")) {
+    if ((TString(sv2.c_str()).Contains("tv4") ||
+	 TString(sv2.c_str()).Contains("tv3"))  && !is1M) {
       if (sv2!="tv402") hv->SetBinContent(1,0.);
       bool isn1 = (sv2=="tv4" || sv2=="tv3n1" ||
 		   sv2=="tv301pn" || sv2=="tv310pn");
@@ -869,7 +1015,7 @@ void fullSimShape(string mode) {
       if (sv2=="tv402") hv->SetBinError(1,0.05);
     }
     // Constraint 15-25 GeV for HCAL impacts
-    if (TString(sv2.c_str()).Contains("hh")) {
+    if (TString(sv2.c_str()).Contains("hh") && !is1M) {
       hv->SetBinContent(1,0.);
       // Boundaries
       if (sv2=="hhp3" && obs=="Rjet") hv->SetBinContent(1,+0.25);
@@ -1036,13 +1182,16 @@ void fullSimShape(string mode) {
       fits[mode][sv] = f1;
     }
 
-    if (plotToyPF && toyf[mode][sv]!=0) {
-      TF1 *f1 = toyf[mode][sv];
+    if (plotToyPF && toyf[sv][mode]!=0) {
+      cout << "Plot toy shapes" << endl << flush;
+      cout << "sv = " << sv << ", mode = " << mode << endl << flush;
+      TF1 *f1 = toyf[sv][mode];
       f1->SetLineColor(color[sv]);
       f1->SetLineWidth(3);
       f1->SetLineStyle(kDashed);
       f1->Draw("SAME");
     }
+
   } // for i
 
   // Check that cumulative sum of PF fits is small (<0.1%) to avoid biases
