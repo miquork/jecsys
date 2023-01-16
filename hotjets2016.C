@@ -2,6 +2,8 @@
 #include "TH2D.h"
 #include "TMath.h"
 #include "TBox.h"
+#include "TGraph.h"
+#include "TMath.h"
 
 #include "tdrstyle_mod15.C"
 
@@ -50,9 +52,11 @@ void hotjets2016() {
   //TFile *f4 = new TFile("rootfiles/hotjets-UL16runGH.root","READ");
   assert(f4 && !f4->IsZombie());
 
-  TFile *fecal = new TFile("rootfiles/UL2018_badchannels.root","READ");
+  TFile *fecal = new TFile("rootfiles/UL2018_badchannels_v1.root","READ");
   assert(fecal && !fecal->IsZombie());
 
+  TFile *febee = new TFile("rootfiles/UL2016_badchannels.root","READ");
+  assert(febee && !febee->IsZombie());
 
   curdir->cd();
 
@@ -67,6 +71,8 @@ void hotjets2016() {
   TH2D *h2mc = (TH2D*)fmc->Get("h2hotfilter"); assert(h2mc);
 
   TH2D *h2ecal = (TH2D*)fecal->Get("ecalmap"); assert(h2ecal);
+  TH2D *h2eb = (TH2D*)febee->Get("ebmap_etaphi"); assert(h2eb);
+  TGraph *h2ee = (TGraph*)febee->Get("eemap_etaphi"); assert(h2ee);
 
   TH1D *h = new TH1D("h",";#eta_{jet};#phi_{jet}",100,-4.7,4.7);
   h->SetMaximum(+TMath::Pi());
@@ -156,6 +162,22 @@ void hotjets2016() {
   h2ecal->SetFillStyle(1001);
   h2ecal->SetFillColor(kNone);
 
+  rezero(h2eb);
+  h2eb->GetZaxis()->SetRangeUser(-10,10);
+  h2eb->SetLineColor(kNone);//kBlue);
+  h2eb->SetLineStyle(kNone);
+  h2eb->SetFillStyle(1001);
+  h2eb->SetFillColor(kNone);
+
+  /*
+  rezero(h2ee);
+  h2ee->GetZaxis()->SetRangeUser(-10,10);
+  h2ee->SetLineColor(kNone);//kBlue);
+  h2ee->SetLineStyle(kNone);
+  h2ee->SetFillStyle(1001);
+  h2ee->SetFillColor(kNone);
+  */
+
   // combination of regions
   TH2D *h2sum = (TH2D*)h2bcd->Clone("h2hot_ul16");
   h2sum->Add(h2bcd);
@@ -219,7 +241,19 @@ void hotjets2016() {
 
   //h2ecal->DrawClone("SAMEBOX");
   h2ecal->SetFillColorAlpha(kBlue,0.50);//kAzure-9, 0.35); // 35% transparent
-  h2ecal->Draw("SAMEBOX");
+  //h2ecal->Draw("SAMEBOX");
+
+  //h2eb->DrawClone("SAMEBOX");
+  h2eb->SetFillColorAlpha(kBlue,0.50);//kAzure-9, 0.35); // 35% transparent
+  h2eb->Draw("SAMEBOX");
+
+  //h2ee->DrawClone("SAMEBOX");
+  //h2ee->SetFillColorAlpha(kBlue,0.50);//kAzure-9, 0.35); // 35% transparent
+  //h2ee->Draw("SAMEBOX");
+  h2ee->SetMarkerStyle(kFullSquare);
+  h2ee->SetMarkerColor(kBlue);
+  h2ee->SetMarkerSize(0.25);//0.20);
+  h2ee->Draw("SAMEP");
 
   h2sum->SetLineColor(kBlack);
   h2sum->SetLineStyle(kNone);
@@ -473,6 +507,33 @@ void hotjets2016() {
   QIE11.SetLineColor(kMagenta+1);
   QIE11.Draw("SAME");
 
+  // Read in HO map and plot it on top
+  TFile *fo = new TFile("rootfiles/HcalCalibrations_Run281639withHO.root",
+			"READ");
+  assert(fo && !fo->IsZombie());
+  curdir->cd();
+  TH2D *h2o = (TH2D*)fo->Get("HO_d4"); assert(h2o);
+  TH2D *h2ho = (TH2D*)h2sum->Clone("h2hot_ho"); h2ho->Reset();
+  for (int i = 1; i != h2sum->GetNbinsX()+1; ++i) {
+    for (int j = 1; j != h2sum->GetNbinsY()+1; ++j) {
+      double eta = h2sum->GetXaxis()->GetBinCenter(i);
+      double phi = h2sum->GetYaxis()->GetBinCenter(j);
+      if (phi<0) phi += TMath::TwoPi();
+      int iphi = int(phi/dphi)+1;
+      //int ieta = int(TMath::Sign(eta,1))*(int(fabs(eta)/deta)+1); // odd?
+      int ieta = int(eta/deta);
+      if (ieta>=0) ++ieta;
+      int ibin = h2o->FindBin(ieta,iphi);
+      if (h2o->GetBinContent(ibin)>0.020) h2ho->SetBinContent(i,j,10);
+    } // for j
+  } // for i
+  c1->cd();
+  h2ho->GetZaxis()->SetRangeUser(-10,10);
+  h2ho->SetFillStyle(1001);
+  h2ho->SetLineColor(kGreen+2);
+  h2ho->SetFillColorAlpha(kGreen+1, 0.9); // 35% transparent
+  h2ho->Draw("SAMEBOX");
+  leg->AddEntry(h2ho,"HO map","F");
 
   TH2D *h2hbm2 = (TH2D*)h2sum->Clone("h2hot_hbm2"); h2hbm2->Reset();
   TH2D *h2hbp12 = (TH2D*)h2sum->Clone("h2hot_hbp12"); h2hbp12->Reset();
@@ -519,5 +580,6 @@ void hotjets2016() {
   h2hbp12->Write();
   h2qie11->Write();
   h2mchot->Write();
+  h2ho->Write();
   fout->Close();
 }
