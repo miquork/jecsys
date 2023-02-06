@@ -33,7 +33,7 @@
 //bool useGluonJES = false;// DP_2021 // (def:true)
 bool useGluonJES = true; // (def:true)
 // Use shift from global fit to adjust unclustered response (362.3->360.9)
-bool useGlobalFitRu = true; // (def:true)
+bool useGlobalFitRu = false; // (def:false)
 double gJESpt = 15.; // reference pT for gluonJES (def:45)
 
 // Find entry in graph correspondign to this histogram bin
