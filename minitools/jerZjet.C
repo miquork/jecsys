@@ -3,30 +3,74 @@
 #include "TGraphErrors.h"
 #include "TGraphAsymmErrors.h"
 #include "TH2D.h"
+#include "TH3D.h"
 
 #include "../tdrstyle_mod15.C"
 
+void jerZjets(double etamin, double etamax);
 void jerZjet() {
+  jerZjets(0,1.3);
+}
+
+void jerZjets(double etamin, double etamax) {
   
   setTDRStyle();
   TDirectory *curdir = gDirectory;
-  
-
-
+ 
   //TFile *f = new TFile("rootfiles/jme_bplusZ_merged_v40_muon2018.root");
-  TFile *f = new TFile("rootfiles/jme_bplusZ_merged_v41_muon2018.root");
+  //TFile *f = new TFile("rootfiles/jme_bplusZ_merged_v41_muon2018.root");
+  //TFile *f = new TFile("rootfiles/jme_bplusZ_merged_v41b_muon2018.root");
+  TFile *f = new TFile("rootfiles/jme_bplusZ_merged_v41c_muon2018.root");
   assert(f && !f->IsZombie());
   
   f->cd("data");
-  gDirectory->cd("eta_00_13");
+  //gDirectory->cd("eta_00_13"); // v41
   TDirectory *dd = gDirectory;
 
   f->cd("mc");
-  gDirectory->cd("eta_00_13");
+  //gDirectory->cd("eta_00_13"); // v41
   TDirectory *dm = gDirectory;
 
   curdir->cd();
-  
+
+  // New v41b variant with TH3D (v41b only positive eta, 41c fixed)
+  TH3D *h3dr = (TH3D*)dd->Get("h3D_Zpt_RMPF_eta_alpha100"); assert(h3dr);
+  TH3D *h3dx = (TH3D*)dd->Get("h3D_Zpt_RMPFx_eta_alpha100"); assert(h3dx);
+  TH3D *h3mr = (TH3D*)dm->Get("h3D_Zpt_RMPF_eta_alpha100"); assert(h3mr);
+  TH3D *h3mx = (TH3D*)dm->Get("h3D_Zpt_RMPFx_eta_alpha100"); assert(h3mx);
+
+  int ieta1 = h3dr->GetZaxis()->FindBin(etamin+1e-2);
+  int ieta2 = h3dr->GetZaxis()->FindBin(etamax-1e-2);
+  //
+  h3dr->GetZaxis()->SetRange(ieta1,ieta2); // for Project3D
+  h3dx->GetZaxis()->SetRange(ieta1,ieta2); // for Project3D
+  TH2D *h2dr = (TH2D*)h3dr->Project3D("h2dr_yx");
+  TH2D *h2dx = (TH2D*)h3dx->Project3D("h2dx_yx");
+  TH2D *h2dm = (TH2D*)dd->Get("eta_00_13/h_Zpt_mZ_alpha100_eta_00_13");
+  assert(h2dm);
+  //
+  h3mr->GetZaxis()->SetRange(ieta1,ieta2); // for Project3D
+  h3mx->GetZaxis()->SetRange(ieta1,ieta2); // for Project3D
+  TH2D *h2mr = (TH2D*)h3mr->Project3D("h2mr_yx");
+  TH2D *h2mx = (TH2D*)h3mx->Project3D("h2mx_yx");
+  TH2D *h2mm = (TH2D*)dm->Get("eta_00_13/h_Zpt_mZ_alpha100_eta_00_13");
+  assert(h2mm);
+
+  // v41b,c old variant
+  /*
+  TH2D *h2dr = (TH2D*)dd->Get("h_Zpt_RMPF_alpha100_eta_00_13");
+  assert(h2dr);
+  TH2D *h2dx = (TH2D*)dd->Get("h_Zpt_RMPFx_alpha100_eta_00_13");
+  assert(h2dx);
+  TH2D *h2dm = (TH2D*)dd->Get("h_Zpt_mZ_alpha100_eta_00_13"); assert(h2dm);
+  //
+  TH2D *h2mr = (TH2D*)dm->Get("h_Zpt_RMPF_alpha100_eta_00_13");
+  assert(h2mr);
+  TH2D *h2mx = (TH2D*)dm->Get("h_Zpt_RMPFx_alpha100_eta_00_13");
+  assert(h2mx);
+  TH2D *h2mm = (TH2D*)dm->Get("h_Zpt_mZ_alpha100_eta_00_13"); assert(h2mm);
+  */
+
   // Missing j2pt_pt15 variants for MPFx, RMPFjet1 and RMPFjet1x in v40
   /*
   TH2D *h2dr = (TH2D*)dd->Get("h_Zpt_RMPF_alpha100_eta_00"); assert(h2dr);
@@ -37,6 +81,7 @@ void jerZjet() {
   TH2D *h2mx = (TH2D*)dm->Get("h_Zpt_RMPFx_alpha100_eta_00"); assert(h2mx);
   TH2D *h2mm = (TH2D*)dm->Get("h_Zpt_mZ_alpha100_eta_00"); assert(h2mm);
   */
+  /*
   TH2D *h2dr = (TH2D*)dd->Get("h_Zpt_RMPF_alpha30_eta_00"); assert(h2dr);
   TH2D *h2dx = (TH2D*)dd->Get("h_Zpt_RMPFx_alpha30_eta_00"); assert(h2dx);
   TH2D *h2dm = (TH2D*)dd->Get("h_Zpt_mZ_alpha30_eta_00"); assert(h2dm);
@@ -44,6 +89,7 @@ void jerZjet() {
   TH2D *h2mr = (TH2D*)dm->Get("h_Zpt_RMPF_alpha30_eta_00"); assert(h2mr);
   TH2D *h2mx = (TH2D*)dm->Get("h_Zpt_RMPFx_alpha30_eta_00"); assert(h2mx);
   TH2D *h2mm = (TH2D*)dm->Get("h_Zpt_mZ_alpha30_eta_00"); assert(h2mm);
+  */
 
   // j2pt_pt15 variants added in v41 (poor statistics)
   /*
@@ -71,7 +117,17 @@ void jerZjet() {
   TH1D *h1dm = h2dm->ProjectionX("h1dm"); h1dm->Reset();
   TH1D *h1d = h2dr->ProjectionX("h1d"); h1d->Reset();
   assert(h1dx->GetNbinsX()==h1dr->GetNbinsX());
-  assert(h1dm->GetNbinsX()==h1dr->GetNbinsX());
+  //assert(h1dm->GetNbinsX()==h1dr->GetNbinsX());
+  if (!(h1dm->GetNbinsX()==h1dr->GetNbinsX())) {
+    cout << h1dm->GetNbinsX() << " vs "
+	 << h1dr->GetNbinsX() << ": ["
+	 << h1dm->GetXaxis()->GetBinLowEdge(1) << ","
+	 << h1dm->GetXaxis()->GetBinLowEdge(h1dm->GetNbinsX()+1) << "], ["
+	 << h1dr->GetXaxis()->GetBinLowEdge(1) << ","
+	 << h1dr->GetXaxis()->GetBinLowEdge(h1dr->GetNbinsX()+1) << "]"
+	 << endl << flush;
+    assert(h1dm->GetNbinsX()==h1dr->GetNbinsX());
+  }
   TH1D *h1mr = h2mr->ProjectionX("h1mr"); h1mr->Reset();
   TH1D *h1mx = h2mx->ProjectionX("h1mx"); h1mx->Reset();
   TH1D *h1mm = h2mm->ProjectionX("h1mm"); h1mm->Reset();
