@@ -70,8 +70,8 @@ void drawAndrisFlavor(string smc="Pythia") {
     gr2 = (TGraphErrors*)f->Get("QCD-MG-Her/response_ud_eta0p0to1p305");assert(gr2);
   }
   else {
-    gr1 = (TGraphErrors*)f->Get("DY-MG-Py/response_ud_eta0p0to1p305");assert(gr1);
-    gr2 = (TGraphErrors*)f->Get("QCD-MG-Py/response_ud_eta0p0to1p305");assert(gr2);
+    gr1 = (TGraphErrors*)f->Get("DY-MG-Py/response_u_eta0p0to1p305");assert(gr1);
+    gr2 = (TGraphErrors*)f->Get("QCD-MG-Py/response_u_eta0p0to1p305");assert(gr2);
   }
     
   // Remove biased range and large error bars
